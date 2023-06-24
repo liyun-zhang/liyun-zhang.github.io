@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="DatabaseWhy shouldn’t we just store database in a flat file like CSV that we manage ourselve in our application code? The first concern is data integrity: How to ensure that the data is make sense to">
+<meta property="og:type" content="article">
+<meta property="og:title" content="01 Relational Model">
+<meta property="og:url" content="http://liyun-zhang.github.io/2023/06/24/15445/01-Relational-Model/index.html">
+<meta property="og:site_name" content="LiyunZhang">
+<meta property="og:description" content="DatabaseWhy shouldn’t we just store database in a flat file like CSV that we manage ourselve in our application code? The first concern is data integrity: How to ensure that the data is make sense to">
+<meta property="og:locale">
+<meta property="article:published_time" content="2023-06-24T07:14:56.000Z">
+<meta property="article:modified_time" content="2023-06-24T08:59:22.697Z">
+<meta property="article:author" content="LiyunZhang">
+<meta property="article:tag" content="Database system">
+<meta property="article:tag" content="Relational model">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://liyun-zhang.github.io/2023/06/24/15445/01-Relational-Model/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-Hans","comments":true,"permalink":"http://liyun-zhang.github.io/2023/06/24/15445/01-Relational-Model/","path":"2023/06/24/15445/01-Relational-Model/","title":"01 Relational Model"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>01 Relational Model | LiyunZhang</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">LiyunZhang</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Database"><span class="nav-number">1.</span> <span class="nav-text">Database</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Why-shouldn%E2%80%99t-we-just-store-database-in-a-flat-file-like-CSV-that-we-manage-ourselve-in-our-application-code"><span class="nav-number">1.1.</span> <span class="nav-text">Why shouldn’t we just store database in a flat file like CSV that we manage ourselve in our application code?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-does-DBMS-and-data-models-do"><span class="nav-number">1.2.</span> <span class="nav-text">What does DBMS and data models do?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-kinds-of-data-models-are-there"><span class="nav-number">1.3.</span> <span class="nav-text">What kinds of data models are there?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-does-document-data-model-store-data"><span class="nav-number">1.4.</span> <span class="nav-text">How does document data model store data?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Relational-model"><span class="nav-number">2.</span> <span class="nav-text">Relational model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#How-are-data-stored"><span class="nav-number">2.1.</span> <span class="nav-text">How are data stored?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-is-primary-keys-and-foreign-keys"><span class="nav-number">2.2.</span> <span class="nav-text">What is primary keys and foreign keys?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-is-supported-in-relational-algebra"><span class="nav-number">2.3.</span> <span class="nav-text">What is supported in relational algebra?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Morden-SQL"><span class="nav-number">3.</span> <span class="nav-text">Morden SQL</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#What-is-provided-in-a-relational-language"><span class="nav-number">3.1.</span> <span class="nav-text">What is provided in a relational language?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Aggregations-and-Group-By"><span class="nav-number">3.2.</span> <span class="nav-text">Aggregations and Group By</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#What-are-aggregations"><span class="nav-number">3.2.1.</span> <span class="nav-text">What are aggregations?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-to-output-other-columns-with-aggregations"><span class="nav-number">3.2.2.</span> <span class="nav-text">How to output other columns with aggregations?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-string-operations-are-supported"><span class="nav-number">3.3.</span> <span class="nav-text">What string operations are supported?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Output"><span class="nav-number">3.4.</span> <span class="nav-text">Output</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Where-can-we-redirect-outputs"><span class="nav-number">3.4.1.</span> <span class="nav-text">Where can we redirect outputs?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-can-we-control-the-outputs"><span class="nav-number">3.4.2.</span> <span class="nav-text">How can we control the outputs?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-if-we-need-temporary-relation-in-a-query"><span class="nav-number">3.5.</span> <span class="nav-text">What if we need temporary relation in a query?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-does-window-functions-work"><span class="nav-number">3.6.</span> <span class="nav-text">How does window functions work?</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">LiyunZhang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/06/24/15445/01-Relational-Model/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="01 Relational Model | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          01 Relational Model
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2023-06-24 15:14:56 / Modified: 16:59:22" itemprop="dateCreated datePublished" datetime="2023-06-24T15:14:56+08:00">2023-06-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="Database"><a href="#Database" class="headerlink" title="Database"></a>Database</h1><h2 id="Why-shouldn’t-we-just-store-database-in-a-flat-file-like-CSV-that-we-manage-ourselve-in-our-application-code"><a href="#Why-shouldn’t-we-just-store-database-in-a-flat-file-like-CSV-that-we-manage-ourselve-in-our-application-code" class="headerlink" title="Why shouldn’t we just store database in a flat file like CSV that we manage ourselve in our application code?"></a>Why shouldn’t we just store database in a flat file like CSV that we manage ourselve in our application code?</h2><ol>
+<li>The first concern is data integrity:<ul>
+<li>How to ensure that the data is make sense to the design schema? </li>
+<li>How to prevent invalid data and malicious attack? </li>
+<li>And the management of deleting some entries causing deleting entries in other databases is pain. </li>
+</ul>
+</li>
+<li>Another problem is implementation:<ul>
+<li>How to find a record?</li>
+<li>How to share database between applications?</li>
+<li>How to handle concurrent writes?</li>
+</ul>
+</li>
+<li>Also concerned about durability:<ul>
+<li>What if machine crashed? </li>
+<li>How to replicate database?</li>
+</ul>
+</li>
+</ol>
+<h2 id="What-does-DBMS-and-data-models-do"><a href="#What-does-DBMS-and-data-models-do" class="headerlink" title="What does DBMS and data models do?"></a>What does DBMS and data models do?</h2><ol>
+<li><p>DBMS supports the definition, creation, querying, update, and administration of databases in accordance with some data model. </p>
+<ul>
+<li><p>The physical storage is left up to the DBMS implementation. </p>
+</li>
+<li><p>Programmers access data through high-level language, DBMS figures out best execution strategy. </p>
+</li>
+</ul>
+</li>
+<li><p>A data model is a collection of concepts for describing the data in a database. </p>
+<ul>
+<li>A schema is a description of a particular collection of data using a given data model. </li>
+</ul>
+</li>
+</ol>
+<h2 id="What-kinds-of-data-models-are-there"><a href="#What-kinds-of-data-models-are-there" class="headerlink" title="What kinds of data models are there?"></a>What kinds of data models are there?</h2><ol>
+<li>The most used is Relational model. </li>
+<li>One class called NoSQL: <ul>
+<li>Key/Value</li>
+<li>Graph</li>
+<li>Document / Object</li>
+<li>Wide-Column / Column-family</li>
+</ul>
+</li>
+<li>For machine learning, there are Array / Matrix / Vectors</li>
+<li>The obsolete or legacy ones are:<ul>
+<li>Hierarchical</li>
+<li>Network</li>
+<li>Multi-Value</li>
+</ul>
+</li>
+</ol>
+<h2 id="How-does-document-data-model-store-data"><a href="#How-does-document-data-model-store-data" class="headerlink" title="How does document data model store data?"></a>How does document data model store data?</h2><ol>
+<li>It embeds data hierarchy into a single object like JSON, or XML, etc. </li>
+<li>The problem is similar with the aforementioned store database in a flat file like CSV. </li>
+</ol>
+<h1 id="Relational-model"><a href="#Relational-model" class="headerlink" title="Relational model"></a>Relational model</h1><h2 id="How-are-data-stored"><a href="#How-are-data-stored" class="headerlink" title="How are data stored?"></a>How are data stored?</h2><ol>
+<li>Data are stored in simple data structures called relations. </li>
+<li>A relation is an <strong>unordered set</strong> that contain the relationship of attributes that represent entities. <ul>
+<li>A n-ary relation is  a table with n columns. </li>
+</ul>
+</li>
+<li>A tuple is a set of attribute values (domain) in the relation. <ul>
+<li>NULL is a member of every domain, if allowed. </li>
+</ul>
+</li>
+</ol>
+<h2 id="What-is-primary-keys-and-foreign-keys"><a href="#What-is-primary-keys-and-foreign-keys" class="headerlink" title="What is primary keys and foreign keys?"></a>What is primary keys and foreign keys?</h2><ol>
+<li>A relation’s primary key uniquely identifies a single tuple. <ul>
+<li>In the definition of a relation, primary keys are usually marked with underline. </li>
+</ul>
+</li>
+<li>A foreign key specifies that an attribute from one relation has to map to a tuple in another relation. <ul>
+<li>Normally, foreign keys must be primary keys in another relation. </li>
+</ul>
+</li>
+</ol>
+<h2 id="What-is-supported-in-relational-algebra"><a href="#What-is-supported-in-relational-algebra" class="headerlink" title="What is supported in relational algebra?"></a>What is supported in relational algebra?</h2><ol>
+<li><p>Select: $\sigma_{predicate}(R)$</p>
+<ul>
+<li><p>Choose a subset of the tuples from a relation that satisfies the selection predicate. </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R</span><br><span class="line"> <span class="keyword">WHERE</span> predicate;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>Projection: $\Pi_{A_1,A_2,\dots,A_n}(R)$</p>
+<ul>
+<li><p>Generate a relation with tuples that contains only the specified attributes</p>
+</li>
+<li><p>It can be used to rearrange attributes’ ordering and manipulate the values. </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> A1, A2, ..., An <span class="keyword">FROM</span> R;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>Union: $R\cup S$</p>
+<ul>
+<li><p>Two relations must have same attributes. </p>
+</li>
+<li><p>The result may be duplicated if some tuples appeared in bother relations. </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">UNION</span> <span class="keyword">ALL</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>Intersection: $R\cap S$</p>
+<ul>
+<li><p>Two relations must have same attributes. </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">INTERSECT</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>Difference: $R-S$</p>
+<ul>
+<li><p>Two relations must have same attributes. </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">EXCEPT</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>Product: $R\times S$</p>
+<ul>
+<li><p>Generate a relation that contains all possible combinations of tuple from the input relations, i.e. Cartesian product. </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">CROSS</span> <span class="keyword">JOIN</span> S;</span><br><span class="line"># <span class="keyword">Or</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R, S;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>Join: $R\bowtie S$</p>
+<ul>
+<li><p>The difference between join and intersection is that join can match attributes’ name automatically, while intersetion requires that two relations have the same attribute order. </p>
+</li>
+<li><p>It does product first, then compare attributes. </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">NATURAL</span> <span class="keyword">JOIN</span> S;</span><br><span class="line"># <span class="keyword">Or</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">JOIN</span> S <span class="keyword">USING</span> (A1, A2, ..., An);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>In the broad sense, join can have predicate $R\bowtie_{predicate}S$ which is the same as $\sigma_{predicate}(R\times S)$. </p>
+</li>
+</ul>
+</li>
+<li><p>It is obvious that different order of steps can have the same result with different amout of computation. </p>
+<ul>
+<li>$R\bowtie(\sigma_{predicate}(S))$ is much efficient than $\sigma_{predicate}(R\bowtie S)$. </li>
+</ul>
+</li>
+</ol>
+<h1 id="Morden-SQL"><a href="#Morden-SQL" class="headerlink" title="Morden SQL"></a>Morden SQL</h1><h2 id="What-is-provided-in-a-relational-language"><a href="#What-is-provided-in-a-relational-language" class="headerlink" title="What is provided in a relational language?"></a>What is provided in a relational language?</h2><ol>
+<li>Data Manipulation Language (DML)</li>
+<li>Data Definition Language (DDL)</li>
+<li>Data Control Language (DCL)</li>
+<li>Also view definition, integrity and referential constraints, transactions. </li>
+</ol>
+<h2 id="Aggregations-and-Group-By"><a href="#Aggregations-and-Group-By" class="headerlink" title="Aggregations and Group By"></a>Aggregations and Group By</h2><h3 id="What-are-aggregations"><a href="#What-are-aggregations" class="headerlink" title="What are aggregations?"></a>What are aggregations?</h3><ol>
+<li>They are functions that return a single value from a bag of tuples. </li>
+<li><code>AVG(col)</code>, <code>MIN(col)</code>, <code>MAX(col)</code>, <code>SUM(col)</code>, <code>COUNT(col)</code><ul>
+<li>For <code>COUNT</code>, the passed argument actual does mater since it only returns the number of rows. </li>
+</ul>
+</li>
+<li>Aggregate functions can almost only be used in the <code>SELECT</code> output list. </li>
+<li><code>COUNT</code>, <code>SUM</code>, <code>AVG</code> support <code>DISTINCT</code>. <ul>
+<li>In this case, the columns passed to <code>COUNT</code> matters. </li>
+</ul>
+</li>
+<li>Output of other columns outside of an aggregate is undefined. <ul>
+<li>Aggregations actually create a new relation with different number of tuples. </li>
+<li>If we directly ask for other colmns, the number of tuples won’t match with output of aggregations</li>
+<li>And we don’t know the relation between output of aggregations and values from other columns (some language may allow this but with chaos order). </li>
+</ul>
+</li>
+<li>We also cannot filter output tuples with the result of aggregation column names. <ul>
+<li>Since <code>SELECT</code> happens a last, when <code>WHERE</code> or <code>HAVING</code> is calculated, the aggregation columns haven’t been calculated yet. </li>
+</ul>
+</li>
+</ol>
+<h3 id="How-to-output-other-columns-with-aggregations"><a href="#How-to-output-other-columns-with-aggregations" class="headerlink" title="How to output other columns with aggregations?"></a>How to output other columns with aggregations?</h3><ol>
+<li><code>GROUP BY</code> projects tuples into subsets and calculate aggregates against each subset. </li>
+<li>Non-aggregated valuese in <code>SELECT</code> output clause must appear in <code>GROUP BY</code> clause. </li>
+<li>With group-by, each aggregation output has the same values in those grouped columns. So <code>SELECT</code> knows their relation. </li>
+<li><code>HAVING</code> like a <code>WHERE</code> clause for a <code>GROUP BY</code>. <ul>
+<li>It can filter results based on aggregation computation. But it also shouldn’t use the columns names of aggregation in <code>SELECT</code>. </li>
+<li>Instead, it should directly use aggregation function. Although the execution engine knows that these two are the same and don’t do the repeat calculation. </li>
+</ul>
+</li>
+</ol>
+<h2 id="What-string-operations-are-supported"><a href="#What-string-operations-are-supported" class="headerlink" title="What string operations are supported?"></a>What string operations are supported?</h2><ol>
+<li><p>Predicate of string matching can be done with <code>=</code></p>
+<ul>
+<li><p>Some DBMSs are case sensitive while others are not. </p>
+</li>
+<li><p>We can also use <code>LIKE</code> to match with string-match operators. </p>
+<ul>
+<li><code>%</code> matches any substring (including empty strings)</li>
+<li><code>_</code> match any one character. </li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Other string functions are provided:</p>
+<ul>
+<li><code>UPPER</code> and <code>LOWER</code></li>
+<li><code>SUBSTRING(str, start_index, end_index)</code></li>
+</ul>
+</li>
+<li><p>Different language has different ways to concatenate strings: <code>str1 || str2</code>, <code>str1 + str2</code> or <code>CONCAT(str1, str2)</code>. </p>
+</li>
+</ol>
+<h2 id="Output"><a href="#Output" class="headerlink" title="Output"></a>Output</h2><h3 id="Where-can-we-redirect-outputs"><a href="#Where-can-we-redirect-outputs" class="headerlink" title="Where can we redirect outputs?"></a>Where can we redirect outputs?</h3><ol>
+<li>We can store query restuls in another table. <ul>
+<li>That table must not already be defined. </li>
+<li>It will have the same number of columns with the same types as the input. </li>
+</ul>
+</li>
+<li>We can also insert tuples from query into another table. <ul>
+<li>The inner select must generate the same columns as the target table. </li>
+<li>DMBSs have diferent options/syntax on what to do with integrity violations. </li>
+</ul>
+</li>
+</ol>
+<h3 id="How-can-we-control-the-outputs"><a href="#How-can-we-control-the-outputs" class="headerlink" title="How can we control the outputs?"></a>How can we control the outputs?</h3><ol>
+<li>We can order the output tuples by the values in one or more of their columns with <code>ORDER BY &lt;column*&gt; [ASC|DESC]</code>. </li>
+<li>We can also limit the number of tuples returned in output with <code>LIMIT &lt;count&gt; [OFFSET &lt;count2&gt;]</code>. <ul>
+<li>Although this limits the number of output, its execution may still need to compute the whole relation, e.g. to output the top-10 largest numbers still need to sort all numbers. </li>
+</ul>
+</li>
+</ol>
+<h2 id="What-if-we-need-temporary-relation-in-a-query"><a href="#What-if-we-need-temporary-relation-in-a-query" class="headerlink" title="What if we need temporary relation in a query?"></a>What if we need temporary relation in a query?</h2><ol>
+<li><p>The first solution is nested queries. </p>
+<ul>
+<li><p>Inner queries can appear almost anywhere in query. </p>
+</li>
+<li><p>In <code>WHERE</code> clause, we can perform predicate between the tuples from current relation and result of subqueries. </p>
+<ul>
+<li><p><code>ALL</code> must satisfy expression for all rows in the subquery. </p>
+</li>
+<li><p><code>ANY</code> must satisfy expression for at least one row in the subquery. </p>
+</li>
+<li><p><code>IN</code> is equivalent to <code>=ANY()</code>. </p>
+</li>
+<li><p><code>EXISTS</code> returns true if the relation is not empty. </p>
+</li>
+<li><p><code>NOT</code></p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Another choice is common table expression using <code>WITH cteName AS (query)</code>. </p>
+<ul>
+<li>It also supports bind/alias output columns to names <code>WITH cteName (col1, ..., coln) AS (query)</code></li>
+<li>In the next one query, we can reference this temporary relation with <code>cteName</code>. </li>
+<li>We can enable recursive calculation using <code>WITH RECURSIVE</code>. </li>
+</ul>
+</li>
+</ol>
+<h2 id="How-does-window-functions-work"><a href="#How-does-window-functions-work" class="headerlink" title="How does window functions work?"></a>How does window functions work?</h2><ol>
+<li>Window functions perform a sliding calculation across a set of tuples that are related. </li>
+<li>Like an aggregation, they only appear in <code>SELECT</code> clause. But tuples are not grouped into a single output tuples. Instead, the number of rows of the output is the same as input. </li>
+<li>In <code>SELECT</code> clause, window functions syntax is <code>FUNC-NAME(...) OVER(...)</code>. <ul>
+<li>The <code>FUNC-NAME</code> can be aggregation functions or special functions (<code>ROW_NUMBER</code> and <code>RANK</code>)<ul>
+<li><code>ROW_NUMBER</code> assigns the nuber of current row in certain order. </li>
+<li><code>RANK</code> assigns the order position of the current row. </li>
+<li>When two rows tie, <code>RANK</code> will assign the same number to them and skip the next number while <code>ROW_NUMBER</code> will assign different number. </li>
+</ul>
+</li>
+<li>The <code>OVER</code> paramater controls how to slice up data. <ul>
+<li>It controls how to group together tuples when computing the window function with <code>PARTITION BY</code>. </li>
+<li>It also controls the order of computing with <code>ORDER BY ... [ASC|DESC]</code>. </li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Database-system/" rel="tag"><i class="fa fa-tag"></i> Database system</a>
+              <a href="/tags/Relational-model/" rel="tag"><i class="fa fa-tag"></i> Relational model</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/06/24/15445/02-Storage/" rel="next" title="02 Storage">
+                  02 Storage <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">LiyunZhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
