@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Execute queries  How are queries planned? What is the assumption of algorithms in database system?   Sort  What implementation should we use to execute a query containing an ORDER BY with a LIMIT? Wh">
+<meta property="og:type" content="article">
+<meta property="og:title" content="06 Operator Algorithms">
+<meta property="og:url" content="http://liyun-zhang.github.io/2023/06/28/Courses/15445/06-Operator-Algorithms/index.html">
+<meta property="og:site_name" content="LiyunZhang">
+<meta property="og:description" content="Execute queries  How are queries planned? What is the assumption of algorithms in database system?   Sort  What implementation should we use to execute a query containing an ORDER BY with a LIMIT? Wh">
+<meta property="og:locale">
+<meta property="article:published_time" content="2023-06-28T05:16:33.000Z">
+<meta property="article:modified_time" content="2023-06-28T06:55:25.692Z">
+<meta property="article:author" content="LiyunZhang">
+<meta property="article:tag" content="Database system">
+<meta property="article:tag" content="External Algorithms">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://liyun-zhang.github.io/2023/06/28/Courses/15445/06-Operator-Algorithms/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-Hans","comments":true,"permalink":"http://liyun-zhang.github.io/2023/06/28/Courses/15445/06-Operator-Algorithms/","path":"2023/06/28/Courses/15445/06-Operator-Algorithms/","title":"06 Operator Algorithms"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>06 Operator Algorithms | LiyunZhang</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">LiyunZhang</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#execute-queries"><span class="nav-number">1.</span> <span class="nav-text"> Execute queries</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-are-queries-planned"><span class="nav-number">1.1.</span> <span class="nav-text"> How are queries planned?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-the-assumption-of-algorithms-in-database-system"><span class="nav-number">1.2.</span> <span class="nav-text"> What is the assumption of algorithms in database system?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#sort"><span class="nav-number">2.</span> <span class="nav-text"> Sort</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-implementation-should-we-use-to-execute-a-query-containing-an-order-by-with-a-limit"><span class="nav-number">2.1.</span> <span class="nav-text"> What implementation should we use to execute a query containing an ORDER BY with a LIMIT?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-if-the-data-is-too-large-to-fit-in-memory-for-any-clause-including-order-by-with-a-limit"><span class="nav-number">2.2.</span> <span class="nav-text"> What if the data is too large to fit in memory? (for any clause including ORDER BY with a LIMIT)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-perform-an-external-merge-sort"><span class="nav-number">2.3.</span> <span class="nav-text"> How to perform an external merge sort?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-we-hide-the-disk-io"><span class="nav-number">2.4.</span> <span class="nav-text"> How can we hide the disk I&#x2F;O?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-we-optimize-comparison"><span class="nav-number">2.5.</span> <span class="nav-text"> How can we optimize comparison?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-use-use-btree-for-sorting-since-it-is-sorted"><span class="nav-number">2.6.</span> <span class="nav-text"> How can use use B+Tree for sorting since it is sorted?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#aggregations"><span class="nav-number">3.</span> <span class="nav-text"> Aggregations</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-we-implement-aggregations"><span class="nav-number">3.1.</span> <span class="nav-text"> How can we implement aggregations?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-do-hashing-when-spill-data-to-disk"><span class="nav-number">3.2.</span> <span class="nav-text"> How to do hashing when spill data to disk?</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">LiyunZhang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+  
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/06/28/Courses/15445/06-Operator-Algorithms/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="06 Operator Algorithms | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          06 Operator Algorithms
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2023-06-28 13:16:33 / Modified: 14:55:25" itemprop="dateCreated datePublished" datetime="2023-06-28T13:16:33+08:00">2023-06-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
+<li><a href="#execute-queries">Execute queries</a>
+<ul>
+<li><a href="#how-are-queries-planned">How are queries planned?</a></li>
+<li><a href="#what-is-the-assumption-of-algorithms-in-database-system">What is the assumption of algorithms in database system?</a></li>
+</ul>
+</li>
+<li><a href="#sort">Sort</a>
+<ul>
+<li><a href="#what-implementation-should-we-use-to-execute-a-query-containing-an-order-by-with-a-limit">What implementation should we use to execute a query containing an ORDER BY with a LIMIT?</a></li>
+<li><a href="#what-if-the-data-is-too-large-to-fit-in-memory-for-any-clause-including-order-by-with-a-limit">What if the data is too large to fit in memory? (for any clause including ORDER BY with a LIMIT)</a></li>
+<li><a href="#how-to-perform-an-external-merge-sort">How to perform an external merge sort?</a></li>
+<li><a href="#how-can-we-hide-the-disk-io">How can we hide the disk I/O?</a></li>
+<li><a href="#how-can-we-optimize-comparison">How can we optimize comparison?</a></li>
+<li><a href="#how-can-use-use-btree-for-sorting-since-it-is-sorted">How can use use B+Tree for sorting since it is sorted?</a></li>
+</ul>
+</li>
+<li><a href="#aggregations">Aggregations</a>
+<ul>
+<li><a href="#how-can-we-implement-aggregations">How can we implement aggregations?</a></li>
+<li><a href="#how-to-do-hashing-when-spill-data-to-disk">How to do hashing when spill data to disk?</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="execute-queries"><a class="markdownIt-Anchor" href="#execute-queries"></a> Execute queries</h1>
+<h2 id="how-are-queries-planned"><a class="markdownIt-Anchor" href="#how-are-queries-planned"></a> How are queries planned?</h2>
+<ol>
+<li>The operators are arranged in an abstract syntax tree. Data flows from the leaves of the tree up towards the root.</li>
+<li>The leaf nodes are access methods, e.g scanning index and scanning table, feeding data up along its path to its parent node to do processing.</li>
+<li>The output of the root node is the result of the query.</li>
+<li>This tree only describes a logical plan, i.e. instead of telling what implementation to use, it is just the logical flow we want. SQL only declare logical plan while it is the database system’s job to figure out the optimal way to execute.</li>
+</ol>
+<h2 id="what-is-the-assumption-of-algorithms-in-database-system"><a class="markdownIt-Anchor" href="#what-is-the-assumption-of-algorithms-in-database-system"></a> What is the assumption of algorithms in database system?</h2>
+<ol>
+<li>Just like it cannot assume that a table fits entirely in memory, a disk-oriented DBMS cannot assume that query results fit in memory.</li>
+<li>We will use the buffer pool to implement algorithms that need to spill to disk.</li>
+<li>We are also going to prefer algorithms that maximize the amount of sequential I/O.</li>
+</ol>
+<h1 id="sort"><a class="markdownIt-Anchor" href="#sort"></a> Sort</h1>
+<h2 id="what-implementation-should-we-use-to-execute-a-query-containing-an-order-by-with-a-limit"><a class="markdownIt-Anchor" href="#what-implementation-should-we-use-to-execute-a-query-containing-an-order-by-with-a-limit"></a> What implementation should we use to execute a query containing an ORDER BY with a LIMIT?</h2>
+<ol>
+<li>The DBMS only needs to scan the data once to find the top-N elements.</li>
+<li>The ideal scenario for heapsort is when the top-N elements fit in memory, so that the DBMS only has to maintain an in-memory sorted priority queue while scanning the data.</li>
+</ol>
+<h2 id="what-if-the-data-is-too-large-to-fit-in-memory-for-any-clause-including-order-by-with-a-limit"><a class="markdownIt-Anchor" href="#what-if-the-data-is-too-large-to-fit-in-memory-for-any-clause-including-order-by-with-a-limit"></a> What if the data is too large to fit in memory? (for any clause including ORDER BY with a LIMIT)</h2>
+<ol>
+<li>We do not want to use quick sort in this scenario since data spilling to disk will cause too many random access.</li>
+<li>We can use external merge sort that splits data into separate runs, sorts them individually, and then combines them into longer sorted runs.</li>
+<li>A run is a list of key/value pairs.
+<ul>
+<li>Keys are the attribute(s) to compare to compute the sort order.</li>
+<li>Values have two choices: it can either be the actual tuple data (i.e. early materialization) or be the Record IDs (i.e. late materialization)
+<ul>
+<li>The advantage of early materialization is that it can be faster to produce result while the disadvantage is that it need to copy more data during the procedule.</li>
+<li>The advantage of late materialization is that it can only fetch wanted data while it needs to find the actual data else where (probably involving another disk I/O).</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-perform-an-external-merge-sort"><a class="markdownIt-Anchor" href="#how-to-perform-an-external-merge-sort"></a> How to perform an external merge sort?</h2>
+<ol>
+<li>Data is broken up into $ N $ pages. The DBMS has a finite number of $ B $ buffer pool pages to hold input and output data.</li>
+<li>In the first phase, sort chunks of data that fit in memory and then write back the sorted chunks to a file on disk.
+<ul>
+<li>In the first pass, we can read all $ B $ pages of the table into memory and sort pages into runs and write them back to disk.</li>
+<li>Do not sort in buffer since we do not wish other threads seeing some partially sorted data which may cause errors. Copy the data to somewhere else and copy back to buffer after sorted.</li>
+</ul>
+</li>
+<li>In the second phase, combine sorted runs into larger chunks.
+<ul>
+<li>In the following passes, each pass use $ B-1$ pages for input and $ 1$ page for output.</li>
+<li>Recursively merge pairs of runs into runs $ B-1$-times as long.</li>
+</ul>
+</li>
+<li>In general, the first pass create $ \lceil N/B\rceil$ sorted runs of size $ B$ and the following passes are $ (B-1)$-way merge.
+<ul>
+<li>The number of passes is $ 1+\lceil\log_{B-1}\lceil N/B\rceil\rceil$.</li>
+<li>The total I/O cost is $ 2N\cdot (number\ of\ passes) $.</li>
+</ul>
+</li>
+<li>In a 2-way external merge sort, instead of sort the $ B$ pages into a run in the first pass, each page is sorted into a run.
+<ul>
+<li>So the number of passes is $ 1+\lceil\log_2N\rceil$.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-can-we-hide-the-disk-io"><a class="markdownIt-Anchor" href="#how-can-we-hide-the-disk-io"></a> How can we hide the disk I/O?</h2>
+<ol>
+<li>A typical setup is using $ 3$ pages ($ 2$ for input pages and $ 1$ for output page). Even if we have more buffer space available ($ B&gt;3$), it does not effectively utilize them if the worker must block on disk I/O.</li>
+<li>We can prefetch the next run in the background and store it in a second buffer while the system is processing the current run.</li>
+<li>This method reduces the wait time for I/O requests at each step by continuously utilizing the disk.</li>
+</ol>
+<h2 id="how-can-we-optimize-comparison"><a class="markdownIt-Anchor" href="#how-can-we-optimize-comparison"></a> How can we optimize comparison?</h2>
+<ol>
+<li>The first approach is code specialization.
+<ul>
+<li>Instead of providing a comparison function as a pointer to sorting algorithm, create a hardcoded version of sort that is specific to a key type.</li>
+</ul>
+</li>
+<li>For string keys, the second approach is suffix truncation.
+<ul>
+<li>First compare a binary prefix of keys instead of slower string comparison.</li>
+<li>Fallback to slower version if prefixes are equal.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-can-use-use-btree-for-sorting-since-it-is-sorted"><a class="markdownIt-Anchor" href="#how-can-use-use-btree-for-sorting-since-it-is-sorted"></a> How can use use B+Tree for sorting since it is sorted?</h2>
+<ol>
+<li>If the table that must be sorted already has a B+Tree index on the sort attribute(s), then we can use that to accelerate sorting.</li>
+<li>Retrieve tuples in desired sort order by simply traversing the leaf pages of the tree.
+<ul>
+<li>For clustered B+Tree, this is always better than external sorting because there is no computational cost, and all disk access is sequential.</li>
+<li>For non-clustered B+Tree, this is almost always a bad idea. In general, one I/O per data record.</li>
+</ul>
+</li>
+</ol>
+<h1 id="aggregations"><a class="markdownIt-Anchor" href="#aggregations"></a> Aggregations</h1>
+<h2 id="how-can-we-implement-aggregations"><a class="markdownIt-Anchor" href="#how-can-we-implement-aggregations"></a> How can we implement aggregations?</h2>
+<ol>
+<li>The DBMS needs a way to quickly find tuples with the same distinguishing attributes for grouping.</li>
+<li>For aggregations specified with a <code>ORDER BY</code> clause, we can directly use the aforementioned sorting algorithms.</li>
+<li>For queries do not need the data to be ordered, e.g. forming groups in <code>GROUP BY</code> or removing duplicates in <code>DISTINCT</code>, hashing is a better alternative. Hashing can be computationally cheaper than sorting.
+<ul>
+<li>For each record, check whether there is already an entry in the hash table. For <code>DISTINCT</code>, just discard duplicate. For <code>GROUP BY</code>, perform aggregate computation.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-do-hashing-when-spill-data-to-disk"><a class="markdownIt-Anchor" href="#how-to-do-hashing-when-spill-data-to-disk"></a> How to do hashing when spill data to disk?</h2>
+<ol>
+<li>The first phase is partition. Divide tuples into buckets based on hash key. Write them out to disk when they get full.
+<ul>
+<li>Use a hash function $ h_1$ to split tuples into partitions on disk.</li>
+<li>A partition is one or more pages that contain the set of keys with the same hash value.</li>
+<li>Assume that we have $ B$ buffers. We will use $ B-1$ buffers for the partitions and $ 1$ buffer for the input data.</li>
+</ul>
+</li>
+<li>The second phase is ReHash. Build in-memory hash table for each partition and compute the aggregation.
+<ul>
+<li>For each partition on disk, read it into memory and build an in-memory hash table based on a second hash function $ h_2$.</li>
+<li>Then go through each bucket of this hash table to bring together matching tuples.</li>
+<li>Each time we can use $ B-1$ pages as input pages and $ 1$ page as output page.
+<ul>
+<li>In each round, we can read in $ B-1$ partitions.</li>
+<li>After each round is finished, we can clear the hash table since the next $ B-1$ partitions definitely won’t have the same keys as last round.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>During the ReHash phase, store pairs of the form $ (GroupKey→RunningVal)$.
+<ul>
+<li>When we want to insert a new tuple into the hash table, if we find a matching $ GroupKey$, just update the $ RunningVal$ appropriately. Else insert a new $ (GroupKey→RunningVal)$.</li>
+<li>The running totals of different aggregation function is as followed:
+<ul>
+<li>$ AVG(col)\rightarrow (COUNT,SUM)$</li>
+<li>$ SUM(col)\rightarrow(SUM)$</li>
+<li>$ COUNT(col)\rightarrow(COUNT)$</li>
+<li>$ MIN(col)\rightarrow(MIN)$</li>
+<li>$ MAX(col)\rightarrow(MAX)$</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Database-system/" rel="tag"><i class="fa fa-tag"></i> Database system</a>
+              <a href="/tags/External-Algorithms/" rel="tag"><i class="fa fa-tag"></i> External Algorithms</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/06/27/OpenSource/BusTub/Project-1-Buffer-Pool/" rel="prev" title="Project #1: Buffer Pool">
+                  <i class="fa fa-chevron-left"></i> Project #1: Buffer Pool
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">LiyunZhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
