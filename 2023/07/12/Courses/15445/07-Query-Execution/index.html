@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Sequential Execution  Processing model  What does processing model do? How does iterator model execute? How does materialization model execute? How does vectorization model execute?   Access methods">
+<meta property="og:type" content="article">
+<meta property="og:title" content="07 Query Execution">
+<meta property="og:url" content="http://liyun-zhang.github.io/2023/07/12/Courses/15445/07-Query-Execution/index.html">
+<meta property="og:site_name" content="LiyunZhang">
+<meta property="og:description" content="Sequential Execution  Processing model  What does processing model do? How does iterator model execute? How does materialization model execute? How does vectorization model execute?   Access methods">
+<meta property="og:locale">
+<meta property="article:published_time" content="2023-07-12T08:51:12.000Z">
+<meta property="article:modified_time" content="2023-07-12T12:50:42.591Z">
+<meta property="article:author" content="LiyunZhang">
+<meta property="article:tag" content="Database system">
+<meta property="article:tag" content="Executor">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://liyun-zhang.github.io/2023/07/12/Courses/15445/07-Query-Execution/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-Hans","comments":true,"permalink":"http://liyun-zhang.github.io/2023/07/12/Courses/15445/07-Query-Execution/","path":"2023/07/12/Courses/15445/07-Query-Execution/","title":"07 Query Execution"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>07 Query Execution | LiyunZhang</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">LiyunZhang</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#sequential-execution"><span class="nav-number">1.</span> <span class="nav-text"> Sequential Execution</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#processing-model"><span class="nav-number">1.1.</span> <span class="nav-text"> Processing model</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-does-processing-model-do"><span class="nav-number">1.1.1.</span> <span class="nav-text"> What does processing model do?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-iterator-model-execute"><span class="nav-number">1.1.2.</span> <span class="nav-text"> How does iterator model execute?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-materialization-model-execute"><span class="nav-number">1.1.3.</span> <span class="nav-text"> How does materialization model execute?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-vectorization-model-execute"><span class="nav-number">1.1.4.</span> <span class="nav-text"> How does vectorization model execute?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#access-methods"><span class="nav-number">1.2.</span> <span class="nav-text"> Access methods</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-can-we-optimize-sequential-scan-with-data-skipping"><span class="nav-number">1.2.1.</span> <span class="nav-text"> How can we optimize sequential scan with data skipping?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-multi-index-scan"><span class="nav-number">1.2.2.</span> <span class="nav-text"> What is multi-index scan?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#modification-queries"><span class="nav-number">1.3.</span> <span class="nav-text"> Modification queries</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-should-we-execute-update-and-delete-queries"><span class="nav-number">1.3.1.</span> <span class="nav-text"> How should we execute update and delete queries?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-should-we-execute-insert-queries"><span class="nav-number">1.3.2.</span> <span class="nav-text"> How should we execute insert queries?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-evaluate-expressions"><span class="nav-number">1.4.</span> <span class="nav-text"> How to evaluate expressions?</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">LiyunZhang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+  
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/07/12/Courses/15445/07-Query-Execution/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="07 Query Execution | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          07 Query Execution
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2023-07-12 16:51:12 / Modified: 20:50:42" itemprop="dateCreated datePublished" datetime="2023-07-12T16:51:12+08:00">2023-07-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
+<li><a href="#sequential-execution">Sequential Execution</a>
+<ul>
+<li><a href="#processing-model">Processing model</a>
+<ul>
+<li><a href="#what-does-processing-model-do">What does processing model do?</a></li>
+<li><a href="#how-does-iterator-model-execute">How does iterator model execute?</a></li>
+<li><a href="#how-does-materialization-model-execute">How does materialization model execute?</a></li>
+<li><a href="#how-does-vectorization-model-execute">How does vectorization model execute?</a></li>
+</ul>
+</li>
+<li><a href="#access-methods">Access methods</a>
+<ul>
+<li><a href="#how-can-we-optimize-sequential-scan-with-data-skipping">How can we optimize sequential scan with data skipping?</a></li>
+<li><a href="#what-is-multi-index-scan">What is multi-index scan?</a></li>
+</ul>
+</li>
+<li><a href="#modification-queries">Modification queries</a>
+<ul>
+<li><a href="#how-should-we-execute-update-and-delete-queries">How should we execute update and delete queries?</a></li>
+<li><a href="#how-should-we-execute-insert-queries">How should we execute insert queries?</a></li>
+</ul>
+</li>
+<li><a href="#how-to-evaluate-expressions">How to evaluate expressions?</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="sequential-execution"><a class="markdownIt-Anchor" href="#sequential-execution"></a> Sequential Execution</h1>
+<h2 id="processing-model"><a class="markdownIt-Anchor" href="#processing-model"></a> Processing model</h2>
+<h3 id="what-does-processing-model-do"><a class="markdownIt-Anchor" href="#what-does-processing-model-do"></a> What does processing model do?</h3>
+<ol>
+<li>Processing model defines how the system executes a query plan, i.e. how to traverse the query plan tree.</li>
+<li>There are two processing directions:
+<ul>
+<li>Top-to-Bottom: Start with the root and “pull” data up from its children. Tuples are always passed with function calls.</li>
+<li>Bottom-to-Top: Start with leaf nodes and push data to their parents. Allows for tighter control of caches/registers in pipelines.</li>
+</ul>
+</li>
+<li>There are three commonly used model: iterator model (volcano/pipeline model), materialization model and vectorized/batch model.</li>
+</ol>
+<h3 id="how-does-iterator-model-execute"><a class="markdownIt-Anchor" href="#how-does-iterator-model-execute"></a> How does iterator model execute?</h3>
+<ol>
+<li>
+<p>In iterator model, operators are executed top-to-down.</p>
+</li>
+<li>
+<p>Each query plan operator implements a <code>Next()</code> function. On each invocation, the operator returns either a single tuple or a <code>null</code> marker if there are no more tuples.</p>
+<ul>
+<li>
+<p>The operator implements a loop that calls <code>Next()</code> on its children to retrieve their tuples and then process them.</p>
+</li>
+<li>
+<p><code>Next()</code> is first called on the root operator and the nodes on the tree will call the <code>Next()</code> on their children recursively.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>This model allows for uple pipelining. Although some operators must block until their children emit all their tuples.</p>
+<ul>
+<li>Joins must wait until all tuples in the leaf child are processed and built the hash table to further process tuples from right child. Hence, the tuples from leaft child need to block the pipeline while the tuples from right child can enable pipeline.</li>
+<li>Subqueries and ordering (<code>Order By</code>) clauses also need to block pipeline. These are called pipeline breaker.</li>
+</ul>
+</li>
+<li>
+<p>Output control works easily with this approach. We only need to add constraints on the root operator.</p>
+</li>
+</ol>
+<h3 id="how-does-materialization-model-execute"><a class="markdownIt-Anchor" href="#how-does-materialization-model-execute"></a> How does materialization model execute?</h3>
+<ol>
+<li>
+<p>In materialization model, operators are called bottom-to-up.</p>
+</li>
+<li>
+<p>Each query plan operator implements a <code>Output()</code> function.</p>
+<ul>
+<li>
+<p>On each invocation, the operator processes its input all at once and then emits its output all at once.</p>
+</li>
+<li>
+<p>The operator materializes its output as a single result.</p>
+</li>
+<li>
+<p>The operators can send either a materialized row or a single column.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>The DBMS can push down hints (e.g., <code>LIMIT</code>) to avoid scanning too many tuples.</p>
+</li>
+<li>
+<p>The output can be either whole tuples (NSM) or subsets of columns (DSM).</p>
+</li>
+<li>
+<p>This model is better for OLTP workloads because queries only access a small number of tuples at a time which means lower execution and coordination overhead and fewer function calls.</p>
+<ul>
+<li>It is not good for OLAP queries with large intermediate results.</li>
+</ul>
+</li>
+</ol>
+<h3 id="how-does-vectorization-model-execute"><a class="markdownIt-Anchor" href="#how-does-vectorization-model-execute"></a> How does vectorization model execute?</h3>
+<ol>
+<li>The problem of iterator model is that it can only process one tuple at a time when we can take multiple tuples and vectorize them to process in parallel (SIMD).</li>
+<li>Vectorization model is similar with iterator model except that each operator emits a batch of tuples instead of a single tuple.</li>
+<li>This is ideal for OLAP queries because it greatly reduces the number of invocations per operator.
+<ul>
+<li>It allows for operators to more easily use vectorized (SIMD) instructions to process batches of tuples.</li>
+</ul>
+</li>
+</ol>
+<h2 id="access-methods"><a class="markdownIt-Anchor" href="#access-methods"></a> Access methods</h2>
+<h3 id="how-can-we-optimize-sequential-scan-with-data-skipping"><a class="markdownIt-Anchor" href="#how-can-we-optimize-sequential-scan-with-data-skipping"></a> How can we optimize sequential scan with data skipping?</h3>
+<ol>
+<li>
+<p>The first approach is approximate queries.</p>
+<ul>
+<li>
+<p>This method is lossy, which means that it may return incorrect results, but it is OK.</p>
+</li>
+<li>
+<p>Execute queries on a sampled subset of the entire table to produce approximate results.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>The second approach is zone maps.</p>
+<ul>
+<li>This method is lossless.</li>
+<li>Pre-computed aggregates for the attribute values in a page. DBMS checks the zone map first to decide whether it wants to access the page.</li>
+<li>The trade-off is between page size and filter efficacy.</li>
+</ul>
+</li>
+</ol>
+<h3 id="what-is-multi-index-scan"><a class="markdownIt-Anchor" href="#what-is-multi-index-scan"></a> What is multi-index scan?</h3>
+<ol>
+<li>If there are multiple indexes that the DBMS can use for a query, one method for DBMS to execute is try to filter tuples with index that has least number of tuples matches and filter other indexes based on the filtered tuples of previous indexes.
+<ul>
+<li>This is ideal in the case that some indexes has little tuples that matches. Filtering those indexes first can significantly reduce the number of tuples to process in following indexes.</li>
+</ul>
+</li>
+<li>If all indexes has a lot of matching tuples, we can use another method:
+<ul>
+<li>Compute sets of Record IDs using each matching index. Combine these sets based on the query’s predicates (union or intersect). Retrieve the records and apply any remaining predicates.</li>
+<li>In this way, we can reduce a log of I/O and memory space by only fetching Record IDs in the first phase instead of fetching entire tuple.</li>
+</ul>
+</li>
+</ol>
+<h2 id="modification-queries"><a class="markdownIt-Anchor" href="#modification-queries"></a> Modification queries</h2>
+<h3 id="how-should-we-execute-update-and-delete-queries"><a class="markdownIt-Anchor" href="#how-should-we-execute-update-and-delete-queries"></a> How should we execute update and delete queries?</h3>
+<ol>
+<li>Operators that modify the database (<code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>) are responsible for modifying the target table and its indexes.
+<ul>
+<li>The output of these operators can either be Record Ids or tuple data (i.e., <code>RETURNING</code>).</li>
+</ul>
+</li>
+<li>For update or delete, child operators pass Record IDs for target tuples.
+<ul>
+<li>The operator should remove the corresponding item from index.</li>
+<li>Then the operator can modify tuple or remove tuple.</li>
+<li>Update should re-insert modified tuple into index again.</li>
+</ul>
+</li>
+<li>Updates have a possible Halloween problem:
+<ul>
+<li>When we re-inserted the modified tuple, its new place may be ahead of cursor, i.e. we will pass the new tuple again in the future.
+<ul>
+<li>E.g. when the index is sorted according to an attribute, and the modification increases that attribute.</li>
+</ul>
+</li>
+<li>An update operation changes the physical location of a tuple, which causes a scan operator to visit the tuple multiple times. It can occur on clustered tables or index scans.</li>
+<li>The solution is to keep track of previously seen tuples (e.g. through Record IDs).</li>
+</ul>
+</li>
+</ol>
+<h3 id="how-should-we-execute-insert-queries"><a class="markdownIt-Anchor" href="#how-should-we-execute-insert-queries"></a> How should we execute insert queries?</h3>
+<ol>
+<li>The first choice is to materialize tuples inside of the operator.
+<ul>
+<li>The insert operator needs to implement its own method of how to materialize tuples.</li>
+</ul>
+</li>
+<li>The second choice is that operator inserts any tuple passed in from child operators.
+<ul>
+<li>The insert operator only need to accept tuples from its children instead of implementing itself.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-evaluate-expressions"><a class="markdownIt-Anchor" href="#how-to-evaluate-expressions"></a> How to evaluate expressions?</h2>
+<ol>
+<li>The DBMS represents a <code>WHERE</code> clause as an expression tree.</li>
+<li>The nodes in the tree represent different expression types: Comparisons (<code>=, &lt;, &gt;, !=</code>), conjunction (<code>AND</code>), disjunction (<code>OR</code>), arithmetic operators (<code>+, -, *, /, %</code>), constant values, tuple attribute references.</li>
+<li>When evaluate the expression, DFS through the expression tree from the root.
+<ul>
+<li>The performance is poor due to that the DBMS traverses the tree and for each node that it visits it must figure out what the operator needs to do.</li>
+</ul>
+</li>
+<li>A better approach is to just evaluate the expression directly.
+<ul>
+<li>Compile a function of the express (e.g. JIT compilation). In evaluation, DBMS just execute the compiled function instead of traversing through the tree.</li>
+</ul>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Database-system/" rel="tag"><i class="fa fa-tag"></i> Database system</a>
+              <a href="/tags/Executor/" rel="tag"><i class="fa fa-tag"></i> Executor</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/07/07/OpenSource/BusTub/Project-2-B-Tree/" rel="prev" title="Project #2: B+Tree">
+                  <i class="fa fa-chevron-left"></i> Project #2: B+Tree
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">LiyunZhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css" integrity="sha256-hLTCMFlKxdNgPXyWlSSxYN0ykJmxxq9Yt3MNfdRGWeA=" crossorigin="anonymous">
+
+
+
+</body>
+</html>

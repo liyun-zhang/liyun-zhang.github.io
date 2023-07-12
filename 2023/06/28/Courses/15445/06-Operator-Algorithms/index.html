@@ -28,7 +28,7 @@
 <meta property="og:description" content="Execute queries  How are queries planned? What is the assumption of algorithms in database system?   Sort  What implementation should we use to execute a query containing an ORDER BY with a LIMIT? Wh">
 <meta property="og:locale">
 <meta property="article:published_time" content="2023-06-28T05:16:33.000Z">
-<meta property="article:modified_time" content="2023-07-09T14:02:43.324Z">
+<meta property="article:modified_time" content="2023-07-12T08:54:01.294Z">
 <meta property="article:author" content="LiyunZhang">
 <meta property="article:tag" content="Database system">
 <meta property="article:tag" content="External Algorithms">
@@ -153,7 +153,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-count">9</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -164,7 +164,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -227,7 +227,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-07-09 22:02:43" itemprop="dateModified" datetime="2023-07-09T22:02:43+08:00">2023-07-09</time>
+      <time title="Modified: 2023-07-12 16:54:01" itemprop="dateModified" datetime="2023-07-12T16:54:01+08:00">2023-07-12</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -616,7 +616,6 @@ H400000v40H845.2724
 s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
 c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
 M834 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.20500000000000007em;"><span></span></span></span></span></span></span></span></span>.</li>
-<li>If the keys are skewed, then the DBMS keeps the hot partition in-memory and immediately perform the comparison instead of spilling it to disk.</li>
 </ol>
 <h4 id="can-we-optimized-the-search-for-tuples-that-does-not-have-any-match"><a class="markdownIt-Anchor" href="#can-we-optimized-the-search-for-tuples-that-does-not-have-any-match"></a> Can we optimized the search for tuples that does not have any match?</h4>
 <ol>
@@ -640,6 +639,7 @@ M834 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">�
 <li>Then probe it for each tuple of the other table’s bucket at that level.</li>
 </ul>
 </li>
+<li><strong>Hybrid hash join</strong>: If the keys are skewed, then the DBMS keeps the hot partition in-memory and immediately perform the comparison instead of spilling it to disk.</li>
 </ol>
 
     </div>

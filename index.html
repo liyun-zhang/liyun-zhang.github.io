@@ -146,7 +146,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-count">9</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -157,7 +157,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -174,6 +174,290 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/07/12/Courses/15445/07-Query-Execution/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/07/12/Courses/15445/07-Query-Execution/" class="post-title-link" itemprop="url">07 Query Execution</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2023-07-12 16:51:12 / Modified: 20:50:42" itemprop="dateCreated datePublished" datetime="2023-07-12T16:51:12+08:00">2023-07-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#sequential-execution">Sequential Execution</a>
+<ul>
+<li><a href="#processing-model">Processing model</a>
+<ul>
+<li><a href="#what-does-processing-model-do">What does processing model do?</a></li>
+<li><a href="#how-does-iterator-model-execute">How does iterator model execute?</a></li>
+<li><a href="#how-does-materialization-model-execute">How does materialization model execute?</a></li>
+<li><a href="#how-does-vectorization-model-execute">How does vectorization model execute?</a></li>
+</ul>
+</li>
+<li><a href="#access-methods">Access methods</a>
+<ul>
+<li><a href="#how-can-we-optimize-sequential-scan-with-data-skipping">How can we optimize sequential scan with data skipping?</a></li>
+<li><a href="#what-is-multi-index-scan">What is multi-index scan?</a></li>
+</ul>
+</li>
+<li><a href="#modification-queries">Modification queries</a>
+<ul>
+<li><a href="#how-should-we-execute-update-and-delete-queries">How should we execute update and delete queries?</a></li>
+<li><a href="#how-should-we-execute-insert-queries">How should we execute insert queries?</a></li>
+</ul>
+</li>
+<li><a href="#how-to-evaluate-expressions">How to evaluate expressions?</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="sequential-execution"><a class="markdownIt-Anchor" href="#sequential-execution"></a> Sequential Execution</h1>
+<h2 id="processing-model"><a class="markdownIt-Anchor" href="#processing-model"></a> Processing model</h2>
+<h3 id="what-does-processing-model-do"><a class="markdownIt-Anchor" href="#what-does-processing-model-do"></a> What does processing model do?</h3>
+<ol>
+<li>Processing model defines how the system executes a query plan, i.e. how to traverse the query plan tree.</li>
+<li>There are two processing directions:
+<ul>
+<li>Top-to-Bottom: Start with the root and “pull” data up from its children. Tuples are always passed with function calls.</li>
+<li>Bottom-to-Top: Start with leaf nodes and push data to their parents. Allows for tighter control of caches/registers in pipelines.</li>
+</ul>
+</li>
+<li>There are three commonly used model: iterator model (volcano/pipeline model), materialization model and vectorized/batch model.</li>
+</ol>
+<h3 id="how-does-iterator-model-execute"><a class="markdownIt-Anchor" href="#how-does-iterator-model-execute"></a> How does iterator model execute?</h3>
+<ol>
+<li>
+<p>In iterator model, operators are executed top-to-down.</p>
+</li>
+<li>
+<p>Each query plan operator implements a <code>Next()</code> function. On each invocation, the operator returns either a single tuple or a <code>null</code> marker if there are no more tuples.</p>
+<ul>
+<li>
+<p>The operator implements a loop that calls <code>Next()</code> on its children to retrieve their tuples and then process them.</p>
+</li>
+<li>
+<p><code>Next()</code> is first called on the root operator and the nodes on the tree will call the <code>Next()</code> on their children recursively.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>This model allows for uple pipelining. Although some operators must block until their children emit all their tuples.</p>
+<ul>
+<li>Joins must wait until all tuples in the leaf child are processed and built the hash table to further process tuples from right child. Hence, the tuples from leaft child need to block the pipeline while the tuples from right child can enable pipeline.</li>
+<li>Subqueries and ordering (<code>Order By</code>) clauses also need to block pipeline. These are called pipeline breaker.</li>
+</ul>
+</li>
+<li>
+<p>Output control works easily with this approach. We only need to add constraints on the root operator.</p>
+</li>
+</ol>
+<h3 id="how-does-materialization-model-execute"><a class="markdownIt-Anchor" href="#how-does-materialization-model-execute"></a> How does materialization model execute?</h3>
+<ol>
+<li>
+<p>In materialization model, operators are called bottom-to-up.</p>
+</li>
+<li>
+<p>Each query plan operator implements a <code>Output()</code> function.</p>
+<ul>
+<li>
+<p>On each invocation, the operator processes its input all at once and then emits its output all at once.</p>
+</li>
+<li>
+<p>The operator materializes its output as a single result.</p>
+</li>
+<li>
+<p>The operators can send either a materialized row or a single column.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>The DBMS can push down hints (e.g., <code>LIMIT</code>) to avoid scanning too many tuples.</p>
+</li>
+<li>
+<p>The output can be either whole tuples (NSM) or subsets of columns (DSM).</p>
+</li>
+<li>
+<p>This model is better for OLTP workloads because queries only access a small number of tuples at a time which means lower execution and coordination overhead and fewer function calls.</p>
+<ul>
+<li>It is not good for OLAP queries with large intermediate results.</li>
+</ul>
+</li>
+</ol>
+<h3 id="how-does-vectorization-model-execute"><a class="markdownIt-Anchor" href="#how-does-vectorization-model-execute"></a> How does vectorization model execute?</h3>
+<ol>
+<li>The problem of iterator model is that it can only process one tuple at a time when we can take multiple tuples and vectorize them to process in parallel (SIMD).</li>
+<li>Vectorization model is similar with iterator model except that each operator emits a batch of tuples instead of a single tuple.</li>
+<li>This is ideal for OLAP queries because it greatly reduces the number of invocations per operator.
+<ul>
+<li>It allows for operators to more easily use vectorized (SIMD) instructions to process batches of tuples.</li>
+</ul>
+</li>
+</ol>
+<h2 id="access-methods"><a class="markdownIt-Anchor" href="#access-methods"></a> Access methods</h2>
+<h3 id="how-can-we-optimize-sequential-scan-with-data-skipping"><a class="markdownIt-Anchor" href="#how-can-we-optimize-sequential-scan-with-data-skipping"></a> How can we optimize sequential scan with data skipping?</h3>
+<ol>
+<li>
+<p>The first approach is approximate queries.</p>
+<ul>
+<li>
+<p>This method is lossy, which means that it may return incorrect results, but it is OK.</p>
+</li>
+<li>
+<p>Execute queries on a sampled subset of the entire table to produce approximate results.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>The second approach is zone maps.</p>
+<ul>
+<li>This method is lossless.</li>
+<li>Pre-computed aggregates for the attribute values in a page. DBMS checks the zone map first to decide whether it wants to access the page.</li>
+<li>The trade-off is between page size and filter efficacy.</li>
+</ul>
+</li>
+</ol>
+<h3 id="what-is-multi-index-scan"><a class="markdownIt-Anchor" href="#what-is-multi-index-scan"></a> What is multi-index scan?</h3>
+<ol>
+<li>If there are multiple indexes that the DBMS can use for a query, one method for DBMS to execute is try to filter tuples with index that has least number of tuples matches and filter other indexes based on the filtered tuples of previous indexes.
+<ul>
+<li>This is ideal in the case that some indexes has little tuples that matches. Filtering those indexes first can significantly reduce the number of tuples to process in following indexes.</li>
+</ul>
+</li>
+<li>If all indexes has a lot of matching tuples, we can use another method:
+<ul>
+<li>Compute sets of Record IDs using each matching index. Combine these sets based on the query’s predicates (union or intersect). Retrieve the records and apply any remaining predicates.</li>
+<li>In this way, we can reduce a log of I/O and memory space by only fetching Record IDs in the first phase instead of fetching entire tuple.</li>
+</ul>
+</li>
+</ol>
+<h2 id="modification-queries"><a class="markdownIt-Anchor" href="#modification-queries"></a> Modification queries</h2>
+<h3 id="how-should-we-execute-update-and-delete-queries"><a class="markdownIt-Anchor" href="#how-should-we-execute-update-and-delete-queries"></a> How should we execute update and delete queries?</h3>
+<ol>
+<li>Operators that modify the database (<code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>) are responsible for modifying the target table and its indexes.
+<ul>
+<li>The output of these operators can either be Record Ids or tuple data (i.e., <code>RETURNING</code>).</li>
+</ul>
+</li>
+<li>For update or delete, child operators pass Record IDs for target tuples.
+<ul>
+<li>The operator should remove the corresponding item from index.</li>
+<li>Then the operator can modify tuple or remove tuple.</li>
+<li>Update should re-insert modified tuple into index again.</li>
+</ul>
+</li>
+<li>Updates have a possible Halloween problem:
+<ul>
+<li>When we re-inserted the modified tuple, its new place may be ahead of cursor, i.e. we will pass the new tuple again in the future.
+<ul>
+<li>E.g. when the index is sorted according to an attribute, and the modification increases that attribute.</li>
+</ul>
+</li>
+<li>An update operation changes the physical location of a tuple, which causes a scan operator to visit the tuple multiple times. It can occur on clustered tables or index scans.</li>
+<li>The solution is to keep track of previously seen tuples (e.g. through Record IDs).</li>
+</ul>
+</li>
+</ol>
+<h3 id="how-should-we-execute-insert-queries"><a class="markdownIt-Anchor" href="#how-should-we-execute-insert-queries"></a> How should we execute insert queries?</h3>
+<ol>
+<li>The first choice is to materialize tuples inside of the operator.
+<ul>
+<li>The insert operator needs to implement its own method of how to materialize tuples.</li>
+</ul>
+</li>
+<li>The second choice is that operator inserts any tuple passed in from child operators.
+<ul>
+<li>The insert operator only need to accept tuples from its children instead of implementing itself.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-evaluate-expressions"><a class="markdownIt-Anchor" href="#how-to-evaluate-expressions"></a> How to evaluate expressions?</h2>
+<ol>
+<li>The DBMS represents a <code>WHERE</code> clause as an expression tree.</li>
+<li>The nodes in the tree represent different expression types: Comparisons (<code>=, &lt;, &gt;, !=</code>), conjunction (<code>AND</code>), disjunction (<code>OR</code>), arithmetic operators (<code>+, -, *, /, %</code>), constant values, tuple attribute references.</li>
+<li>When evaluate the expression, DFS through the expression tree from the root.
+<ul>
+<li>The performance is poor due to that the DBMS traverses the tree and for each node that it visits it must figure out what the operator needs to do.</li>
+</ul>
+</li>
+<li>A better approach is to just evaluate the expression directly.
+<ul>
+<li>Compile a function of the express (e.g. JIT compilation). In evaluation, DBMS just execute the compiled function instead of traversing through the tree.</li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -455,7 +739,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-07-09 22:02:43" itemprop="dateModified" datetime="2023-07-09T22:02:43+08:00">2023-07-09</time>
+      <time title="Modified: 2023-07-12 16:54:01" itemprop="dateModified" datetime="2023-07-12T16:54:01+08:00">2023-07-12</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -845,7 +1129,6 @@ H400000v40H845.2724
 s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
 c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
 M834 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.20500000000000007em;"><span></span></span></span></span></span></span></span></span>.</li>
-<li>If the keys are skewed, then the DBMS keeps the hot partition in-memory and immediately perform the comparison instead of spilling it to disk.</li>
 </ol>
 <h4 id="can-we-optimized-the-search-for-tuples-that-does-not-have-any-match"><a class="markdownIt-Anchor" href="#can-we-optimized-the-search-for-tuples-that-does-not-have-any-match"></a> Can we optimized the search for tuples that does not have any match?</h4>
 <ol>
@@ -869,6 +1152,7 @@ M834 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">�
 <li>Then probe it for each tuple of the other table’s bucket at that level.</li>
 </ul>
 </li>
+<li><strong>Hybrid hash join</strong>: If the keys are skewed, then the DBMS keeps the hot partition in-memory and immediately perform the comparison instead of spilling it to disk.</li>
 </ol>
 
       
