@@ -146,7 +146,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-count">11</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -157,7 +157,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-count">8</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -174,6 +174,288 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/07/16/Courses/15445/09-Concurrency-Control/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/07/16/Courses/15445/09-Concurrency-Control/" class="post-title-link" itemprop="url">09 Concurrency Control</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2023-07-16 16:35:24 / Modified: 18:14:52" itemprop="dateCreated datePublished" datetime="2023-07-16T16:35:24+08:00">2023-07-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#concurency-control-recovery">Concurency control &amp; recovery</a>
+<ul>
+<li><a href="#what-do-we-want-from-concurrency-control-recovery">What do we want from concurrency control &amp; recovery?</a></li>
+<li><a href="#how-does-applications-issue-changes-to-a-dbms">How does applications issue changes to a DBMS?</a></li>
+<li><a href="#what-does-the-dbms-want-to-prevent-when-supporting-concurrency">What does the DBMS want to prevent when supporting concurrency?</a></li>
+</ul>
+</li>
+<li><a href="#correctness">Correctness</a>
+<ul>
+<li><a href="#what-is-the-correctness-criteria">What is the correctness criteria?</a></li>
+<li><a href="#how-to-ensure-atomicity">How to ensure atomicity?</a></li>
+<li><a href="#what-is-consistency">What is consistency?</a></li>
+<li><a href="#isolation">Isolation</a>
+<ul>
+<li><a href="#what-do-we-want-from-isolation">What do we want from isolation?</a></li>
+<li><a href="#how-to-decide-whether-a-schedule-matches-isolation">How to decide whether a schedule matches isolation?</a></li>
+<li><a href="#what-conflicts-do-we-want-to-prevent">What conflicts do we want to prevent?</a></li>
+<li><a href="#how-do-we-determine-whether-a-schedule-is-conflict-serializable">How do we determine whether a schedule is conflict serializable?</a></li>
+<li><a href="#how-do-we-determine-whether-a-schedule-is-view-serializable">How do we determine whether a schedule is view serializable?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="concurency-control-recovery"><a class="markdownIt-Anchor" href="#concurency-control-recovery"></a> Concurency control &amp; recovery</h1>
+<h2 id="what-do-we-want-from-concurrency-control-recovery"><a class="markdownIt-Anchor" href="#what-do-we-want-from-concurrency-control-recovery"></a> What do we want from concurrency control &amp; recovery?</h2>
+<ol>
+<li>The concurrency control is responsible for lost update problem.
+<ul>
+<li>How can we avoid race conditions when updating records at the same time?</li>
+<li>This involves the buffer pool manager layer, access methods layer and operator execution layer.</li>
+</ul>
+</li>
+<li>Recovery is responsible for durability problems.
+<ul>
+<li>How can we ensure the correct state in case of a power failure?</li>
+<li>This involves the disk manager layer and buffer pool manager layer.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-does-applications-issue-changes-to-a-dbms"><a class="markdownIt-Anchor" href="#how-does-applications-issue-changes-to-a-dbms"></a> How does applications issue changes to a DBMS?</h2>
+<ol>
+<li>A transaction is the execution of a sequence of one or more operations (e.g., SQL queries) on a database to perform some higher-level function.
+<ul>
+<li>Transaction is the basic unit of change in a DBMS. Partial transactions are not allowed.</li>
+<li>A new transaction starts with the <code>BEGIN</code> command.</li>
+<li>The transaction stops with either <code>COMMIT</code> or <code>ABORT</code>:
+<ul>
+<li>If commit, the DBMS either saves all the transaction’s changes <strong>or aborts</strong> it.</li>
+<li>If abort, all changes are undone so that it’s like as if the transaction never executed at all.</li>
+<li>Abort can be either self-inflicted or caused by the DBMS.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>In a strawman system, each transaction is executed one-by-one as  they arrive at the DBMS.
+<ul>
+<li>Before a transaction starts, copy the entire database to a new file and make all changes to that file.
+<ul>
+<li>If the txn completes successfully, overwrite the original file with the new one.</li>
+<li>If the txn fails, just remove the dirty copy.</li>
+</ul>
+</li>
+<li>The problem of this system is that there is no concurrency and copying the entire database can be expensive if the it is large.</li>
+</ul>
+</li>
+<li>Besides correctness and fairness, we also want the DBMS to allow concurrent execution of independent transactions to provide better utilization / throughput and increase response times to users.</li>
+</ol>
+<h2 id="what-does-the-dbms-want-to-prevent-when-supporting-concurrency"><a class="markdownIt-Anchor" href="#what-does-the-dbms-want-to-prevent-when-supporting-concurrency"></a> What does the DBMS want to prevent when supporting concurrency?</h2>
+<ol>
+<li>Arbitrary interleaving of operations can lead to temporary inconsistency and permanent inconsistency.
+<ul>
+<li>Temporary inconsistency is unavoidable and it is fine as long as no other transactions can see it.</li>
+<li>Permanent inconsistency is unacceptable.</li>
+</ul>
+</li>
+<li>The DBMS is only concerned about what data is read/written from/to the database. Changes to the “outside world”, e.g. sending an email, are beyond the scope of the DBMS.</li>
+</ol>
+<h1 id="correctness"><a class="markdownIt-Anchor" href="#correctness"></a> Correctness</h1>
+<h2 id="what-is-the-correctness-criteria"><a class="markdownIt-Anchor" href="#what-is-the-correctness-criteria"></a> What is the correctness criteria?</h2>
+<ol>
+<li><strong>Atomicity</strong>: All actions in transaction happen, or none happen, i.e. “all or nothing”.</li>
+<li><strong>Consistency</strong>: If each transaction is consistent and the DB starts consistent, then it ends up consistent.</li>
+<li><strong>Isolation</strong>: Execution of one transaction is isolated from that of other transactions.</li>
+<li><strong>Durability</strong>: If a txn commits, its effects persist.</li>
+</ol>
+<h2 id="how-to-ensure-atomicity"><a class="markdownIt-Anchor" href="#how-to-ensure-atomicity"></a> How to ensure atomicity?</h2>
+<ol>
+<li>The first approach is logging (Write Ahead Log / WAL).
+<ul>
+<li>DBMS logs all actions so that it can undo the actions of aborted transactions.</li>
+<li>Maintain undo records both in memory and on disk.</li>
+<li>When the DBMS come back from a crash, it need to undo partial transactions according to the undo records.</li>
+</ul>
+</li>
+<li>Another approach is shadow paging.
+<ul>
+<li>DBMS makes copies of pages and txns make changes to those copies.</li>
+<li>Only when the txn commits is the page made visible to others by modifying the pointer at directory.</li>
+<li>It does not need extra operations when come back from crash.</li>
+</ul>
+</li>
+</ol>
+<h2 id="what-is-consistency"><a class="markdownIt-Anchor" href="#what-is-consistency"></a> What is consistency?</h2>
+<ol>
+<li>At a high level, consisitency means the “world” represented by the database is logically correct. All questions (i.e., queries) that the application asks about the data will return logically correct results.</li>
+<li>There are two notions of consistency
+<ul>
+<li>Database consistency means that the database accurately models the real world and follows integrity constraints.
+<ul>
+<li>Transactions in the future see the effects of transactions committed in the past inside of the database.</li>
+<li>The designer of DBMS should maintain this consistency.</li>
+</ul>
+</li>
+<li>Transaction consistency means that if the database is consistent before the transaction starts, it will also be consistent after.
+<ul>
+<li>The application programmer is responsible for this consistency. The DBMS does not know the semantics of correctness.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="isolation"><a class="markdownIt-Anchor" href="#isolation"></a> Isolation</h2>
+<h3 id="what-do-we-want-from-isolation"><a class="markdownIt-Anchor" href="#what-do-we-want-from-isolation"></a> What do we want from isolation?</h3>
+<ol>
+<li>Users submit txns, and each txn executes as if it was running by itself, i.e. it is executed in a strawman system where no other transaction is executing at the same time.</li>
+<li>Isolation provides an easier programming model to reason about.</li>
+<li>But the DBMS achieves concurrency by interleaving the actions (reads/writes of DB objects) of txns. Hence we need to schedule to interleave txns but still make it appear as if they ran one-at-a-time.</li>
+<li>There is no guarantee that <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> will execute before <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> or vice-versa, if both are submitted together. The net effect must be equivalent to these two transactions running serially in some order.</li>
+</ol>
+<h3 id="how-to-decide-whether-a-schedule-matches-isolation"><a class="markdownIt-Anchor" href="#how-to-decide-whether-a-schedule-matches-isolation"></a> How to decide whether a schedule matches isolation?</h3>
+<ol>
+<li>If the schedule is equivalent to some serial execution, we can consider it correct.</li>
+<li>For any database state, if the effect of executing the first schedule is identical to the effect of executing the second schedule, we say these two schedules are equivalent.</li>
+<li>A schedule is serializable schedule if it is equivalent to some serial execution of the transactions.
+<ul>
+<li>If each transaction preserves consistency, every serializable schedule preserves consistency.</li>
+</ul>
+</li>
+<li>There are two different levels of serializability: conflict serializability (most commonly used) and view serializability.</li>
+</ol>
+<h3 id="what-conflicts-do-we-want-to-prevent"><a class="markdownIt-Anchor" href="#what-conflicts-do-we-want-to-prevent"></a> What conflicts do we want to prevent?</h3>
+<ol>
+<li>Two operations conflict if: They are by different transactions, and they are on the same object while one of them is a write.</li>
+<li>A read-write conflict will cause unrepeatable read.
+<ul>
+<li>Transaction gets different values when reading the same object multiple times.</li>
+<li>The conflict is between the write from one transaction and a repeated following read from another transaction, i.e. this is actually <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mi>e</mi><mi>a</mi><msub><mi>d</mi><mn>1</mn></msub><mo>−</mo><mi>w</mi><mi>r</mi><mi>i</mi><mi>t</mi><mi>e</mi><mo>−</mo><mi>r</mi><mi>e</mi><mi>a</mi><msub><mi>d</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">read_1-write-read_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal">a</span><span class="mord"><span class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.74285em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal">a</span><span class="mord"><span class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> conflict where the conflict is between <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mi>r</mi><mi>i</mi><mi>t</mi><mi>e</mi><mo>−</mo><mi>r</mi><mi>e</mi><mi>a</mi><msub><mi>d</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">write-read_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.74285em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal">a</span><span class="mord"><span class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
+<li>If there is only one read, it is not a read-write conflict. The first read will never be a read-write conflict.</li>
+</ul>
+</li>
+</ol>
+<ul>
+<li>A write-read conflict will cause dirty read.
+<ul>
+<li>One transaction reads data written by another transaction that has not committed yet.</li>
+<li>The problem will happen when the read transaction is commited before the write transaction aborts.</li>
+<li>If the write transaction successfully commits, there is no problem. But we cannot know that when we commit the read transaction first.</li>
+</ul>
+</li>
+<li>A write-write conflict will cause lost update.
+<ul>
+<li>One transaction overwrites uncommitted data from another uncommitted transaction.</li>
+<li>This may cause the result becoming combination of two partial transactions.</li>
+<li>There is no problem when every data written by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is the last write to that data, i.e. every data written by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is not overwritten by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>. The problem happens when <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> overwrites some data of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> while <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> overwrites some data of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
+</ul>
+</li>
+</ul>
+<h3 id="how-do-we-determine-whether-a-schedule-is-conflict-serializable"><a class="markdownIt-Anchor" href="#how-do-we-determine-whether-a-schedule-is-conflict-serializable"></a> How do we determine whether a schedule is conflict serializable?</h3>
+<ol>
+<li>When there are only two schedules:
+<ul>
+<li>Two schedules are conflict equivalent if and only if they involve the same actions of the same transactions and every pair of conflicting actions is ordered the same way.</li>
+<li>Schedule S is conflict serializable if S is conflict equivalent to some serial schedule.</li>
+<li>We can transform S into a serial schedule by swapping consecutive non-conflicting operations of different transactions.</li>
+</ul>
+</li>
+<li>For more schedules, we can use the dependency graphs.
+<ul>
+<li>Create one node per txn in the graph.</li>
+<li>Create an edge from <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> if an operation <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>O</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">O_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> conflicts with an<br />
+operation <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>O</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">O_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>O</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">O_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> appears earlier in the schedule than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>O</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">O_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span>.</li>
+<li>A schedule is conflict serializable if and only if its dependency graph is acyclic.</li>
+</ul>
+</li>
+</ol>
+<h3 id="how-do-we-determine-whether-a-schedule-is-view-serializable"><a class="markdownIt-Anchor" href="#how-do-we-determine-whether-a-schedule-is-view-serializable"></a> How do we determine whether a schedule is view serializable?</h3>
+<ol>
+<li>Schedules <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">S_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">S_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> are view equivalent if:
+<ul>
+<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> reads initial value of A in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">S_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> also reads initial value of A in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">S_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
+<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> reads value of A written by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">S_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> also reads value of A written by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">S_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
+<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> writes final value of A in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">S_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> also writes final value of A in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">S_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
+</ul>
+</li>
+<li>In a word, each transaction is different schedules read the same values written by the same transaction and at the final end of all transactions, all data are written by the same transaction in the same value.</li>
+<li>View Serializability allows for (slightly) more schedules than Conflict Serializability does. Neither definition allows all serializable schedules.</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -3559,475 +3841,9 @@ to 1. If yes, set to zero. If no, then evict.</li>
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/06/24/Courses/15445/01-Relational-Model/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/24/Courses/15445/01-Relational-Model/" class="post-title-link" itemprop="url">01 Relational Model</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2023-06-24 15:14:56" itemprop="dateCreated datePublished" datetime="2023-06-24T15:14:56+08:00">2023-06-24</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-07-09 22:02:32" itemprop="dateModified" datetime="2023-07-09T22:02:32+08:00">2023-07-09</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><ul class="markdownIt-TOC">
-<li><a href="#database">Database</a>
-<ul>
-<li><a href="#why-shouldnt-we-just-store-database-in-a-flat-file-like-csv-that-we-manage-ourselve-in-our-application-code">Why shouldn’t we just store database in a flat file like CSV that we manage ourselve in our application code?</a></li>
-<li><a href="#what-does-dbms-and-data-models-do">What does DBMS and data models do?</a></li>
-<li><a href="#what-kinds-of-data-models-are-there">What kinds of data models are there?</a></li>
-<li><a href="#how-does-document-data-model-store-data">How does document data model store data?</a></li>
-</ul>
-</li>
-<li><a href="#relational-model">Relational model</a>
-<ul>
-<li><a href="#how-are-data-stored">How are data stored?</a></li>
-<li><a href="#what-is-primary-keys-and-foreign-keys">What is primary keys and foreign keys?</a></li>
-<li><a href="#what-is-supported-in-relational-algebra">What is supported in relational algebra?</a></li>
-</ul>
-</li>
-<li><a href="#morden-sql">Morden SQL</a>
-<ul>
-<li><a href="#what-is-provided-in-a-relational-language">What is provided in a relational language?</a></li>
-<li><a href="#aggregations-and-group-by">Aggregations and Group By</a>
-<ul>
-<li><a href="#what-are-aggregations">What are aggregations?</a></li>
-<li><a href="#how-to-output-other-columns-with-aggregations">How to output other columns with aggregations?</a></li>
-</ul>
-</li>
-<li><a href="#what-string-operations-are-supported">What string operations are supported?</a></li>
-<li><a href="#output">Output</a>
-<ul>
-<li><a href="#where-can-we-redirect-outputs">Where can we redirect outputs?</a></li>
-<li><a href="#how-can-we-control-the-outputs">How can we control the outputs?</a></li>
-</ul>
-</li>
-<li><a href="#what-if-we-need-temporary-relation-in-a-query">What if we need temporary relation in a query?</a></li>
-<li><a href="#how-does-window-functions-work">How does window functions work?</a></li>
-</ul>
-</li>
-</ul>
-</p>
-<h1 id="database"><a class="markdownIt-Anchor" href="#database"></a> Database</h1>
-<h2 id="why-shouldnt-we-just-store-database-in-a-flat-file-like-csv-that-we-manage-ourselve-in-our-application-code"><a class="markdownIt-Anchor" href="#why-shouldnt-we-just-store-database-in-a-flat-file-like-csv-that-we-manage-ourselve-in-our-application-code"></a> Why shouldn’t we just store database in a flat file like CSV that we manage ourselve in our application code?</h2>
-<ol>
-<li>The first concern is data integrity:
-<ul>
-<li>How to ensure that the data is make sense to the design schema?</li>
-<li>How to prevent invalid data and malicious attack?</li>
-<li>And the management of deleting some entries causing deleting entries in other databases is pain.</li>
-</ul>
-</li>
-<li>Another problem is implementation:
-<ul>
-<li>How to find a record?</li>
-<li>How to share database between applications?</li>
-<li>How to handle concurrent writes?</li>
-</ul>
-</li>
-<li>Also concerned about durability:
-<ul>
-<li>What if machine crashed?</li>
-<li>How to replicate database?</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-does-dbms-and-data-models-do"><a class="markdownIt-Anchor" href="#what-does-dbms-and-data-models-do"></a> What does DBMS and data models do?</h2>
-<ol>
-<li>
-<p>DBMS supports the definition, creation, querying, update, and administration of databases in accordance with some data model.</p>
-<ul>
-<li>
-<p>The physical storage is left up to the DBMS implementation.</p>
-</li>
-<li>
-<p>Programmers access data through high-level language, DBMS figures out best execution strategy.</p>
-</li>
-</ul>
-</li>
-<li>
-<p>A data model is a collection of concepts for describing the data in a database.</p>
-<ul>
-<li>A schema is a description of a particular collection of data using a given data model.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-kinds-of-data-models-are-there"><a class="markdownIt-Anchor" href="#what-kinds-of-data-models-are-there"></a> What kinds of data models are there?</h2>
-<ol>
-<li>The most used is Relational model.</li>
-<li>One class called NoSQL:
-<ul>
-<li>Key/Value</li>
-<li>Graph</li>
-<li>Document / Object</li>
-<li>Wide-Column / Column-family</li>
-</ul>
-</li>
-<li>For machine learning, there are Array / Matrix / Vectors</li>
-<li>The obsolete or legacy ones are:
-<ul>
-<li>Hierarchical</li>
-<li>Network</li>
-<li>Multi-Value</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-does-document-data-model-store-data"><a class="markdownIt-Anchor" href="#how-does-document-data-model-store-data"></a> How does document data model store data?</h2>
-<ol>
-<li>It embeds data hierarchy into a single object like JSON, or XML, etc.</li>
-<li>The problem is similar with the aforementioned store database in a flat file like CSV.</li>
-</ol>
-<h1 id="relational-model"><a class="markdownIt-Anchor" href="#relational-model"></a> Relational model</h1>
-<h2 id="how-are-data-stored"><a class="markdownIt-Anchor" href="#how-are-data-stored"></a> How are data stored?</h2>
-<ol>
-<li>Data are stored in simple data structures called relations.</li>
-<li>A relation is an <strong>unordered set</strong> that contain the relationship of attributes that represent entities.
-<ul>
-<li>A n-ary relation is  a table with n columns.</li>
-</ul>
-</li>
-<li>A tuple is a set of attribute values (domain) in the relation.
-<ul>
-<li>NULL is a member of every domain, if allowed.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-is-primary-keys-and-foreign-keys"><a class="markdownIt-Anchor" href="#what-is-primary-keys-and-foreign-keys"></a> What is primary keys and foreign keys?</h2>
-<ol>
-<li>A relation’s primary key uniquely identifies a single tuple.
-<ul>
-<li>In the definition of a relation, primary keys are usually marked with underline.</li>
-</ul>
-</li>
-<li>A foreign key specifies that an attribute from one relation has to map to a tuple in another relation.
-<ul>
-<li>Normally, foreign keys must be primary keys in another relation.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-is-supported-in-relational-algebra"><a class="markdownIt-Anchor" href="#what-is-supported-in-relational-algebra"></a> What is supported in relational algebra?</h2>
-<ol>
-<li>
-<p>Select: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sigma_{predicate}(R)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mclose">)</span></span></span></span></p>
-<ul>
-<li>
-<p>Choose a subset of the tuples from a relation that satisfies the selection predicate.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R</span><br><span class="line"> <span class="keyword">WHERE</span> predicate;</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-</li>
-<li>
-<p>Projection: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Π</mi><mrow><msub><mi>A</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>A</mi><mn>2</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>A</mi><mi>n</mi></msub></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\Pi_{A_1,A_2,\dots,A_n}(R)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord">Π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.328331em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31731428571428577em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31731428571428577em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="minner mtight">…</span><span class="mpunct mtight">,</span><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.16454285714285719em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mclose">)</span></span></span></span></p>
-<ul>
-<li>
-<p>Generate a relation with tuples that contains only the specified attributes</p>
-</li>
-<li>
-<p>It can be used to rearrange attributes’ ordering and manipulate the values.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> A1, A2, ..., An <span class="keyword">FROM</span> R;</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-</li>
-<li>
-<p>Union: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>∪</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\cup S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∪</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></p>
-<ul>
-<li>
-<p>Two relations must have same attributes.</p>
-</li>
-<li>
-<p>The result may be duplicated if some tuples appeared in bother relations.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">UNION</span> <span class="keyword">ALL</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-</li>
-<li>
-<p>Intersection: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>∩</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\cap S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∩</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></p>
-<ul>
-<li>
-<p>Two relations must have same attributes.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">INTERSECT</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-</li>
-<li>
-<p>Difference: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>−</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R-S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></p>
-<ul>
-<li>
-<p>Two relations must have same attributes.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">EXCEPT</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-</li>
-<li>
-<p>Product: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>×</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\times S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></p>
-<ul>
-<li>
-<p>Generate a relation that contains all possible combinations of tuple from the input relations, i.e. Cartesian product.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">CROSS</span> <span class="keyword">JOIN</span> S;</span><br><span class="line"># <span class="keyword">Or</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R, S;</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-</li>
-<li>
-<p>Join: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>⋈</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\bowtie S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68833em;vertical-align:-0.005em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⋈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></p>
-<ul>
-<li>
-<p>The difference between join and intersection is that join can match attributes’ name automatically, while intersetion requires that two relations have the same attribute order.</p>
-</li>
-<li>
-<p>It does product first, then compare attributes.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">NATURAL</span> <span class="keyword">JOIN</span> S;</span><br><span class="line"># <span class="keyword">Or</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">JOIN</span> S <span class="keyword">USING</span> (A1, A2, ..., An);</span><br></pre></td></tr></table></figure>
-</li>
-<li>
-<p>In the broad sense, join can have predicate <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><msub><mo>⋈</mo><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mi>S</mi></mrow><annotation encoding="application/x-tex">R\bowtie_{predicate}S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel"><span class="mrel">⋈</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span> which is the same as <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo>×</mo><mi>S</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sigma_{predicate}(R\times S)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mclose">)</span></span></span></span>.</p>
-</li>
-</ul>
-</li>
-<li>
-<p>It is obvious that different order of steps can have the same result with different amout of computation.</p>
-<ul>
-<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>⋈</mo><mo stretchy="false">(</mo><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R\bowtie(\sigma_{predicate}(S))</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68833em;vertical-align:-0.005em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⋈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mclose">)</span><span class="mclose">)</span></span></span></span> is much efficient than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo>⋈</mo><mi>S</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sigma_{predicate}(R\bowtie S)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⋈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mclose">)</span></span></span></span>.</li>
-</ul>
-</li>
-</ol>
-<h1 id="morden-sql"><a class="markdownIt-Anchor" href="#morden-sql"></a> Morden SQL</h1>
-<h2 id="what-is-provided-in-a-relational-language"><a class="markdownIt-Anchor" href="#what-is-provided-in-a-relational-language"></a> What is provided in a relational language?</h2>
-<ol>
-<li>Data Manipulation Language (DML)</li>
-<li>Data Definition Language (DDL)</li>
-<li>Data Control Language (DCL)</li>
-<li>Also view definition, integrity and referential constraints, transactions.</li>
-</ol>
-<h2 id="aggregations-and-group-by"><a class="markdownIt-Anchor" href="#aggregations-and-group-by"></a> Aggregations and Group By</h2>
-<h3 id="what-are-aggregations"><a class="markdownIt-Anchor" href="#what-are-aggregations"></a> What are aggregations?</h3>
-<ol>
-<li>They are functions that return a single value from a bag of tuples.</li>
-<li><code>AVG(col)</code>, <code>MIN(col)</code>, <code>MAX(col)</code>, <code>SUM(col)</code>, <code>COUNT(col)</code>
-<ul>
-<li>For <code>COUNT</code>, the passed argument actual does mater since it only returns the number of rows.</li>
-</ul>
-</li>
-<li>Aggregate functions can almost only be used in the <code>SELECT</code> output list.</li>
-<li><code>COUNT</code>, <code>SUM</code>, <code>AVG</code> support <code>DISTINCT</code>.
-<ul>
-<li>In this case, the columns passed to <code>COUNT</code> matters.</li>
-</ul>
-</li>
-<li>Output of other columns outside of an aggregate is undefined.
-<ul>
-<li>Aggregations actually create a new relation with different number of tuples.</li>
-<li>If we directly ask for other colmns, the number of tuples won’t match with output of aggregations</li>
-<li>And we don’t know the relation between output of aggregations and values from other columns (some language may allow this but with chaos order).</li>
-</ul>
-</li>
-<li>We also cannot filter output tuples with the result of aggregation column names.
-<ul>
-<li>Since <code>SELECT</code> happens a last, when <code>WHERE</code> or <code>HAVING </code> is calculated, the aggregation columns haven’t been calculated yet.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-to-output-other-columns-with-aggregations"><a class="markdownIt-Anchor" href="#how-to-output-other-columns-with-aggregations"></a> How to output other columns with aggregations?</h3>
-<ol>
-<li><code>GROUP BY</code> projects tuples into subsets and calculate aggregates against each subset.</li>
-<li>Non-aggregated valuese in <code>SELECT</code> output clause must appear in <code>GROUP BY</code> clause.</li>
-<li>With group-by, each aggregation output has the same values in those grouped columns. So <code>SELECT</code> knows their relation.</li>
-<li><code>HAVING</code> like a <code>WHERE</code> clause for a <code>GROUP BY</code>.
-<ul>
-<li>It can filter results based on aggregation computation. But it also shouldn’t use the columns names of aggregation in <code>SELECT</code>.</li>
-<li>Instead, it should directly use aggregation function. Although the execution engine knows that these two are the same and don’t do the repeat calculation.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-string-operations-are-supported"><a class="markdownIt-Anchor" href="#what-string-operations-are-supported"></a> What string operations are supported?</h2>
-<ol>
-<li>
-<p>Predicate of string matching can be done with <code>=</code></p>
-<ul>
-<li>
-<p>Some DBMSs are case sensitive while others are not.</p>
-</li>
-<li>
-<p>We can also use <code>LIKE</code> to match with string-match operators.</p>
-<ul>
-<li><code>%</code> matches any substring (including empty strings)</li>
-<li><code>_</code> match any one character.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p>Other string functions are provided:</p>
-<ul>
-<li><code>UPPER</code> and <code>LOWER</code></li>
-<li><code>SUBSTRING(str, start_index, end_index)</code></li>
-</ul>
-</li>
-<li>
-<p>Different language has different ways to concatenate strings: <code>str1 || str2</code>, <code>str1 + str2</code> or <code>CONCAT(str1, str2)</code>.</p>
-</li>
-</ol>
-<h2 id="output"><a class="markdownIt-Anchor" href="#output"></a> Output</h2>
-<h3 id="where-can-we-redirect-outputs"><a class="markdownIt-Anchor" href="#where-can-we-redirect-outputs"></a> Where can we redirect outputs?</h3>
-<ol>
-<li>We can store query restuls in another table.
-<ul>
-<li>That table must not already be defined.</li>
-<li>It will have the same number of columns with the same types as the input.</li>
-</ul>
-</li>
-<li>We can also insert tuples from query into another table.
-<ul>
-<li>The inner select must generate the same columns as the target table.</li>
-<li>DMBSs have diferent options/syntax on what to do with integrity violations.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-can-we-control-the-outputs"><a class="markdownIt-Anchor" href="#how-can-we-control-the-outputs"></a> How can we control the outputs?</h3>
-<ol>
-<li>We can order the output tuples by the values in one or more of their columns with <code>ORDER BY &lt;column*&gt; [ASC|DESC]</code>.</li>
-<li>We can also limit the number of tuples returned in output with <code>LIMIT &lt;count&gt; [OFFSET &lt;count2&gt;]</code>.
-<ul>
-<li>Although this limits the number of output, its execution may still need to compute the whole relation, e.g. to output the top-10 largest numbers still need to sort all numbers.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-if-we-need-temporary-relation-in-a-query"><a class="markdownIt-Anchor" href="#what-if-we-need-temporary-relation-in-a-query"></a> What if we need temporary relation in a query?</h2>
-<ol>
-<li>
-<p>The first solution is nested queries.</p>
-<ul>
-<li>
-<p>Inner queries can appear almost anywhere in query.</p>
-</li>
-<li>
-<p>In <code>WHERE</code> clause, we can perform predicate between the tuples from current relation and result of subqueries.</p>
-<ul>
-<li>
-<p><code>ALL</code> must satisfy expression for all rows in the subquery.</p>
-</li>
-<li>
-<p><code>ANY</code> must satisfy expression for at least one row in the subquery.</p>
-</li>
-<li>
-<p><code>IN</code> is equivalent to <code>=ANY()</code>.</p>
-</li>
-<li>
-<p><code>EXISTS</code> returns true if the relation is not empty.</p>
-</li>
-<li>
-<p><code>NOT</code></p>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p>Another choice is common table expression using <code>WITH cteName AS (query)</code>.</p>
-<ul>
-<li>It also supports bind/alias output columns to names <code>WITH cteName (col1, ..., coln) AS (query)</code></li>
-<li>In the next one query, we can reference this temporary relation with <code>cteName</code>.</li>
-<li>We can enable recursive calculation using <code>WITH RECURSIVE</code>.</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-does-window-functions-work"><a class="markdownIt-Anchor" href="#how-does-window-functions-work"></a> How does window functions work?</h2>
-<ol>
-<li>Window functions perform a sliding calculation across a set of tuples that are related.</li>
-<li>Like an aggregation, they only appear in <code>SELECT</code> clause. But tuples are not grouped into a single output tuples. Instead, the number of rows of the output is the same as input.</li>
-<li>In <code>SELECT</code> clause, window functions syntax is <code>FUNC-NAME(...) OVER(...)</code>.
-<ul>
-<li>The <code>FUNC-NAME</code> can be aggregation functions or special functions (<code>ROW_NUMBER</code> and <code>RANK</code>)
-<ul>
-<li><code>ROW_NUMBER</code> assigns the nuber of current row in certain order.</li>
-<li><code>RANK</code> assigns the order position of the current row.</li>
-<li>When two rows tie, <code>RANK</code> will assign the same number to them and skip the next number while <code>ROW_NUMBER</code> will assign different number.</li>
-</ul>
-</li>
-<li>The <code>OVER</code> paramater controls how to slice up data.
-<ul>
-<li>It controls how to group together tuples when computing the window function with <code>PARTITION BY</code>.</li>
-<li>It also controls the order of computing with <code>ORDER BY ... [ASC|DESC]</code>.</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" title="Next page" aria-label="Next page" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+  </nav>
 
 </div>
   </main>
