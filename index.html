@@ -211,9 +211,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2023-08-04 16:47:09 / Modified: 19:19:01" itemprop="dateCreated datePublished" datetime="2023-08-04T16:47:09+08:00">2023-08-04</time>
+      <time title="Created: 2023-08-04 16:47:09" itemprop="dateCreated datePublished" datetime="2023-08-04T16:47:09+08:00">2023-08-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-08-05 11:57:46" itemprop="dateModified" datetime="2023-08-05T11:57:46+08:00">2023-08-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -239,147 +245,209 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>@[toc]</p>
-<h1 id="Two-phase-Locking"><a href="#Two-phase-Locking" class="headerlink" title="Two-phase Locking"></a>Two-phase Locking</h1><h2 id="How-can-we-guarantee-a-serializable-schedule-without-knowing-the-entire-schedule-ahead-of-time"><a href="#How-can-we-guarantee-a-serializable-schedule-without-knowing-the-entire-schedule-ahead-of-time" class="headerlink" title="How can we guarantee a serializable schedule without knowing the entire schedule ahead of time?"></a>How can we guarantee a serializable schedule without knowing the entire schedule ahead of time?</h2><ol>
-<li><p>We can use locks to protect database objects. </p>
+          <p><ul class="markdownIt-TOC">
+<li><a href="#two-phase-locking">Two-phase Locking</a>
 <ul>
-<li><p>When a transaction wants to access some objects, it needs to acquire locks of that objects from a centralized lock manager. </p>
+<li><a href="#how-can-we-guarantee-serializable-without-knowing-the-entire-schedule-ahead-of-time">How can we guarantee serializable without knowing the entire schedule ahead of time?</a></li>
+<li><a href="#what-is-the-problem-of-releasing-locks-and-acquiring-it-later-again">What is the problem of releasing locks and acquiring it later again?</a></li>
+<li><a href="#what-is-the-problem-of-two-phase-locking">What is the problem of two-phase locking?</a></li>
+</ul>
 </li>
-<li><p>Locks are issued by applications and handled in lock manager while latches are issued and acquired locally. Hence acquiring locks are more expensive than acquiring latches even if locks are free. </p>
+<li><a href="#deadlock">Deadlock</a>
+<ul>
+<li><a href="#how-to-detect-and-resolve-deadlocks">How to detect and resolve deadlocks?</a></li>
+<li><a href="#how-to-prevent-deadlocks">How to prevent deadlocks?</a></li>
+</ul>
+</li>
+<li><a href="#lock-granularity">Lock granularity</a>
+<ul>
+<li><a href="#what-are-the-database-objects">What are the database objects?</a></li>
+<li><a href="#how-to-support-multiple-granularities">How to support multiple granularities?</a></li>
+<li><a href="#how-to-use-locks">How to use locks?</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="two-phase-locking"><a class="markdownIt-Anchor" href="#two-phase-locking"></a> Two-phase Locking</h1>
+<h2 id="how-can-we-guarantee-serializable-without-knowing-the-entire-schedule-ahead-of-time"><a class="markdownIt-Anchor" href="#how-can-we-guarantee-serializable-without-knowing-the-entire-schedule-ahead-of-time"></a> How can we guarantee serializable without knowing the entire schedule ahead of time?</h2>
+<ol>
+<li>
+<p>We can use locks to protect database objects.</p>
+<ul>
+<li>
+<p>When a transaction wants to access some objects, it needs to acquire locks of that objects from a centralized lock manager.</p>
+</li>
+<li>
+<p>Locks are issued by applications and handled in lock manager while latches are issued and acquired locally. Hence acquiring locks are more expensive than acquiring latches even if locks are free.</p>
 </li>
 </ul>
 </li>
-<li><p>There are <code>S-LOCK</code> and <code>X-LOCK</code>. </p>
+<li>
+<p>There are <code>S-LOCK</code> and <code>X-LOCK</code>.</p>
 <ul>
-<li><p><code>S-LOCKs</code> are shared locks for reads while <code>X-LOCKs</code> are exclusive locks for writes. </p>
+<li>
+<p><code>S-LOCKs</code> are shared locks for reads while <code>X-LOCKs</code> are exclusive locks for writes.</p>
 </li>
-<li><p>Their compatibility matrix is as followed: </p>
-<p><img src="/imgs/15445/2pl/sx_comp_matrix.png" width="50%"></p>
+<li>
+<p>Their compatibility matrix is as followed:</p>
+<img src="/imgs/15445/2pl/sx_comp_matrix.png" width="50%">
 </li>
 </ul>
 </li>
-<li><p>Lock manager keeps track of what transaction hold what locks and what transactions are waiting to acquire any locks. </p>
+<li>
+<p>Lock manager keeps track of what transaction hold what locks and what transactions are waiting to acquire any locks.</p>
 <ul>
-<li>When transactions request or upgrade locks, lock manager grants or blocks requests. When transactions release or downgrade locks, lock manager updates its internal lock-table. </li>
-<li>Lock manager is responsible for detecting deadlock and choosing some transactions to kill. </li>
+<li>When transactions request or upgrade locks, lock manager grants or blocks requests. When transactions release or downgrade locks, lock manager updates its internal lock-table.</li>
+<li>Lock manager is responsible for detecting deadlock and choosing some transactions to kill.</li>
 </ul>
 </li>
 </ol>
-<h2 id="What-is-the-problem-of-releasing-locks-and-acquiring-it-later-again"><a href="#What-is-the-problem-of-releasing-locks-and-acquiring-it-later-again" class="headerlink" title="What is the problem of releasing locks and acquiring it later again?"></a>What is the problem of releasing locks and acquiring it later again?</h2><ol>
-<li>This may cause in-consistent reads for a transaction when another transaction modified the object during lock is available. </li>
-<li>This problem can be solved by two-phase locking. <ul>
-<li>The first phase is growing: <ul>
+<h2 id="what-is-the-problem-of-releasing-locks-and-acquiring-it-later-again"><a class="markdownIt-Anchor" href="#what-is-the-problem-of-releasing-locks-and-acquiring-it-later-again"></a> What is the problem of releasing locks and acquiring it later again?</h2>
+<ol>
+<li>This may cause in-consistent reads for a transaction when another transaction modified the object during lock is available.</li>
+<li>This problem can be solved by two-phase locking.
+<ul>
+<li>The first phase is growing:
+<ul>
 <li>Each transaction requests or upgrades the locks that it needs from the DBMS’s lock manager. The lock manager grants/denies lock requests.</li>
 </ul>
 </li>
-<li>The second phase is shrinking: <ul>
-<li>The transaction is allowed to only release or downgrade locks that it previously acquired. It cannot acquire new locks. </li>
+<li>The second phase is shrinking:
+<ul>
+<li>The transaction is allowed to only release or downgrade locks that it previously acquired. It cannot acquire new locks.</li>
 </ul>
 </li>
 </ul>
 </li>
 <li>Two-phase locking on its own is sufficient to guarantee conflict serializability because it generates schedules whose precedence graph is acyclic.</li>
 </ol>
-<h2 id="What-is-the-problem-of-two-phase-locking"><a href="#What-is-the-problem-of-two-phase-locking" class="headerlink" title="What is the problem of two-phase locking?"></a>What is the problem of two-phase locking?</h2><ol>
-<li>It is subject to cascading aborts caused by dirty reads. <ul>
-<li>When a transaction modified an object, and released the lock before it is aborted, the modified object is exposed to other transactions. </li>
-<li>When the modifier is aborted, all other transactions that have used the modified object needs to abort. </li>
+<h2 id="what-is-the-problem-of-two-phase-locking"><a class="markdownIt-Anchor" href="#what-is-the-problem-of-two-phase-locking"></a> What is the problem of two-phase locking?</h2>
+<ol>
+<li>It is subject to cascading aborts caused by dirty reads.
+<ul>
+<li>When a transaction modified an object, and released the lock before it is aborted, the modified object is exposed to other transactions.</li>
+<li>When the modifier is aborted, all other transactions that have used the modified object needs to abort.</li>
 </ul>
 </li>
-<li>This can be solved by strong strict two-phase locking (rigorous two-phase locking). <ul>
-<li>The transaction is only allowed to release locks after it has ended, i.e., committed or aborted. </li>
+<li>This can be solved by strong strict two-phase locking (rigorous two-phase locking).
+<ul>
+<li>The transaction is only allowed to release locks after it has ended, i.e., committed or aborted.</li>
 </ul>
 </li>
-<li>A schedule is strict if a value written by a transaction is not read or overwritten by other transactions until that transaction finishes. <ul>
-<li>Its advantages are that it does not incurcascading aborts, and aborted transactions can be undone by just restoring original values of modified tuples. </li>
-<li>However, it allows only conflict serializable schedules, but it is often stronger than needed for some apps. Most DBMSs prefer correctness before performance. </li>
+<li>A schedule is strict if a value written by a transaction is not read or overwritten by other transactions until that transaction finishes.
+<ul>
+<li>Its advantages are that it does not incurcascading aborts, and aborted transactions can be undone by just restoring original values of modified tuples.</li>
+<li>However, it allows only conflict serializable schedules, but it is often stronger than needed for some apps. Most DBMSs prefer correctness before performance.</li>
 </ul>
 </li>
 </ol>
-<h1 id="Deadlock"><a href="#Deadlock" class="headerlink" title="Deadlock"></a>Deadlock</h1><h2 id="How-to-detect-and-resolve-deadlocks"><a href="#How-to-detect-and-resolve-deadlocks" class="headerlink" title="How to detect and resolve deadlocks?"></a>How to detect and resolve deadlocks?</h2><ol>
-<li>The two-phase locking may lead to deadlocks. </li>
-<li>The DBMS creates a waits-for graph to keep track of what locks each transaction is waiting to acquire<ul>
-<li>Nodes are transactions. Edge from $T_i$ to $T_j$ if $T_i$ is waiting for $T_j$ to release a lock. </li>
-<li>The system periodically checks for cycles in waits- for graph and then decides how to break it. </li>
+<h1 id="deadlock"><a class="markdownIt-Anchor" href="#deadlock"></a> Deadlock</h1>
+<h2 id="how-to-detect-and-resolve-deadlocks"><a class="markdownIt-Anchor" href="#how-to-detect-and-resolve-deadlocks"></a> How to detect and resolve deadlocks?</h2>
+<ol>
+<li>The two-phase locking may lead to deadlocks.</li>
+<li>The DBMS creates a waits-for graph to keep track of what locks each transaction is waiting to acquire
+<ul>
+<li>Nodes are transactions. Edge from <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> if <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is waiting for <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> to release a lock.</li>
+<li>The system periodically checks for cycles in waits- for graph and then decides how to break it.</li>
 </ul>
 </li>
-<li>When the DBMS detects a deadlock, it will select a “victim” transaction to rollback to break the cycle. <ul>
-<li>The victim transaction will either restart or abort (more common) depending on how it was invoked. </li>
-<li>There is a trade-off between the frequency of checking for deadlocks and how long transactions wait before deadlocks are broken. </li>
+<li>When the DBMS detects a deadlock, it will select a “victim” transaction to rollback to break the cycle.
+<ul>
+<li>The victim transaction will either restart or abort (more common) depending on how it was invoked.</li>
+<li>There is a trade-off between the frequency of checking for deadlocks and how long transactions wait before deadlocks are broken.</li>
 </ul>
 </li>
-<li>Selecting the proper victim depends on a lot of different variables<ul>
+<li>Selecting the proper victim depends on a lot of different variables
+<ul>
 <li>By age (lowest timestamp)</li>
 <li>By progress (least/most queries executed)</li>
 <li>By the number of items already locked</li>
 <li>By the number of transactions that we have to rollback with it</li>
-<li>We also should consider the # of times a transaction has been restarted in the past to prevent starvation. </li>
+<li>We also should consider the # of times a transaction has been restarted in the past to prevent starvation.</li>
 </ul>
 </li>
-<li>After selecting a victim transaction to abort, the DBMS can also decide on how far to rollback the transaction’s changes. <ul>
-<li>The first approach is to rollback entire transaction and tell the application it was aborted. </li>
-<li>The second approach is rolling back a portion of a transaction to break deadlock and then attempts to re-execute the undone queries. </li>
-</ul>
-</li>
-</ol>
-<h2 id="How-to-prevent-deadlocks"><a href="#How-to-prevent-deadlocks" class="headerlink" title="How to prevent deadlocks?"></a>How to prevent deadlocks?</h2><ol>
-<li>When a transaction tries to acquire a lock that is held by another transaction, the DBMS kills one of them to prevent a deadlock. </li>
-<li>Assign priorities based on timestamps, e.g older timestamp means higher priority. </li>
-<li>The first kind of rule is Wait-Die (“Old Waits for Young”)<ul>
-<li>If requesting transaction has higher priority than holding transaction, then requesting transaction waits for holding transaction. Otherwise requesting transaction aborts. </li>
-</ul>
-</li>
-<li>The second kind of rule is Wound-Wait (“Young Waits for Old”)<ul>
-<li>If requesting transaction has higher priority than holding transaction, then holding transaction aborts and releases lock. Otherwise requesting transaction waits. </li>
-</ul>
-</li>
-<li>In this case, only one “type” of direction allowed when waiting for a lock. </li>
-<li>When a transaction restarts, its new priority is still its original timestamp to prevent it from getting starved for resources like an old man at a corrupt senior center. </li>
-</ol>
-<h1 id="Lock-granularity"><a href="#Lock-granularity" class="headerlink" title="Lock granularity"></a>Lock granularity</h1><h2 id="What-are-the-database-objects"><a href="#What-are-the-database-objects" class="headerlink" title="What are the database objects?"></a>What are the database objects?</h2><ol>
-<li>It can be attributes, tuples, pages, tables depending on the lock granularity. </li>
-<li>The trade-off is between parallelism versus overhead of requesting and lock manager processing. </li>
-<li>In a hierachical lock scheme, the objects from top-layer to lower-layer are database, table, page, tuple, attribute. </li>
-</ol>
-<h2 id="How-to-support-multiple-granularities"><a href="#How-to-support-multiple-granularities" class="headerlink" title="How to support multiple granularities?"></a>How to support multiple granularities?</h2><ol>
-<li><p>With only <code>S-LOCK</code> and <code>X-LOCK</code>, we have to check the locks of all children when we try to lock a higher-level node. </p>
-</li>
-<li><p>An intention lock allows a higher-level node to be locked in shared or exclusive mode without having to check all descendent nodes. </p>
-</li>
-<li><p>If a node is locked in an intention mode, then some transaction is doing explicit locking at a lower level in the tree. </p>
+<li>After selecting a victim transaction to abort, the DBMS can also decide on how far to rollback the transaction’s changes.
 <ul>
-<li><p>Intention-Shared (<code>IS</code>) indicates explicit locking at lower level with shared locks. </p>
-</li>
-<li><p>Intention-Exclusive (<code>IX</code>) indicates explicit locking at lower level with exclusive locks. </p>
-</li>
-<li><p>Shared+Intention-Exclusive (<code>SIX</code>) indicates that the subtree rooted by that node is locked explicitly in shared mode and explicit locking is being done at a lower level with exclusive-mode locks. </p>
-</li>
-<li><p>Their compatibility matrix is as followed: </p>
-<p><img src="/imgs/15445/2pl/intention.png" width="50%"></p>
-</li>
-</ul>
-</li>
-<li><p>Each transaction obtains appropriate lock at highest level of the database hierarchy. </p>
-<ul>
-<li>To get <code>S</code> or <code>IS</code> lock on a node, the transaction must hold at least <code>IS</code> on parent node. </li>
-<li>To get <code>X</code>, <code>IX</code>, or <code>SIX</code> on a node, must hold at least <code>IX</code> on parent node. </li>
-</ul>
-</li>
-<li><p>Multiple lock granularities is shown in the <code>S</code>, <code>X</code>, <code>SIX</code> locks on higher-level objects. </p>
-<ul>
-<li>Intention-Shared (<code>IS</code>): Intent to get <code>S</code> lock(s) at finer granularity. </li>
-<li>Intention-Exclusive (<code>IX</code>): Intent to get <code>X</code> lock(s) at finer granularity. </li>
-<li>Shared+Intention-Exclusive (<code>SIX</code>): Like <code>S</code> and <code>IX</code> at the same time. </li>
+<li>The first approach is to rollback entire transaction and tell the application it was aborted.</li>
+<li>The second approach is rolling back a portion of a transaction to break deadlock and then attempts to re-execute the undone queries.</li>
 </ul>
 </li>
 </ol>
-<h2 id="How-to-use-locks"><a href="#How-to-use-locks" class="headerlink" title="How to use locks?"></a>How to use locks?</h2><ol>
-<li>Applications typically don’t acquire a transaction’s locks manually (i.e., explicit SQL commands). <ul>
-<li>Sometimes you need to provide the DBMS with hints to help it to improve concurrency. </li>
-<li>Explicit locks are also useful when doing major changes to the database. </li>
+<h2 id="how-to-prevent-deadlocks"><a class="markdownIt-Anchor" href="#how-to-prevent-deadlocks"></a> How to prevent deadlocks?</h2>
+<ol>
+<li>When a transaction tries to acquire a lock that is held by another transaction, the DBMS kills one of them to prevent a deadlock.</li>
+<li>Assign priorities based on timestamps, e.g older timestamp means higher priority.</li>
+<li>The first kind of rule is Wait-Die (“Old Waits for Young”)
+<ul>
+<li>If requesting transaction has higher priority than holding transaction, then requesting transaction waits for holding transaction. Otherwise requesting transaction aborts.</li>
 </ul>
 </li>
-<li>Lock escalation: The DBMS can automatically switch to coarser- grained locks when a transaction acquires too many low-level locks. This reduces the number of requests that the lock manager must process. </li>
+<li>The second kind of rule is Wound-Wait (“Young Waits for Old”)
+<ul>
+<li>If requesting transaction has higher priority than holding transaction, then holding transaction aborts and releases lock. Otherwise requesting transaction waits.</li>
+</ul>
+</li>
+<li>In this case, only one “type” of direction allowed when waiting for a lock.</li>
+<li>When a transaction restarts, its new priority is still its original timestamp to prevent it from getting starved for resources like an old man at a corrupt senior center.</li>
+</ol>
+<h1 id="lock-granularity"><a class="markdownIt-Anchor" href="#lock-granularity"></a> Lock granularity</h1>
+<h2 id="what-are-the-database-objects"><a class="markdownIt-Anchor" href="#what-are-the-database-objects"></a> What are the database objects?</h2>
+<ol>
+<li>It can be attributes, tuples, pages, tables depending on the lock granularity.</li>
+<li>The trade-off is between parallelism versus overhead of requesting and lock manager processing.</li>
+<li>In a hierachical lock scheme, the objects from top-layer to lower-layer are database, table, page, tuple, attribute.</li>
+</ol>
+<h2 id="how-to-support-multiple-granularities"><a class="markdownIt-Anchor" href="#how-to-support-multiple-granularities"></a> How to support multiple granularities?</h2>
+<ol>
+<li>
+<p>With only <code>S-LOCK</code> and <code>X-LOCK</code>, we have to check the locks of all children when we try to lock a higher-level node.</p>
+</li>
+<li>
+<p>An intention lock allows a higher-level node to be locked in shared or exclusive mode without having to check all descendent nodes.</p>
+</li>
+<li>
+<p>If a node is locked in an intention mode, then some transaction is doing explicit locking at a lower level in the tree.</p>
+<ul>
+<li>
+<p>Intention-Shared (<code>IS</code>) indicates explicit locking at lower level with shared locks.</p>
+</li>
+<li>
+<p>Intention-Exclusive (<code>IX</code>) indicates explicit locking at lower level with exclusive locks.</p>
+</li>
+<li>
+<p>Shared+Intention-Exclusive (<code>SIX</code>) indicates that the subtree rooted by that node is locked explicitly in shared mode and explicit locking is being done at a lower level with exclusive-mode locks.</p>
+</li>
+<li>
+<p>Their compatibility matrix is as followed:</p>
+<img src="/imgs/15445/2pl/intention.png" width="50%">
+</li>
+</ul>
+</li>
+<li>
+<p>Each transaction obtains appropriate lock at highest level of the database hierarchy.</p>
+<ul>
+<li>To get <code>S</code> or <code>IS</code> lock on a node, the transaction must hold at least <code>IS</code> on parent node.</li>
+<li>To get <code>X</code>, <code>IX</code>, or <code>SIX</code> on a node, must hold at least <code>IX</code> on parent node.</li>
+</ul>
+</li>
+<li>
+<p>Multiple lock granularities is shown in the <code>S</code>, <code>X</code>, <code>SIX</code> locks on higher-level objects.</p>
+<ul>
+<li>Intention-Shared (<code>IS</code>): Intent to get <code>S</code> lock(s) at finer granularity.</li>
+<li>Intention-Exclusive (<code>IX</code>): Intent to get <code>X</code> lock(s) at finer granularity.</li>
+<li>Shared+Intention-Exclusive (<code>SIX</code>): Like <code>S</code> and <code>IX</code> at the same time.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-use-locks"><a class="markdownIt-Anchor" href="#how-to-use-locks"></a> How to use locks?</h2>
+<ol>
+<li>Applications typically don’t acquire a transaction’s locks manually (i.e., explicit SQL commands).
+<ul>
+<li>Sometimes you need to provide the DBMS with hints to help it to improve concurrency.</li>
+<li>Explicit locks are also useful when doing major changes to the database.</li>
+</ul>
+</li>
+<li>Lock escalation: The DBMS can automatically switch to coarser- grained locks when a transaction acquires too many low-level locks. This reduces the number of requests that the lock manager must process.</li>
 </ol>
 
       
