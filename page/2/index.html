@@ -146,7 +146,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-count">14</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -174,6 +174,416 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/06/24/Courses/15445/04-Data-Organization/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/24/Courses/15445/04-Data-Organization/" class="post-title-link" itemprop="url">04 Data Organization</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-06-24 17:12:22" itemprop="dateCreated datePublished" datetime="2023-06-24T17:12:22+08:00">2023-06-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-07-09 22:02:40" itemprop="dateModified" datetime="2023-07-09T22:02:40+08:00">2023-07-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>@[toc]</p>
+<h1 id="What-does-the-database-access-methods-layer-need-to-do"><a href="#What-does-the-database-access-methods-layer-need-to-do" class="headerlink" title="What does the database access methods layer need to do?"></a>What does the database access methods layer need to do?</h1><ol>
+<li>Data Organization<ul>
+<li>How we layout data structure in memory/pages and what information to store to support efficient access. </li>
+<li>This layer will in charge of the organization of all kinds of data inside database, e.g. internal meta-data, core data storage, temporary data structures, table indexes. </li>
+</ul>
+</li>
+<li><p>Concurrency</p>
+<ul>
+<li>How to enable multiple threads to access the data structure at the same time without causing problems. </li>
+</ul>
+</li>
+<li><p>There are two types of data structure: hash tables and trees. </p>
+</li>
+</ol>
+<h1 id="Hash-table"><a href="#Hash-table" class="headerlink" title="Hash table"></a>Hash table</h1><h2 id="How-is-the-naive-static-hash-table"><a href="#How-is-the-naive-static-hash-table" class="headerlink" title="How is the naive static hash table?"></a>How is the naive static hash table?</h2><ol>
+<li><p>A hash table implements an unordered associative array that maps keys to values. </p>
+</li>
+<li><p>For any input key, hash functions return an integer representation of that key. </p>
+</li>
+<li><p>The space complexity is $O(n)$, the average time complexity is $O(1)$ and the worst time complexity is $O(n)$. </p>
+<ul>
+<li>Databases need to are about constants. For time complexity, smaller constants can save much time in billions of operations. </li>
+<li>The space will be several times larger than the number of keys. </li>
+</ul>
+</li>
+<li><p>The naive static hash table assumes: </p>
+<ul>
+<li>The number of elements is known ahead of time and fixed. </li>
+<li>Each key is unique. </li>
+<li>We have the perfect hash function where two different keys must have different hash values. </li>
+</ul>
+</li>
+<li><p>These assumptions is not always satisfied. </p>
+<ul>
+<li><p>To suit when the first assumption failed, we need dynamic hashing scheme. </p>
+</li>
+<li><p>To suit when the last two assumptions failed, we need to design more delicate hash function to reduce collision rate and hashing scheme to handle collisions after hashing. </p>
+<ul>
+<li><p>The trade-off of hash function is between being fast and collision rate. </p>
+</li>
+<li><p>The trade-off of hashing scheme is between allocating a larger hash table and additional instructions to get/put keys. </p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="What-are-hash-functions"><a href="#What-are-hash-functions" class="headerlink" title="What are hash functions?"></a>What are hash functions?</h2><ol>
+<li><p>We do not want to use a cryptographic hash function for DBMS hash tables, e.g., SHA-2. </p>
+<ul>
+<li>Because this hashing is only using internally, we will never worry about leaking keys. </li>
+<li>We want something that is fast and has a low collision rate.</li>
+</ul>
+</li>
+<li><p>The commonly used hash functions are: </p>
+<ul>
+<li>CRC-64: Used in networking for error detection. </li>
+<li>MurmurHash: Designed as a fast, general-purpose hash function. </li>
+<li>Google CityHash: Designed to be faster for short keys (&lt;64 bytes). </li>
+<li>Facebook XXHash: From the creator of zstd compression, which is the state-of-the-art. </li>
+<li>Google Farmhash: Newer version of CityHash with better collision rates. </li>
+</ul>
+</li>
+<li><p>Their speed comparison is as followed:</p>
+<p><img src="/imgs/15445/Organization/hash_func.png" width="75%"></p>
+</li>
+</ol>
+<h2 id="Static-hashing-schemes"><a href="#Static-hashing-schemes" class="headerlink" title="Static hashing schemes"></a>Static hashing schemes</h2><h3 id="How-is-linear-probe-hashing"><a href="#How-is-linear-probe-hashing" class="headerlink" title="How is linear probe hashing?"></a>How is linear probe hashing?</h3><ol>
+<li>As all the following schemes, a key-value paire is stored in hashing table. The key is to determin whether this is actually the key we want to find. </li>
+<li>It resolve collisions by linearly searching for the next free slot in the table. </li>
+<li>To determine whether an element is present, hash to a location in the index and scan for it. If find an empty slot before the key, then the element does not exists. </li>
+<li>To delete an entry, there are two approaches: <ul>
+<li><strong>Movement</strong>: Rehash rest of the keys until find the first empty slot. Nobody actually does this. </li>
+<li><strong>Tombstone</strong>: Set a marker to indicate that the entry in the slot is logically deleted. The slot can be reused for new keys. This may still need periodic garbage collection. </li>
+</ul>
+</li>
+</ol>
+<h3 id="How-to-solve-the-non-unique-keys-problem"><a href="#How-to-solve-the-non-unique-keys-problem" class="headerlink" title="How to solve the non-unique keys problem?"></a>How to solve the non-unique keys problem?</h3><ol>
+<li>The first choise is to store values in separate storage area for each key and the value of hash table points to the area. </li>
+<li>The second choise is to store duplicate keys entries together in the hash table. <ul>
+<li>Read would return the first key they found. </li>
+<li>Deletes would remove all the keys or a specific key-value pair. </li>
+</ul>
+</li>
+</ol>
+<h3 id="How-is-the-robin-hood-hashing"><a href="#How-is-the-robin-hood-hashing" class="headerlink" title="How is the robin hood hashing?"></a>How is the robin hood hashing?</h3><ol>
+<li>This is a variant of linear probe hashing that steals slots from “rich” keys and give them to “poor” keys. <ul>
+<li>Each key tracks the number of positions they are from where its optimal position (original hash value) in the table. </li>
+<li>The keys farther away from its optimal position is poorer while the keys closer is richer. </li>
+<li>On insert, a key takes the slot of another key if the first key is “richer” than the second key. And the second key will keep searching linearly until it found another “richer” key. </li>
+</ul>
+</li>
+<li>Stealing increases the number of writing operation compare with the linear probing scheme while may reduce the time of worst case. </li>
+<li>This could have cascading/flooding problem where one insert causing multiple “stealing”. Also it does not consider the possibility of hot keys. </li>
+</ol>
+<h3 id="How-is-the-cuckoo-hashing"><a href="#How-is-the-cuckoo-hashing" class="headerlink" title="How is the cuckoo hashing?"></a>How is the cuckoo hashing?</h3><ol>
+<li>Use multiple hash tables with different hash function seeds to ensure they won’t hash to the same value. <ul>
+<li>On insert, check every table and pick anyone that has a free slot. </li>
+<li>If no table has a free slot, choose one victim, evict it and then re-hash it find a new location. </li>
+</ul>
+</li>
+<li>Look-ups and deletions are always $O(1)$ because only one location per hash table is checked. </li>
+<li>There is a possibility of cascading. The worst case is an infinite cascading loop. <ul>
+<li>We can use extra code to detect if replacing is going in a loop. If so, we need to double the hash table size with new hash functions and re-insert all keys. </li>
+</ul>
+</li>
+</ol>
+<h2 id="Dynamic-hashing-schemes"><a href="#Dynamic-hashing-schemes" class="headerlink" title="Dynamic hashing schemes"></a>Dynamic hashing schemes</h2><h3 id="How-is-chained-hashing"><a href="#How-is-chained-hashing" class="headerlink" title="How is chained hashing?"></a>How is chained hashing?</h3><ol>
+<li>It maintains a linked list of buckets for each slot in the hash table. </li>
+<li>Resolve collisions by placing all elements with the same hash key into the same bucket. <ul>
+<li>To determine whether an element is present, hash to its bucket and scan for it. </li>
+</ul>
+</li>
+<li>The problem is that the linked list can grow forever causing the time spent on search increases as the system runs. </li>
+</ol>
+<h3 id="How-is-extendible-hashing"><a href="#How-is-extendible-hashing" class="headerlink" title="How is extendible hashing?"></a>How is extendible hashing?</h3><ol>
+<li>Multiple slot locations can point to the same bucket chain. </li>
+<li>For the number of bits needs to examine, there is a global one and a local one. </li>
+<li>It reshuffle bucket entries on split and increase the number of bits to examine when a list is full. <ul>
+<li>If there is only one slot pointing to this list, i.e. the global examining bits is the same as the local one, <ul>
+<li>The DBMS increases the global number causing the size of hashing table doubled. </li>
+<li>Those lists with smaller local number will set the pointers of corresponding new slots (with only the last global examining bit different) still to themselves. </li>
+<li>DBMS also increases the local examining bits of the fulled list. The keys in it will re-hash to their two new lists. </li>
+</ul>
+</li>
+<li>If there are more than one slots pointing to this list, i.e. the global examning bits is larger the the local one, <ul>
+<li>The DBMS only increases the local examining bits of the fulled list and do the re-hashing. </li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="How-is-linear-hashing"><a href="#How-is-linear-hashing" class="headerlink" title="How is linear hashing?"></a>How is linear hashing?</h3><ol>
+<li>It is similar to extensible hashing. But the hash table maintains a pointer that tracks the next bucket to split. </li>
+<li>When any bucket overflows, split the bucket at the pointer location. <ul>
+<li>When the split causing the number of slots in hash table doubled, it introduces a new hash function taking modulo with the new hash table size. </li>
+</ul>
+</li>
+<li>It uses multiple hashes to find the right bucket for a given key. <ul>
+<li>It always first use the old hash function with smaller modulus. </li>
+<li>If this hash value is smaller than the split pointer, which means that this slot has already been splitted, DBMS need to use the new hash function to find the true hash value. </li>
+<li>Otherwise, this slot is not splitted and the old hash value works fine. </li>
+</ul>
+</li>
+<li>Splitting buckets based on the split pointer will eventually get to all overflowed buckets. <ul>
+<li>When the pointer reaches the last slot, delete the first hash function and move back to beginning. </li>
+</ul>
+</li>
+<li>Deleting may cause the size of hash table to shrink when it deleted the only entry in the second half of the hash table. <ul>
+<li>DMBS shrinks the size of hash table and deletes the new hash function. </li>
+</ul>
+</li>
+</ol>
+<h1 id="Tree"><a href="#Tree" class="headerlink" title="Tree"></a>Tree</h1><h2 id="Table-indexes"><a href="#Table-indexes" class="headerlink" title="Table indexes"></a>Table indexes</h2><h3 id="What-does-table-indexs-do"><a href="#What-does-table-indexs-do" class="headerlink" title="What does table indexs do?"></a>What does table indexs do?</h3><ol>
+<li>A table index is a replica of a subset of a table’s attributes that are organized and/or sorted for efficient access using those attributes. </li>
+<li>It is used in queries to find tuples with attributes matches certain values. </li>
+<li>The DBMS ensures that the contents of the table and the index are logically synchronized. </li>
+<li>It is the DBMS’s job to figure out the best index(es) to use to execute each query. </li>
+<li>There is a trade-off regarding the number of indexes to create per database, i.e. the lookup speed and synchronization overhead. <ul>
+<li>We need extra storage overhead to store the data structure and maintenance overhead to keep synchronization. </li>
+</ul>
+</li>
+</ol>
+<h3 id="What-is-clustered-indexes"><a href="#What-is-clustered-indexes" class="headerlink" title="What is clustered indexes?"></a>What is clustered indexes?</h3><ol>
+<li>The table is stored in the sort order specified by the primary key. <ul>
+<li>It can be either heap- or index-organized storage. </li>
+</ul>
+</li>
+<li>Some DBMSs always use a clustered index. If a table does not contain a primary key, the DBMS will<br>automatically make a hidden primary key. </li>
+<li>Other DBMSs cannot use them at all. </li>
+</ol>
+<h2 id="Basic-B-Tree"><a href="#Basic-B-Tree" class="headerlink" title="Basic B+ Tree"></a>Basic B+ Tree</h2><h3 id="What-is-a-B-Tree"><a href="#What-is-a-B-Tree" class="headerlink" title="What is a B+ Tree?"></a>What is a B+ Tree?</h3><ol>
+<li>A B+Tree is a self-balancing tree data structure that keeps data sorted and allows searches, sequential access, insertions, and deletions always in $O(\log n)$. </li>
+<li>A B+Tree is an M-way search tree. <ul>
+<li>It is perfectly balanced, i.e. every leaf node is at the same depth in the tree. </li>
+<li>Every node other than the root is at least half-full, i.e. $M/2-1 ≤ number\ of\ keys ≤ M-1$. </li>
+<li>Every inner node with $k$ keys has $k+1$ non-null children. </li>
+</ul>
+</li>
+</ol>
+<h3 id="How-is-key-value-pairs-stored-in-each-node"><a href="#How-is-key-value-pairs-stored-in-each-node" class="headerlink" title="How is key/value pairs stored in each node?"></a>How is key/value pairs stored in each node?</h3><ol>
+<li>Every B+Tree node is comprised of an array of key/value pairs. </li>
+<li>The keys are derived from the attribute(s) that the index is based on. </li>
+<li>The value stored in a inner node is a pointer to its corresponding children while the value stored in a leaf node is its specific value. </li>
+<li>There are two storage methods for the key-value pair. <ul>
+<li>One is to store them consecutively, i.e. each value is stored immediately after its key. </li>
+<li>The other is to store them in the same place in two arrays, i.e. each value has the same index as its key. </li>
+</ul>
+</li>
+<li>The arrays are (usually) kept in sorted key order.</li>
+</ol>
+<h3 id="What-is-stored-is-leaf-node"><a href="#What-is-stored-is-leaf-node" class="headerlink" title="What is stored is leaf node?"></a>What is stored is leaf node?</h3><ol>
+<li><p>Each leaf node also has pointers points to its siblings. </p>
+</li>
+<li><p>There are two approaches to store the values: </p>
+<ul>
+<li>The first approach is to store them with record IDs which is a pointer to the page ID and offset of the tuple to which the index entry corresponds. </li>
+<li>The second approach is to store them with tuple data, specifically primary keys. </li>
+</ul>
+</li>
+<li><p>The pros of the second approach is that we do not need to access another address to fetch the contents when primary keys are all we want. </p>
+<p>But seondary indexs must store the Record ID as their values. Hence if we want secondary indexs in second approach, we need to lookup another tables to find the Record ID with the same primary keys. </p>
+</li>
+</ol>
+<h3 id="What-is-the-pros-and-cons-of-B-Tree-compare-with-B-Tree"><a href="#What-is-the-pros-and-cons-of-B-Tree-compare-with-B-Tree" class="headerlink" title="What is the pros and cons of B-Tree compare with B+Tree?"></a>What is the pros and cons of B-Tree compare with B+Tree?</h3><ol>
+<li>The main difference is that  B-Tree stored keys and values in all nodes in the tree while B+Tree only stores values in leaf nodes. Inner nodes only guide the search process. </li>
+<li>B-Tree is more space-efficient, since each key only appears once in the tree. </li>
+<li>However, when we want to sequential access keys, B-Tree needs to jump between pages causing much more I/O. </li>
+</ol>
+<h3 id="How-does-B-Tree-insert-a-node"><a href="#How-does-B-Tree-insert-a-node" class="headerlink" title="How does B+Tree insert a node?"></a>How does B+Tree insert a node?</h3><ol>
+<li>Find correct leaf node L. Insert data entry into L in sorted order. </li>
+<li>If L has enough space, then it is done. </li>
+<li>Otherwise, split L keys into L and a new node L2. Insert index entry pointing to L2 into parent of L. <ul>
+<li>The parent of L may need rebalance after this insertion. </li>
+</ul>
+</li>
+</ol>
+<h3 id="How-does-B-Tree-delete-a-node"><a href="#How-does-B-Tree-delete-a-node" class="headerlink" title="How does B+Tree delete a node?"></a>How does B+Tree delete a node?</h3><ol>
+<li>Start at root, find leaf L where entry belongs. Remove the entry. </li>
+<li>If L is at least half-full, then it is done. </li>
+<li>If L has only M/2-1 entries, <ul>
+<li>First try to re-distribute, borrowing from sibling. </li>
+<li>If re-distribution fails, merge L and sibling and delete entry (pointing to L or sibling) from parent of L. <ul>
+<li>The parent of L may need rebalance . </li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="B-Tree-usage-and-design"><a href="#B-Tree-usage-and-design" class="headerlink" title="B+Tree usage and design"></a>B+Tree usage and design</h2><h3 id="How-does-DBMS-use-B-Tree-in-selection-query"><a href="#How-does-DBMS-use-B-Tree-in-selection-query" class="headerlink" title="How does DBMS use B+Tree in selection query?"></a>How does DBMS use B+Tree in selection query?</h3><ol>
+<li><p>When creating an index, a certain order of attributes are specified to sort the tuple. </p>
+<ul>
+<li><p>When $A_1, \dots,A_n$ are specified, the B+Tree will store corresponding $n$ values in as keys in each node. </p>
+</li>
+<li><p>When $a_1, \dots,a_n$ are stored in one node, all nodes in its left sub-tree have $A_1≤a_1,\dots,A_n≤a_n$ while all nodes in its right sub-tree only guarenteed with $A_1 &gt; a_1$, i.e. the B+Tree is maintained with $A_1$ as its primary sorting key. </p>
+</li>
+</ul>
+</li>
+<li><p>In a selection condition, we can easily select with certain condition on $A_1,\dots,A_k\ (k≤n)$. Some DBMS also support conditions specified only on $A_k, \dots,A_n$, which requires DBMS sequentially access all leaf nodes. </p>
+</li>
+<li><p>Compared with hash table, B+Tree can better support selection without a knowing attributes to lookup for. </p>
+</li>
+</ol>
+<h3 id="How-to-handle-duplicate-keys"><a href="#How-to-handle-duplicate-keys" class="headerlink" title="How to handle duplicate keys?"></a>How to handle duplicate keys?</h3><ol>
+<li>The first approach is to add the tuple’s unique Record ID as part of the key to ensure that all keys are unique. <ul>
+<li>The DBMS can still use partial keys to find tuples.</li>
+</ul>
+</li>
+<li>The second approach is to allow leaf nodes to spill into overflow nodes that contain the duplicate keys. <ul>
+<li>Only duplicate keys of existing keys can overflow. </li>
+<li>When split or merge nodes, overflow nodes also need to split or merge. </li>
+<li>This is more complex to maintain and modify. </li>
+</ul>
+</li>
+</ol>
+<h3 id="How-to-solve-redundant-page-jump-when-sequential-access-leaf-nodes"><a href="#How-to-solve-redundant-page-jump-when-sequential-access-leaf-nodes" class="headerlink" title="How to solve redundant page jump when sequential access leaf nodes?"></a>How to solve redundant page jump when sequential access leaf nodes?</h3><ol>
+<li>In a clustered B+Tree, nodes in the same page are in consecutive order. <ul>
+<li>We can traverse to the left-most leaf page and then retrieve tuples from all leaf pages. </li>
+<li>This will always be better than sorting data for each query. </li>
+</ul>
+</li>
+<li>In a non-clustered B+Tree, the DBMS can first figure out all the tuples that it needs and then sort them based on their Page ID. </li>
+</ol>
+<h3 id="How-to-choose-node-size"><a href="#How-to-choose-node-size" class="headerlink" title="How to choose node size?"></a>How to choose node size?</h3><ol>
+<li>The slower the storage device, the larger the optimal node size for a B+Tree. <ul>
+<li>HDD takes $1\ MB$, SSD usually takes $10\ KB$, in-memory nodes have $512\ B$. </li>
+</ul>
+</li>
+<li>Optimal sizes can vary depending on the workload. The trade off is between leaf node scans and root-to-leaf traversals. <ul>
+<li>With larger size, we can have more sequential reads in leaf node scans, but we need to read more data in root-to-leaf traversals. </li>
+</ul>
+</li>
+</ol>
+<h3 id="How-to-choose-merge-threshold"><a href="#How-to-choose-merge-threshold" class="headerlink" title="How to choose merge threshold?"></a>How to choose merge threshold?</h3><ol>
+<li>Some DBMSs do not always merge nodes when they are half full. </li>
+<li>Delaying a merge operation may reduce the amount of reorganization. They assume that the missing part will be filled soon. </li>
+<li>It may also be better to just let smaller nodes exist and then periodically rebuild entire tree. </li>
+</ol>
+<h3 id="How-to-handle-variable-length-keys"><a href="#How-to-handle-variable-length-keys" class="headerlink" title="How to handle variable length keys?"></a>How to handle variable length keys?</h3><ol>
+<li>The first approach is to store the keys as pointers to the tuple’s attribute. </li>
+<li>The second approach is to allow variable-length nodes. It requires careful memory management. </li>
+<li>The third approach is always to pad the key to be max length of the key type. </li>
+<li>The last approach is key map or indirection. It is similar to the in-node dictionary. </li>
+</ol>
+<h3 id="How-can-we-do-the-intra-node-search"><a href="#How-can-we-do-the-intra-node-search" class="headerlink" title="How can we do the intra-node search?"></a>How can we do the intra-node search?</h3><ol>
+<li>The naive method is linear search. We can use SIMD to vectorize the process. </li>
+<li>The second method is binary search given that keys in a node are already sorted. </li>
+<li>The third method is interpolation search. <ul>
+<li>This requires known distribution of keys. </li>
+<li>It jumps to approximate location of desired key based on known distribution. </li>
+</ul>
+</li>
+</ol>
+<h3 id="How-can-we-optimize-space-usage"><a href="#How-can-we-optimize-space-usage" class="headerlink" title="How can we optimize space usage?"></a>How can we optimize space usage?</h3><ol>
+<li>Prefix compression<ul>
+<li>Sorted keys in the same leaf node are likely to have the same prefix. </li>
+<li>Extract common prefix and store only unique suffix for each key. </li>
+</ul>
+</li>
+<li>Deduplication<ul>
+<li>Non-unique indexes can end up storing multiple copies of the same key in leaf nodes. </li>
+<li>Store the key once and then maintain a list of tuples with that key. </li>
+</ul>
+</li>
+<li>Suffix truncation<ul>
+<li>The keys in the inner nodes are only used to “direct traffic”. We don’t need the entire key. </li>
+<li>Store a minimum prefix that is needed to correctly route probes into the index. </li>
+</ul>
+</li>
+</ol>
+<h3 id="How-can-we-optimize-consumed-time"><a href="#How-can-we-optimize-consumed-time" class="headerlink" title="How can we optimize consumed time?"></a>How can we optimize consumed time?</h3><ol>
+<li>Pointer swizzling<ul>
+<li>Nodes use page ids to reference other nodes in the index. The DBMS must get the memory location from the page table during traversal. </li>
+<li>If a page is pinned in the buffer pool, then we can store raw pointers instead of page IDs. This avoids address lookups from the page table. </li>
+</ul>
+</li>
+<li>Bulk insert<ul>
+<li>The fastest way to build a new B+Tree for an existing table is to first sort the keys and then build the index from the bottom up. </li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -245,184 +655,131 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p><ul class="markdownIt-TOC">
-<li><a href="#buffer-pool-manage">Buffer pool manage</a>
-<ul>
-<li><a href="#what-does-databse-storage-need-to-control">What does databse storage need to control?</a></li>
-<li><a href="#how-is-buffer-pool-organized">How is buffer pool organized?</a></li>
-<li><a href="#clarification-what-is-the-locks-and-latches-referenced-in-database">Clarification: What is the locks and latches referenced in database?</a></li>
-<li><a href="#how-can-we-optimize-performance-with-multiple-buffer-pools">How can we optimize performance with multiple buffer pools?</a></li>
-<li><a href="#how-can-we-optimize-performance-with-pre-fetching">How can we optimize performance with pre-fetching?</a></li>
-<li><a href="#how-can-we-optimize-performance-with-scan-sharing">How can we optimize performance with scan sharing?</a></li>
-<li><a href="#how-can-we-optimize-performance-with-buffer-pool-bypass">How can we optimize performance with buffer pool bypass?</a></li>
-<li><a href="#should-we-use-os-page-cache">Should we use OS page cache?</a></li>
+          <p>@[toc]</p>
+<h1 id="Buffer-pool-manage"><a href="#Buffer-pool-manage" class="headerlink" title="Buffer pool manage"></a>Buffer pool manage</h1><h2 id="What-does-databse-storage-need-to-control"><a href="#What-does-databse-storage-need-to-control" class="headerlink" title="What does databse storage need to control?"></a>What does databse storage need to control?</h2><ol>
+<li>Spatial Control: Where to write pages on disk. <ul>
+<li>The goal is to keep pages that are used together often as physically close together as possible on disk. </li>
 </ul>
 </li>
-<li><a href="#buffer-replacement-policies">Buffer replacement policies</a>
-<ul>
-<li><a href="#what-is-lru-least-recently-used-policy-and-clock-policy">What is LRU (Least-Recently Used) policy and clock policy?</a></li>
-<li><a href="#what-is-the-problem-of-lru-and-clock-how-to-alleviate">What is the problem of LRU and clock, how to alleviate?</a></li>
-<li><a href="#how-do-we-deal-with-evicted-pages">How do we deal with evicted pages?</a></li>
-</ul>
-</li>
-</ul>
-</p>
-<h1 id="buffer-pool-manage"><a class="markdownIt-Anchor" href="#buffer-pool-manage"></a> Buffer pool manage</h1>
-<h2 id="what-does-databse-storage-need-to-control"><a class="markdownIt-Anchor" href="#what-does-databse-storage-need-to-control"></a> What does databse storage need to control?</h2>
-<ol>
-<li>Spatial Control: Where to write pages on disk.
-<ul>
-<li>The goal is to keep pages that are used together often as physically close together as possible on disk.</li>
-</ul>
-</li>
-<li>Temporal Control: When to read pages into memory, and when to write them to disk.
-<ul>
-<li>The goal is to minimize the number of stalls from having to read data from disk.</li>
+<li>Temporal Control: When to read pages into memory, and when to write them to disk. <ul>
+<li>The goal is to minimize the number of stalls from having to read data from disk. </li>
 </ul>
 </li>
 </ol>
-<h2 id="how-is-buffer-pool-organized"><a class="markdownIt-Anchor" href="#how-is-buffer-pool-organized"></a> How is buffer pool organized?</h2>
-<ol>
-<li>Memory region organized as an array of fixed-size pages. An array entry is called a <strong>frame</strong>.
-<ul>
-<li>Pages are in disk while frames are in memory.</li>
+<h2 id="How-is-buffer-pool-organized"><a href="#How-is-buffer-pool-organized" class="headerlink" title="How is buffer pool organized?"></a>How is buffer pool organized?</h2><ol>
+<li>Memory region organized as an array of fixed-size pages. An array entry is called a <strong>frame</strong>. <ul>
+<li>Pages are in disk while frames are in memory. </li>
 </ul>
 </li>
-<li>When the DBMS requests a page, an exact copy is placed into one of these frames.</li>
-<li>The buffer pool manager need to maintain a <strong>page table</strong> to keep track of pages that are currently in memory.
-<ul>
-<li>The page table is the mapping from page ids to a copy of the page in buffer pool frames.
-<ul>
-<li>This is an in-memory data structure that does not need to be stored on disk.</li>
+<li>When the DBMS requests a page, an exact copy is placed into one of these frames. </li>
+<li>The buffer pool manager need to maintain a <strong>page table</strong> to keep track of pages that are currently in memory. <ul>
+<li>The page table is the mapping from page ids to a copy of the page in buffer pool frames. <ul>
+<li>This is an in-memory data structure that does not need to be stored on disk. </li>
 </ul>
 </li>
-<li>The page directory is the mapping from page ids to page locations in the database files.
-<ul>
-<li>All changes must be recorded on disk to allow the DBMS to find on restart.</li>
+<li>The page directory is the mapping from page ids to page locations in the database files. <ul>
+<li>All changes must be recorded on disk to allow the DBMS to find on restart. </li>
 </ul>
 </li>
 </ul>
 </li>
-<li>Some additional meta-data per page also need to be maintained:
-<ul>
-<li><strong>Dirty flag</strong>: Mark whether a page has been modified. Used to know whether can safely evict this page.</li>
-<li><strong>Pin/reference counter</strong>: Some query use it to prevent buffer pool manager from evicting this page. They unpin this page after no-longer use it.</li>
-<li><strong>Latches</strong>: Can be used to pre-occupy an entry in page table, and release the latch after copied that page and updated the entry.</li>
-<li>These meta-data can either be stored in page or page table.</li>
+<li>Some additional meta-data per page also need to be maintained: <ul>
+<li><strong>Dirty flag</strong>: Mark whether a page has been modified. Used to know whether can safely evict this page. </li>
+<li><strong>Pin/reference counter</strong>: Some query use it to prevent buffer pool manager from evicting this page. They unpin this page after no-longer use it. </li>
+<li><strong>Latches</strong>: Can be used to pre-occupy an entry in page table, and release the latch after copied that page and updated the entry. </li>
+<li>These meta-data can either be stored in page or page table. </li>
 </ul>
 </li>
 </ol>
-<h2 id="clarification-what-is-the-locks-and-latches-referenced-in-database"><a class="markdownIt-Anchor" href="#clarification-what-is-the-locks-and-latches-referenced-in-database"></a> Clarification: What is the locks and latches referenced in database?</h2>
-<ol>
-<li>Locks:
-<ul>
-<li>It protects the database’s logical contents from other transactions.</li>
-<li>It is held for transaction duration. Need to be able to rollback changes.</li>
-<li>Locks can be taken on a tuple or table, but not on a page.</li>
+<h2 id="Clarification-What-is-the-locks-and-latches-referenced-in-database"><a href="#Clarification-What-is-the-locks-and-latches-referenced-in-database" class="headerlink" title="Clarification: What is the locks and latches referenced in database?"></a>Clarification: What is the locks and latches referenced in database?</h2><ol>
+<li>Locks:<ul>
+<li>It protects the database’s logical contents from other transactions. </li>
+<li>It is held for transaction duration. Need to be able to rollback changes. </li>
+<li>Locks can be taken on a tuple or table, but not on a page. </li>
 </ul>
 </li>
-<li>Latches:
-<ul>
+<li>Latches:<ul>
 <li>It protects the critical sections of the DBMS’s internal data structure from other threads.</li>
-<li>It is held for operation duration. Do not need to be able to rollback changes.</li>
-<li>This is similar to the mutex provided by OS.</li>
+<li>It is held for operation duration. Do not need to be able to rollback changes. </li>
+<li>This is similar to the mutex provided by OS. </li>
 </ul>
 </li>
 </ol>
-<h2 id="how-can-we-optimize-performance-with-multiple-buffer-pools"><a class="markdownIt-Anchor" href="#how-can-we-optimize-performance-with-multiple-buffer-pools"></a> How can we optimize performance with multiple buffer pools?</h2>
-<ol>
-<li>Advantages:
-<ul>
-<li>Different pool can have different evict policy to improve locality.</li>
-<li>Each time accessing meta-data of each buffer pool need to take a latch. Multiple buffer pool can reduce latch contention.</li>
+<h2 id="How-can-we-optimize-performance-with-multiple-buffer-pools"><a href="#How-can-we-optimize-performance-with-multiple-buffer-pools" class="headerlink" title="How can we optimize performance with multiple buffer pools?"></a>How can we optimize performance with multiple buffer pools?</h2><ol>
+<li>Advantages: <ul>
+<li>Different pool can have different evict policy to improve locality. </li>
+<li>Each time accessing meta-data of each buffer pool need to take a latch. Multiple buffer pool can reduce latch contention. </li>
 </ul>
 </li>
-<li>The manager can use per-database buffer pool, per-page type buffer pool or per-index type buffer pool.</li>
-<li>Manger decide which pool to store pages in two approaches:
-<ul>
-<li>The first is to embed an object identifier in record ids and then maintain a mapping from objects to specific buffer pools.
-<ul>
-<li>This can be used to specify certain pages must be stored in specific pool.</li>
+<li>The manager can use per-database buffer pool, per-page type buffer pool or per-index type buffer pool. </li>
+<li>Manger decide which pool to store pages in two approaches: <ul>
+<li>The first is to embed an object identifier in record ids and then maintain a mapping from objects to specific buffer pools. <ul>
+<li>This can be used to specify certain pages must be stored in specific pool. </li>
 </ul>
 </li>
-<li>The other is to hash the page id to select which buffer pool to access.</li>
+<li>The other is to hash the page id to select which buffer pool to access. </li>
 </ul>
 </li>
 </ol>
-<h2 id="how-can-we-optimize-performance-with-pre-fetching"><a class="markdownIt-Anchor" href="#how-can-we-optimize-performance-with-pre-fetching"></a> How can we optimize performance with pre-fetching?</h2>
-<ol>
-<li>Pre-fetching can be easily used in two situations: sequential scans and index scans.</li>
-<li>In sequential scans, when manager fetched the first few consecutive pages, it can infer that the next consecutive pages will be used soon and pre-fetch them into memory.</li>
-<li>In index scans, the query may not access consecutive pages, but DBMS sees the B+ tree structure, and thus knows the where are the following indices.</li>
+<h2 id="How-can-we-optimize-performance-with-pre-fetching"><a href="#How-can-we-optimize-performance-with-pre-fetching" class="headerlink" title="How can we optimize performance with pre-fetching?"></a>How can we optimize performance with pre-fetching?</h2><ol>
+<li>Pre-fetching can be easily used in two situations: sequential scans and index scans. </li>
+<li>In sequential scans, when manager fetched the first few consecutive pages, it can infer that the next consecutive pages will be used soon and pre-fetch them into memory. </li>
+<li>In index scans, the query may not access consecutive pages, but DBMS sees the B+ tree structure, and thus knows the where are the following indices. </li>
 </ol>
-<h2 id="how-can-we-optimize-performance-with-scan-sharing"><a class="markdownIt-Anchor" href="#how-can-we-optimize-performance-with-scan-sharing"></a> How can we optimize performance with scan sharing?</h2>
-<ol>
-<li>It allows multiple queries to attach to a single cursor that scans a table.
-<ul>
-<li>The queries do not have to be the same.</li>
-<li>They can also share intermediate results.</li>
+<h2 id="How-can-we-optimize-performance-with-scan-sharing"><a href="#How-can-we-optimize-performance-with-scan-sharing" class="headerlink" title="How can we optimize performance with scan sharing?"></a>How can we optimize performance with scan sharing?</h2><ol>
+<li>It allows multiple queries to attach to a single cursor that scans a table. <ul>
+<li>The queries do not have to be the same. </li>
+<li>They can also share intermediate results. </li>
 </ul>
 </li>
-<li>If a query wants to scan a table and another query is already doing this, then the DBMS will attach the second query’s cursor to the existing cursor.</li>
-<li>After the ealier query finished, the later query will return to read the pages the earlier one already read before the later one begins.</li>
-<li>If the later query has a <code>LIMIT</code> clause with out <code>WHERE</code> or <code>ORDER BY</code> clause, given that the relation is unordered, it may do not need to read extra data if those scan sharing data is enough to satisfy the <code>LIMIT</code> clause.</li>
+<li>If a query wants to scan a table and another query is already doing this, then the DBMS will attach the second query’s cursor to the existing cursor. </li>
+<li>After the ealier query finished, the later query will return to read the pages the earlier one already read before the later one begins. </li>
+<li>If the later query has a <code>LIMIT</code> clause with out <code>WHERE</code> or <code>ORDER BY</code> clause, given that the relation is unordered, it may do not need to read extra data if those scan sharing data is enough to satisfy the <code>LIMIT</code> clause. </li>
 </ol>
-<h2 id="how-can-we-optimize-performance-with-buffer-pool-bypass"><a class="markdownIt-Anchor" href="#how-can-we-optimize-performance-with-buffer-pool-bypass"></a> How can we optimize performance with buffer pool bypass?</h2>
-<ol>
-<li>Sequential flooding: A query performs a sequential scan that reads every page.
-<ul>
-<li>This pollutes the buffer pool with pages that are read once and then never again.</li>
+<h2 id="How-can-we-optimize-performance-with-buffer-pool-bypass"><a href="#How-can-we-optimize-performance-with-buffer-pool-bypass" class="headerlink" title="How can we optimize performance with buffer pool bypass?"></a>How can we optimize performance with buffer pool bypass?</h2><ol>
+<li>Sequential flooding: A query performs a sequential scan that reads every page. <ul>
+<li>This pollutes the buffer pool with pages that are read once and then never again. </li>
 </ul>
 </li>
-<li>Buffer pool bypass will not store fetched pages in the buffer pool. Insteach, the manager has a private pool where those pages will be stored temporarily and deleted once finished.</li>
-<li>It works well if operator needs to read a large sequence of pages that are contiguous on disk. It can also be used for temporary data (sorting, joins).</li>
+<li>Buffer pool bypass will not store fetched pages in the buffer pool. Insteach, the manager has a private pool where those pages will be stored temporarily and deleted once finished. </li>
+<li>It works well if operator needs to read a large sequence of pages that are contiguous on disk. It can also be used for temporary data (sorting, joins). </li>
 </ol>
-<h2 id="should-we-use-os-page-cache"><a class="markdownIt-Anchor" href="#should-we-use-os-page-cache"></a> Should we use OS page cache?</h2>
-<ol>
-<li>Most disk operations go through the OS API. Unless the DBMS tells it not to, the OS maintains its own filesystem cache.</li>
-<li>Most DBMSs use direct I/O (<code>O_DIRECT</code>) to bypass the OS’s cache.</li>
-<li>The OS page cache can cause redundant copies of pages. OS and DBMS have different eviction policies causing DBMS Loss of control over file I/O.</li>
+<h2 id="Should-we-use-OS-page-cache"><a href="#Should-we-use-OS-page-cache" class="headerlink" title="Should we use OS page cache?"></a>Should we use OS page cache?</h2><ol>
+<li>Most disk operations go through the OS API. Unless the DBMS tells it not to, the OS maintains its own filesystem cache. </li>
+<li>Most DBMSs use direct I/O (<code>O_DIRECT</code>) to bypass the OS’s cache. </li>
+<li>The OS page cache can cause redundant copies of pages. OS and DBMS have different eviction policies causing DBMS Loss of control over file I/O. </li>
 </ol>
-<h1 id="buffer-replacement-policies"><a class="markdownIt-Anchor" href="#buffer-replacement-policies"></a> Buffer replacement policies</h1>
-<h2 id="what-is-lru-least-recently-used-policy-and-clock-policy"><a class="markdownIt-Anchor" href="#what-is-lru-least-recently-used-policy-and-clock-policy"></a> What is LRU (Least-Recently Used) policy and clock policy?</h2>
-<ol>
-<li>Manager maintain a single timestamp of when each page was last accessed.</li>
-<li>When the DBMS needs to evict a page, select the one with the oldest timestamp.
-<ul>
-<li>It can keep the pages in sorted order to reduce the search time on eviction.</li>
+<h1 id="Buffer-replacement-policies"><a href="#Buffer-replacement-policies" class="headerlink" title="Buffer replacement policies"></a>Buffer replacement policies</h1><h2 id="What-is-LRU-Least-Recently-Used-policy-and-clock-policy"><a href="#What-is-LRU-Least-Recently-Used-policy-and-clock-policy" class="headerlink" title="What is LRU (Least-Recently Used) policy and clock policy?"></a>What is LRU (Least-Recently Used) policy and clock policy?</h2><ol>
+<li>Manager maintain a single timestamp of when each page was last accessed. </li>
+<li>When the DBMS needs to evict a page, select the one with the oldest timestamp. <ul>
+<li>It can keep the pages in sorted order to reduce the search time on eviction. </li>
 </ul>
 </li>
-<li>An approximation of LRU that does not need a separate timestamp per page is clock policy.
-<ul>
-<li>Each page has a reference bit. When a page is accessed, set to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>.</li>
-<li>Organize the pages in a circular buffer with a “clock hand”: Upon sweeping, check if a page’s bit is set<br />
-to 1. If yes, set to zero. If no, then evict.</li>
+<li>An approximation of LRU that does not need a separate timestamp per page is clock policy. <ul>
+<li>Each page has a reference bit. When a page is accessed, set to $1$. </li>
+<li>Organize the pages in a circular buffer with a “clock hand”: Upon sweeping, check if a page’s bit is set<br>to 1. If yes, set to zero. If no, then evict. </li>
 </ul>
 </li>
 </ol>
-<h2 id="what-is-the-problem-of-lru-and-clock-how-to-alleviate"><a class="markdownIt-Anchor" href="#what-is-the-problem-of-lru-and-clock-how-to-alleviate"></a> What is the problem of LRU and clock, how to alleviate?</h2>
-<ol>
-<li>LRU and CLOCK replacement policies are susceptible to sequential flooding. And in some workloads the most recently used page is the most unneeded page.</li>
-<li><strong>LRU-K</strong> policy can alleviate the problem.
-<ul>
-<li>Track the history of last K references to each page as timestamps and compute the average interval between subsequent accesses. And evict the one that will be accessed latest according to the prediction.</li>
-<li>In the implementation, the manager only need to maintain a queue of size K. Pop out the oldest timestamp when a new timestamp arrives.</li>
+<h2 id="What-is-the-problem-of-LRU-and-clock-how-to-alleviate"><a href="#What-is-the-problem-of-LRU-and-clock-how-to-alleviate" class="headerlink" title="What is the problem of LRU and clock, how to alleviate?"></a>What is the problem of LRU and clock, how to alleviate?</h2><ol>
+<li>LRU and CLOCK replacement policies are susceptible to sequential flooding. And in some workloads the most recently used page is the most unneeded page. </li>
+<li><strong>LRU-K</strong> policy can alleviate the problem. <ul>
+<li>Track the history of last K references to each page as timestamps and compute the average interval between subsequent accesses. And evict the one that will be accessed latest according to the prediction. </li>
+<li>In the implementation, the manager only need to maintain a queue of size K. Pop out the oldest timestamp when a new timestamp arrives. </li>
 </ul>
 </li>
-<li>Another policy is <strong>localization</strong>: The DBMS chooses which pages to evict on a per transaction/query basis, e.g. it allocate private frames to the query.</li>
+<li>Another policy is <strong>localization</strong>: The DBMS chooses which pages to evict on a per transaction/query basis, e.g. it allocate private frames to the query. </li>
 <li><strong>Priority hints</strong>: The DBMS knows about the context of each page during query execution. It can provide hints to the buffer pool on whether a page is important or not.</li>
 </ol>
-<h2 id="how-do-we-deal-with-evicted-pages"><a class="markdownIt-Anchor" href="#how-do-we-deal-with-evicted-pages"></a> How do we deal with evicted pages?</h2>
-<ol>
-<li>Fast Path: If a page in the buffer pool is not dirty, then the DBMS can simply drop it.</li>
-<li>Slow Path: If a page is dirty, then the DBMS must write back to disk to ensure that its changes are persisted.
-<ul>
-<li>The DBMS can periodically walk through the page table and write dirty pages to disk.</li>
-<li>When a dirty page is safely written, the DBMS can either evict the page or just unset the dirty flag.</li>
-<li>Need to be careful that the system doesn’t write dirty pages before their log records are written.</li>
+<h2 id="How-do-we-deal-with-evicted-pages"><a href="#How-do-we-deal-with-evicted-pages" class="headerlink" title="How do we deal with evicted pages?"></a>How do we deal with evicted pages?</h2><ol>
+<li>Fast Path: If a page in the buffer pool is not dirty, then the DBMS can simply drop it. </li>
+<li>Slow Path: If a page is dirty, then the DBMS must write back to disk to ensure that its changes are persisted. <ul>
+<li>The DBMS can periodically walk through the page table and write dirty pages to disk. </li>
+<li>When a dirty page is safely written, the DBMS can either evict the page or just unset the dirty flag. </li>
+<li>Need to be careful that the system doesn’t write dirty pages before their log records are written. </li>
 </ul>
 </li>
-<li>The Trade-off is between fast evictions versus dirty writing pages that will not be read again in the future.</li>
+<li>The Trade-off is between fast evictions versus dirty writing pages that will not be read again in the future. </li>
 </ol>
 
       
@@ -512,309 +869,189 @@ to 1. If yes, set to zero. If no, then evict.</li>
     
     
     <div class="post-body" itemprop="articleBody">
-          <p><ul class="markdownIt-TOC">
-<li><a href="#disk-based-architecture">Disk-based architecture</a>
+          <p>@[toc]</p>
+<h1 id="Disk-based-architecture"><a href="#Disk-based-architecture" class="headerlink" title="Disk-based architecture"></a>Disk-based architecture</h1><h2 id="What-are-the-storage-devices"><a href="#What-are-the-storage-devices" class="headerlink" title="What are the storage devices?"></a>What are the storage devices?</h2><ol>
+<li><p>The first type is the volatile memory: CPU registers, CPU caches and DRAM</p>
 <ul>
-<li><a href="#what-are-the-storage-devices">What are the storage devices?</a></li>
-<li><a href="#what-is-disk-oriented-dmbs">What is disk-oriented DMBS?</a></li>
-<li><a href="#why-not-use-the-os-memory-mapping-virtual-memory">Why not use the OS memory mapping (virtual memory)?</a></li>
+<li>They provide random access and they are byte-addressable. </li>
 </ul>
 </li>
-<li><a href="#page-oriented-architecture">Page-oriented architecture</a>
+<li><p>The second type is the non-volatile disks: SSD, HDD and network storage. </p>
 <ul>
-<li><a href="#file-storage">File storage</a>
-<ul>
-<li><a href="#how-does-dbms-store-files">How does DBMS store files?</a></li>
-<li><a href="#how-does-dbms-manage-pages-in-files-on-disk">How does DBMS manage pages in files on disk?</a></li>
+<li>They only provide sequential access.  <ul>
+<li>Random access on non-volatile storage is almost always much slower than sequential access. </li>
+<li>DBMS will want to maximize sequential access. </li>
 </ul>
 </li>
-<li><a href="#page-layout">Page layout</a>
-<ul>
-<li><a href="#what-is-stored-in-each-page">What is stored in each page?</a></li>
-<li><a href="#how-to-organize-tuple-oriented-data">How to organize tuple-oriented data?</a></li>
-<li><a href="#how-do-we-find-the-tuple-we-need-in-a-page">How do we find the tuple we need in a page?</a></li>
+<li>They are block-addressable. </li>
 </ul>
 </li>
-<li><a href="#tuple-layout">Tuple layout</a>
-<ul>
-<li><a href="#what-is-stored-in-a-tuple">What is stored in a tuple?</a></li>
-<li><a href="#what-is-denormalized-data">What is denormalized data?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#log-structured-storage">Log-structured storage</a>
-<ul>
-<li><a href="#what-is-stored-in-log-structured-storage">What is stored in log-structured storage?</a></li>
-<li><a href="#how-to-read-in-a-log-structured-storage">How to read in a log-structured storage?</a></li>
-<li><a href="#how-to-solve-that-the-log-will-become-larger-and-larger">How to solve that the log will become larger and larger?</a></li>
-</ul>
-</li>
-<li><a href="#tuple-storage">Tuple storage</a>
-<ul>
-<li><a href="#how-to-store-data-in-a-tuple">How to store data in a tuple?</a></li>
-<li><a href="#what-are-supported-data-types">What are supported data types?</a></li>
-</ul>
-</li>
-<li><a href="#data-storage-models">Data storage models</a>
-<ul>
-<li><a href="#what-kind-of-database-workloads-are-there">What kind of database workloads are there?</a></li>
-<li><a href="#how-does-dbms-store-tuples">How does DBMS store tuples?</a></li>
-<li><a href="#database-compression">Database compression</a>
-<ul>
-<li><a href="#why-do-we-need-database-compression-and-what-is-the-trade-off">Why do we need database compression and what is the trade-off?</a></li>
-<li><a href="#why-can-we-compress-data">Why can we compress data?</a></li>
-<li><a href="#what-is-the-goals-of-compression">What is the goals of compression?</a></li>
-<li><a href="#what-are-the-compression-granularities">What are the compression granularities?</a></li>
-<li><a href="#what-is-the-naive-compression">What is the naive compression?</a></li>
-<li><a href="#how-can-we-do-better-with-the-high-level-meaning-or-semantics-of-the-data">How can we do better with the high-level meaning or semantics of the data?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</p>
-<h1 id="disk-based-architecture"><a class="markdownIt-Anchor" href="#disk-based-architecture"></a> Disk-based architecture</h1>
-<h2 id="what-are-the-storage-devices"><a class="markdownIt-Anchor" href="#what-are-the-storage-devices"></a> What are the storage devices?</h2>
-<ol>
-<li>
-<p>The first type is the volatile memory: CPU registers, CPU caches and DRAM</p>
-<ul>
-<li>They provide random access and they are byte-addressable.</li>
-</ul>
-</li>
-<li>
-<p>The second type is the non-volatile disks: SSD, HDD and network storage.</p>
-<ul>
-<li>They only provide sequential access.
-<ul>
-<li>Random access on non-volatile storage is almost always much slower than sequential access.</li>
-<li>DBMS will want to maximize sequential access.</li>
-</ul>
-</li>
-<li>They are block-addressable.</li>
-</ul>
-</li>
-<li>
-<p>The access times of each storage is as followed:</p>
-<img src="/imgs/15445/Storage/access_times.png" width="50%">
+<li><p>The access times of each storage is as followed:</p>
+<p><img src="/imgs/15445/Storage/access_times.png" width="50%"></p>
 </li>
 </ol>
-<h2 id="what-is-disk-oriented-dmbs"><a class="markdownIt-Anchor" href="#what-is-disk-oriented-dmbs"></a> What is disk-oriented DMBS?</h2>
-<ol>
-<li>The DBMS assumes that the primary storage location of the database is on non-volatile disk.</li>
-<li>DBMS manages a buffer pool in memory where directory and data pages are stored.</li>
-<li>When execution engine asks DBMS for a certain page:
-<ul>
-<li>If that page is not in memory already, DBMS will look up directory first (if also not in memory, load from disk) to find the disk position of that page.</li>
-<li>Then DBMS will load that page from disk and return a pointer to the buffer pool to execution engine.</li>
+<h2 id="What-is-disk-oriented-DMBS"><a href="#What-is-disk-oriented-DMBS" class="headerlink" title="What is disk-oriented DMBS?"></a>What is disk-oriented DMBS?</h2><ol>
+<li>The DBMS assumes that the primary storage location of the database is on non-volatile disk. </li>
+<li>DBMS manages a buffer pool in memory where directory and data pages are stored. </li>
+<li>When execution engine asks DBMS for a certain page: <ul>
+<li>If that page is not in memory already, DBMS will look up directory first (if also not in memory, load from disk) to find the disk position of that page. </li>
+<li>Then DBMS will load that page from disk and return a pointer to the buffer pool to execution engine. </li>
 </ul>
 </li>
 </ol>
-<h2 id="why-not-use-the-os-memory-mapping-virtual-memory"><a class="markdownIt-Anchor" href="#why-not-use-the-os-memory-mapping-virtual-memory"></a> Why not use the OS memory mapping (virtual memory)?</h2>
-<ol>
-<li>Transaction safety: OS can flush dirty pages at any time causing dirty data corrupt database. OS doesn’t know anything about transaction, hence it doesn’t care whether it is safe to write a page to disk.</li>
-<li>IO stalls: When a page miss happens, the thread will be stalled and DBMS can do nothing about it.
-<ul>
-<li>Allowing multiple threads to access the <code>mmap</code> files to hide page fault stalls is good enough for read-only access. But it is complicated when there are multiple writers.</li>
+<h2 id="Why-not-use-the-OS-memory-mapping-virtual-memory"><a href="#Why-not-use-the-OS-memory-mapping-virtual-memory" class="headerlink" title="Why not use the OS memory mapping (virtual memory)?"></a>Why not use the OS memory mapping (virtual memory)?</h2><ol>
+<li>Transaction safety: OS can flush dirty pages at any time causing dirty data corrupt database. OS doesn’t know anything about transaction, hence it doesn’t care whether it is safe to write a page to disk. </li>
+<li>IO stalls: When a page miss happens, the thread will be stalled and DBMS can do nothing about it. <ul>
+<li>Allowing multiple threads to access the <code>mmap</code> files to hide page fault stalls is good enough for read-only access. But it is complicated when there are multiple writers. </li>
 </ul>
 </li>
-<li>Error handling: Any access can cause a <code>SIGBUS</code> that the DBMS must handle. However, DBMS may isolate the error and handle it only in the storage layer.</li>
-<li>Performance issues: Like OS data structure contention or TLB shootdowns.</li>
-<li>In conclusion, DBMS always knows better than OS. Thus DBMS almost always wants to control things itself and can do a better job than the OS.
-<ul>
-<li>Like how to flush dirty pages to disk in the correct order, provide specialized prefetching, better buffer replacement policy and thread/process scheduling.</li>
+<li>Error handling: Any access can cause a <code>SIGBUS</code> that the DBMS must handle. However, DBMS may isolate the error and handle it only in the storage layer. </li>
+<li>Performance issues: Like OS data structure contention or TLB shootdowns. </li>
+<li>In conclusion, DBMS always knows better than OS. Thus DBMS almost always wants to control things itself and can do a better job than the OS. <ul>
+<li>Like how to flush dirty pages to disk in the correct order, provide specialized prefetching, better buffer replacement policy and thread/process scheduling. </li>
 </ul>
 </li>
 </ol>
-<h1 id="page-oriented-architecture"><a class="markdownIt-Anchor" href="#page-oriented-architecture"></a> Page-oriented architecture</h1>
-<h2 id="file-storage"><a class="markdownIt-Anchor" href="#file-storage"></a> File storage</h2>
-<h3 id="how-does-dbms-store-files"><a class="markdownIt-Anchor" href="#how-does-dbms-store-files"></a> How does DBMS store files?</h3>
-<ol>
-<li>The DBMS stores a database as one or more files on disk typically in a proprietary format.</li>
-<li>The storage manager is responsible for maintaining a database’s files.
-<ul>
-<li>It organizes the files as a collection of pages.</li>
-<li>It also tracks data read/written to pages and the available space.</li>
-<li>Some do their own scheduling for reads and writes to improve spatial and temporal locality of pages.</li>
+<h1 id="Page-oriented-architecture"><a href="#Page-oriented-architecture" class="headerlink" title="Page-oriented architecture"></a>Page-oriented architecture</h1><h2 id="File-storage"><a href="#File-storage" class="headerlink" title="File storage"></a>File storage</h2><h3 id="How-does-DBMS-store-files"><a href="#How-does-DBMS-store-files" class="headerlink" title="How does DBMS store files?"></a>How does DBMS store files?</h3><ol>
+<li>The DBMS stores a database as one or more files on disk typically in a proprietary format. </li>
+<li>The storage manager is responsible for maintaining a database’s files. <ul>
+<li>It organizes the files as a collection of pages. </li>
+<li>It also tracks data read/written to pages and the available space. </li>
+<li>Some do their own scheduling for reads and writes to improve spatial and temporal locality of pages. </li>
 </ul>
 </li>
-<li>A database page is a fixed-size block of data.
-<ul>
-<li>Most systems do not mix page types, i.e. data in a page belong to the same table.</li>
-<li>Some systems require a page to be self-contained, i.e. all metadata we need to interpret the page has to be contained in the page in itself.</li>
-<li>Hardware pages and OS pages are usually <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4</mn><mtext> </mtext><mi>K</mi><mi>B</mi></mrow><annotation encoding="application/x-tex">4\ KB</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">4</span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span>. But database pages may be <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>512</mn><mtext> </mtext><mi>B</mi><mo>−</mo><mn>16</mn><mtext> </mtext><mi>K</mi><mi>B</mi></mrow><annotation encoding="application/x-tex">512\ B-16\ KB</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord">5</span><span class="mord">1</span><span class="mord">2</span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">6</span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span> depending on DBMS and configuration.
-<ul>
-<li>Larger page size can increase sequential IO, issue less system call and have a smaller page table.</li>
-<li>Smaller page size only need to maintain less memory when only need small amout of data.</li>
+<li>A database page is a fixed-size block of data. <ul>
+<li>Most systems do not mix page types, i.e. data in a page belong to the same table. </li>
+<li>Some systems require a page to be self-contained, i.e. all metadata we need to interpret the page has to be contained in the page in itself. </li>
+<li>Hardware pages and OS pages are usually $4\ KB$. But database pages may be $512\ B-16\ KB$ depending on DBMS and configuration. <ul>
+<li>Larger page size can increase sequential IO, issue less system call and have a smaller page table. </li>
+<li>Smaller page size only need to maintain less memory when only need small amout of data. </li>
 </ul>
 </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-does-dbms-manage-pages-in-files-on-disk"><a class="markdownIt-Anchor" href="#how-does-dbms-manage-pages-in-files-on-disk"></a> How does DBMS manage pages in files on disk?</h3>
-<ol>
-<li>There are different ways to manage: Heap File Organization, Tree File Organization, Sequential / Sorted File Organization (ISAM), or Hashing File Organization.</li>
-<li>A heap file is an unordered collection of pages with tuples that are stored in random order.</li>
-<li>The DBMS maintains directory in special pages that tracks the location of data pages in the database files.
-<ul>
-<li>Must make sure that the directory pages are in sync with the data pages.</li>
-<li>The directory also records meta-data about available space: the number of free slots per page and list of free / empty pages.</li>
+<h3 id="How-does-DBMS-manage-pages-in-files-on-disk"><a href="#How-does-DBMS-manage-pages-in-files-on-disk" class="headerlink" title="How does DBMS manage pages in files on disk?"></a>How does DBMS manage pages in files on disk?</h3><ol>
+<li>There are different ways to manage: Heap File Organization, Tree File Organization, Sequential / Sorted File Organization (ISAM), or Hashing File Organization. </li>
+<li>A heap file is an unordered collection of pages with tuples that are stored in random order. </li>
+<li>The DBMS maintains directory in special pages that tracks the location of data pages in the database files. <ul>
+<li>Must make sure that the directory pages are in sync with the data pages. </li>
+<li>The directory also records meta-data about available space: the number of free slots per page and list of free / empty pages. </li>
 </ul>
 </li>
 </ol>
-<h2 id="page-layout"><a class="markdownIt-Anchor" href="#page-layout"></a> Page layout</h2>
-<h3 id="what-is-stored-in-each-page"><a class="markdownIt-Anchor" href="#what-is-stored-in-each-page"></a> What is stored in each page?</h3>
-<ol>
-<li>Every page contains a header of meta-data about the page’s contents.
-<ul>
+<h2 id="Page-layout"><a href="#Page-layout" class="headerlink" title="Page layout"></a>Page layout</h2><h3 id="What-is-stored-in-each-page"><a href="#What-is-stored-in-each-page" class="headerlink" title="What is stored in each page?"></a>What is stored in each page?</h3><ol>
+<li>Every page contains a header of meta-data about the page’s contents. <ul>
 <li>Page Size</li>
-<li>Checksum to check whether data is corrupted</li>
-<li>DBMS version of creator of this page, to provide compatibility even when DBMS update changed the page layout. With this, when DBMS is updated, it can correct re-layout the data.</li>
+<li>Checksum to check whether data is corrupted</li>
+<li>DBMS version of creator of this page, to provide compatibility even when DBMS update changed the page layout. With this, when DBMS is updated, it can correct re-layout the data. </li>
 <li>Transaction Visibility</li>
 <li>Compression Information</li>
 </ul>
 </li>
-<li>The data in a page can be organize in tuple-oriented or log-structured.</li>
+<li>The data in a page can be organize in tuple-oriented or log-structured. </li>
 </ol>
-<h3 id="how-to-organize-tuple-oriented-data"><a class="markdownIt-Anchor" href="#how-to-organize-tuple-oriented-data"></a> How to organize tuple-oriented data?</h3>
-<ol>
-<li>
-<p>A naive strategy is to store the number of tuples in the header, and just append a new tuple to the end.</p>
+<h3 id="How-to-organize-tuple-oriented-data"><a href="#How-to-organize-tuple-oriented-data" class="headerlink" title="How to organize tuple-oriented data?"></a>How to organize tuple-oriented data?</h3><ol>
+<li><p>A naive strategy is to store the number of tuples in the header, and just append a new tuple to the end. </p>
 <ul>
-<li>What if we delete a tuple?
-<ul>
-<li>How do we know there are available space?</li>
+<li>What if we delete a tuple? <ul>
+<li>How do we know there are available space? </li>
 <li>What do we do to the following tuples? Do we move them forward, or just leave them there?</li>
 </ul>
 </li>
-<li>More serious problem is what happens if we have a variable-length attribute?
-<ul>
+<li>More serious problem is what happens if we have a variable-length attribute?<ul>
 <li>How can we know the begin and end of a tuple?</li>
 </ul>
 </li>
 </ul>
 </li>
-<li>
-<p>In the slotted pages scheme, we store a <strong>slot array</strong> at the header.</p>
+<li><p>In the slotted pages scheme, we store a <strong>slot array</strong> at the header. </p>
 <ul>
-<li>
-<p>The slot array maps “slots” to the tuples’ starting position offsets.</p>
+<li><p>The slot array maps “slots” to the tuples’ starting position offsets. </p>
 </li>
-<li>
-<p>The header keeps track of the number of used slots and the offset of the starting location of the</p>
-<p>last slot used.</p>
+<li><p>The header keeps track of the number of used slots and the offset of the starting location of the</p>
+<p>last slot used. </p>
 </li>
-<li>
-<p>The space used to store tuples grows from tail to head, while the slot array grows from head to tail.</p>
+<li><p>The space used to store tuples grows from tail to head, while the slot array grows from head to tail. </p>
 </li>
-<li>
-<p>When a tuple is deleted, we need to invalidate its value in slot array where we can know available space.</p>
+<li><p>When a tuple is deleted, we need to invalidate its value in slot array where we can know available space. </p>
 <ul>
-<li>As for its following tuples, we can either leave them as be, or compact the space.</li>
-<li>As modification goes in memory, and deleting is usually holding a lock, compact the space can be fast and there is no need to inform rest of the system.</li>
+<li>As for its following tuples, we can either leave them as be, or compact the space. </li>
+<li>As modification goes in memory, and deleting is usually holding a lock, compact the space can be fast and there is no need to inform rest of the system. </li>
 </ul>
 </li>
-<li>
-<img src="/imgs/15445/Storage/slot-array.png" width="25%">
+<li><p><img src="/imgs/15445/Storage/slot-array.png" width="25%"></p>
 </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-do-we-find-the-tuple-we-need-in-a-page"><a class="markdownIt-Anchor" href="#how-do-we-find-the-tuple-we-need-in-a-page"></a> How do we find the tuple we need in a page?</h3>
-<ol>
-<li>Each tuple is assigned a unique record identifier.</li>
-<li>Most commonly used is <code>page_id + offset/slot</code>.</li>
+<h3 id="How-do-we-find-the-tuple-we-need-in-a-page"><a href="#How-do-we-find-the-tuple-we-need-in-a-page" class="headerlink" title="How do we find the tuple we need in a page?"></a>How do we find the tuple we need in a page?</h3><ol>
+<li>Each tuple is assigned a unique record identifier. </li>
+<li>Most commonly used is <code>page_id + offset/slot</code>. </li>
 </ol>
-<h2 id="tuple-layout"><a class="markdownIt-Anchor" href="#tuple-layout"></a> Tuple layout</h2>
-<h3 id="what-is-stored-in-a-tuple"><a class="markdownIt-Anchor" href="#what-is-stored-in-a-tuple"></a> What is stored in a tuple?</h3>
-<ol>
-<li>A tuple is essentially a sequence of bytes. It’s the job of the DBMS to interpret those bytes into attribute types and values.</li>
-<li>Each tuple is prefixed with a header that contains meta-data about it, e.g visibility info for concurrency control, Bit Map for NULL values.
-<ul>
-<li>We do not need to store meta-data about the schema.</li>
+<h2 id="Tuple-layout"><a href="#Tuple-layout" class="headerlink" title="Tuple layout"></a>Tuple layout</h2><h3 id="What-is-stored-in-a-tuple"><a href="#What-is-stored-in-a-tuple" class="headerlink" title="What is stored in a tuple?"></a>What is stored in a tuple?</h3><ol>
+<li>A tuple is essentially a sequence of bytes. It’s the job of the DBMS to interpret those bytes into attribute types and values. </li>
+<li>Each tuple is prefixed with a header that contains meta-data about it, e.g visibility info for concurrency control, Bit Map for NULL values. <ul>
+<li>We do not need to store meta-data about the schema. </li>
 </ul>
 </li>
-<li>Attributes are typically stored in the order that you specify them when you create the table.</li>
+<li>Attributes are typically stored in the order that you specify them when you create the table. </li>
 </ol>
-<h3 id="what-is-denormalized-data"><a class="markdownIt-Anchor" href="#what-is-denormalized-data"></a> What is denormalized data?</h3>
-<ol>
-<li>DBMS can physically denormalize (pre join) related tuples and store them together in the same page.
-<ul>
-<li>For two tables, one table has an attribute referenced to another table, DBMS can store the tuples and thier referenced tuples in the same slot.</li>
-<li>
-<img src="/imgs/15445/Storage/denorm_declare.png" width="25%">
-</li>
-<li>
-<img src="/imgs/15445/Storage/denorm_diagram.png" width="25%">
-</li>
+<h3 id="What-is-denormalized-data"><a href="#What-is-denormalized-data" class="headerlink" title="What is denormalized data?"></a>What is denormalized data?</h3><ol>
+<li>DBMS can physically denormalize (pre join) related tuples and store them together in the same page. <ul>
+<li>For two tables, one table has an attribute referenced to another table, DBMS can store the tuples and thier referenced tuples in the same slot. </li>
+<li><img src="/imgs/15445/Storage/denorm_declare.png" width="25%"></li>
+<li><img src="/imgs/15445/Storage/denorm_diagram.png" width="25%"></li>
 </ul>
 </li>
-<li>This can potentially reduces the amount of I/O for common workload patterns but also make updates more expensive.</li>
+<li>This can potentially reduces the amount of I/O for common workload patterns but also make updates more expensive. </li>
 </ol>
-<h1 id="log-structured-storage"><a class="markdownIt-Anchor" href="#log-structured-storage"></a> Log-structured storage</h1>
-<h2 id="what-is-stored-in-log-structured-storage"><a class="markdownIt-Anchor" href="#what-is-stored-in-log-structured-storage"></a> What is stored in log-structured storage?</h2>
-<ol>
-<li>DBMS stores log records that contain changes to tuples (PUT, DELETE).
-<ul>
-<li>Each log record must contain the tuple’s unique identifier. In this case, the identifier is not <code>page_id + offset/slot</code> metioned above since page doesn’t exists in this scheme.</li>
+<h1 id="Log-structured-storage"><a href="#Log-structured-storage" class="headerlink" title="Log-structured storage"></a>Log-structured storage</h1><h2 id="What-is-stored-in-log-structured-storage"><a href="#What-is-stored-in-log-structured-storage" class="headerlink" title="What is stored in log-structured storage?"></a>What is stored in log-structured storage?</h2><ol>
+<li>DBMS stores log records that contain changes to tuples (PUT, DELETE). <ul>
+<li>Each log record must contain the tuple’s unique identifier. In this case, the identifier is not <code>page_id + offset/slot</code> metioned above since page doesn’t exists in this scheme. </li>
 </ul>
 </li>
-<li>As the application makes changes to the database, the DBMS appends log records to the end of the file without checking previous log records.</li>
-<li>When the page gets full, the DBMS writes it out disk and starts filling up the next page with records.
-<ul>
-<li>All on-disk pages are immutable.</li>
-<li>All disk writes are sequential.</li>
+<li>As the application makes changes to the database, the DBMS appends log records to the end of the file without checking previous log records. </li>
+<li>When the page gets full, the DBMS writes it out disk and starts filling up the next page with records. <ul>
+<li>All on-disk pages are immutable. </li>
+<li>All disk writes are sequential. </li>
 </ul>
 </li>
 </ol>
-<h2 id="how-to-read-in-a-log-structured-storage"><a class="markdownIt-Anchor" href="#how-to-read-in-a-log-structured-storage"></a> How to read in a log-structured storage?</h2>
-<ol>
-<li>To read a tuple with a given id, the DBMS finds the newest log record corresponding to that id. It needs to scan log from newest to oldest.
-<ul>
-<li>To optimize the linear scan, DBMS can maintain an index that maps a tuple id to the newest log record.</li>
+<h2 id="How-to-read-in-a-log-structured-storage"><a href="#How-to-read-in-a-log-structured-storage" class="headerlink" title="How to read in a log-structured storage?"></a>How to read in a log-structured storage?</h2><ol>
+<li>To read a tuple with a given id, the DBMS finds the newest log record corresponding to that id. It needs to scan log from newest to oldest. <ul>
+<li>To optimize the linear scan, DBMS can maintain an index that maps a tuple id to the newest log record. </li>
 </ul>
 </li>
-<li>If log record is in-memory, just read it. If log record is on a disk page, retrieve it.</li>
+<li>If log record is in-memory, just read it. If log record is on a disk page, retrieve it. </li>
 </ol>
-<h2 id="how-to-solve-that-the-log-will-become-larger-and-larger"><a class="markdownIt-Anchor" href="#how-to-solve-that-the-log-will-become-larger-and-larger"></a> How to solve that the log will become larger and larger?</h2>
-<ol>
-<li>
-<p>The DBMS can periodically compact pages to reduce wasted space.</p>
+<h2 id="How-to-solve-that-the-log-will-become-larger-and-larger"><a href="#How-to-solve-that-the-log-will-become-larger-and-larger" class="headerlink" title="How to solve that the log will become larger and larger?"></a>How to solve that the log will become larger and larger?</h2><ol>
+<li><p>The DBMS can periodically compact pages to reduce wasted space. </p>
 <ul>
-<li>It can take two continuous pages and scan from newest to oldest leaving one newest log for each tuple.</li>
+<li>It can take two continuous pages and scan from newest to oldest leaving one newest log for each tuple. </li>
 </ul>
 </li>
-<li>
-<p>The DBMS can sort the page based on id order to improve efficiency of future look-ups.</p>
+<li><p>The DBMS can sort the page based on id order to improve efficiency of future look-ups. </p>
 <ul>
-<li>
-<p>This sorted table is called <strong>Sorted String Tables</strong>, <strong>SSTables</strong>.</p>
+<li><p>This sorted table is called <strong>Sorted String Tables</strong>, <strong>SSTables</strong>. </p>
 </li>
-<li>
-<p>After a page is compacted, the DBMS does need to maintain temporal ordering of records within the page since each tuple id is guaranteed to appear at most once in the page.</p>
+<li><p>After a page is compacted, the DBMS does need to maintain temporal ordering of records within the page since each tuple id is guaranteed to appear at most once in the page. </p>
 </li>
 </ul>
 </li>
-<li>
-<p>There are two strategy to choose which pages to compact:</p>
+<li><p>There are two strategy to choose which pages to compact:</p>
 <ul>
-<li>The Universal compaction chooses any two continuous pages.</li>
-<li>The level compaction chooses two continuous pages in the same level, and compacts them into next level.</li>
+<li>The Universal compaction chooses any two continuous pages. </li>
+<li>The level compaction chooses two continuous pages in the same level, and compacts them into next level. </li>
 </ul>
 </li>
-<li>
-<p>The downsides of compaction is write-amplification caused by duplicate writing to the newest record of a tuple, and also compacting itself is expensive.</p>
+<li><p>The downsides of compaction is write-amplification caused by duplicate writing to the newest record of a tuple, and also compacting itself is expensive. </p>
 </li>
 </ol>
-<h1 id="tuple-storage"><a class="markdownIt-Anchor" href="#tuple-storage"></a> Tuple storage</h1>
-<h2 id="how-to-store-data-in-a-tuple"><a class="markdownIt-Anchor" href="#how-to-store-data-in-a-tuple"></a> How to store data in a tuple?</h2>
-<ol>
-<li>A tuple is essentially a sequence of bytes. It’s the job of the DBMS to interpret those bytes into attribute types and values.</li>
-<li>The DBMS’s catalogs contain the schema information about tables that the system uses to figure out the tuple’s layout.
-<ul>
-<li>A DBMS stores meta-data about databases in its internal catalogs.
-<ul>
+<h1 id="Tuple-storage"><a href="#Tuple-storage" class="headerlink" title="Tuple storage"></a>Tuple storage</h1><h2 id="How-to-store-data-in-a-tuple"><a href="#How-to-store-data-in-a-tuple" class="headerlink" title="How to store data in a tuple?"></a>How to store data in a tuple?</h2><ol>
+<li>A tuple is essentially a sequence of bytes. It’s the job of the DBMS to interpret those bytes into attribute types and values. </li>
+<li>The DBMS’s catalogs contain the schema information about tables that the system uses to figure out the tuple’s layout. <ul>
+<li>A DBMS stores meta-data about databases in its internal catalogs. <ul>
 <li>Tables, columns, indexes, views</li>
 <li>Users, permissions</li>
 <li>Internal statistics</li>
@@ -823,148 +1060,122 @@ to 1. If yes, set to zero. If no, then evict.</li>
 </ul>
 </li>
 </ol>
-<h2 id="what-are-supported-data-types"><a class="markdownIt-Anchor" href="#what-are-supported-data-types"></a> What are supported data types?</h2>
-<ol>
-<li>The basic types are supported: <code>INTEGER</code>/<code>BIGINT</code>/<code>SMALLINT</code>/<code>TINYINT</code>, <code>FLOAT</code>/<code>REAL</code>, <code>VARCHAR</code>/<code>VARBINARY</code>/<code>TEXT</code>/<code>BLOB</code>, <code>TIME</code>/<code>DATE</code>/<code>TIMESTAMP</code>.</li>
-<li>Since IEEE 754 floating points may be inaccurate, fixed-point decimals are also supported as <code>NUMERIC</code>/<code>DECIMAL</code>. But their execution is way slower than floating points.</li>
-<li>Most DBMSs don’t allow a tuple to exceed the size of a single page.
-<ul>
-<li>To store values that are larger than a page, the DBMS uses separate <strong>overflow</strong> storage pages.</li>
-<li>Some systems allow you to store a really large value in an external file. And treat the data as a BLOB type. Then the DBMS cannot manipulate the contents of an external file.
-<ul>
-<li>No durability protections. No transaaction protections.</li>
-<li>They are outside of DBMS, hence we cannot update it through DBMS either.</li>
+<h2 id="What-are-supported-data-types"><a href="#What-are-supported-data-types" class="headerlink" title="What are supported data types?"></a>What are supported data types?</h2><ol>
+<li>The basic types are supported: <code>INTEGER</code>/<code>BIGINT</code>/<code>SMALLINT</code>/<code>TINYINT</code>, <code>FLOAT</code>/<code>REAL</code>, <code>VARCHAR</code>/<code>VARBINARY</code>/<code>TEXT</code>/<code>BLOB</code>, <code>TIME</code>/<code>DATE</code>/<code>TIMESTAMP</code>. </li>
+<li>Since IEEE 754 floating points may be inaccurate, fixed-point decimals are also supported as <code>NUMERIC</code>/<code>DECIMAL</code>. But their execution is way slower than floating points. </li>
+<li>Most DBMSs don’t allow a tuple to exceed the size of a single page. <ul>
+<li>To store values that are larger than a page, the DBMS uses separate <strong>overflow</strong> storage pages. </li>
+<li>Some systems allow you to store a really large value in an external file. And treat the data as a BLOB type. Then the DBMS cannot manipulate the contents of an external file. <ul>
+<li>No durability protections. No transaaction protections. </li>
+<li>They are outside of DBMS, hence we cannot update it through DBMS either. </li>
 </ul>
 </li>
 </ul>
 </li>
 </ol>
-<h1 id="data-storage-models"><a class="markdownIt-Anchor" href="#data-storage-models"></a> Data storage models</h1>
-<h2 id="what-kind-of-database-workloads-are-there"><a class="markdownIt-Anchor" href="#what-kind-of-database-workloads-are-there"></a> What kind of database workloads are there?</h2>
-<ol>
-<li>On-Line Transaction Processing (OLTP): In this situation, commands are fast operations that only read/update a small amount of data each time. The data accessed in a query is related to a single entity in the database.</li>
-<li>On-Line Analytical Processing (OLAP): Here, commands are complex queries that read a lot of data to compute aggregates, i.e. it will execute complex writes and complex reads.</li>
-<li>Hybrid Transaction + Analytical Processing: OLTP + OLAP together on the same database instance.</li>
+<h1 id="Data-storage-models"><a href="#Data-storage-models" class="headerlink" title="Data storage models"></a>Data storage models</h1><h2 id="What-kind-of-database-workloads-are-there"><a href="#What-kind-of-database-workloads-are-there" class="headerlink" title="What kind of database workloads are there?"></a>What kind of database workloads are there?</h2><ol>
+<li>On-Line Transaction Processing (OLTP): In this situation, commands are fast operations that only read/update a small amount of data each time. The data accessed in a query is related to a single entity in the database. </li>
+<li>On-Line Analytical Processing (OLAP): Here, commands are complex queries that read a lot of data to compute aggregates, i.e. it will execute complex writes and complex reads. </li>
+<li>Hybrid Transaction + Analytical Processing: OLTP + OLAP together on the same database instance. </li>
 </ol>
-<h2 id="how-does-dbms-store-tuples"><a class="markdownIt-Anchor" href="#how-does-dbms-store-tuples"></a> How does DBMS store tuples?</h2>
-<ol>
-<li><strong>N-ary storage model</strong> (<strong>row storage</strong>): The DBMS stores all attributes for a single tuple contiguously in a page.
-<ul>
-<li>This model is ideal for OLTP workloads where queries tend to operate only on an individual entity and insert-heavy workloads.</li>
-<li>The advantage is fast inserts, updates, and deletes. It is also good for queries that need the entire tuple.</li>
-<li>However, it is not good for scanning large portions of the table and/or a subset of the attributes.</li>
+<h2 id="How-does-DBMS-store-tuples"><a href="#How-does-DBMS-store-tuples" class="headerlink" title="How does DBMS store tuples?"></a>How does DBMS store tuples?</h2><ol>
+<li><strong>N-ary storage model</strong> (<strong>row storage</strong>): The DBMS stores all attributes for a single tuple contiguously in a page. <ul>
+<li>This model is ideal for OLTP workloads where queries tend to operate only on an individual entity and insert-heavy workloads. </li>
+<li>The advantage is fast inserts, updates, and deletes. It is also good for queries that need the entire tuple. </li>
+<li>However, it is not good for scanning large portions of the table and/or a subset of the attributes. </li>
 </ul>
 </li>
-<li><strong>Decomposition storage model</strong> (<strong>DSM</strong>, <strong>Column storage</strong>): The DBMS stores the values of a single attribute for all tuples contiguously in a page.
-<ul>
-<li>This model is ideal for OLAP workloads where read-only queries perform large scans over a subset of the table’s attributes.</li>
-<li>DBMS can identify tuple in two choices:
-<ul>
-<li>The first is using fixed-length offsets when each value is the same length for an attribute. It does not require each attributes to have the same length. This is the most used scheme.</li>
-<li>The second is using embedded tuple ids. Each value is stored with its tuple id in a column.</li>
+<li><strong>Decomposition storage model</strong> (<strong>DSM</strong>, <strong>Column storage</strong>): The DBMS stores the values of a single attribute for all tuples contiguously in a page. <ul>
+<li>This model is ideal for OLAP workloads where read-only queries perform large scans over a subset of the table’s attributes. </li>
+<li>DBMS can identify tuple in two choices:<ul>
+<li>The first is using fixed-length offsets when each value is the same length for an attribute. It does not require each attributes to have the same length. This is the most used scheme. </li>
+<li>The second is using embedded tuple ids. Each value is stored with its tuple id in a column. </li>
 </ul>
 </li>
-<li>The advantages of DSM is that it reduces the amount wasted I/O because the DBMS only reads the data that it needs, and provides better query processing and data compression.</li>
-<li>The disadvantage is that it is slow for point queries, inserts, updates, and deletes because of tuple splitting/stitching.</li>
+<li>The advantages of DSM is that it reduces the amount wasted I/O because the DBMS only reads the data that it needs, and provides better query processing and data compression. </li>
+<li>The disadvantage is that it is slow for point queries, inserts, updates, and deletes because of tuple splitting/stitching. </li>
 </ul>
 </li>
 </ol>
-<h2 id="database-compression"><a class="markdownIt-Anchor" href="#database-compression"></a> Database compression</h2>
-<h3 id="why-do-we-need-database-compression-and-what-is-the-trade-off"><a class="markdownIt-Anchor" href="#why-do-we-need-database-compression-and-what-is-the-trade-off"></a> Why do we need database compression and what is the trade-off?</h3>
-<ol>
-<li>I/O is the main bottleneck if the DBMS fetches data from disk during query execution.</li>
+<h2 id="Database-compression"><a href="#Database-compression" class="headerlink" title="Database compression"></a>Database compression</h2><h3 id="Why-do-we-need-database-compression-and-what-is-the-trade-off"><a href="#Why-do-we-need-database-compression-and-what-is-the-trade-off" class="headerlink" title="Why do we need database compression and what is the trade-off?"></a>Why do we need database compression and what is the trade-off?</h3><ol>
+<li>I/O is the main bottleneck if the DBMS fetches data from disk during query execution. </li>
 <li>The DBMS can compress pages to increase the utility of the data moved per I/O operation.</li>
-<li>The key trade-off is between speed and compression ratio.
-<ul>
-<li>To get a better compression ratio, it will take a higher CPU costs to both compress and decompress. But it can reduces DRAM requirements.</li>
-<li>Some engines may work with compressed data, which can reduce CPU costs.</li>
+<li>The key trade-off is between speed and compression ratio. <ul>
+<li>To get a better compression ratio, it will take a higher CPU costs to both compress and decompress. But it can reduces DRAM requirements. </li>
+<li>Some engines may work with compressed data, which can reduce CPU costs. </li>
 </ul>
 </li>
 </ol>
-<h3 id="why-can-we-compress-data"><a class="markdownIt-Anchor" href="#why-can-we-compress-data"></a> Why can we compress data?</h3>
-<ol>
-<li>Data sets tend to have highly skewed distributions for attribute values.</li>
-<li>Data sets tend to have high correlation between attributes of the same tuple.</li>
+<h3 id="Why-can-we-compress-data"><a href="#Why-can-we-compress-data" class="headerlink" title="Why can we compress data?"></a>Why can we compress data?</h3><ol>
+<li>Data sets tend to have highly skewed distributions for attribute values. </li>
+<li>Data sets tend to have high correlation between attributes of the same tuple. </li>
 </ol>
-<h3 id="what-is-the-goals-of-compression"><a class="markdownIt-Anchor" href="#what-is-the-goals-of-compression"></a> What is the goals of compression?</h3>
-<ol>
-<li>It must produce fixed-length values. The only exception is var-length data stored in separate pool.</li>
-<li>Late materialization: Postpone decompression for as long as possible during query execution.</li>
-<li>It must be a lossless scheme.
-<ul>
-<li>When a DBMS uses compression, it is always lossless because people don’t like losing data.</li>
-<li>Any kind of lossy compression must be performed at the application level.</li>
+<h3 id="What-is-the-goals-of-compression"><a href="#What-is-the-goals-of-compression" class="headerlink" title="What is the goals of compression?"></a>What is the goals of compression?</h3><ol>
+<li>It must produce fixed-length values. The only exception is var-length data stored in separate pool. </li>
+<li>Late materialization: Postpone decompression for as long as possible during query execution. </li>
+<li>It must be a lossless scheme. <ul>
+<li>When a DBMS uses compression, it is always lossless because people don’t like losing data. </li>
+<li>Any kind of lossy compression must be performed at the application level. </li>
 </ul>
 </li>
 </ol>
-<h3 id="what-are-the-compression-granularities"><a class="markdownIt-Anchor" href="#what-are-the-compression-granularities"></a> What are the compression granularities?</h3>
-<ol>
-<li>Block-level: Compression is performed on a block of tuples for the same table.</li>
-<li>Tuple-level: Compression is performed on the contents of the entire tuple (NSM-only).</li>
-<li>Attribute-level: Compression is performed on a single attribute within one tuple (overflow). It can target multiple attributes for the same tuple.</li>
-<li>Column-level: Compression is performed on multiple values for one or more attributes stored for multiple tuples (DSM-only).</li>
+<h3 id="What-are-the-compression-granularities"><a href="#What-are-the-compression-granularities" class="headerlink" title="What are the compression granularities?"></a>What are the compression granularities?</h3><ol>
+<li>Block-level: Compression is performed on a block of tuples for the same table. </li>
+<li>Tuple-level: Compression is performed on the contents of the entire tuple (NSM-only). </li>
+<li>Attribute-level: Compression is performed on a single attribute within one tuple (overflow). It can target multiple attributes for the same tuple. </li>
+<li>Column-level: Compression is performed on multiple values for one or more attributes stored for multiple tuples (DSM-only). </li>
 </ol>
-<h3 id="what-is-the-naive-compression"><a class="markdownIt-Anchor" href="#what-is-the-naive-compression"></a> What is the naive compression?</h3>
-<ol>
-<li>Naive means that data system does not understand the bits after compression.</li>
-<li>We can compress data using a general-purpose algorithm. The scope of compression is only based on the data provided as input.</li>
-<li>In disk, each page not only stores the compressed data, also stores the modification log of this page.</li>
-<li>When DBMS read a page into the buffer pool
-<ul>
-<li>It won’t decompress until queries actually need to return the whole tuple back.</li>
-<li>Every update will only append an entry in the mod log. Hence no need to decompress data when only updating tuples. This only thing we need to know in updating is which page this tuple is.</li>
-<li>When mod log is full, DBMS will decompress page and apply changes.</li>
+<h3 id="What-is-the-naive-compression"><a href="#What-is-the-naive-compression" class="headerlink" title="What is the naive compression?"></a>What is the naive compression?</h3><ol>
+<li>Naive means that data system does not understand the bits after compression. </li>
+<li>We can compress data using a general-purpose algorithm. The scope of compression is only based on the data provided as input. </li>
+<li>In disk, each page not only stores the compressed data, also stores the modification log of this page. </li>
+<li>When DBMS read a page into the buffer pool<ul>
+<li>It won’t decompress until queries actually need to return the whole tuple back. </li>
+<li>Every update will only append an entry in the mod log. Hence no need to decompress data when only updating tuples. This only thing we need to know in updating is which page this tuple is. </li>
+<li>When mod log is full, DBMS will decompress page and apply changes. </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-can-we-do-better-with-the-high-level-meaning-or-semantics-of-the-data"><a class="markdownIt-Anchor" href="#how-can-we-do-better-with-the-high-level-meaning-or-semantics-of-the-data"></a> How can we do better with the high-level meaning or semantics of the data?</h3>
-<ol>
-<li>This is performed on column-level.</li>
-<li>Run-length encoding:
-<ul>
-<li>Compress runs of continuous same value in a single column into triplets: <code>(value, offset, length) </code>.
-<ul>
-<li><code>Value</code> is the value of the attribute.</li>
-<li><code>Offset</code> is the start position in the column segment of the continuous save value run.</li>
-<li><code>Length</code> is the number of elements in the run.</li>
+<h3 id="How-can-we-do-better-with-the-high-level-meaning-or-semantics-of-the-data"><a href="#How-can-we-do-better-with-the-high-level-meaning-or-semantics-of-the-data" class="headerlink" title="How can we do better with the high-level meaning or semantics of the data?"></a>How can we do better with the high-level meaning or semantics of the data?</h3><ol>
+<li>This is performed on column-level. </li>
+<li>Run-length encoding:<ul>
+<li>Compress runs of continuous same value in a single column into triplets: <code>(value, offset, length)</code>. <ul>
+<li><code>Value</code> is the value of the attribute. </li>
+<li><code>Offset</code> is the start position in the column segment of the continuous save value run. </li>
+<li><code>Length</code> is the number of elements in the run. </li>
 </ul>
 </li>
-<li>It requires the columns to be sorted intelligently to maximize compression opportunities.</li>
+<li>It requires the columns to be sorted intelligently to maximize compression opportunities. </li>
 </ul>
 </li>
-<li>Bit-packing encoding:
-<ul>
-<li>When values for an attribute are always less than the value’s declared largest size, store them as smaller data type.</li>
-<li><strong>Mostly encoding</strong> uses a special marker to indicate when a value exceeds largest size and maintains a look-up table to store them.</li>
+<li>Bit-packing encoding:<ul>
+<li>When values for an attribute are always less than the value’s declared largest size, store them as smaller data type. </li>
+<li><strong>Mostly encoding</strong> uses a special marker to indicate when a value exceeds largest size and maintains a look-up table to store them. </li>
 </ul>
 </li>
-<li>Bitmap encoding:
-<ul>
-<li>Store a separate bitmap for <strong>each unique value</strong> for an attribute where an offset in the vector corresponds to a tuple.</li>
-<li>When reading, DBMS need to look into the bits in the tuple to find which bit is <code>1</code> to know which value is stored in this attribute of this tuple.</li>
-<li>We need to store the value for each bitmap. So the total space needed is the total length of possible values and the number of bits same as the number of tuples for each value.</li>
+<li>Bitmap encoding:<ul>
+<li>Store a separate bitmap for <strong>each unique value</strong> for an attribute where an offset in the vector corresponds to a tuple. </li>
+<li>When reading, DBMS need to look into the bits in the tuple to find which bit is <code>1</code> to know which value is stored in this attribute of this tuple. </li>
+<li>We need to store the value for each bitmap. So the total space needed is the total length of possible values and the number of bits same as the number of tuples for each value. </li>
 </ul>
 </li>
-<li>Delta encoding:
-<ul>
-<li>Recording the difference between this tuple and its last tuple.</li>
-<li>Store base value in-line or in a separate look-up table.</li>
-<li>Combine with RLE to get even better compression ratios.</li>
+<li>Delta encoding:<ul>
+<li>Recording the difference between this tuple and its last tuple. </li>
+<li>Store base value in-line or in a separate look-up table. </li>
+<li>Combine with RLE to get even better compression ratios. </li>
 </ul>
 </li>
-<li>Incremental encoding:
-<ul>
-<li>Delta encoding is for numbers, while incremental encoding is for string.</li>
-<li>It stores the length of common prefixes between this tuples and its last tuple and the extra suffixes of this tuple.</li>
-<li>When there is no common prefix, the length is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>. It performs better when we sorted tuples according to the strings.</li>
+<li>Incremental encoding:<ul>
+<li>Delta encoding is for numbers, while incremental encoding is for string. </li>
+<li>It stores the length of common prefixes between this tuples and its last tuple and the extra suffixes of this tuple. </li>
+<li>When there is no common prefix, the length is $0$. It performs better when we sorted tuples according to the strings. </li>
 </ul>
 </li>
-<li>Dictionary compression (most widely used):
-<ul>
-<li>Build a data structure that maps variable-length values to a smaller integer identifier. And replace those values with their corresponding identifier in the dictionary data structure.</li>
-<li>The dictionary is required to support fast encoding , decoding and range queries.</li>
-<li>Hash function can not be used due to key confliction and unable to provide deoding.</li>
-<li>When the dictionary encode values in certain order (e.g. alphabetic order), the execution engine can be optimized to do some queries only access dictionary, especially for those <code>DISTINCT</code> queries.</li>
+<li>Dictionary compression (most widely used): <ul>
+<li>Build a data structure that maps variable-length values to a smaller integer identifier. And replace those values with their corresponding identifier in the dictionary data structure. </li>
+<li>The dictionary is required to support fast encoding , decoding and range queries. </li>
+<li>Hash function can not be used due to key confliction and unable to provide deoding. </li>
+<li>When the dictionary encode values in certain order (e.g. alphabetic order), the execution engine can be optimized to do some queries only access dictionary, especially for those <code>DISTINCT</code> queries. </li>
 </ul>
 </li>
 </ol>
@@ -1056,93 +1267,44 @@ to 1. If yes, set to zero. If no, then evict.</li>
     
     
     <div class="post-body" itemprop="articleBody">
-          <p><ul class="markdownIt-TOC">
-<li><a href="#database">Database</a>
-<ul>
-<li><a href="#why-shouldnt-we-just-store-database-in-a-flat-file-like-csv-that-we-manage-ourselve-in-our-application-code">Why shouldn’t we just store database in a flat file like CSV that we manage ourselve in our application code?</a></li>
-<li><a href="#what-does-dbms-and-data-models-do">What does DBMS and data models do?</a></li>
-<li><a href="#what-kinds-of-data-models-are-there">What kinds of data models are there?</a></li>
-<li><a href="#how-does-document-data-model-store-data">How does document data model store data?</a></li>
+          <p>@[toc]</p>
+<h1 id="Database"><a href="#Database" class="headerlink" title="Database"></a>Database</h1><h2 id="Why-shouldn’t-we-just-store-database-in-a-flat-file-like-CSV-that-we-manage-ourselve-in-our-application-code"><a href="#Why-shouldn’t-we-just-store-database-in-a-flat-file-like-CSV-that-we-manage-ourselve-in-our-application-code" class="headerlink" title="Why shouldn’t we just store database in a flat file like CSV that we manage ourselve in our application code?"></a>Why shouldn’t we just store database in a flat file like CSV that we manage ourselve in our application code?</h2><ol>
+<li>The first concern is data integrity:<ul>
+<li>How to ensure that the data is make sense to the design schema? </li>
+<li>How to prevent invalid data and malicious attack? </li>
+<li>And the management of deleting some entries causing deleting entries in other databases is pain. </li>
 </ul>
 </li>
-<li><a href="#relational-model">Relational model</a>
-<ul>
-<li><a href="#how-are-data-stored">How are data stored?</a></li>
-<li><a href="#what-is-primary-keys-and-foreign-keys">What is primary keys and foreign keys?</a></li>
-<li><a href="#what-is-supported-in-relational-algebra">What is supported in relational algebra?</a></li>
-</ul>
-</li>
-<li><a href="#morden-sql">Morden SQL</a>
-<ul>
-<li><a href="#what-is-provided-in-a-relational-language">What is provided in a relational language?</a></li>
-<li><a href="#aggregations-and-group-by">Aggregations and Group By</a>
-<ul>
-<li><a href="#what-are-aggregations">What are aggregations?</a></li>
-<li><a href="#how-to-output-other-columns-with-aggregations">How to output other columns with aggregations?</a></li>
-</ul>
-</li>
-<li><a href="#what-string-operations-are-supported">What string operations are supported?</a></li>
-<li><a href="#output">Output</a>
-<ul>
-<li><a href="#where-can-we-redirect-outputs">Where can we redirect outputs?</a></li>
-<li><a href="#how-can-we-control-the-outputs">How can we control the outputs?</a></li>
-</ul>
-</li>
-<li><a href="#what-if-we-need-temporary-relation-in-a-query">What if we need temporary relation in a query?</a></li>
-<li><a href="#how-does-window-functions-work">How does window functions work?</a></li>
-</ul>
-</li>
-</ul>
-</p>
-<h1 id="database"><a class="markdownIt-Anchor" href="#database"></a> Database</h1>
-<h2 id="why-shouldnt-we-just-store-database-in-a-flat-file-like-csv-that-we-manage-ourselve-in-our-application-code"><a class="markdownIt-Anchor" href="#why-shouldnt-we-just-store-database-in-a-flat-file-like-csv-that-we-manage-ourselve-in-our-application-code"></a> Why shouldn’t we just store database in a flat file like CSV that we manage ourselve in our application code?</h2>
-<ol>
-<li>The first concern is data integrity:
-<ul>
-<li>How to ensure that the data is make sense to the design schema?</li>
-<li>How to prevent invalid data and malicious attack?</li>
-<li>And the management of deleting some entries causing deleting entries in other databases is pain.</li>
-</ul>
-</li>
-<li>Another problem is implementation:
-<ul>
+<li>Another problem is implementation:<ul>
 <li>How to find a record?</li>
 <li>How to share database between applications?</li>
 <li>How to handle concurrent writes?</li>
 </ul>
 </li>
-<li>Also concerned about durability:
-<ul>
-<li>What if machine crashed?</li>
+<li>Also concerned about durability:<ul>
+<li>What if machine crashed? </li>
 <li>How to replicate database?</li>
 </ul>
 </li>
 </ol>
-<h2 id="what-does-dbms-and-data-models-do"><a class="markdownIt-Anchor" href="#what-does-dbms-and-data-models-do"></a> What does DBMS and data models do?</h2>
-<ol>
-<li>
-<p>DBMS supports the definition, creation, querying, update, and administration of databases in accordance with some data model.</p>
+<h2 id="What-does-DBMS-and-data-models-do"><a href="#What-does-DBMS-and-data-models-do" class="headerlink" title="What does DBMS and data models do?"></a>What does DBMS and data models do?</h2><ol>
+<li><p>DBMS supports the definition, creation, querying, update, and administration of databases in accordance with some data model. </p>
 <ul>
-<li>
-<p>The physical storage is left up to the DBMS implementation.</p>
+<li><p>The physical storage is left up to the DBMS implementation. </p>
 </li>
-<li>
-<p>Programmers access data through high-level language, DBMS figures out best execution strategy.</p>
+<li><p>Programmers access data through high-level language, DBMS figures out best execution strategy. </p>
 </li>
 </ul>
 </li>
-<li>
-<p>A data model is a collection of concepts for describing the data in a database.</p>
+<li><p>A data model is a collection of concepts for describing the data in a database. </p>
 <ul>
-<li>A schema is a description of a particular collection of data using a given data model.</li>
+<li>A schema is a description of a particular collection of data using a given data model. </li>
 </ul>
 </li>
 </ol>
-<h2 id="what-kinds-of-data-models-are-there"><a class="markdownIt-Anchor" href="#what-kinds-of-data-models-are-there"></a> What kinds of data models are there?</h2>
-<ol>
-<li>The most used is Relational model.</li>
-<li>One class called NoSQL:
-<ul>
+<h2 id="What-kinds-of-data-models-are-there"><a href="#What-kinds-of-data-models-are-there" class="headerlink" title="What kinds of data models are there?"></a>What kinds of data models are there?</h2><ol>
+<li>The most used is Relational model. </li>
+<li>One class called NoSQL: <ul>
 <li>Key/Value</li>
 <li>Graph</li>
 <li>Document / Object</li>
@@ -1150,288 +1312,223 @@ to 1. If yes, set to zero. If no, then evict.</li>
 </ul>
 </li>
 <li>For machine learning, there are Array / Matrix / Vectors</li>
-<li>The obsolete or legacy ones are:
-<ul>
+<li>The obsolete or legacy ones are:<ul>
 <li>Hierarchical</li>
 <li>Network</li>
 <li>Multi-Value</li>
 </ul>
 </li>
 </ol>
-<h2 id="how-does-document-data-model-store-data"><a class="markdownIt-Anchor" href="#how-does-document-data-model-store-data"></a> How does document data model store data?</h2>
-<ol>
-<li>It embeds data hierarchy into a single object like JSON, or XML, etc.</li>
-<li>The problem is similar with the aforementioned store database in a flat file like CSV.</li>
+<h2 id="How-does-document-data-model-store-data"><a href="#How-does-document-data-model-store-data" class="headerlink" title="How does document data model store data?"></a>How does document data model store data?</h2><ol>
+<li>It embeds data hierarchy into a single object like JSON, or XML, etc. </li>
+<li>The problem is similar with the aforementioned store database in a flat file like CSV. </li>
 </ol>
-<h1 id="relational-model"><a class="markdownIt-Anchor" href="#relational-model"></a> Relational model</h1>
-<h2 id="how-are-data-stored"><a class="markdownIt-Anchor" href="#how-are-data-stored"></a> How are data stored?</h2>
-<ol>
-<li>Data are stored in simple data structures called relations.</li>
-<li>A relation is an <strong>unordered set</strong> that contain the relationship of attributes that represent entities.
-<ul>
-<li>A n-ary relation is  a table with n columns.</li>
+<h1 id="Relational-model"><a href="#Relational-model" class="headerlink" title="Relational model"></a>Relational model</h1><h2 id="How-are-data-stored"><a href="#How-are-data-stored" class="headerlink" title="How are data stored?"></a>How are data stored?</h2><ol>
+<li>Data are stored in simple data structures called relations. </li>
+<li>A relation is an <strong>unordered set</strong> that contain the relationship of attributes that represent entities. <ul>
+<li>A n-ary relation is  a table with n columns. </li>
 </ul>
 </li>
-<li>A tuple is a set of attribute values (domain) in the relation.
-<ul>
-<li>NULL is a member of every domain, if allowed.</li>
+<li>A tuple is a set of attribute values (domain) in the relation. <ul>
+<li>NULL is a member of every domain, if allowed. </li>
 </ul>
 </li>
 </ol>
-<h2 id="what-is-primary-keys-and-foreign-keys"><a class="markdownIt-Anchor" href="#what-is-primary-keys-and-foreign-keys"></a> What is primary keys and foreign keys?</h2>
-<ol>
-<li>A relation’s primary key uniquely identifies a single tuple.
-<ul>
-<li>In the definition of a relation, primary keys are usually marked with underline.</li>
+<h2 id="What-is-primary-keys-and-foreign-keys"><a href="#What-is-primary-keys-and-foreign-keys" class="headerlink" title="What is primary keys and foreign keys?"></a>What is primary keys and foreign keys?</h2><ol>
+<li>A relation’s primary key uniquely identifies a single tuple. <ul>
+<li>In the definition of a relation, primary keys are usually marked with underline. </li>
 </ul>
 </li>
-<li>A foreign key specifies that an attribute from one relation has to map to a tuple in another relation.
-<ul>
-<li>Normally, foreign keys must be primary keys in another relation.</li>
+<li>A foreign key specifies that an attribute from one relation has to map to a tuple in another relation. <ul>
+<li>Normally, foreign keys must be primary keys in another relation. </li>
 </ul>
 </li>
 </ol>
-<h2 id="what-is-supported-in-relational-algebra"><a class="markdownIt-Anchor" href="#what-is-supported-in-relational-algebra"></a> What is supported in relational algebra?</h2>
-<ol>
-<li>
-<p>Select: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sigma_{predicate}(R)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mclose">)</span></span></span></span></p>
+<h2 id="What-is-supported-in-relational-algebra"><a href="#What-is-supported-in-relational-algebra" class="headerlink" title="What is supported in relational algebra?"></a>What is supported in relational algebra?</h2><ol>
+<li><p>Select: $\sigma_{predicate}(R)$</p>
 <ul>
-<li>
-<p>Choose a subset of the tuples from a relation that satisfies the selection predicate.</p>
+<li><p>Choose a subset of the tuples from a relation that satisfies the selection predicate. </p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R</span><br><span class="line"> <span class="keyword">WHERE</span> predicate;</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
-<li>
-<p>Projection: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Π</mi><mrow><msub><mi>A</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>A</mi><mn>2</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>A</mi><mi>n</mi></msub></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\Pi_{A_1,A_2,\dots,A_n}(R)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord">Π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.328331em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31731428571428577em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31731428571428577em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="minner mtight">…</span><span class="mpunct mtight">,</span><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.16454285714285719em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mclose">)</span></span></span></span></p>
+<li><p>Projection: $\Pi_{A_1,A_2,\dots,A_n}(R)$</p>
 <ul>
-<li>
-<p>Generate a relation with tuples that contains only the specified attributes</p>
+<li><p>Generate a relation with tuples that contains only the specified attributes</p>
 </li>
-<li>
-<p>It can be used to rearrange attributes’ ordering and manipulate the values.</p>
+<li><p>It can be used to rearrange attributes’ ordering and manipulate the values. </p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> A1, A2, ..., An <span class="keyword">FROM</span> R;</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
-<li>
-<p>Union: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>∪</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\cup S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∪</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></p>
+<li><p>Union: $R\cup S$</p>
 <ul>
-<li>
-<p>Two relations must have same attributes.</p>
+<li><p>Two relations must have same attributes. </p>
 </li>
-<li>
-<p>The result may be duplicated if some tuples appeared in bother relations.</p>
+<li><p>The result may be duplicated if some tuples appeared in bother relations. </p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">UNION</span> <span class="keyword">ALL</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
-<li>
-<p>Intersection: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>∩</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\cap S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∩</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></p>
+<li><p>Intersection: $R\cap S$</p>
 <ul>
-<li>
-<p>Two relations must have same attributes.</p>
+<li><p>Two relations must have same attributes. </p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">INTERSECT</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
-<li>
-<p>Difference: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>−</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R-S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></p>
+<li><p>Difference: $R-S$</p>
 <ul>
-<li>
-<p>Two relations must have same attributes.</p>
+<li><p>Two relations must have same attributes. </p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">EXCEPT</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
-<li>
-<p>Product: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>×</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\times S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></p>
+<li><p>Product: $R\times S$</p>
 <ul>
-<li>
-<p>Generate a relation that contains all possible combinations of tuple from the input relations, i.e. Cartesian product.</p>
+<li><p>Generate a relation that contains all possible combinations of tuple from the input relations, i.e. Cartesian product. </p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">CROSS</span> <span class="keyword">JOIN</span> S;</span><br><span class="line"># <span class="keyword">Or</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R, S;</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
-<li>
-<p>Join: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>⋈</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\bowtie S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68833em;vertical-align:-0.005em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⋈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></p>
+<li><p>Join: $R\bowtie S$</p>
 <ul>
-<li>
-<p>The difference between join and intersection is that join can match attributes’ name automatically, while intersetion requires that two relations have the same attribute order.</p>
+<li><p>The difference between join and intersection is that join can match attributes’ name automatically, while intersetion requires that two relations have the same attribute order. </p>
 </li>
-<li>
-<p>It does product first, then compare attributes.</p>
+<li><p>It does product first, then compare attributes. </p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">NATURAL</span> <span class="keyword">JOIN</span> S;</span><br><span class="line"># <span class="keyword">Or</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">JOIN</span> S <span class="keyword">USING</span> (A1, A2, ..., An);</span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>In the broad sense, join can have predicate <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><msub><mo>⋈</mo><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mi>S</mi></mrow><annotation encoding="application/x-tex">R\bowtie_{predicate}S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel"><span class="mrel">⋈</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span> which is the same as <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo>×</mo><mi>S</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sigma_{predicate}(R\times S)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mclose">)</span></span></span></span>.</p>
+<li><p>In the broad sense, join can have predicate $R\bowtie_{predicate}S$ which is the same as $\sigma_{predicate}(R\times S)$. </p>
 </li>
 </ul>
 </li>
-<li>
-<p>It is obvious that different order of steps can have the same result with different amout of computation.</p>
+<li><p>It is obvious that different order of steps can have the same result with different amout of computation. </p>
 <ul>
-<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>⋈</mo><mo stretchy="false">(</mo><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R\bowtie(\sigma_{predicate}(S))</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68833em;vertical-align:-0.005em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⋈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mclose">)</span><span class="mclose">)</span></span></span></span> is much efficient than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo>⋈</mo><mi>S</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sigma_{predicate}(R\bowtie S)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⋈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mclose">)</span></span></span></span>.</li>
+<li>$R\bowtie(\sigma_{predicate}(S))$ is much efficient than $\sigma_{predicate}(R\bowtie S)$. </li>
 </ul>
 </li>
 </ol>
-<h1 id="morden-sql"><a class="markdownIt-Anchor" href="#morden-sql"></a> Morden SQL</h1>
-<h2 id="what-is-provided-in-a-relational-language"><a class="markdownIt-Anchor" href="#what-is-provided-in-a-relational-language"></a> What is provided in a relational language?</h2>
-<ol>
+<h1 id="Morden-SQL"><a href="#Morden-SQL" class="headerlink" title="Morden SQL"></a>Morden SQL</h1><h2 id="What-is-provided-in-a-relational-language"><a href="#What-is-provided-in-a-relational-language" class="headerlink" title="What is provided in a relational language?"></a>What is provided in a relational language?</h2><ol>
 <li>Data Manipulation Language (DML)</li>
 <li>Data Definition Language (DDL)</li>
 <li>Data Control Language (DCL)</li>
-<li>Also view definition, integrity and referential constraints, transactions.</li>
+<li>Also view definition, integrity and referential constraints, transactions. </li>
 </ol>
-<h2 id="aggregations-and-group-by"><a class="markdownIt-Anchor" href="#aggregations-and-group-by"></a> Aggregations and Group By</h2>
-<h3 id="what-are-aggregations"><a class="markdownIt-Anchor" href="#what-are-aggregations"></a> What are aggregations?</h3>
-<ol>
-<li>They are functions that return a single value from a bag of tuples.</li>
-<li><code>AVG(col)</code>, <code>MIN(col)</code>, <code>MAX(col)</code>, <code>SUM(col)</code>, <code>COUNT(col)</code>
-<ul>
-<li>For <code>COUNT</code>, the passed argument actual does mater since it only returns the number of rows.</li>
+<h2 id="Aggregations-and-Group-By"><a href="#Aggregations-and-Group-By" class="headerlink" title="Aggregations and Group By"></a>Aggregations and Group By</h2><h3 id="What-are-aggregations"><a href="#What-are-aggregations" class="headerlink" title="What are aggregations?"></a>What are aggregations?</h3><ol>
+<li>They are functions that return a single value from a bag of tuples. </li>
+<li><code>AVG(col)</code>, <code>MIN(col)</code>, <code>MAX(col)</code>, <code>SUM(col)</code>, <code>COUNT(col)</code><ul>
+<li>For <code>COUNT</code>, the passed argument actual does mater since it only returns the number of rows. </li>
 </ul>
 </li>
-<li>Aggregate functions can almost only be used in the <code>SELECT</code> output list.</li>
-<li><code>COUNT</code>, <code>SUM</code>, <code>AVG</code> support <code>DISTINCT</code>.
-<ul>
-<li>In this case, the columns passed to <code>COUNT</code> matters.</li>
+<li>Aggregate functions can almost only be used in the <code>SELECT</code> output list. </li>
+<li><code>COUNT</code>, <code>SUM</code>, <code>AVG</code> support <code>DISTINCT</code>. <ul>
+<li>In this case, the columns passed to <code>COUNT</code> matters. </li>
 </ul>
 </li>
-<li>Output of other columns outside of an aggregate is undefined.
-<ul>
-<li>Aggregations actually create a new relation with different number of tuples.</li>
+<li>Output of other columns outside of an aggregate is undefined. <ul>
+<li>Aggregations actually create a new relation with different number of tuples. </li>
 <li>If we directly ask for other colmns, the number of tuples won’t match with output of aggregations</li>
-<li>And we don’t know the relation between output of aggregations and values from other columns (some language may allow this but with chaos order).</li>
+<li>And we don’t know the relation between output of aggregations and values from other columns (some language may allow this but with chaos order). </li>
 </ul>
 </li>
-<li>We also cannot filter output tuples with the result of aggregation column names.
-<ul>
-<li>Since <code>SELECT</code> happens a last, when <code>WHERE</code> or <code>HAVING </code> is calculated, the aggregation columns haven’t been calculated yet.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-to-output-other-columns-with-aggregations"><a class="markdownIt-Anchor" href="#how-to-output-other-columns-with-aggregations"></a> How to output other columns with aggregations?</h3>
-<ol>
-<li><code>GROUP BY</code> projects tuples into subsets and calculate aggregates against each subset.</li>
-<li>Non-aggregated valuese in <code>SELECT</code> output clause must appear in <code>GROUP BY</code> clause.</li>
-<li>With group-by, each aggregation output has the same values in those grouped columns. So <code>SELECT</code> knows their relation.</li>
-<li><code>HAVING</code> like a <code>WHERE</code> clause for a <code>GROUP BY</code>.
-<ul>
-<li>It can filter results based on aggregation computation. But it also shouldn’t use the columns names of aggregation in <code>SELECT</code>.</li>
-<li>Instead, it should directly use aggregation function. Although the execution engine knows that these two are the same and don’t do the repeat calculation.</li>
+<li>We also cannot filter output tuples with the result of aggregation column names. <ul>
+<li>Since <code>SELECT</code> happens a last, when <code>WHERE</code> or <code>HAVING</code> is calculated, the aggregation columns haven’t been calculated yet. </li>
 </ul>
 </li>
 </ol>
-<h2 id="what-string-operations-are-supported"><a class="markdownIt-Anchor" href="#what-string-operations-are-supported"></a> What string operations are supported?</h2>
-<ol>
-<li>
-<p>Predicate of string matching can be done with <code>=</code></p>
-<ul>
-<li>
-<p>Some DBMSs are case sensitive while others are not.</p>
+<h3 id="How-to-output-other-columns-with-aggregations"><a href="#How-to-output-other-columns-with-aggregations" class="headerlink" title="How to output other columns with aggregations?"></a>How to output other columns with aggregations?</h3><ol>
+<li><code>GROUP BY</code> projects tuples into subsets and calculate aggregates against each subset. </li>
+<li>Non-aggregated valuese in <code>SELECT</code> output clause must appear in <code>GROUP BY</code> clause. </li>
+<li>With group-by, each aggregation output has the same values in those grouped columns. So <code>SELECT</code> knows their relation. </li>
+<li><code>HAVING</code> like a <code>WHERE</code> clause for a <code>GROUP BY</code>. <ul>
+<li>It can filter results based on aggregation computation. But it also shouldn’t use the columns names of aggregation in <code>SELECT</code>. </li>
+<li>Instead, it should directly use aggregation function. Although the execution engine knows that these two are the same and don’t do the repeat calculation. </li>
+</ul>
 </li>
-<li>
-<p>We can also use <code>LIKE</code> to match with string-match operators.</p>
+</ol>
+<h2 id="What-string-operations-are-supported"><a href="#What-string-operations-are-supported" class="headerlink" title="What string operations are supported?"></a>What string operations are supported?</h2><ol>
+<li><p>Predicate of string matching can be done with <code>=</code></p>
+<ul>
+<li><p>Some DBMSs are case sensitive while others are not. </p>
+</li>
+<li><p>We can also use <code>LIKE</code> to match with string-match operators. </p>
 <ul>
 <li><code>%</code> matches any substring (including empty strings)</li>
-<li><code>_</code> match any one character.</li>
+<li><code>_</code> match any one character. </li>
 </ul>
 </li>
 </ul>
 </li>
-<li>
-<p>Other string functions are provided:</p>
+<li><p>Other string functions are provided:</p>
 <ul>
 <li><code>UPPER</code> and <code>LOWER</code></li>
 <li><code>SUBSTRING(str, start_index, end_index)</code></li>
 </ul>
 </li>
-<li>
-<p>Different language has different ways to concatenate strings: <code>str1 || str2</code>, <code>str1 + str2</code> or <code>CONCAT(str1, str2)</code>.</p>
+<li><p>Different language has different ways to concatenate strings: <code>str1 || str2</code>, <code>str1 + str2</code> or <code>CONCAT(str1, str2)</code>. </p>
 </li>
 </ol>
-<h2 id="output"><a class="markdownIt-Anchor" href="#output"></a> Output</h2>
-<h3 id="where-can-we-redirect-outputs"><a class="markdownIt-Anchor" href="#where-can-we-redirect-outputs"></a> Where can we redirect outputs?</h3>
-<ol>
-<li>We can store query restuls in another table.
-<ul>
-<li>That table must not already be defined.</li>
-<li>It will have the same number of columns with the same types as the input.</li>
+<h2 id="Output"><a href="#Output" class="headerlink" title="Output"></a>Output</h2><h3 id="Where-can-we-redirect-outputs"><a href="#Where-can-we-redirect-outputs" class="headerlink" title="Where can we redirect outputs?"></a>Where can we redirect outputs?</h3><ol>
+<li>We can store query restuls in another table. <ul>
+<li>That table must not already be defined. </li>
+<li>It will have the same number of columns with the same types as the input. </li>
 </ul>
 </li>
-<li>We can also insert tuples from query into another table.
-<ul>
-<li>The inner select must generate the same columns as the target table.</li>
-<li>DMBSs have diferent options/syntax on what to do with integrity violations.</li>
+<li>We can also insert tuples from query into another table. <ul>
+<li>The inner select must generate the same columns as the target table. </li>
+<li>DMBSs have diferent options/syntax on what to do with integrity violations. </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-can-we-control-the-outputs"><a class="markdownIt-Anchor" href="#how-can-we-control-the-outputs"></a> How can we control the outputs?</h3>
-<ol>
-<li>We can order the output tuples by the values in one or more of their columns with <code>ORDER BY &lt;column*&gt; [ASC|DESC]</code>.</li>
-<li>We can also limit the number of tuples returned in output with <code>LIMIT &lt;count&gt; [OFFSET &lt;count2&gt;]</code>.
-<ul>
-<li>Although this limits the number of output, its execution may still need to compute the whole relation, e.g. to output the top-10 largest numbers still need to sort all numbers.</li>
+<h3 id="How-can-we-control-the-outputs"><a href="#How-can-we-control-the-outputs" class="headerlink" title="How can we control the outputs?"></a>How can we control the outputs?</h3><ol>
+<li>We can order the output tuples by the values in one or more of their columns with <code>ORDER BY &lt;column*&gt; [ASC|DESC]</code>. </li>
+<li>We can also limit the number of tuples returned in output with <code>LIMIT &lt;count&gt; [OFFSET &lt;count2&gt;]</code>. <ul>
+<li>Although this limits the number of output, its execution may still need to compute the whole relation, e.g. to output the top-10 largest numbers still need to sort all numbers. </li>
 </ul>
 </li>
 </ol>
-<h2 id="what-if-we-need-temporary-relation-in-a-query"><a class="markdownIt-Anchor" href="#what-if-we-need-temporary-relation-in-a-query"></a> What if we need temporary relation in a query?</h2>
-<ol>
-<li>
-<p>The first solution is nested queries.</p>
+<h2 id="What-if-we-need-temporary-relation-in-a-query"><a href="#What-if-we-need-temporary-relation-in-a-query" class="headerlink" title="What if we need temporary relation in a query?"></a>What if we need temporary relation in a query?</h2><ol>
+<li><p>The first solution is nested queries. </p>
 <ul>
-<li>
-<p>Inner queries can appear almost anywhere in query.</p>
+<li><p>Inner queries can appear almost anywhere in query. </p>
 </li>
-<li>
-<p>In <code>WHERE</code> clause, we can perform predicate between the tuples from current relation and result of subqueries.</p>
+<li><p>In <code>WHERE</code> clause, we can perform predicate between the tuples from current relation and result of subqueries. </p>
 <ul>
-<li>
-<p><code>ALL</code> must satisfy expression for all rows in the subquery.</p>
+<li><p><code>ALL</code> must satisfy expression for all rows in the subquery. </p>
 </li>
-<li>
-<p><code>ANY</code> must satisfy expression for at least one row in the subquery.</p>
+<li><p><code>ANY</code> must satisfy expression for at least one row in the subquery. </p>
 </li>
-<li>
-<p><code>IN</code> is equivalent to <code>=ANY()</code>.</p>
+<li><p><code>IN</code> is equivalent to <code>=ANY()</code>. </p>
 </li>
-<li>
-<p><code>EXISTS</code> returns true if the relation is not empty.</p>
+<li><p><code>EXISTS</code> returns true if the relation is not empty. </p>
 </li>
-<li>
-<p><code>NOT</code></p>
+<li><p><code>NOT</code></p>
 </li>
 </ul>
 </li>
 </ul>
 </li>
-<li>
-<p>Another choice is common table expression using <code>WITH cteName AS (query)</code>.</p>
+<li><p>Another choice is common table expression using <code>WITH cteName AS (query)</code>. </p>
 <ul>
 <li>It also supports bind/alias output columns to names <code>WITH cteName (col1, ..., coln) AS (query)</code></li>
-<li>In the next one query, we can reference this temporary relation with <code>cteName</code>.</li>
-<li>We can enable recursive calculation using <code>WITH RECURSIVE</code>.</li>
+<li>In the next one query, we can reference this temporary relation with <code>cteName</code>. </li>
+<li>We can enable recursive calculation using <code>WITH RECURSIVE</code>. </li>
 </ul>
 </li>
 </ol>
-<h2 id="how-does-window-functions-work"><a class="markdownIt-Anchor" href="#how-does-window-functions-work"></a> How does window functions work?</h2>
-<ol>
-<li>Window functions perform a sliding calculation across a set of tuples that are related.</li>
-<li>Like an aggregation, they only appear in <code>SELECT</code> clause. But tuples are not grouped into a single output tuples. Instead, the number of rows of the output is the same as input.</li>
-<li>In <code>SELECT</code> clause, window functions syntax is <code>FUNC-NAME(...) OVER(...)</code>.
-<ul>
-<li>The <code>FUNC-NAME</code> can be aggregation functions or special functions (<code>ROW_NUMBER</code> and <code>RANK</code>)
-<ul>
-<li><code>ROW_NUMBER</code> assigns the nuber of current row in certain order.</li>
-<li><code>RANK</code> assigns the order position of the current row.</li>
-<li>When two rows tie, <code>RANK</code> will assign the same number to them and skip the next number while <code>ROW_NUMBER</code> will assign different number.</li>
+<h2 id="How-does-window-functions-work"><a href="#How-does-window-functions-work" class="headerlink" title="How does window functions work?"></a>How does window functions work?</h2><ol>
+<li>Window functions perform a sliding calculation across a set of tuples that are related. </li>
+<li>Like an aggregation, they only appear in <code>SELECT</code> clause. But tuples are not grouped into a single output tuples. Instead, the number of rows of the output is the same as input. </li>
+<li>In <code>SELECT</code> clause, window functions syntax is <code>FUNC-NAME(...) OVER(...)</code>. <ul>
+<li>The <code>FUNC-NAME</code> can be aggregation functions or special functions (<code>ROW_NUMBER</code> and <code>RANK</code>)<ul>
+<li><code>ROW_NUMBER</code> assigns the nuber of current row in certain order. </li>
+<li><code>RANK</code> assigns the order position of the current row. </li>
+<li>When two rows tie, <code>RANK</code> will assign the same number to them and skip the next number while <code>ROW_NUMBER</code> will assign different number. </li>
 </ul>
 </li>
-<li>The <code>OVER</code> paramater controls how to slice up data.
-<ul>
-<li>It controls how to group together tuples when computing the window function with <code>PARTITION BY</code>.</li>
-<li>It also controls the order of computing with <code>ORDER BY ... [ASC|DESC]</code>.</li>
+<li>The <code>OVER</code> paramater controls how to slice up data. <ul>
+<li>It controls how to group together tuples when computing the window function with <code>PARTITION BY</code>. </li>
+<li>It also controls the order of computing with <code>ORDER BY ... [ASC|DESC]</code>. </li>
 </ul>
 </li>
 </ul>
