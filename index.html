@@ -213,7 +213,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2023-08-22 15:34:19 / Modified: 16:01:37" itemprop="dateCreated datePublished" datetime="2023-08-22T15:34:19+08:00">2023-08-22</time>
+      <time title="Created: 2023-08-22 15:34:19 / Modified: 16:05:05" itemprop="dateCreated datePublished" datetime="2023-08-22T15:34:19+08:00">2023-08-22</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -244,6 +244,7 @@
 <ul>
 <li><a href="#what-does-multi-version-mean">What does multi-version mean?</a></li>
 <li><a href="#how-to-maintain-multi-version-logically">How to maintain multi-version logically?</a></li>
+<li><a href="#what-isolation-can-mvcc-support">What isolation can MVCC support?</a></li>
 </ul>
 </li>
 </ul>
@@ -281,6 +282,16 @@
 <li>First it creates a new entry with a new version number and setting its begin timestamp as its timestamp and end timestamp being infinity.</li>
 <li>Then it marks the end timestamp of last version as its timestamp.</li>
 <li>Physically this transaction should modifiy the last version to point to this new version. Hence it need to wait for the transaction creating last version to commit to begin its own commit phase.</li>
+</ul>
+</li>
+</ol>
+<h2 id="what-isolation-can-mvcc-support"><a class="markdownIt-Anchor" href="#what-isolation-can-mvcc-support"></a> What isolation can MVCC support?</h2>
+<ol>
+<li><code>SNAPSHOT ISOLATION</code> is another isolation supported by Oracle.
+<ul>
+<li>It guarantees that all reads made in a transaction see a consistent snapshot of the database that existed at the time the transaction started.</li>
+<li>A transaction will commit only if its writes do not conflict with any concurrent updates made since that snapshot.</li>
+<li>Susceptible to write skew anomaly.</li>
 </ul>
 </li>
 </ol>
@@ -346,7 +357,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-08-22 16:02:47" itemprop="dateModified" datetime="2023-08-22T16:02:47+08:00">2023-08-22</time>
+      <time title="Modified: 2023-08-22 16:04:33" itemprop="dateModified" datetime="2023-08-22T16:04:33+08:00">2023-08-22</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -600,13 +611,6 @@
 <li><code>REPEATABLE READS</code>: Same as above, but no index locks.</li>
 <li><code>READ COMMITTED</code>: Same as above, but S locks are released immediately.</li>
 <li><code>READ UNCOMMITTED</code>: Same as above but allows dirty reads (no S locks).</li>
-</ul>
-</li>
-<li><code>SNAPSHOT ISOLATION</code> is another isolation supported by Oracle.
-<ul>
-<li>It guarantees that all reads made in a transaction see a consistent snapshot of the database that existed at the time the transaction started.</li>
-<li>A transaction will commit only if its writes do not conflict with any concurrent updates made since that snapshot.</li>
-<li>Susceptible to write skew anomaly.</li>
 </ul>
 </li>
 </ol>
