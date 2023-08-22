@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="@toc Task #1 - LRU-K Replacement Policy Evict rule:   When all evictable frames have more than $K$ access records, evict the one whose backward k-distance is maximum.  When some frames only have less">
+    <meta name="description" content="Task #1 - LRU-K Replacement Policy Task #2 - Buffer Pool Manager  Basic Leaderboard optimization   Task #3 - Read&#x2F;Write Page Guards    Task #1 - LRU-K Replacement Policy   Evict rule:  When all evict">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Project #1: Buffer Pool">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/06/27/OpenSource/BusTub/Project-1-Buffer-Pool/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="@toc Task #1 - LRU-K Replacement Policy Evict rule:   When all evictable frames have more than $K$ access records, evict the one whose backward k-distance is maximum.  When some frames only have less">
+<meta property="og:description" content="Task #1 - LRU-K Replacement Policy Task #2 - Buffer Pool Manager  Basic Leaderboard optimization   Task #3 - Read&#x2F;Write Page Guards    Task #1 - LRU-K Replacement Policy   Evict rule:  When all evict">
 <meta property="og:locale">
 <meta property="article:published_time" content="2023-06-27T07:29:31.000Z">
 <meta property="article:modified_time" content="2023-07-09T14:07:13.797Z">
@@ -140,7 +140,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Task-1-LRU-K-Replacement-Policy"><span class="nav-number">1.</span> <span class="nav-text">Task #1 - LRU-K Replacement Policy</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Task-2-Buffer-Pool-Manager"><span class="nav-number">2.</span> <span class="nav-text">Task #2 - Buffer Pool Manager</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Basic"><span class="nav-number">2.1.</span> <span class="nav-text">Basic</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leaderboard-optimization"><span class="nav-number">2.2.</span> <span class="nav-text">Leaderboard optimization</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Task-3-Read-Write-Page-Guards"><span class="nav-number">3.</span> <span class="nav-text">Task #3 - Read&#x2F;Write Page Guards</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#task-1-lru-k-replacement-policy"><span class="nav-number">1.</span> <span class="nav-text"> Task #1 - LRU-K Replacement Policy</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#task-2-buffer-pool-manager"><span class="nav-number">2.</span> <span class="nav-text"> Task #2 - Buffer Pool Manager</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#basic"><span class="nav-number">2.1.</span> <span class="nav-text"> Basic</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#leaderboard-optimization"><span class="nav-number">2.2.</span> <span class="nav-text"> Leaderboard optimization</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#task-3-readwrite-page-guards"><span class="nav-number">3.</span> <span class="nav-text"> Task #3 - Read&#x2F;Write Page Guards</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -153,7 +153,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-count">15</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -252,92 +252,121 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>@<a href="c">toc</a></p>
-<h1 id="Task-1-LRU-K-Replacement-Policy"><a href="#Task-1-LRU-K-Replacement-Policy" class="headerlink" title="Task #1 - LRU-K Replacement Policy"></a>Task #1 - LRU-K Replacement Policy</h1><ol>
-<li><p>Evict rule: </p>
+    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
+<li><a href="#task-1-lru-k-replacement-policy">Task #1 - LRU-K Replacement Policy</a></li>
+<li><a href="#task-2-buffer-pool-manager">Task #2 - Buffer Pool Manager</a>
 <ul>
-<li>When all evictable frames have more than $K$ access records, evict the one whose backward k-distance is maximum. </li>
-<li>When some frames only have less than $K$ access records, evict the one with earliest first access record among those less than $K$ frames. </li>
+<li><a href="#basic">Basic</a></li>
+<li><a href="#leaderboard-optimization">Leaderboard optimization</a></li>
 </ul>
 </li>
-<li><p>Comparison: </p>
+<li><a href="#task-3-readwrite-page-guards">Task #3 - Read/Write Page Guards</a></li>
+</ul>
+</p>
+<h1 id="task-1-lru-k-replacement-policy"><a class="markdownIt-Anchor" href="#task-1-lru-k-replacement-policy"></a> Task #1 - LRU-K Replacement Policy</h1>
+<ol>
+<li>
+<p>Evict rule:</p>
 <ul>
-<li>When each frame is created or stored with a new page, push an access record of $0$ to its history to represent $+\inf$. </li>
-<li>Each comparison use the first two records in the list. If the first record (the earliest backward most k-distance) is the same, it must be $0$ causing comparing second record where represent true first access of that frame. </li>
-<li>Remember to update second comparison timestamp when the first time find $0$ in first timestamp. </li>
+<li>When all evictable frames have more than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi></mrow><annotation encoding="application/x-tex">K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span></span></span></span> access records, evict the one whose backward k-distance is maximum.</li>
+<li>When some frames only have less than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi></mrow><annotation encoding="application/x-tex">K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span></span></span></span> access records, evict the one with earliest first access record among those less than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi></mrow><annotation encoding="application/x-tex">K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span></span></span></span> frames.</li>
+</ul>
+</li>
+<li>
+<p>Comparison:</p>
+<ul>
+<li>When each frame is created or stored with a new page, push an access record of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> to its history to represent <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>+</mo><mi>inf</mi><mo>⁡</mo></mrow><annotation encoding="application/x-tex">+\inf</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.77777em;vertical-align:-0.08333em;"></span><span class="mord">+</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">in<span style="margin-right:0.07778em;">f</span></span></span></span></span>.</li>
+<li>Each comparison use the first two records in the list. If the first record (the earliest backward most k-distance) is the same, it must be <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> causing comparing second record where represent true first access of that frame.</li>
+<li>Remember to update second comparison timestamp when the first time find <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> in first timestamp.</li>
 </ul>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">size_t</span> k_timestamp = frame.second.<span class="built_in">GetKTimestamp</span>();</span><br><span class="line"><span class="type">size_t</span> sec_timestamp = frame.second.<span class="built_in">GetSecondTimestamp</span>();</span><br><span class="line"><span class="keyword">if</span> (k_timestamp &lt; cmp_k_timestamp) &#123;</span><br><span class="line">	victim = frame.first;</span><br><span class="line">	cmp_k_timestamp = k_timestamp;</span><br><span class="line">	<span class="keyword">if</span> (k_timestamp == <span class="number">0</span>) &#123;</span><br><span class="line">		cmp_sec_timestamp = sec_timestamp;</span><br><span class="line">	&#125;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (k_timestamp == cmp_k_timestamp &amp;&amp; sec_timestamp &lt; cmp_sec_timestamp) &#123;</span><br><span class="line">	victim = frame.first;</span><br><span class="line">	cmp_sec_timestamp = sec_timestamp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
-<li><p>After successfully choosing a victim, we need to clear its history (leaving the $0$ as sentinel), set it to non-evictable, and recude the current size of replacer. </p>
+<li>
+<p>After successfully choosing a victim, we need to clear its history (leaving the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> as sentinel), set it to non-evictable, and recude the current size of replacer.</p>
 </li>
 </ol>
-<h1 id="Task-2-Buffer-Pool-Manager"><a href="#Task-2-Buffer-Pool-Manager" class="headerlink" title="Task #2 - Buffer Pool Manager"></a>Task #2 - Buffer Pool Manager</h1><h2 id="Basic"><a href="#Basic" class="headerlink" title="Basic"></a>Basic</h2><ol>
-<li>When the page that is asked to fetch is already in the buffer pool, we still need to do several things:<ul>
-<li>Set it to non-evictable. </li>
-<li>Record its access in replacer. </li>
-<li>Increase its pin count. </li>
-</ul>
-</li>
-<li><p>When the page is not in buffer pool, or creating a new page: </p>
+<h1 id="task-2-buffer-pool-manager"><a class="markdownIt-Anchor" href="#task-2-buffer-pool-manager"></a> Task #2 - Buffer Pool Manager</h1>
+<h2 id="basic"><a class="markdownIt-Anchor" href="#basic"></a> Basic</h2>
+<ol>
+<li>
+<p>When the page that is asked to fetch is already in the buffer pool, we still need to do several things:</p>
 <ul>
-<li>First, we need to acquire a free frame. <ul>
-<li>Erase it from page table when we are evicting one. </li>
-<li>Write the content to disk when the old page is dirty. </li>
+<li>Set it to non-evictable.</li>
+<li>Record its access in replacer.</li>
+<li>Increase its pin count.</li>
 </ul>
 </li>
-<li>Then, similar to the other situation, we need to: <ul>
+<li>
+<p>When the page is not in buffer pool, or creating a new page:</p>
+<ul>
+<li>First, we need to acquire a free frame.
+<ul>
+<li>Erase it from page table when we are evicting one.</li>
+<li>Write the content to disk when the old page is dirty.</li>
+</ul>
+</li>
+<li>Then, similar to the other situation, we need to:
+<ul>
 <li>Set it to non-evictable</li>
 <li>Record its access in replacer</li>
 <li>Put it in page table</li>
-<li>Set its pin count to $1$</li>
+<li>Set its pin count to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span></li>
 <li>Set <code>is_dirty_</code> to <code>false</code></li>
-<li>Set its page ID to frame. </li>
+<li>Set its page ID to frame.</li>
 </ul>
 </li>
-<li>Even in <code>NewPage</code>, the <code>is_dirty_</code> is false due to it can directly “write” empty to file by increasing offset which is done when larger page ID is written. There is no need to actually write empty content. </li>
+<li>Even in <code>NewPage</code>, the <code>is_dirty_</code> is false due to it can directly “write” empty to file by increasing offset which is done when larger page ID is written. There is no need to actually write empty content.</li>
 </ul>
 </li>
-<li><p>When setting <code>is_dirty_</code> in <code>Unpin</code>, if the page is already dirty, we should not set it to clean no matter what we are told to. </p>
+<li>
+<p>When setting <code>is_dirty_</code> in <code>Unpin</code>, if the page is already dirty, we should not set it to clean no matter what we are told to.</p>
 </li>
 </ol>
-<h2 id="Leaderboard-optimization"><a href="#Leaderboard-optimization" class="headerlink" title="Leaderboard optimization"></a>Leaderboard optimization</h2><ol>
-<li>Fine-grain lock<ul>
-<li>A coarse-grain lock is easier to program while sacrificing performance. </li>
-<li>In fine-grain lock, a <code>core_latch_</code> is used to protect the core data of buffer pool manager, i.e. <code>page_table_</code>, <code>free_list_</code>, <code>next_page_id_</code>). Each frame has its own latch to protect its data, i.e. <code>pin_count_</code>, <code>is_dirty_</code>, <code>page_id_</code>. </li>
-<li>In each function thread, it will at most grab the <code>core_latch_</code> and one of frame latches. </li>
-<li>To avoid deadlock, each procedule is designed that a thread will try to acquire a page latch only if it already has a core_latch, or it won’t want a core_latech later. </li>
-<li>To obtain atomic when switching from <code>core_latch_</code> to a page latch, we need to acquire the page latch before release the <code>core_latch_</code>. <ul>
-<li>If release <code>core_latch_</code> first, some other thread may change the frame we want to use (e.g. evict the frame, modify its metadata) before we can acquire the frame latch. </li>
+<h2 id="leaderboard-optimization"><a class="markdownIt-Anchor" href="#leaderboard-optimization"></a> Leaderboard optimization</h2>
+<ol>
+<li>Fine-grain lock
+<ul>
+<li>A coarse-grain lock is easier to program while sacrificing performance.</li>
+<li>In fine-grain lock, a <code>core_latch_</code> is used to protect the core data of buffer pool manager, i.e. <code>page_table_</code>, <code>free_list_</code>, <code>next_page_id_</code>). Each frame has its own latch to protect its data, i.e. <code>pin_count_</code>, <code>is_dirty_</code>, <code>page_id_</code>.</li>
+<li>In each function thread, it will at most grab the <code>core_latch_</code> and one of frame latches.</li>
+<li>To avoid deadlock, each procedule is designed that a thread will try to acquire a page latch only if it already has a core_latch, or it won’t want a core_latech later.</li>
+<li>To obtain atomic when switching from <code>core_latch_</code> to a page latch, we need to acquire the page latch before release the <code>core_latch_</code>.
+<ul>
+<li>If release <code>core_latch_</code> first, some other thread may change the frame we want to use (e.g. evict the frame, modify its metadata) before we can acquire the frame latch.</li>
 </ul>
 </li>
 </ul>
 </li>
-<li>Delay write out: <ul>
-<li>Disk I/Os consume a large amount of time. So we need to avoid holding a lock while communicate with disk. </li>
-<li>When we need to write data into disk, instead of immediately call the <code>disk_manager_-&gt;WritePage</code>, we create a temporary buffer in memory, and copy data into the buffer. After all locks are released, we actually write those content in buffer into disk. </li>
-<li>A similar thought is to delay read data until all locks are released. However, <code>ReadData</code> are call in <code>FetchPage</code> where  we can only release the frame latch after the whole frame is ready for others to visit. Still, we can <code>ReadData</code> after <code>core_latch_</code> is released since the <code>core_latch_</code> could be the bottleneck of the manager. </li>
-<li>However, there is a problem: <ul>
-<li>When a page is evicted, and only a short time later, that exact page is fetched again. Since all latches are release before write dirty data to disk, there is a chance that <code>FetchPage</code> read stale data from disk before the up-to-date data is written to disk. </li>
-<li>Then my another thought is to maintain a list of page IDs in the writing buffer. If the page ID of <code>FetchPage</code> is in the list, it just copy data from the writing buffer and erase that page from writing buffer. </li>
-<li>The problem here is that we need to guarantee the atomic between getting the writing content and writing them to disk. Otherwise, tricky concurrent operations may cause the written content to be wrong. </li>
-<li>Hence we cannot unlock the latches until we are sure the content is written, which also makes fine-grained latches meaningless given that disk I/O is the key problem of performance. </li>
+<li>Delay write out:
+<ul>
+<li>Disk I/Os consume a large amount of time. So we need to avoid holding a lock while communicate with disk.</li>
+<li>When we need to write data into disk, instead of immediately call the <code>disk_manager_-&gt;WritePage</code>, we create a temporary buffer in memory, and copy data into the buffer. After all locks are released, we actually write those content in buffer into disk.</li>
+<li>A similar thought is to delay read data until all locks are released. However, <code>ReadData</code> are call in <code>FetchPage</code> where  we can only release the frame latch after the whole frame is ready for others to visit. Still, we can <code>ReadData</code> after <code>core_latch_</code> is released since the <code>core_latch_</code> could be the bottleneck of the manager.</li>
+<li>However, there is a problem:
+<ul>
+<li>When a page is evicted, and only a short time later, that exact page is fetched again. Since all latches are release before write dirty data to disk, there is a chance that <code>FetchPage</code> read stale data from disk before the up-to-date data is written to disk.</li>
+<li>Then my another thought is to maintain a list of page IDs in the writing buffer. If the page ID of <code>FetchPage</code> is in the list, it just copy data from the writing buffer and erase that page from writing buffer.</li>
+<li>The problem here is that we need to guarantee the atomic between getting the writing content and writing them to disk. Otherwise, tricky concurrent operations may cause the written content to be wrong.</li>
+<li>Hence we cannot unlock the latches until we are sure the content is written, which also makes fine-grained latches meaningless given that disk I/O is the key problem of performance.</li>
 </ul>
 </li>
 </ul>
 </li>
-<li>Pre-fetch<ul>
-<li>To better suit the scan case, when we accessing three consecutive page IDs in a row, the buffer pool manager is allowed to pre-fetch several following pages. </li>
-<li>Different from fetching pages through <code>FetchPage</code>, pre-fetched frames need to set <code>pin_count_</code> to $0$ and evictable. </li>
-<li>Pre-fetch should not stall <code>FetchPage</code> from returning, so it must be run in a separate thread. </li>
-<li>The problem is that pre-fetch must be an independent background thread. It won’t know whether the buffer pool manager is destroyed, which will cause heap-use-after-free error. </li>
+<li>Pre-fetch
+<ul>
+<li>To better suit the scan case, when we accessing three consecutive page IDs in a row, the buffer pool manager is allowed to pre-fetch several following pages.</li>
+<li>Different from fetching pages through <code>FetchPage</code>, pre-fetched frames need to set <code>pin_count_</code> to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> and evictable.</li>
+<li>Pre-fetch should not stall <code>FetchPage</code> from returning, so it must be run in a separate thread.</li>
+<li>The problem is that pre-fetch must be an independent background thread. It won’t know whether the buffer pool manager is destroyed, which will cause heap-use-after-free error.</li>
 </ul>
 </li>
 </ol>
-<h1 id="Task-3-Read-Write-Page-Guards"><a href="#Task-3-Read-Write-Page-Guards" class="headerlink" title="Task #3 - Read/Write Page Guards"></a>Task #3 - Read/Write Page Guards</h1><ol>
-<li>Any <code>PageGuard</code> will automatically unpin itself when it is deconstructed. But they don’t need to pin themselves since they are pinned before <code>PageGuard</code> is created when fetching or creating page. </li>
-<li>If a <code>Read/WritePageGuard</code> is acquired through <code>FetchPageRead</code> or <code>FetchPageWrite</code>, the latch is acquired inside these functions. However, if a <code>PageGuard</code> is acquired through it construction function, the latch won’t be acquired automatically. </li>
-<li>No matter how <code>Read/WritePageGuard</code> is acquired, the latch will always be released automatically when the <code>PageGuard</code> is deconstructed by deconstructor or move operation. </li>
-<li>In the move assignment, we need to first drop the original page, copy from right reference and finally deconstruct right reference. </li>
+<h1 id="task-3-readwrite-page-guards"><a class="markdownIt-Anchor" href="#task-3-readwrite-page-guards"></a> Task #3 - Read/Write Page Guards</h1>
+<ol>
+<li>Any <code>PageGuard</code> will automatically unpin itself when it is deconstructed. But they don’t need to pin themselves since they are pinned before <code>PageGuard</code> is created when fetching or creating page.</li>
+<li>If a <code>Read/WritePageGuard</code> is acquired through <code>FetchPageRead</code> or <code>FetchPageWrite</code>, the latch is acquired inside these functions. However, if a <code>PageGuard</code> is acquired through it construction function, the latch won’t be acquired automatically.</li>
+<li>No matter how <code>Read/WritePageGuard</code> is acquired, the latch will always be released automatically when the <code>PageGuard</code> is deconstructed by deconstructor or move operation.</li>
+<li>In the move assignment, we need to first drop the original page, copy from right reference and finally deconstruct right reference.</li>
 </ol>
 
     </div>
