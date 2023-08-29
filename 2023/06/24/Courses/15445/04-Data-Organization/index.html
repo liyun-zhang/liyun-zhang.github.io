@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="What does the database access methods layer need to do? Hash table  How is the naive static hash table? What are hash functions? Static hashing schemes  How is linear probe hashing? How to solve the">
+    <meta name="description" content="@[toc] What does the database access methods layer need to do? Data Organization How we layout data structure in memory&#x2F;pages and what information to store to support efficient access.  This layer wil">
 <meta property="og:type" content="article">
 <meta property="og:title" content="04 Data Organization">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/06/24/Courses/15445/04-Data-Organization/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="What does the database access methods layer need to do? Hash table  How is the naive static hash table? What are hash functions? Static hashing schemes  How is linear probe hashing? How to solve the">
+<meta property="og:description" content="@[toc] What does the database access methods layer need to do? Data Organization How we layout data structure in memory&#x2F;pages and what information to store to support efficient access.  This layer wil">
 <meta property="og:locale">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/15445/Organization/hash_func.png">
 <meta property="article:published_time" content="2023-06-24T09:12:22.000Z">
@@ -142,7 +142,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#what-does-the-database-access-methods-layer-need-to-do"><span class="nav-number">1.</span> <span class="nav-text"> What does the database access methods layer need to do?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#hash-table"><span class="nav-number">2.</span> <span class="nav-text"> Hash table</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-is-the-naive-static-hash-table"><span class="nav-number">2.1.</span> <span class="nav-text"> How is the naive static hash table?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-are-hash-functions"><span class="nav-number">2.2.</span> <span class="nav-text"> What are hash functions?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#static-hashing-schemes"><span class="nav-number">2.3.</span> <span class="nav-text"> Static hashing schemes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-is-linear-probe-hashing"><span class="nav-number">2.3.1.</span> <span class="nav-text"> How is linear probe hashing?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-solve-the-non-unique-keys-problem"><span class="nav-number">2.3.2.</span> <span class="nav-text"> How to solve the non-unique keys problem?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-is-the-robin-hood-hashing"><span class="nav-number">2.3.3.</span> <span class="nav-text"> How is the robin hood hashing?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-is-the-cuckoo-hashing"><span class="nav-number">2.3.4.</span> <span class="nav-text"> How is the cuckoo hashing?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#dynamic-hashing-schemes"><span class="nav-number">2.4.</span> <span class="nav-text"> Dynamic hashing schemes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-is-chained-hashing"><span class="nav-number">2.4.1.</span> <span class="nav-text"> How is chained hashing?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-is-extendible-hashing"><span class="nav-number">2.4.2.</span> <span class="nav-text"> How is extendible hashing?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-is-linear-hashing"><span class="nav-number">2.4.3.</span> <span class="nav-text"> How is linear hashing?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#tree"><span class="nav-number">3.</span> <span class="nav-text"> Tree</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#table-indexes"><span class="nav-number">3.1.</span> <span class="nav-text"> Table indexes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-does-table-indexs-do"><span class="nav-number">3.1.1.</span> <span class="nav-text"> What does table indexs do?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-clustered-indexes"><span class="nav-number">3.1.2.</span> <span class="nav-text"> What is clustered indexes?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#basic-b-tree"><span class="nav-number">3.2.</span> <span class="nav-text"> Basic B+ Tree</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-a-b-tree"><span class="nav-number">3.2.1.</span> <span class="nav-text"> What is a B+ Tree?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-is-keyvalue-pairs-stored-in-each-node"><span class="nav-number">3.2.2.</span> <span class="nav-text"> How is key&#x2F;value pairs stored in each node?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-stored-is-leaf-node"><span class="nav-number">3.2.3.</span> <span class="nav-text"> What is stored is leaf node?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-pros-and-cons-of-b-tree-compare-with-btree"><span class="nav-number">3.2.4.</span> <span class="nav-text"> What is the pros and cons of B-Tree compare with B+Tree?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-btree-insert-a-node"><span class="nav-number">3.2.5.</span> <span class="nav-text"> How does B+Tree insert a node?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-btree-delete-a-node"><span class="nav-number">3.2.6.</span> <span class="nav-text"> How does B+Tree delete a node?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#btree-usage-and-design"><span class="nav-number">3.3.</span> <span class="nav-text"> B+Tree usage and design</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-dbms-use-btree-in-selection-query"><span class="nav-number">3.3.1.</span> <span class="nav-text"> How does DBMS use B+Tree in selection query?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-handle-duplicate-keys"><span class="nav-number">3.3.2.</span> <span class="nav-text"> How to handle duplicate keys?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-solve-redundant-page-jump-when-sequential-access-leaf-nodes"><span class="nav-number">3.3.3.</span> <span class="nav-text"> How to solve redundant page jump when sequential access leaf nodes?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-choose-node-size"><span class="nav-number">3.3.4.</span> <span class="nav-text"> How to choose node size?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-choose-merge-threshold"><span class="nav-number">3.3.5.</span> <span class="nav-text"> How to choose merge threshold?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-handle-variable-length-keys"><span class="nav-number">3.3.6.</span> <span class="nav-text"> How to handle variable length keys?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-can-we-do-the-intra-node-search"><span class="nav-number">3.3.7.</span> <span class="nav-text"> How can we do the intra-node search?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-can-we-optimize-space-usage"><span class="nav-number">3.3.8.</span> <span class="nav-text"> How can we optimize space usage?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-can-we-optimize-consumed-time"><span class="nav-number">3.3.9.</span> <span class="nav-text"> How can we optimize consumed time?</span></a></li></ol></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#What-does-the-database-access-methods-layer-need-to-do"><span class="nav-number">1.</span> <span class="nav-text">What does the database access methods layer need to do?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hash-table"><span class="nav-number">2.</span> <span class="nav-text">Hash table</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#How-is-the-naive-static-hash-table"><span class="nav-number">2.1.</span> <span class="nav-text">How is the naive static hash table?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-are-hash-functions"><span class="nav-number">2.2.</span> <span class="nav-text">What are hash functions?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Static-hashing-schemes"><span class="nav-number">2.3.</span> <span class="nav-text">Static hashing schemes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#How-is-linear-probe-hashing"><span class="nav-number">2.3.1.</span> <span class="nav-text">How is linear probe hashing?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-to-solve-the-non-unique-keys-problem"><span class="nav-number">2.3.2.</span> <span class="nav-text">How to solve the non-unique keys problem?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-is-the-robin-hood-hashing"><span class="nav-number">2.3.3.</span> <span class="nav-text">How is the robin hood hashing?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-is-the-cuckoo-hashing"><span class="nav-number">2.3.4.</span> <span class="nav-text">How is the cuckoo hashing?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dynamic-hashing-schemes"><span class="nav-number">2.4.</span> <span class="nav-text">Dynamic hashing schemes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#How-is-chained-hashing"><span class="nav-number">2.4.1.</span> <span class="nav-text">How is chained hashing?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-is-extendible-hashing"><span class="nav-number">2.4.2.</span> <span class="nav-text">How is extendible hashing?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-is-linear-hashing"><span class="nav-number">2.4.3.</span> <span class="nav-text">How is linear hashing?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Tree"><span class="nav-number">3.</span> <span class="nav-text">Tree</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Table-indexes"><span class="nav-number">3.1.</span> <span class="nav-text">Table indexes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#What-does-table-indexs-do"><span class="nav-number">3.1.1.</span> <span class="nav-text">What does table indexs do?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-is-clustered-indexes"><span class="nav-number">3.1.2.</span> <span class="nav-text">What is clustered indexes?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Basic-B-Tree"><span class="nav-number">3.2.</span> <span class="nav-text">Basic B+ Tree</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#What-is-a-B-Tree"><span class="nav-number">3.2.1.</span> <span class="nav-text">What is a B+ Tree?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-is-key-value-pairs-stored-in-each-node"><span class="nav-number">3.2.2.</span> <span class="nav-text">How is key&#x2F;value pairs stored in each node?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-is-stored-is-leaf-node"><span class="nav-number">3.2.3.</span> <span class="nav-text">What is stored is leaf node?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-is-the-pros-and-cons-of-B-Tree-compare-with-B-Tree"><span class="nav-number">3.2.4.</span> <span class="nav-text">What is the pros and cons of B-Tree compare with B+Tree?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-B-Tree-insert-a-node"><span class="nav-number">3.2.5.</span> <span class="nav-text">How does B+Tree insert a node?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-B-Tree-delete-a-node"><span class="nav-number">3.2.6.</span> <span class="nav-text">How does B+Tree delete a node?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#B-Tree-usage-and-design"><span class="nav-number">3.3.</span> <span class="nav-text">B+Tree usage and design</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-DBMS-use-B-Tree-in-selection-query"><span class="nav-number">3.3.1.</span> <span class="nav-text">How does DBMS use B+Tree in selection query?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-to-handle-duplicate-keys"><span class="nav-number">3.3.2.</span> <span class="nav-text">How to handle duplicate keys?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-to-solve-redundant-page-jump-when-sequential-access-leaf-nodes"><span class="nav-number">3.3.3.</span> <span class="nav-text">How to solve redundant page jump when sequential access leaf nodes?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-to-choose-node-size"><span class="nav-number">3.3.4.</span> <span class="nav-text">How to choose node size?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-to-choose-merge-threshold"><span class="nav-number">3.3.5.</span> <span class="nav-text">How to choose merge threshold?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-to-handle-variable-length-keys"><span class="nav-number">3.3.6.</span> <span class="nav-text">How to handle variable length keys?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-can-we-do-the-intra-node-search"><span class="nav-number">3.3.7.</span> <span class="nav-text">How can we do the intra-node search?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-can-we-optimize-space-usage"><span class="nav-number">3.3.8.</span> <span class="nav-text">How can we optimize space usage?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-can-we-optimize-consumed-time"><span class="nav-number">3.3.9.</span> <span class="nav-text">How can we optimize consumed time?</span></a></li></ol></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -155,7 +155,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-count">16</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -166,7 +166,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -254,472 +254,325 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
-<li><a href="#what-does-the-database-access-methods-layer-need-to-do">What does the database access methods layer need to do?</a></li>
-<li><a href="#hash-table">Hash table</a>
-<ul>
-<li><a href="#how-is-the-naive-static-hash-table">How is the naive static hash table?</a></li>
-<li><a href="#what-are-hash-functions">What are hash functions?</a></li>
-<li><a href="#static-hashing-schemes">Static hashing schemes</a>
-<ul>
-<li><a href="#how-is-linear-probe-hashing">How is linear probe hashing?</a></li>
-<li><a href="#how-to-solve-the-non-unique-keys-problem">How to solve the non-unique keys problem?</a></li>
-<li><a href="#how-is-the-robin-hood-hashing">How is the robin hood hashing?</a></li>
-<li><a href="#how-is-the-cuckoo-hashing">How is the cuckoo hashing?</a></li>
+    <div class="post-body" itemprop="articleBody"><p>@[toc]</p>
+<h1 id="What-does-the-database-access-methods-layer-need-to-do"><a href="#What-does-the-database-access-methods-layer-need-to-do" class="headerlink" title="What does the database access methods layer need to do?"></a>What does the database access methods layer need to do?</h1><ol>
+<li>Data Organization<ul>
+<li>How we layout data structure in memory/pages and what information to store to support efficient access. </li>
+<li>This layer will in charge of the organization of all kinds of data inside database, e.g. internal meta-data, core data storage, temporary data structures, table indexes. </li>
 </ul>
 </li>
-<li><a href="#dynamic-hashing-schemes">Dynamic hashing schemes</a>
+<li><p>Concurrency</p>
 <ul>
-<li><a href="#how-is-chained-hashing">How is chained hashing?</a></li>
-<li><a href="#how-is-extendible-hashing">How is extendible hashing?</a></li>
-<li><a href="#how-is-linear-hashing">How is linear hashing?</a></li>
+<li>How to enable multiple threads to access the data structure at the same time without causing problems. </li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a href="#tree">Tree</a>
-<ul>
-<li><a href="#table-indexes">Table indexes</a>
-<ul>
-<li><a href="#what-does-table-indexs-do">What does table indexs do?</a></li>
-<li><a href="#what-is-clustered-indexes">What is clustered indexes?</a></li>
-</ul>
-</li>
-<li><a href="#basic-b-tree">Basic B+ Tree</a>
-<ul>
-<li><a href="#what-is-a-b-tree">What is a B+ Tree?</a></li>
-<li><a href="#how-is-keyvalue-pairs-stored-in-each-node">How is key/value pairs stored in each node?</a></li>
-<li><a href="#what-is-stored-is-leaf-node">What is stored is leaf node?</a></li>
-<li><a href="#what-is-the-pros-and-cons-of-b-tree-compare-with-btree">What is the pros and cons of B-Tree compare with B+Tree?</a></li>
-<li><a href="#how-does-btree-insert-a-node">How does B+Tree insert a node?</a></li>
-<li><a href="#how-does-btree-delete-a-node">How does B+Tree delete a node?</a></li>
-</ul>
-</li>
-<li><a href="#btree-usage-and-design">B+Tree usage and design</a>
-<ul>
-<li><a href="#how-does-dbms-use-btree-in-selection-query">How does DBMS use B+Tree in selection query?</a></li>
-<li><a href="#how-to-handle-duplicate-keys">How to handle duplicate keys?</a></li>
-<li><a href="#how-to-solve-redundant-page-jump-when-sequential-access-leaf-nodes">How to solve redundant page jump when sequential access leaf nodes?</a></li>
-<li><a href="#how-to-choose-node-size">How to choose node size?</a></li>
-<li><a href="#how-to-choose-merge-threshold">How to choose merge threshold?</a></li>
-<li><a href="#how-to-handle-variable-length-keys">How to handle variable length keys?</a></li>
-<li><a href="#how-can-we-do-the-intra-node-search">How can we do the intra-node search?</a></li>
-<li><a href="#how-can-we-optimize-space-usage">How can we optimize space usage?</a></li>
-<li><a href="#how-can-we-optimize-consumed-time">How can we optimize consumed time?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</p>
-<h1 id="what-does-the-database-access-methods-layer-need-to-do"><a class="markdownIt-Anchor" href="#what-does-the-database-access-methods-layer-need-to-do"></a> What does the database access methods layer need to do?</h1>
-<ol>
-<li>
-<p>Data Organization</p>
-<ul>
-<li>How we layout data structure in memory/pages and what information to store to support efficient access.</li>
-<li>This layer will in charge of the organization of all kinds of data inside database, e.g. internal meta-data, core data storage, temporary data structures, table indexes.</li>
-</ul>
-</li>
-<li>
-<p>Concurrency</p>
-<ul>
-<li>How to enable multiple threads to access the data structure at the same time without causing problems.</li>
-</ul>
-</li>
-<li>
-<p>There are two types of data structure: hash tables and trees.</p>
+<li><p>There are two types of data structure: hash tables and trees. </p>
 </li>
 </ol>
-<h1 id="hash-table"><a class="markdownIt-Anchor" href="#hash-table"></a> Hash table</h1>
-<h2 id="how-is-the-naive-static-hash-table"><a class="markdownIt-Anchor" href="#how-is-the-naive-static-hash-table"></a> How is the naive static hash table?</h2>
-<ol>
-<li>
-<p>A hash table implements an unordered associative array that maps keys to values.</p>
+<h1 id="Hash-table"><a href="#Hash-table" class="headerlink" title="Hash table"></a>Hash table</h1><h2 id="How-is-the-naive-static-hash-table"><a href="#How-is-the-naive-static-hash-table" class="headerlink" title="How is the naive static hash table?"></a>How is the naive static hash table?</h2><ol>
+<li><p>A hash table implements an unordered associative array that maps keys to values. </p>
 </li>
-<li>
-<p>For any input key, hash functions return an integer representation of that key.</p>
+<li><p>For any input key, hash functions return an integer representation of that key. </p>
 </li>
-<li>
-<p>The space complexity is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span>, the average time complexity is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> and the worst time complexity is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span>.</p>
+<li><p>The space complexity is $O(n)$, the average time complexity is $O(1)$ and the worst time complexity is $O(n)$. </p>
 <ul>
-<li>Databases need to are about constants. For time complexity, smaller constants can save much time in billions of operations.</li>
-<li>The space will be several times larger than the number of keys.</li>
+<li>Databases need to are about constants. For time complexity, smaller constants can save much time in billions of operations. </li>
+<li>The space will be several times larger than the number of keys. </li>
 </ul>
 </li>
-<li>
-<p>The naive static hash table assumes:</p>
+<li><p>The naive static hash table assumes: </p>
 <ul>
-<li>The number of elements is known ahead of time and fixed.</li>
-<li>Each key is unique.</li>
-<li>We have the perfect hash function where two different keys must have different hash values.</li>
+<li>The number of elements is known ahead of time and fixed. </li>
+<li>Each key is unique. </li>
+<li>We have the perfect hash function where two different keys must have different hash values. </li>
 </ul>
 </li>
-<li>
-<p>These assumptions is not always satisfied.</p>
+<li><p>These assumptions is not always satisfied. </p>
 <ul>
-<li>
-<p>To suit when the first assumption failed, we need dynamic hashing scheme.</p>
+<li><p>To suit when the first assumption failed, we need dynamic hashing scheme. </p>
 </li>
-<li>
-<p>To suit when the last two assumptions failed, we need to design more delicate hash function to reduce collision rate and hashing scheme to handle collisions after hashing.</p>
+<li><p>To suit when the last two assumptions failed, we need to design more delicate hash function to reduce collision rate and hashing scheme to handle collisions after hashing. </p>
 <ul>
-<li>
-<p>The trade-off of hash function is between being fast and collision rate.</p>
+<li><p>The trade-off of hash function is between being fast and collision rate. </p>
 </li>
-<li>
-<p>The trade-off of hashing scheme is between allocating a larger hash table and additional instructions to get/put keys.</p>
+<li><p>The trade-off of hashing scheme is between allocating a larger hash table and additional instructions to get/put keys. </p>
 </li>
 </ul>
 </li>
 </ul>
 </li>
 </ol>
-<h2 id="what-are-hash-functions"><a class="markdownIt-Anchor" href="#what-are-hash-functions"></a> What are hash functions?</h2>
-<ol>
-<li>
-<p>We do not want to use a cryptographic hash function for DBMS hash tables, e.g., SHA-2.</p>
+<h2 id="What-are-hash-functions"><a href="#What-are-hash-functions" class="headerlink" title="What are hash functions?"></a>What are hash functions?</h2><ol>
+<li><p>We do not want to use a cryptographic hash function for DBMS hash tables, e.g., SHA-2. </p>
 <ul>
-<li>Because this hashing is only using internally, we will never worry about leaking keys.</li>
+<li>Because this hashing is only using internally, we will never worry about leaking keys. </li>
 <li>We want something that is fast and has a low collision rate.</li>
 </ul>
 </li>
-<li>
-<p>The commonly used hash functions are:</p>
+<li><p>The commonly used hash functions are: </p>
 <ul>
-<li>CRC-64: Used in networking for error detection.</li>
-<li>MurmurHash: Designed as a fast, general-purpose hash function.</li>
-<li>Google CityHash: Designed to be faster for short keys (&lt;64 bytes).</li>
-<li>Facebook XXHash: From the creator of zstd compression, which is the state-of-the-art.</li>
-<li>Google Farmhash: Newer version of CityHash with better collision rates.</li>
+<li>CRC-64: Used in networking for error detection. </li>
+<li>MurmurHash: Designed as a fast, general-purpose hash function. </li>
+<li>Google CityHash: Designed to be faster for short keys (&lt;64 bytes). </li>
+<li>Facebook XXHash: From the creator of zstd compression, which is the state-of-the-art. </li>
+<li>Google Farmhash: Newer version of CityHash with better collision rates. </li>
 </ul>
 </li>
-<li>
-<p>Their speed comparison is as followed:</p>
-<img src="/imgs/15445/Organization/hash_func.png" width="75%">
+<li><p>Their speed comparison is as followed:</p>
+<p><img src="/imgs/15445/Organization/hash_func.png" width="75%"></p>
 </li>
 </ol>
-<h2 id="static-hashing-schemes"><a class="markdownIt-Anchor" href="#static-hashing-schemes"></a> Static hashing schemes</h2>
-<h3 id="how-is-linear-probe-hashing"><a class="markdownIt-Anchor" href="#how-is-linear-probe-hashing"></a> How is linear probe hashing?</h3>
-<ol>
-<li>As all the following schemes, a key-value paire is stored in hashing table. The key is to determin whether this is actually the key we want to find.</li>
-<li>It resolve collisions by linearly searching for the next free slot in the table.</li>
-<li>To determine whether an element is present, hash to a location in the index and scan for it. If find an empty slot before the key, then the element does not exists.</li>
-<li>To delete an entry, there are two approaches:
-<ul>
-<li><strong>Movement</strong>: Rehash rest of the keys until find the first empty slot. Nobody actually does this.</li>
-<li><strong>Tombstone</strong>: Set a marker to indicate that the entry in the slot is logically deleted. The slot can be reused for new keys. This may still need periodic garbage collection.</li>
+<h2 id="Static-hashing-schemes"><a href="#Static-hashing-schemes" class="headerlink" title="Static hashing schemes"></a>Static hashing schemes</h2><h3 id="How-is-linear-probe-hashing"><a href="#How-is-linear-probe-hashing" class="headerlink" title="How is linear probe hashing?"></a>How is linear probe hashing?</h3><ol>
+<li>As all the following schemes, a key-value paire is stored in hashing table. The key is to determin whether this is actually the key we want to find. </li>
+<li>It resolve collisions by linearly searching for the next free slot in the table. </li>
+<li>To determine whether an element is present, hash to a location in the index and scan for it. If find an empty slot before the key, then the element does not exists. </li>
+<li>To delete an entry, there are two approaches: <ul>
+<li><strong>Movement</strong>: Rehash rest of the keys until find the first empty slot. Nobody actually does this. </li>
+<li><strong>Tombstone</strong>: Set a marker to indicate that the entry in the slot is logically deleted. The slot can be reused for new keys. This may still need periodic garbage collection. </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-to-solve-the-non-unique-keys-problem"><a class="markdownIt-Anchor" href="#how-to-solve-the-non-unique-keys-problem"></a> How to solve the non-unique keys problem?</h3>
-<ol>
-<li>The first choise is to store values in separate storage area for each key and the value of hash table points to the area.</li>
-<li>The second choise is to store duplicate keys entries together in the hash table.
-<ul>
-<li>Read would return the first key they found.</li>
-<li>Deletes would remove all the keys or a specific key-value pair.</li>
+<h3 id="How-to-solve-the-non-unique-keys-problem"><a href="#How-to-solve-the-non-unique-keys-problem" class="headerlink" title="How to solve the non-unique keys problem?"></a>How to solve the non-unique keys problem?</h3><ol>
+<li>The first choise is to store values in separate storage area for each key and the value of hash table points to the area. </li>
+<li>The second choise is to store duplicate keys entries together in the hash table. <ul>
+<li>Read would return the first key they found. </li>
+<li>Deletes would remove all the keys or a specific key-value pair. </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-is-the-robin-hood-hashing"><a class="markdownIt-Anchor" href="#how-is-the-robin-hood-hashing"></a> How is the robin hood hashing?</h3>
-<ol>
-<li>This is a variant of linear probe hashing that steals slots from “rich” keys and give them to “poor” keys.
-<ul>
-<li>Each key tracks the number of positions they are from where its optimal position (original hash value) in the table.</li>
-<li>The keys farther away from its optimal position is poorer while the keys closer is richer.</li>
-<li>On insert, a key takes the slot of another key if the first key is “richer” than the second key. And the second key will keep searching linearly until it found another “richer” key.</li>
+<h3 id="How-is-the-robin-hood-hashing"><a href="#How-is-the-robin-hood-hashing" class="headerlink" title="How is the robin hood hashing?"></a>How is the robin hood hashing?</h3><ol>
+<li>This is a variant of linear probe hashing that steals slots from “rich” keys and give them to “poor” keys. <ul>
+<li>Each key tracks the number of positions they are from where its optimal position (original hash value) in the table. </li>
+<li>The keys farther away from its optimal position is poorer while the keys closer is richer. </li>
+<li>On insert, a key takes the slot of another key if the first key is “richer” than the second key. And the second key will keep searching linearly until it found another “richer” key. </li>
 </ul>
 </li>
-<li>Stealing increases the number of writing operation compare with the linear probing scheme while may reduce the time of worst case.</li>
-<li>This could have cascading/flooding problem where one insert causing multiple “stealing”. Also it does not consider the possibility of hot keys.</li>
+<li>Stealing increases the number of writing operation compare with the linear probing scheme while may reduce the time of worst case. </li>
+<li>This could have cascading/flooding problem where one insert causing multiple “stealing”. Also it does not consider the possibility of hot keys. </li>
 </ol>
-<h3 id="how-is-the-cuckoo-hashing"><a class="markdownIt-Anchor" href="#how-is-the-cuckoo-hashing"></a> How is the cuckoo hashing?</h3>
-<ol>
-<li>Use multiple hash tables with different hash function seeds to ensure they won’t hash to the same value.
-<ul>
-<li>On insert, check every table and pick anyone that has a free slot.</li>
-<li>If no table has a free slot, choose one victim, evict it and then re-hash it find a new location.</li>
+<h3 id="How-is-the-cuckoo-hashing"><a href="#How-is-the-cuckoo-hashing" class="headerlink" title="How is the cuckoo hashing?"></a>How is the cuckoo hashing?</h3><ol>
+<li>Use multiple hash tables with different hash function seeds to ensure they won’t hash to the same value. <ul>
+<li>On insert, check every table and pick anyone that has a free slot. </li>
+<li>If no table has a free slot, choose one victim, evict it and then re-hash it find a new location. </li>
 </ul>
 </li>
-<li>Look-ups and deletions are always <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> because only one location per hash table is checked.</li>
-<li>There is a possibility of cascading. The worst case is an infinite cascading loop.
-<ul>
-<li>We can use extra code to detect if replacing is going in a loop. If so, we need to double the hash table size with new hash functions and re-insert all keys.</li>
+<li>Look-ups and deletions are always $O(1)$ because only one location per hash table is checked. </li>
+<li>There is a possibility of cascading. The worst case is an infinite cascading loop. <ul>
+<li>We can use extra code to detect if replacing is going in a loop. If so, we need to double the hash table size with new hash functions and re-insert all keys. </li>
 </ul>
 </li>
 </ol>
-<h2 id="dynamic-hashing-schemes"><a class="markdownIt-Anchor" href="#dynamic-hashing-schemes"></a> Dynamic hashing schemes</h2>
-<h3 id="how-is-chained-hashing"><a class="markdownIt-Anchor" href="#how-is-chained-hashing"></a> How is chained hashing?</h3>
-<ol>
-<li>It maintains a linked list of buckets for each slot in the hash table.</li>
-<li>Resolve collisions by placing all elements with the same hash key into the same bucket.
-<ul>
-<li>To determine whether an element is present, hash to its bucket and scan for it.</li>
+<h2 id="Dynamic-hashing-schemes"><a href="#Dynamic-hashing-schemes" class="headerlink" title="Dynamic hashing schemes"></a>Dynamic hashing schemes</h2><h3 id="How-is-chained-hashing"><a href="#How-is-chained-hashing" class="headerlink" title="How is chained hashing?"></a>How is chained hashing?</h3><ol>
+<li>It maintains a linked list of buckets for each slot in the hash table. </li>
+<li>Resolve collisions by placing all elements with the same hash key into the same bucket. <ul>
+<li>To determine whether an element is present, hash to its bucket and scan for it. </li>
 </ul>
 </li>
-<li>The problem is that the linked list can grow forever causing the time spent on search increases as the system runs.</li>
+<li>The problem is that the linked list can grow forever causing the time spent on search increases as the system runs. </li>
 </ol>
-<h3 id="how-is-extendible-hashing"><a class="markdownIt-Anchor" href="#how-is-extendible-hashing"></a> How is extendible hashing?</h3>
-<ol>
-<li>Multiple slot locations can point to the same bucket chain.</li>
-<li>For the number of bits needs to examine, there is a global one and a local one.</li>
-<li>It reshuffle bucket entries on split and increase the number of bits to examine when a list is full.
-<ul>
-<li>If there is only one slot pointing to this list, i.e. the global examining bits is the same as the local one,
-<ul>
-<li>The DBMS increases the global number causing the size of hashing table doubled.</li>
-<li>Those lists with smaller local number will set the pointers of corresponding new slots (with only the last global examining bit different) still to themselves.</li>
-<li>DBMS also increases the local examining bits of the fulled list. The keys in it will re-hash to their two new lists.</li>
+<h3 id="How-is-extendible-hashing"><a href="#How-is-extendible-hashing" class="headerlink" title="How is extendible hashing?"></a>How is extendible hashing?</h3><ol>
+<li>Multiple slot locations can point to the same bucket chain. </li>
+<li>For the number of bits needs to examine, there is a global one and a local one. </li>
+<li>It reshuffle bucket entries on split and increase the number of bits to examine when a list is full. <ul>
+<li>If there is only one slot pointing to this list, i.e. the global examining bits is the same as the local one, <ul>
+<li>The DBMS increases the global number causing the size of hashing table doubled. </li>
+<li>Those lists with smaller local number will set the pointers of corresponding new slots (with only the last global examining bit different) still to themselves. </li>
+<li>DBMS also increases the local examining bits of the fulled list. The keys in it will re-hash to their two new lists. </li>
 </ul>
 </li>
-<li>If there are more than one slots pointing to this list, i.e. the global examning bits is larger the the local one,
-<ul>
-<li>The DBMS only increases the local examining bits of the fulled list and do the re-hashing.</li>
+<li>If there are more than one slots pointing to this list, i.e. the global examning bits is larger the the local one, <ul>
+<li>The DBMS only increases the local examining bits of the fulled list and do the re-hashing. </li>
 </ul>
 </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-is-linear-hashing"><a class="markdownIt-Anchor" href="#how-is-linear-hashing"></a> How is linear hashing?</h3>
-<ol>
-<li>It is similar to extensible hashing. But the hash table maintains a pointer that tracks the next bucket to split.</li>
-<li>When any bucket overflows, split the bucket at the pointer location.
-<ul>
-<li>When the split causing the number of slots in hash table doubled, it introduces a new hash function taking modulo with the new hash table size.</li>
+<h3 id="How-is-linear-hashing"><a href="#How-is-linear-hashing" class="headerlink" title="How is linear hashing?"></a>How is linear hashing?</h3><ol>
+<li>It is similar to extensible hashing. But the hash table maintains a pointer that tracks the next bucket to split. </li>
+<li>When any bucket overflows, split the bucket at the pointer location. <ul>
+<li>When the split causing the number of slots in hash table doubled, it introduces a new hash function taking modulo with the new hash table size. </li>
 </ul>
 </li>
-<li>It uses multiple hashes to find the right bucket for a given key.
-<ul>
-<li>It always first use the old hash function with smaller modulus.</li>
-<li>If this hash value is smaller than the split pointer, which means that this slot has already been splitted, DBMS need to use the new hash function to find the true hash value.</li>
-<li>Otherwise, this slot is not splitted and the old hash value works fine.</li>
+<li>It uses multiple hashes to find the right bucket for a given key. <ul>
+<li>It always first use the old hash function with smaller modulus. </li>
+<li>If this hash value is smaller than the split pointer, which means that this slot has already been splitted, DBMS need to use the new hash function to find the true hash value. </li>
+<li>Otherwise, this slot is not splitted and the old hash value works fine. </li>
 </ul>
 </li>
-<li>Splitting buckets based on the split pointer will eventually get to all overflowed buckets.
-<ul>
-<li>When the pointer reaches the last slot, delete the first hash function and move back to beginning.</li>
+<li>Splitting buckets based on the split pointer will eventually get to all overflowed buckets. <ul>
+<li>When the pointer reaches the last slot, delete the first hash function and move back to beginning. </li>
 </ul>
 </li>
-<li>Deleting may cause the size of hash table to shrink when it deleted the only entry in the second half of the hash table.
-<ul>
-<li>DMBS shrinks the size of hash table and deletes the new hash function.</li>
+<li>Deleting may cause the size of hash table to shrink when it deleted the only entry in the second half of the hash table. <ul>
+<li>DMBS shrinks the size of hash table and deletes the new hash function. </li>
 </ul>
 </li>
 </ol>
-<h1 id="tree"><a class="markdownIt-Anchor" href="#tree"></a> Tree</h1>
-<h2 id="table-indexes"><a class="markdownIt-Anchor" href="#table-indexes"></a> Table indexes</h2>
-<h3 id="what-does-table-indexs-do"><a class="markdownIt-Anchor" href="#what-does-table-indexs-do"></a> What does table indexs do?</h3>
-<ol>
-<li>A table index is a replica of a subset of a table’s attributes that are organized and/or sorted for efficient access using those attributes.</li>
-<li>It is used in queries to find tuples with attributes matches certain values.</li>
-<li>The DBMS ensures that the contents of the table and the index are logically synchronized.</li>
-<li>It is the DBMS’s job to figure out the best index(es) to use to execute each query.</li>
-<li>There is a trade-off regarding the number of indexes to create per database, i.e. the lookup speed and synchronization overhead.
-<ul>
-<li>We need extra storage overhead to store the data structure and maintenance overhead to keep synchronization.</li>
+<h1 id="Tree"><a href="#Tree" class="headerlink" title="Tree"></a>Tree</h1><h2 id="Table-indexes"><a href="#Table-indexes" class="headerlink" title="Table indexes"></a>Table indexes</h2><h3 id="What-does-table-indexs-do"><a href="#What-does-table-indexs-do" class="headerlink" title="What does table indexs do?"></a>What does table indexs do?</h3><ol>
+<li>A table index is a replica of a subset of a table’s attributes that are organized and/or sorted for efficient access using those attributes. </li>
+<li>It is used in queries to find tuples with attributes matches certain values. </li>
+<li>The DBMS ensures that the contents of the table and the index are logically synchronized. </li>
+<li>It is the DBMS’s job to figure out the best index(es) to use to execute each query. </li>
+<li>There is a trade-off regarding the number of indexes to create per database, i.e. the lookup speed and synchronization overhead. <ul>
+<li>We need extra storage overhead to store the data structure and maintenance overhead to keep synchronization. </li>
 </ul>
 </li>
 </ol>
-<h3 id="what-is-clustered-indexes"><a class="markdownIt-Anchor" href="#what-is-clustered-indexes"></a> What is clustered indexes?</h3>
-<ol>
-<li>The table is stored in the sort order specified by the primary key.
-<ul>
-<li>It can be either heap- or index-organized storage.</li>
+<h3 id="What-is-clustered-indexes"><a href="#What-is-clustered-indexes" class="headerlink" title="What is clustered indexes?"></a>What is clustered indexes?</h3><ol>
+<li>The table is stored in the sort order specified by the primary key. <ul>
+<li>It can be either heap- or index-organized storage. </li>
 </ul>
 </li>
-<li>Some DBMSs always use a clustered index. If a table does not contain a primary key, the DBMS will<br />
-automatically make a hidden primary key.</li>
-<li>Other DBMSs cannot use them at all.</li>
+<li>Some DBMSs always use a clustered index. If a table does not contain a primary key, the DBMS will<br>automatically make a hidden primary key. </li>
+<li>Other DBMSs cannot use them at all. </li>
 </ol>
-<h2 id="basic-b-tree"><a class="markdownIt-Anchor" href="#basic-b-tree"></a> Basic B+ Tree</h2>
-<h3 id="what-is-a-b-tree"><a class="markdownIt-Anchor" href="#what-is-a-b-tree"></a> What is a B+ Tree?</h3>
-<ol>
-<li>A B+Tree is a self-balancing tree data structure that keeps data sorted and allows searches, sequential access, insertions, and deletions always in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>log</mi><mo>⁡</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(\log n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span>.</li>
-<li>A B+Tree is an M-way search tree.
-<ul>
-<li>It is perfectly balanced, i.e. every leaf node is at the same depth in the tree.</li>
-<li>Every node other than the root is at least half-full, i.e. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo>−</mo><mn>1</mn><mo>≤</mo><mi>n</mi><mi>u</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi><mtext> </mtext><mi>o</mi><mi>f</mi><mtext> </mtext><mi>k</mi><mi>e</mi><mi>y</mi><mi>s</mi><mo>≤</mo><mi>M</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">M/2-1 ≤ number\ of\ keys ≤ M-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord">/</span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.78041em;vertical-align:-0.13597em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">n</span><span class="mord mathnormal">u</span><span class="mord mathnormal">m</span><span class="mord mathnormal">b</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace"> </span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>.</li>
-<li>Every inner node with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> keys has <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">k+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.77777em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> non-null children.</li>
+<h2 id="Basic-B-Tree"><a href="#Basic-B-Tree" class="headerlink" title="Basic B+ Tree"></a>Basic B+ Tree</h2><h3 id="What-is-a-B-Tree"><a href="#What-is-a-B-Tree" class="headerlink" title="What is a B+ Tree?"></a>What is a B+ Tree?</h3><ol>
+<li>A B+Tree is a self-balancing tree data structure that keeps data sorted and allows searches, sequential access, insertions, and deletions always in $O(\log n)$. </li>
+<li>A B+Tree is an M-way search tree. <ul>
+<li>It is perfectly balanced, i.e. every leaf node is at the same depth in the tree. </li>
+<li>Every node other than the root is at least half-full, i.e. $M/2-1 ≤ number\ of\ keys ≤ M-1$. </li>
+<li>Every inner node with $k$ keys has $k+1$ non-null children. </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-is-keyvalue-pairs-stored-in-each-node"><a class="markdownIt-Anchor" href="#how-is-keyvalue-pairs-stored-in-each-node"></a> How is key/value pairs stored in each node?</h3>
-<ol>
-<li>Every B+Tree node is comprised of an array of key/value pairs.</li>
-<li>The keys are derived from the attribute(s) that the index is based on.</li>
-<li>The value stored in a inner node is a pointer to its corresponding children while the value stored in a leaf node is its specific value.</li>
-<li>There are two storage methods for the key-value pair.
-<ul>
-<li>One is to store them consecutively, i.e. each value is stored immediately after its key.</li>
-<li>The other is to store them in the same place in two arrays, i.e. each value has the same index as its key.</li>
+<h3 id="How-is-key-value-pairs-stored-in-each-node"><a href="#How-is-key-value-pairs-stored-in-each-node" class="headerlink" title="How is key/value pairs stored in each node?"></a>How is key/value pairs stored in each node?</h3><ol>
+<li>Every B+Tree node is comprised of an array of key/value pairs. </li>
+<li>The keys are derived from the attribute(s) that the index is based on. </li>
+<li>The value stored in a inner node is a pointer to its corresponding children while the value stored in a leaf node is its specific value. </li>
+<li>There are two storage methods for the key-value pair. <ul>
+<li>One is to store them consecutively, i.e. each value is stored immediately after its key. </li>
+<li>The other is to store them in the same place in two arrays, i.e. each value has the same index as its key. </li>
 </ul>
 </li>
 <li>The arrays are (usually) kept in sorted key order.</li>
 </ol>
-<h3 id="what-is-stored-is-leaf-node"><a class="markdownIt-Anchor" href="#what-is-stored-is-leaf-node"></a> What is stored is leaf node?</h3>
-<ol>
-<li>
-<p>Each leaf node also has pointers points to its siblings.</p>
+<h3 id="What-is-stored-is-leaf-node"><a href="#What-is-stored-is-leaf-node" class="headerlink" title="What is stored is leaf node?"></a>What is stored is leaf node?</h3><ol>
+<li><p>Each leaf node also has pointers points to its siblings. </p>
 </li>
-<li>
-<p>There are two approaches to store the values:</p>
+<li><p>There are two approaches to store the values: </p>
 <ul>
-<li>The first approach is to store them with record IDs which is a pointer to the page ID and offset of the tuple to which the index entry corresponds.</li>
-<li>The second approach is to store them with tuple data, specifically primary keys.</li>
+<li>The first approach is to store them with record IDs which is a pointer to the page ID and offset of the tuple to which the index entry corresponds. </li>
+<li>The second approach is to store them with tuple data, specifically primary keys. </li>
 </ul>
 </li>
-<li>
-<p>The pros of the second approach is that we do not need to access another address to fetch the contents when primary keys are all we want.</p>
-<p>But seondary indexs must store the Record ID as their values. Hence if we want secondary indexs in second approach, we need to lookup another tables to find the Record ID with the same primary keys.</p>
+<li><p>The pros of the second approach is that we do not need to access another address to fetch the contents when primary keys are all we want. </p>
+<p>But seondary indexs must store the Record ID as their values. Hence if we want secondary indexs in second approach, we need to lookup another tables to find the Record ID with the same primary keys. </p>
 </li>
 </ol>
-<h3 id="what-is-the-pros-and-cons-of-b-tree-compare-with-btree"><a class="markdownIt-Anchor" href="#what-is-the-pros-and-cons-of-b-tree-compare-with-btree"></a> What is the pros and cons of B-Tree compare with B+Tree?</h3>
-<ol>
-<li>The main difference is that  B-Tree stored keys and values in all nodes in the tree while B+Tree only stores values in leaf nodes. Inner nodes only guide the search process.</li>
-<li>B-Tree is more space-efficient, since each key only appears once in the tree.</li>
-<li>However, when we want to sequential access keys, B-Tree needs to jump between pages causing much more I/O.</li>
+<h3 id="What-is-the-pros-and-cons-of-B-Tree-compare-with-B-Tree"><a href="#What-is-the-pros-and-cons-of-B-Tree-compare-with-B-Tree" class="headerlink" title="What is the pros and cons of B-Tree compare with B+Tree?"></a>What is the pros and cons of B-Tree compare with B+Tree?</h3><ol>
+<li>The main difference is that  B-Tree stored keys and values in all nodes in the tree while B+Tree only stores values in leaf nodes. Inner nodes only guide the search process. </li>
+<li>B-Tree is more space-efficient, since each key only appears once in the tree. </li>
+<li>However, when we want to sequential access keys, B-Tree needs to jump between pages causing much more I/O. </li>
 </ol>
-<h3 id="how-does-btree-insert-a-node"><a class="markdownIt-Anchor" href="#how-does-btree-insert-a-node"></a> How does B+Tree insert a node?</h3>
-<ol>
-<li>Find correct leaf node L. Insert data entry into L in sorted order.</li>
-<li>If L has enough space, then it is done.</li>
-<li>Otherwise, split L keys into L and a new node L2. Insert index entry pointing to L2 into parent of L.
-<ul>
-<li>The parent of L may need rebalance after this insertion.</li>
+<h3 id="How-does-B-Tree-insert-a-node"><a href="#How-does-B-Tree-insert-a-node" class="headerlink" title="How does B+Tree insert a node?"></a>How does B+Tree insert a node?</h3><ol>
+<li>Find correct leaf node L. Insert data entry into L in sorted order. </li>
+<li>If L has enough space, then it is done. </li>
+<li>Otherwise, split L keys into L and a new node L2. Insert index entry pointing to L2 into parent of L. <ul>
+<li>The parent of L may need rebalance after this insertion. </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-does-btree-delete-a-node"><a class="markdownIt-Anchor" href="#how-does-btree-delete-a-node"></a> How does B+Tree delete a node?</h3>
-<ol>
-<li>Start at root, find leaf L where entry belongs. Remove the entry.</li>
-<li>If L is at least half-full, then it is done.</li>
-<li>If L has only M/2-1 entries,
-<ul>
-<li>First try to re-distribute, borrowing from sibling.</li>
-<li>If re-distribution fails, merge L and sibling and delete entry (pointing to L or sibling) from parent of L.
-<ul>
-<li>The parent of L may need rebalance .</li>
+<h3 id="How-does-B-Tree-delete-a-node"><a href="#How-does-B-Tree-delete-a-node" class="headerlink" title="How does B+Tree delete a node?"></a>How does B+Tree delete a node?</h3><ol>
+<li>Start at root, find leaf L where entry belongs. Remove the entry. </li>
+<li>If L is at least half-full, then it is done. </li>
+<li>If L has only M/2-1 entries, <ul>
+<li>First try to re-distribute, borrowing from sibling. </li>
+<li>If re-distribution fails, merge L and sibling and delete entry (pointing to L or sibling) from parent of L. <ul>
+<li>The parent of L may need rebalance . </li>
 </ul>
 </li>
 </ul>
 </li>
 </ol>
-<h2 id="btree-usage-and-design"><a class="markdownIt-Anchor" href="#btree-usage-and-design"></a> B+Tree usage and design</h2>
-<h3 id="how-does-dbms-use-btree-in-selection-query"><a class="markdownIt-Anchor" href="#how-does-dbms-use-btree-in-selection-query"></a> How does DBMS use B+Tree in selection query?</h3>
-<ol>
-<li>
-<p>When creating an index, a certain order of attributes are specified to sort the tuple.</p>
+<h2 id="B-Tree-usage-and-design"><a href="#B-Tree-usage-and-design" class="headerlink" title="B+Tree usage and design"></a>B+Tree usage and design</h2><h3 id="How-does-DBMS-use-B-Tree-in-selection-query"><a href="#How-does-DBMS-use-B-Tree-in-selection-query" class="headerlink" title="How does DBMS use B+Tree in selection query?"></a>How does DBMS use B+Tree in selection query?</h3><ol>
+<li><p>When creating an index, a certain order of attributes are specified to sort the tuple. </p>
 <ul>
-<li>
-<p>When <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>A</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">A_1, \dots,A_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> are specified, the B+Tree will store corresponding <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">n</span></span></span></span> values in as keys in each node.</p>
+<li><p>When $A_1, \dots,A_n$ are specified, the B+Tree will store corresponding $n$ values in as keys in each node. </p>
 </li>
-<li>
-<p>When <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>a</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">a_1, \dots,a_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> are stored in one node, all nodes in its left sub-tree have <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mn>1</mn></msub><mo>≤</mo><msub><mi>a</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>A</mi><mi>n</mi></msub><mo>≤</mo><msub><mi>a</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">A_1≤a_1,\dots,A_n≤a_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> while all nodes in its right sub-tree only guarenteed with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mn>1</mn></msub><mo>&gt;</mo><msub><mi>a</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">A_1 &gt; a_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, i.e. the B+Tree is maintained with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">A_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> as its primary sorting key.</p>
+<li><p>When $a_1, \dots,a_n$ are stored in one node, all nodes in its left sub-tree have $A_1≤a_1,\dots,A_n≤a_n$ while all nodes in its right sub-tree only guarenteed with $A_1 &gt; a_1$, i.e. the B+Tree is maintained with $A_1$ as its primary sorting key. </p>
 </li>
 </ul>
 </li>
-<li>
-<p>In a selection condition, we can easily select with certain condition on <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>A</mi><mi>k</mi></msub><mtext> </mtext><mo stretchy="false">(</mo><mi>k</mi><mo>≤</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">A_1,\dots,A_k\ (k≤n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace"> </span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span>. Some DBMS also support conditions specified only on <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mi>k</mi></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>A</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">A_k, \dots,A_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, which requires DBMS sequentially access all leaf nodes.</p>
+<li><p>In a selection condition, we can easily select with certain condition on $A_1,\dots,A_k\ (k≤n)$. Some DBMS also support conditions specified only on $A_k, \dots,A_n$, which requires DBMS sequentially access all leaf nodes. </p>
 </li>
-<li>
-<p>Compared with hash table, B+Tree can better support selection without a knowing attributes to lookup for.</p>
+<li><p>Compared with hash table, B+Tree can better support selection without a knowing attributes to lookup for. </p>
 </li>
 </ol>
-<h3 id="how-to-handle-duplicate-keys"><a class="markdownIt-Anchor" href="#how-to-handle-duplicate-keys"></a> How to handle duplicate keys?</h3>
-<ol>
-<li>The first approach is to add the tuple’s unique Record ID as part of the key to ensure that all keys are unique.
-<ul>
+<h3 id="How-to-handle-duplicate-keys"><a href="#How-to-handle-duplicate-keys" class="headerlink" title="How to handle duplicate keys?"></a>How to handle duplicate keys?</h3><ol>
+<li>The first approach is to add the tuple’s unique Record ID as part of the key to ensure that all keys are unique. <ul>
 <li>The DBMS can still use partial keys to find tuples.</li>
 </ul>
 </li>
-<li>The second approach is to allow leaf nodes to spill into overflow nodes that contain the duplicate keys.
-<ul>
-<li>Only duplicate keys of existing keys can overflow.</li>
-<li>When split or merge nodes, overflow nodes also need to split or merge.</li>
-<li>This is more complex to maintain and modify.</li>
+<li>The second approach is to allow leaf nodes to spill into overflow nodes that contain the duplicate keys. <ul>
+<li>Only duplicate keys of existing keys can overflow. </li>
+<li>When split or merge nodes, overflow nodes also need to split or merge. </li>
+<li>This is more complex to maintain and modify. </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-to-solve-redundant-page-jump-when-sequential-access-leaf-nodes"><a class="markdownIt-Anchor" href="#how-to-solve-redundant-page-jump-when-sequential-access-leaf-nodes"></a> How to solve redundant page jump when sequential access leaf nodes?</h3>
-<ol>
-<li>In a clustered B+Tree, nodes in the same page are in consecutive order.
-<ul>
-<li>We can traverse to the left-most leaf page and then retrieve tuples from all leaf pages.</li>
-<li>This will always be better than sorting data for each query.</li>
+<h3 id="How-to-solve-redundant-page-jump-when-sequential-access-leaf-nodes"><a href="#How-to-solve-redundant-page-jump-when-sequential-access-leaf-nodes" class="headerlink" title="How to solve redundant page jump when sequential access leaf nodes?"></a>How to solve redundant page jump when sequential access leaf nodes?</h3><ol>
+<li>In a clustered B+Tree, nodes in the same page are in consecutive order. <ul>
+<li>We can traverse to the left-most leaf page and then retrieve tuples from all leaf pages. </li>
+<li>This will always be better than sorting data for each query. </li>
 </ul>
 </li>
-<li>In a non-clustered B+Tree, the DBMS can first figure out all the tuples that it needs and then sort them based on their Page ID.</li>
+<li>In a non-clustered B+Tree, the DBMS can first figure out all the tuples that it needs and then sort them based on their Page ID. </li>
 </ol>
-<h3 id="how-to-choose-node-size"><a class="markdownIt-Anchor" href="#how-to-choose-node-size"></a> How to choose node size?</h3>
-<ol>
-<li>The slower the storage device, the larger the optimal node size for a B+Tree.
-<ul>
-<li>HDD takes <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mtext> </mtext><mi>M</mi><mi>B</mi></mrow><annotation encoding="application/x-tex">1\ MB</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">1</span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span>, SSD usually takes <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>10</mn><mtext> </mtext><mi>K</mi><mi>B</mi></mrow><annotation encoding="application/x-tex">10\ KB</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">0</span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span>, in-memory nodes have <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>512</mn><mtext> </mtext><mi>B</mi></mrow><annotation encoding="application/x-tex">512\ B</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">5</span><span class="mord">1</span><span class="mord">2</span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span>.</li>
+<h3 id="How-to-choose-node-size"><a href="#How-to-choose-node-size" class="headerlink" title="How to choose node size?"></a>How to choose node size?</h3><ol>
+<li>The slower the storage device, the larger the optimal node size for a B+Tree. <ul>
+<li>HDD takes $1\ MB$, SSD usually takes $10\ KB$, in-memory nodes have $512\ B$. </li>
 </ul>
 </li>
-<li>Optimal sizes can vary depending on the workload. The trade off is between leaf node scans and root-to-leaf traversals.
-<ul>
-<li>With larger size, we can have more sequential reads in leaf node scans, but we need to read more data in root-to-leaf traversals.</li>
+<li>Optimal sizes can vary depending on the workload. The trade off is between leaf node scans and root-to-leaf traversals. <ul>
+<li>With larger size, we can have more sequential reads in leaf node scans, but we need to read more data in root-to-leaf traversals. </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-to-choose-merge-threshold"><a class="markdownIt-Anchor" href="#how-to-choose-merge-threshold"></a> How to choose merge threshold?</h3>
-<ol>
-<li>Some DBMSs do not always merge nodes when they are half full.</li>
-<li>Delaying a merge operation may reduce the amount of reorganization. They assume that the missing part will be filled soon.</li>
-<li>It may also be better to just let smaller nodes exist and then periodically rebuild entire tree.</li>
+<h3 id="How-to-choose-merge-threshold"><a href="#How-to-choose-merge-threshold" class="headerlink" title="How to choose merge threshold?"></a>How to choose merge threshold?</h3><ol>
+<li>Some DBMSs do not always merge nodes when they are half full. </li>
+<li>Delaying a merge operation may reduce the amount of reorganization. They assume that the missing part will be filled soon. </li>
+<li>It may also be better to just let smaller nodes exist and then periodically rebuild entire tree. </li>
 </ol>
-<h3 id="how-to-handle-variable-length-keys"><a class="markdownIt-Anchor" href="#how-to-handle-variable-length-keys"></a> How to handle variable length keys?</h3>
-<ol>
-<li>The first approach is to store the keys as pointers to the tuple’s attribute.</li>
-<li>The second approach is to allow variable-length nodes. It requires careful memory management.</li>
-<li>The third approach is always to pad the key to be max length of the key type.</li>
-<li>The last approach is key map or indirection. It is similar to the in-node dictionary.</li>
+<h3 id="How-to-handle-variable-length-keys"><a href="#How-to-handle-variable-length-keys" class="headerlink" title="How to handle variable length keys?"></a>How to handle variable length keys?</h3><ol>
+<li>The first approach is to store the keys as pointers to the tuple’s attribute. </li>
+<li>The second approach is to allow variable-length nodes. It requires careful memory management. </li>
+<li>The third approach is always to pad the key to be max length of the key type. </li>
+<li>The last approach is key map or indirection. It is similar to the in-node dictionary. </li>
 </ol>
-<h3 id="how-can-we-do-the-intra-node-search"><a class="markdownIt-Anchor" href="#how-can-we-do-the-intra-node-search"></a> How can we do the intra-node search?</h3>
-<ol>
-<li>The naive method is linear search. We can use SIMD to vectorize the process.</li>
-<li>The second method is binary search given that keys in a node are already sorted.</li>
-<li>The third method is interpolation search.
-<ul>
-<li>This requires known distribution of keys.</li>
-<li>It jumps to approximate location of desired key based on known distribution.</li>
+<h3 id="How-can-we-do-the-intra-node-search"><a href="#How-can-we-do-the-intra-node-search" class="headerlink" title="How can we do the intra-node search?"></a>How can we do the intra-node search?</h3><ol>
+<li>The naive method is linear search. We can use SIMD to vectorize the process. </li>
+<li>The second method is binary search given that keys in a node are already sorted. </li>
+<li>The third method is interpolation search. <ul>
+<li>This requires known distribution of keys. </li>
+<li>It jumps to approximate location of desired key based on known distribution. </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-can-we-optimize-space-usage"><a class="markdownIt-Anchor" href="#how-can-we-optimize-space-usage"></a> How can we optimize space usage?</h3>
-<ol>
-<li>Prefix compression
-<ul>
-<li>Sorted keys in the same leaf node are likely to have the same prefix.</li>
-<li>Extract common prefix and store only unique suffix for each key.</li>
+<h3 id="How-can-we-optimize-space-usage"><a href="#How-can-we-optimize-space-usage" class="headerlink" title="How can we optimize space usage?"></a>How can we optimize space usage?</h3><ol>
+<li>Prefix compression<ul>
+<li>Sorted keys in the same leaf node are likely to have the same prefix. </li>
+<li>Extract common prefix and store only unique suffix for each key. </li>
 </ul>
 </li>
-<li>Deduplication
-<ul>
-<li>Non-unique indexes can end up storing multiple copies of the same key in leaf nodes.</li>
-<li>Store the key once and then maintain a list of tuples with that key.</li>
+<li>Deduplication<ul>
+<li>Non-unique indexes can end up storing multiple copies of the same key in leaf nodes. </li>
+<li>Store the key once and then maintain a list of tuples with that key. </li>
 </ul>
 </li>
-<li>Suffix truncation
-<ul>
-<li>The keys in the inner nodes are only used to “direct traffic”. We don’t need the entire key.</li>
-<li>Store a minimum prefix that is needed to correctly route probes into the index.</li>
+<li>Suffix truncation<ul>
+<li>The keys in the inner nodes are only used to “direct traffic”. We don’t need the entire key. </li>
+<li>Store a minimum prefix that is needed to correctly route probes into the index. </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-can-we-optimize-consumed-time"><a class="markdownIt-Anchor" href="#how-can-we-optimize-consumed-time"></a> How can we optimize consumed time?</h3>
-<ol>
-<li>Pointer swizzling
-<ul>
-<li>Nodes use page ids to reference other nodes in the index. The DBMS must get the memory location from the page table during traversal.</li>
-<li>If a page is pinned in the buffer pool, then we can store raw pointers instead of page IDs. This avoids address lookups from the page table.</li>
+<h3 id="How-can-we-optimize-consumed-time"><a href="#How-can-we-optimize-consumed-time" class="headerlink" title="How can we optimize consumed time?"></a>How can we optimize consumed time?</h3><ol>
+<li>Pointer swizzling<ul>
+<li>Nodes use page ids to reference other nodes in the index. The DBMS must get the memory location from the page table during traversal. </li>
+<li>If a page is pinned in the buffer pool, then we can store raw pointers instead of page IDs. This avoids address lookups from the page table. </li>
 </ul>
 </li>
-<li>Bulk insert
-<ul>
-<li>The fastest way to build a new B+Tree for an existing table is to first sort the keys and then build the index from the bottom up.</li>
+<li>Bulk insert<ul>
+<li>The fastest way to build a new B+Tree for an existing table is to first sort the keys and then build the index from the bottom up. </li>
 </ul>
 </li>
 </ol>
