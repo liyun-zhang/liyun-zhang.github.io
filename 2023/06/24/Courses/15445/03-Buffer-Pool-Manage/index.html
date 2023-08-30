@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Buffer pool manage  What does databse storage need to control? How is buffer pool organized? Clarification: What is the locks and latches referenced in database? How can we optimize performance with">
+    <meta name="description" content="@[toc] Buffer pool manageWhat does databse storage need to control? Spatial Control: Where to write pages on disk.  The goal is to keep pages that are used together often as physically close together">
 <meta property="og:type" content="article">
 <meta property="og:title" content="03 Buffer Pool Manage">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/06/24/Courses/15445/03-Buffer-Pool-Manage/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="Buffer pool manage  What does databse storage need to control? How is buffer pool organized? Clarification: What is the locks and latches referenced in database? How can we optimize performance with">
+<meta property="og:description" content="@[toc] Buffer pool manageWhat does databse storage need to control? Spatial Control: Where to write pages on disk.  The goal is to keep pages that are used together often as physically close together">
 <meta property="og:locale">
 <meta property="article:published_time" content="2023-06-24T09:12:13.000Z">
 <meta property="article:modified_time" content="2023-07-09T14:01:43.340Z">
@@ -140,7 +140,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#buffer-pool-manage"><span class="nav-number">1.</span> <span class="nav-text"> Buffer pool manage</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-does-databse-storage-need-to-control"><span class="nav-number">1.1.</span> <span class="nav-text"> What does databse storage need to control?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-is-buffer-pool-organized"><span class="nav-number">1.2.</span> <span class="nav-text"> How is buffer pool organized?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#clarification-what-is-the-locks-and-latches-referenced-in-database"><span class="nav-number">1.3.</span> <span class="nav-text"> Clarification: What is the locks and latches referenced in database?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-we-optimize-performance-with-multiple-buffer-pools"><span class="nav-number">1.4.</span> <span class="nav-text"> How can we optimize performance with multiple buffer pools?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-we-optimize-performance-with-pre-fetching"><span class="nav-number">1.5.</span> <span class="nav-text"> How can we optimize performance with pre-fetching?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-we-optimize-performance-with-scan-sharing"><span class="nav-number">1.6.</span> <span class="nav-text"> How can we optimize performance with scan sharing?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-we-optimize-performance-with-buffer-pool-bypass"><span class="nav-number">1.7.</span> <span class="nav-text"> How can we optimize performance with buffer pool bypass?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#should-we-use-os-page-cache"><span class="nav-number">1.8.</span> <span class="nav-text"> Should we use OS page cache?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#buffer-replacement-policies"><span class="nav-number">2.</span> <span class="nav-text"> Buffer replacement policies</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-lru-least-recently-used-policy-and-clock-policy"><span class="nav-number">2.1.</span> <span class="nav-text"> What is LRU (Least-Recently Used) policy and clock policy?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-the-problem-of-lru-and-clock-how-to-alleviate"><span class="nav-number">2.2.</span> <span class="nav-text"> What is the problem of LRU and clock, how to alleviate?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-do-we-deal-with-evicted-pages"><span class="nav-number">2.3.</span> <span class="nav-text"> How do we deal with evicted pages?</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Buffer-pool-manage"><span class="nav-number">1.</span> <span class="nav-text">Buffer pool manage</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#What-does-databse-storage-need-to-control"><span class="nav-number">1.1.</span> <span class="nav-text">What does databse storage need to control?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-is-buffer-pool-organized"><span class="nav-number">1.2.</span> <span class="nav-text">How is buffer pool organized?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Clarification-What-is-the-locks-and-latches-referenced-in-database"><span class="nav-number">1.3.</span> <span class="nav-text">Clarification: What is the locks and latches referenced in database?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-can-we-optimize-performance-with-multiple-buffer-pools"><span class="nav-number">1.4.</span> <span class="nav-text">How can we optimize performance with multiple buffer pools?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-can-we-optimize-performance-with-pre-fetching"><span class="nav-number">1.5.</span> <span class="nav-text">How can we optimize performance with pre-fetching?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-can-we-optimize-performance-with-scan-sharing"><span class="nav-number">1.6.</span> <span class="nav-text">How can we optimize performance with scan sharing?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-can-we-optimize-performance-with-buffer-pool-bypass"><span class="nav-number">1.7.</span> <span class="nav-text">How can we optimize performance with buffer pool bypass?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Should-we-use-OS-page-cache"><span class="nav-number">1.8.</span> <span class="nav-text">Should we use OS page cache?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Buffer-replacement-policies"><span class="nav-number">2.</span> <span class="nav-text">Buffer replacement policies</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#What-is-LRU-Least-Recently-Used-policy-and-clock-policy"><span class="nav-number">2.1.</span> <span class="nav-text">What is LRU (Least-Recently Used) policy and clock policy?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-is-the-problem-of-LRU-and-clock-how-to-alleviate"><span class="nav-number">2.2.</span> <span class="nav-text">What is the problem of LRU and clock, how to alleviate?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-do-we-deal-with-evicted-pages"><span class="nav-number">2.3.</span> <span class="nav-text">How do we deal with evicted pages?</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -153,7 +153,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-count">17</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -252,184 +252,131 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
-<li><a href="#buffer-pool-manage">Buffer pool manage</a>
-<ul>
-<li><a href="#what-does-databse-storage-need-to-control">What does databse storage need to control?</a></li>
-<li><a href="#how-is-buffer-pool-organized">How is buffer pool organized?</a></li>
-<li><a href="#clarification-what-is-the-locks-and-latches-referenced-in-database">Clarification: What is the locks and latches referenced in database?</a></li>
-<li><a href="#how-can-we-optimize-performance-with-multiple-buffer-pools">How can we optimize performance with multiple buffer pools?</a></li>
-<li><a href="#how-can-we-optimize-performance-with-pre-fetching">How can we optimize performance with pre-fetching?</a></li>
-<li><a href="#how-can-we-optimize-performance-with-scan-sharing">How can we optimize performance with scan sharing?</a></li>
-<li><a href="#how-can-we-optimize-performance-with-buffer-pool-bypass">How can we optimize performance with buffer pool bypass?</a></li>
-<li><a href="#should-we-use-os-page-cache">Should we use OS page cache?</a></li>
+    <div class="post-body" itemprop="articleBody"><p>@[toc]</p>
+<h1 id="Buffer-pool-manage"><a href="#Buffer-pool-manage" class="headerlink" title="Buffer pool manage"></a>Buffer pool manage</h1><h2 id="What-does-databse-storage-need-to-control"><a href="#What-does-databse-storage-need-to-control" class="headerlink" title="What does databse storage need to control?"></a>What does databse storage need to control?</h2><ol>
+<li>Spatial Control: Where to write pages on disk. <ul>
+<li>The goal is to keep pages that are used together often as physically close together as possible on disk. </li>
 </ul>
 </li>
-<li><a href="#buffer-replacement-policies">Buffer replacement policies</a>
-<ul>
-<li><a href="#what-is-lru-least-recently-used-policy-and-clock-policy">What is LRU (Least-Recently Used) policy and clock policy?</a></li>
-<li><a href="#what-is-the-problem-of-lru-and-clock-how-to-alleviate">What is the problem of LRU and clock, how to alleviate?</a></li>
-<li><a href="#how-do-we-deal-with-evicted-pages">How do we deal with evicted pages?</a></li>
-</ul>
-</li>
-</ul>
-</p>
-<h1 id="buffer-pool-manage"><a class="markdownIt-Anchor" href="#buffer-pool-manage"></a> Buffer pool manage</h1>
-<h2 id="what-does-databse-storage-need-to-control"><a class="markdownIt-Anchor" href="#what-does-databse-storage-need-to-control"></a> What does databse storage need to control?</h2>
-<ol>
-<li>Spatial Control: Where to write pages on disk.
-<ul>
-<li>The goal is to keep pages that are used together often as physically close together as possible on disk.</li>
-</ul>
-</li>
-<li>Temporal Control: When to read pages into memory, and when to write them to disk.
-<ul>
-<li>The goal is to minimize the number of stalls from having to read data from disk.</li>
+<li>Temporal Control: When to read pages into memory, and when to write them to disk. <ul>
+<li>The goal is to minimize the number of stalls from having to read data from disk. </li>
 </ul>
 </li>
 </ol>
-<h2 id="how-is-buffer-pool-organized"><a class="markdownIt-Anchor" href="#how-is-buffer-pool-organized"></a> How is buffer pool organized?</h2>
-<ol>
-<li>Memory region organized as an array of fixed-size pages. An array entry is called a <strong>frame</strong>.
-<ul>
-<li>Pages are in disk while frames are in memory.</li>
+<h2 id="How-is-buffer-pool-organized"><a href="#How-is-buffer-pool-organized" class="headerlink" title="How is buffer pool organized?"></a>How is buffer pool organized?</h2><ol>
+<li>Memory region organized as an array of fixed-size pages. An array entry is called a <strong>frame</strong>. <ul>
+<li>Pages are in disk while frames are in memory. </li>
 </ul>
 </li>
-<li>When the DBMS requests a page, an exact copy is placed into one of these frames.</li>
-<li>The buffer pool manager need to maintain a <strong>page table</strong> to keep track of pages that are currently in memory.
-<ul>
-<li>The page table is the mapping from page ids to a copy of the page in buffer pool frames.
-<ul>
-<li>This is an in-memory data structure that does not need to be stored on disk.</li>
+<li>When the DBMS requests a page, an exact copy is placed into one of these frames. </li>
+<li>The buffer pool manager need to maintain a <strong>page table</strong> to keep track of pages that are currently in memory. <ul>
+<li>The page table is the mapping from page ids to a copy of the page in buffer pool frames. <ul>
+<li>This is an in-memory data structure that does not need to be stored on disk. </li>
 </ul>
 </li>
-<li>The page directory is the mapping from page ids to page locations in the database files.
-<ul>
-<li>All changes must be recorded on disk to allow the DBMS to find on restart.</li>
+<li>The page directory is the mapping from page ids to page locations in the database files. <ul>
+<li>All changes must be recorded on disk to allow the DBMS to find on restart. </li>
 </ul>
 </li>
 </ul>
 </li>
-<li>Some additional meta-data per page also need to be maintained:
-<ul>
-<li><strong>Dirty flag</strong>: Mark whether a page has been modified. Used to know whether can safely evict this page.</li>
-<li><strong>Pin/reference counter</strong>: Some query use it to prevent buffer pool manager from evicting this page. They unpin this page after no-longer use it.</li>
-<li><strong>Latches</strong>: Can be used to pre-occupy an entry in page table, and release the latch after copied that page and updated the entry.</li>
-<li>These meta-data can either be stored in page or page table.</li>
+<li>Some additional meta-data per page also need to be maintained: <ul>
+<li><strong>Dirty flag</strong>: Mark whether a page has been modified. Used to know whether can safely evict this page. </li>
+<li><strong>Pin/reference counter</strong>: Some query use it to prevent buffer pool manager from evicting this page. They unpin this page after no-longer use it. </li>
+<li><strong>Latches</strong>: Can be used to pre-occupy an entry in page table, and release the latch after copied that page and updated the entry. </li>
+<li>These meta-data can either be stored in page or page table. </li>
 </ul>
 </li>
 </ol>
-<h2 id="clarification-what-is-the-locks-and-latches-referenced-in-database"><a class="markdownIt-Anchor" href="#clarification-what-is-the-locks-and-latches-referenced-in-database"></a> Clarification: What is the locks and latches referenced in database?</h2>
-<ol>
-<li>Locks:
-<ul>
-<li>It protects the database’s logical contents from other transactions.</li>
-<li>It is held for transaction duration. Need to be able to rollback changes.</li>
-<li>Locks can be taken on a tuple or table, but not on a page.</li>
+<h2 id="Clarification-What-is-the-locks-and-latches-referenced-in-database"><a href="#Clarification-What-is-the-locks-and-latches-referenced-in-database" class="headerlink" title="Clarification: What is the locks and latches referenced in database?"></a>Clarification: What is the locks and latches referenced in database?</h2><ol>
+<li>Locks:<ul>
+<li>It protects the database’s logical contents from other transactions. </li>
+<li>It is held for transaction duration. Need to be able to rollback changes. </li>
+<li>Locks can be taken on a tuple or table, but not on a page. </li>
 </ul>
 </li>
-<li>Latches:
-<ul>
+<li>Latches:<ul>
 <li>It protects the critical sections of the DBMS’s internal data structure from other threads.</li>
-<li>It is held for operation duration. Do not need to be able to rollback changes.</li>
-<li>This is similar to the mutex provided by OS.</li>
+<li>It is held for operation duration. Do not need to be able to rollback changes. </li>
+<li>This is similar to the mutex provided by OS. </li>
 </ul>
 </li>
 </ol>
-<h2 id="how-can-we-optimize-performance-with-multiple-buffer-pools"><a class="markdownIt-Anchor" href="#how-can-we-optimize-performance-with-multiple-buffer-pools"></a> How can we optimize performance with multiple buffer pools?</h2>
-<ol>
-<li>Advantages:
-<ul>
-<li>Different pool can have different evict policy to improve locality.</li>
-<li>Each time accessing meta-data of each buffer pool need to take a latch. Multiple buffer pool can reduce latch contention.</li>
+<h2 id="How-can-we-optimize-performance-with-multiple-buffer-pools"><a href="#How-can-we-optimize-performance-with-multiple-buffer-pools" class="headerlink" title="How can we optimize performance with multiple buffer pools?"></a>How can we optimize performance with multiple buffer pools?</h2><ol>
+<li>Advantages: <ul>
+<li>Different pool can have different evict policy to improve locality. </li>
+<li>Each time accessing meta-data of each buffer pool need to take a latch. Multiple buffer pool can reduce latch contention. </li>
 </ul>
 </li>
-<li>The manager can use per-database buffer pool, per-page type buffer pool or per-index type buffer pool.</li>
-<li>Manger decide which pool to store pages in two approaches:
-<ul>
-<li>The first is to embed an object identifier in record ids and then maintain a mapping from objects to specific buffer pools.
-<ul>
-<li>This can be used to specify certain pages must be stored in specific pool.</li>
+<li>The manager can use per-database buffer pool, per-page type buffer pool or per-index type buffer pool. </li>
+<li>Manger decide which pool to store pages in two approaches: <ul>
+<li>The first is to embed an object identifier in record ids and then maintain a mapping from objects to specific buffer pools. <ul>
+<li>This can be used to specify certain pages must be stored in specific pool. </li>
 </ul>
 </li>
-<li>The other is to hash the page id to select which buffer pool to access.</li>
+<li>The other is to hash the page id to select which buffer pool to access. </li>
 </ul>
 </li>
 </ol>
-<h2 id="how-can-we-optimize-performance-with-pre-fetching"><a class="markdownIt-Anchor" href="#how-can-we-optimize-performance-with-pre-fetching"></a> How can we optimize performance with pre-fetching?</h2>
-<ol>
-<li>Pre-fetching can be easily used in two situations: sequential scans and index scans.</li>
-<li>In sequential scans, when manager fetched the first few consecutive pages, it can infer that the next consecutive pages will be used soon and pre-fetch them into memory.</li>
-<li>In index scans, the query may not access consecutive pages, but DBMS sees the B+ tree structure, and thus knows the where are the following indices.</li>
+<h2 id="How-can-we-optimize-performance-with-pre-fetching"><a href="#How-can-we-optimize-performance-with-pre-fetching" class="headerlink" title="How can we optimize performance with pre-fetching?"></a>How can we optimize performance with pre-fetching?</h2><ol>
+<li>Pre-fetching can be easily used in two situations: sequential scans and index scans. </li>
+<li>In sequential scans, when manager fetched the first few consecutive pages, it can infer that the next consecutive pages will be used soon and pre-fetch them into memory. </li>
+<li>In index scans, the query may not access consecutive pages, but DBMS sees the B+ tree structure, and thus knows the where are the following indices. </li>
 </ol>
-<h2 id="how-can-we-optimize-performance-with-scan-sharing"><a class="markdownIt-Anchor" href="#how-can-we-optimize-performance-with-scan-sharing"></a> How can we optimize performance with scan sharing?</h2>
-<ol>
-<li>It allows multiple queries to attach to a single cursor that scans a table.
-<ul>
-<li>The queries do not have to be the same.</li>
-<li>They can also share intermediate results.</li>
+<h2 id="How-can-we-optimize-performance-with-scan-sharing"><a href="#How-can-we-optimize-performance-with-scan-sharing" class="headerlink" title="How can we optimize performance with scan sharing?"></a>How can we optimize performance with scan sharing?</h2><ol>
+<li>It allows multiple queries to attach to a single cursor that scans a table. <ul>
+<li>The queries do not have to be the same. </li>
+<li>They can also share intermediate results. </li>
 </ul>
 </li>
-<li>If a query wants to scan a table and another query is already doing this, then the DBMS will attach the second query’s cursor to the existing cursor.</li>
-<li>After the ealier query finished, the later query will return to read the pages the earlier one already read before the later one begins.</li>
-<li>If the later query has a <code>LIMIT</code> clause with out <code>WHERE</code> or <code>ORDER BY</code> clause, given that the relation is unordered, it may do not need to read extra data if those scan sharing data is enough to satisfy the <code>LIMIT</code> clause.</li>
+<li>If a query wants to scan a table and another query is already doing this, then the DBMS will attach the second query’s cursor to the existing cursor. </li>
+<li>After the ealier query finished, the later query will return to read the pages the earlier one already read before the later one begins. </li>
+<li>If the later query has a <code>LIMIT</code> clause with out <code>WHERE</code> or <code>ORDER BY</code> clause, given that the relation is unordered, it may do not need to read extra data if those scan sharing data is enough to satisfy the <code>LIMIT</code> clause. </li>
 </ol>
-<h2 id="how-can-we-optimize-performance-with-buffer-pool-bypass"><a class="markdownIt-Anchor" href="#how-can-we-optimize-performance-with-buffer-pool-bypass"></a> How can we optimize performance with buffer pool bypass?</h2>
-<ol>
-<li>Sequential flooding: A query performs a sequential scan that reads every page.
-<ul>
-<li>This pollutes the buffer pool with pages that are read once and then never again.</li>
+<h2 id="How-can-we-optimize-performance-with-buffer-pool-bypass"><a href="#How-can-we-optimize-performance-with-buffer-pool-bypass" class="headerlink" title="How can we optimize performance with buffer pool bypass?"></a>How can we optimize performance with buffer pool bypass?</h2><ol>
+<li>Sequential flooding: A query performs a sequential scan that reads every page. <ul>
+<li>This pollutes the buffer pool with pages that are read once and then never again. </li>
 </ul>
 </li>
-<li>Buffer pool bypass will not store fetched pages in the buffer pool. Insteach, the manager has a private pool where those pages will be stored temporarily and deleted once finished.</li>
-<li>It works well if operator needs to read a large sequence of pages that are contiguous on disk. It can also be used for temporary data (sorting, joins).</li>
+<li>Buffer pool bypass will not store fetched pages in the buffer pool. Insteach, the manager has a private pool where those pages will be stored temporarily and deleted once finished. </li>
+<li>It works well if operator needs to read a large sequence of pages that are contiguous on disk. It can also be used for temporary data (sorting, joins). </li>
 </ol>
-<h2 id="should-we-use-os-page-cache"><a class="markdownIt-Anchor" href="#should-we-use-os-page-cache"></a> Should we use OS page cache?</h2>
-<ol>
-<li>Most disk operations go through the OS API. Unless the DBMS tells it not to, the OS maintains its own filesystem cache.</li>
-<li>Most DBMSs use direct I/O (<code>O_DIRECT</code>) to bypass the OS’s cache.</li>
-<li>The OS page cache can cause redundant copies of pages. OS and DBMS have different eviction policies causing DBMS Loss of control over file I/O.</li>
+<h2 id="Should-we-use-OS-page-cache"><a href="#Should-we-use-OS-page-cache" class="headerlink" title="Should we use OS page cache?"></a>Should we use OS page cache?</h2><ol>
+<li>Most disk operations go through the OS API. Unless the DBMS tells it not to, the OS maintains its own filesystem cache. </li>
+<li>Most DBMSs use direct I/O (<code>O_DIRECT</code>) to bypass the OS’s cache. </li>
+<li>The OS page cache can cause redundant copies of pages. OS and DBMS have different eviction policies causing DBMS Loss of control over file I/O. </li>
 </ol>
-<h1 id="buffer-replacement-policies"><a class="markdownIt-Anchor" href="#buffer-replacement-policies"></a> Buffer replacement policies</h1>
-<h2 id="what-is-lru-least-recently-used-policy-and-clock-policy"><a class="markdownIt-Anchor" href="#what-is-lru-least-recently-used-policy-and-clock-policy"></a> What is LRU (Least-Recently Used) policy and clock policy?</h2>
-<ol>
-<li>Manager maintain a single timestamp of when each page was last accessed.</li>
-<li>When the DBMS needs to evict a page, select the one with the oldest timestamp.
-<ul>
-<li>It can keep the pages in sorted order to reduce the search time on eviction.</li>
+<h1 id="Buffer-replacement-policies"><a href="#Buffer-replacement-policies" class="headerlink" title="Buffer replacement policies"></a>Buffer replacement policies</h1><h2 id="What-is-LRU-Least-Recently-Used-policy-and-clock-policy"><a href="#What-is-LRU-Least-Recently-Used-policy-and-clock-policy" class="headerlink" title="What is LRU (Least-Recently Used) policy and clock policy?"></a>What is LRU (Least-Recently Used) policy and clock policy?</h2><ol>
+<li>Manager maintain a single timestamp of when each page was last accessed. </li>
+<li>When the DBMS needs to evict a page, select the one with the oldest timestamp. <ul>
+<li>It can keep the pages in sorted order to reduce the search time on eviction. </li>
 </ul>
 </li>
-<li>An approximation of LRU that does not need a separate timestamp per page is clock policy.
-<ul>
-<li>Each page has a reference bit. When a page is accessed, set to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>.</li>
-<li>Organize the pages in a circular buffer with a “clock hand”: Upon sweeping, check if a page’s bit is set<br />
-to 1. If yes, set to zero. If no, then evict.</li>
+<li>An approximation of LRU that does not need a separate timestamp per page is clock policy. <ul>
+<li>Each page has a reference bit. When a page is accessed, set to $1$. </li>
+<li>Organize the pages in a circular buffer with a “clock hand”: Upon sweeping, check if a page’s bit is set<br>to 1. If yes, set to zero. If no, then evict. </li>
 </ul>
 </li>
 </ol>
-<h2 id="what-is-the-problem-of-lru-and-clock-how-to-alleviate"><a class="markdownIt-Anchor" href="#what-is-the-problem-of-lru-and-clock-how-to-alleviate"></a> What is the problem of LRU and clock, how to alleviate?</h2>
-<ol>
-<li>LRU and CLOCK replacement policies are susceptible to sequential flooding. And in some workloads the most recently used page is the most unneeded page.</li>
-<li><strong>LRU-K</strong> policy can alleviate the problem.
-<ul>
-<li>Track the history of last K references to each page as timestamps and compute the average interval between subsequent accesses. And evict the one that will be accessed latest according to the prediction.</li>
-<li>In the implementation, the manager only need to maintain a queue of size K. Pop out the oldest timestamp when a new timestamp arrives.</li>
+<h2 id="What-is-the-problem-of-LRU-and-clock-how-to-alleviate"><a href="#What-is-the-problem-of-LRU-and-clock-how-to-alleviate" class="headerlink" title="What is the problem of LRU and clock, how to alleviate?"></a>What is the problem of LRU and clock, how to alleviate?</h2><ol>
+<li>LRU and CLOCK replacement policies are susceptible to sequential flooding. And in some workloads the most recently used page is the most unneeded page. </li>
+<li><strong>LRU-K</strong> policy can alleviate the problem. <ul>
+<li>Track the history of last K references to each page as timestamps and compute the average interval between subsequent accesses. And evict the one that will be accessed latest according to the prediction. </li>
+<li>In the implementation, the manager only need to maintain a queue of size K. Pop out the oldest timestamp when a new timestamp arrives. </li>
 </ul>
 </li>
-<li>Another policy is <strong>localization</strong>: The DBMS chooses which pages to evict on a per transaction/query basis, e.g. it allocate private frames to the query.</li>
+<li>Another policy is <strong>localization</strong>: The DBMS chooses which pages to evict on a per transaction/query basis, e.g. it allocate private frames to the query. </li>
 <li><strong>Priority hints</strong>: The DBMS knows about the context of each page during query execution. It can provide hints to the buffer pool on whether a page is important or not.</li>
 </ol>
-<h2 id="how-do-we-deal-with-evicted-pages"><a class="markdownIt-Anchor" href="#how-do-we-deal-with-evicted-pages"></a> How do we deal with evicted pages?</h2>
-<ol>
-<li>Fast Path: If a page in the buffer pool is not dirty, then the DBMS can simply drop it.</li>
-<li>Slow Path: If a page is dirty, then the DBMS must write back to disk to ensure that its changes are persisted.
-<ul>
-<li>The DBMS can periodically walk through the page table and write dirty pages to disk.</li>
-<li>When a dirty page is safely written, the DBMS can either evict the page or just unset the dirty flag.</li>
-<li>Need to be careful that the system doesn’t write dirty pages before their log records are written.</li>
+<h2 id="How-do-we-deal-with-evicted-pages"><a href="#How-do-we-deal-with-evicted-pages" class="headerlink" title="How do we deal with evicted pages?"></a>How do we deal with evicted pages?</h2><ol>
+<li>Fast Path: If a page in the buffer pool is not dirty, then the DBMS can simply drop it. </li>
+<li>Slow Path: If a page is dirty, then the DBMS must write back to disk to ensure that its changes are persisted. <ul>
+<li>The DBMS can periodically walk through the page table and write dirty pages to disk. </li>
+<li>When a dirty page is safely written, the DBMS can either evict the page or just unset the dirty flag. </li>
+<li>Need to be careful that the system doesn’t write dirty pages before their log records are written. </li>
 </ul>
 </li>
-<li>The Trade-off is between fast evictions versus dirty writing pages that will not be read again in the future.</li>
+<li>The Trade-off is between fast evictions versus dirty writing pages that will not be read again in the future. </li>
 </ol>
 
     </div>

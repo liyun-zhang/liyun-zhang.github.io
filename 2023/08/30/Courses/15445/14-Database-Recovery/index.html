@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="@[toc] What are the main ideas of ARIES? ARIES: Algorithms for Recovery and Isolation Exploiting Semantics Write-Ahead Logging: Any change is recorded in log on stable storage before the database chan">
+<meta property="og:type" content="article">
+<meta property="og:title" content="14 Database Recovery">
+<meta property="og:url" content="http://liyun-zhang.github.io/2023/08/30/Courses/15445/14-Database-Recovery/index.html">
+<meta property="og:site_name" content="LiyunZhang">
+<meta property="og:description" content="@[toc] What are the main ideas of ARIES? ARIES: Algorithms for Recovery and Isolation Exploiting Semantics Write-Ahead Logging: Any change is recorded in log on stable storage before the database chan">
+<meta property="og:locale">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/15445/Recovery/aries.png">
+<meta property="article:published_time" content="2023-08-30T11:12:36.000Z">
+<meta property="article:modified_time" content="2023-08-30T18:19:14.006Z">
+<meta property="article:author" content="LiyunZhang">
+<meta property="article:tag" content="Database system">
+<meta property="article:tag" content="Durability">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://liyun-zhang.github.io/imgs/15445/Recovery/aries.png">
+
+
+<link rel="canonical" href="http://liyun-zhang.github.io/2023/08/30/Courses/15445/14-Database-Recovery/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-Hans","comments":true,"permalink":"http://liyun-zhang.github.io/2023/08/30/Courses/15445/14-Database-Recovery/","path":"2023/08/30/Courses/15445/14-Database-Recovery/","title":"14 Database Recovery"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>14 Database Recovery | LiyunZhang</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">LiyunZhang</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#What-are-the-main-ideas-of-ARIES"><span class="nav-number">1.</span> <span class="nav-text">What are the main ideas of ARIES?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Record-logs"><span class="nav-number">2.</span> <span class="nav-text">Record logs</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#What-are-the-LSNs"><span class="nav-number">2.1.</span> <span class="nav-text">What are the LSNs?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-handle-transaction-commit"><span class="nav-number">2.2.</span> <span class="nav-text">How to handle transaction commit?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-handle-transaction-abort"><span class="nav-number">2.3.</span> <span class="nav-text">How to handle transaction abort?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Fuzzy-checkpoints"><span class="nav-number">3.</span> <span class="nav-text">Fuzzy checkpoints</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#How-can-we-improve-the-naive-checkpoints"><span class="nav-number">3.1.</span> <span class="nav-text">How can we improve the naive checkpoints?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-can-we-checkpoint-without-stalling-transactions"><span class="nav-number">3.2.</span> <span class="nav-text">How can we checkpoint without stalling transactions?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Recovery"><span class="nav-number">4.</span> <span class="nav-text">Recovery</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#How-does-ARIES-recover-from-crash"><span class="nav-number">4.1.</span> <span class="nav-text">How does ARIES recover from crash?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-does-analysis-phase-do"><span class="nav-number">4.2.</span> <span class="nav-text">What does analysis phase do?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-does-redo-phase-do"><span class="nav-number">4.3.</span> <span class="nav-text">What does redo phase do?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-does-undo-phase-do"><span class="nav-number">4.4.</span> <span class="nav-text">What does undo phase do?</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">LiyunZhang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+  
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/08/30/Courses/15445/14-Database-Recovery/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="14 Database Recovery | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          14 Database Recovery
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-08-30 19:12:36" itemprop="dateCreated datePublished" datetime="2023-08-30T19:12:36+08:00">2023-08-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-08-31 02:19:14" itemprop="dateModified" datetime="2023-08-31T02:19:14+08:00">2023-08-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>@[toc]</p>
+<h1 id="What-are-the-main-ideas-of-ARIES"><a href="#What-are-the-main-ideas-of-ARIES" class="headerlink" title="What are the main ideas of ARIES?"></a>What are the main ideas of ARIES?</h1><ol>
+<li>ARIES: Algorithms for Recovery and Isolation Exploiting Semantics</li>
+<li>Write-Ahead Logging:<ul>
+<li>Any change is recorded in log on stable storage before the database change is written to disk. </li>
+<li>Must use steal and no-force buffer pool policies. <ul>
+<li>Logs are forced to be flushed into disk while modified pages are not. </li>
+<li>Force is also correct, but it damages runtime performance, which makes no one uses it. </li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Repeating History During Redo: On DBMS restart, retrace actions and restore database to exact state before crash. </li>
+<li>Logging Changes During Undo: Record undo actions to log to ensure action is not repeated in the event of repeated failures. </li>
+</ol>
+<h1 id="Record-logs"><a href="#Record-logs" class="headerlink" title="Record logs"></a>Record logs</h1><h2 id="What-are-the-LSNs"><a href="#What-are-the-LSNs" class="headerlink" title="What are the LSNs?"></a>What are the LSNs?</h2><ol>
+<li>Every log record now includes a globally unique, monotonically increasing log sequence number (LSN).<ul>
+<li>LSNs represent the physical order that transactions make changes to the database. </li>
+</ul>
+</li>
+<li>Various components in the system keep track of LSNs that pertain to them<ul>
+<li>In memory, the system uses <code>flushedLSN</code> to track the last LSN in log on disk. </li>
+<li>In each page in disk, <code>pageLSN</code> is used to track the newest update to that page while <code>recLSN</code> is tracking the oldest update to that page since it was last flushed. </li>
+<li>Each transaction maintains <code>lastLSN</code> representing the latest record of that transaction. </li>
+<li>In disk, there is also a <code>MasterRecord</code> meaning the LSN of latest checkpoint. </li>
+</ul>
+</li>
+<li>Before the DBMS can write page x to disk, it must flush the log at least to the point where $pageLSN_x ≤ flushedLSN$. </li>
+<li>Update the <code>pageLSN</code> every time a transaction modifies a record in the page. </li>
+<li>Update the <code>flushedLSN</code> in memory every time the DBMS writes out the WAL buffer to disk. </li>
+</ol>
+<h2 id="How-to-handle-transaction-commit"><a href="#How-to-handle-transaction-commit" class="headerlink" title="How to handle transaction commit?"></a>How to handle transaction commit?</h2><ol>
+<li>When a transaction commits, the DBMS writes a <code>COMMIT</code> record to log and guarantees that all log records up to transaction’s <code>COMMIT</code> record are flushed to disk. <ul>
+<li>Log flushes are sequential, synchronous writes to disk. </li>
+</ul>
+</li>
+<li>When the commit succeeds, write a special <code>TXN-END</code> record to log. <ul>
+<li>Indicates that no new log record for a transaction will appear in the log ever again. </li>
+<li>This does not need to be flushed immediately. </li>
+</ul>
+</li>
+</ol>
+<h2 id="How-to-handle-transaction-abort"><a href="#How-to-handle-transaction-abort" class="headerlink" title="How to handle transaction abort?"></a>How to handle transaction abort?</h2><ol>
+<li>Another <code>prevLSN</code> is added to log records pointing to the previous LSN for that transaction to make it easy to walk through its records. </li>
+<li>First write an <code>ABORT</code> record to log for the transaction. <ul>
+<li>Following that, we need to records steps taken to undo the transaction. <ul>
+<li>A <code>CLR</code> describes the actions taken to undo the actions of a previous update record. </li>
+<li>It has all the fields of an update log record plus the <code>undoNext</code> pointer pointing to the next-to-be-undone LSN. </li>
+<li><code>CLR</code>s are added to log records but the DBMS does not wait for them to be flushed before notifying the application that the transaction aborted. </li>
+</ul>
+</li>
+<li>Lastly, write a <code>TXN-END</code> record. </li>
+</ul>
+</li>
+<li>To add <code>CLR</code> records, we need to analyze the transaction’s updates in reverse order. <ul>
+<li>For each update record, write a <code>CLR</code> entry to the log, and restore old value. </li>
+<li><code>CLR</code>s never need to be undone. </li>
+</ul>
+</li>
+</ol>
+<h1 id="Fuzzy-checkpoints"><a href="#Fuzzy-checkpoints" class="headerlink" title="Fuzzy checkpoints"></a>Fuzzy checkpoints</h1><h2 id="How-can-we-improve-the-naive-checkpoints"><a href="#How-can-we-improve-the-naive-checkpoints" class="headerlink" title="How can we improve the naive checkpoints?"></a>How can we improve the naive checkpoints?</h2><ol>
+<li>The naive checkpoint needs to halt the start of any new transactions and wait until all active transactions finish executing. </li>
+<li>We can only pause modifying transactions while the DBMS takes the checkpoint. <ul>
+<li>It can be done through preventing queries from acquiring write latch on table/index pages. </li>
+<li>Don’t have to wait until all transactions finish before taking the checkpoint. </li>
+</ul>
+</li>
+<li>We must record internal state as of the beginning of the checkpoint. <ul>
+<li>Active Transaction Table (ATT): What transactions are running at the time we took checkpoint. </li>
+<li>Dirty Page Table (DPT): What pages are dirty. </li>
+</ul>
+</li>
+<li>ATT is maintained at runtime and recovery. There is a entry per currently active transaction<ul>
+<li>Each entry contains<ul>
+<li><code>transactionId</code>: Unique transaction identifier</li>
+<li><code>status</code>: The current “mode” of the transaction</li>
+<li><code>lastLSN</code>: Most recent LSN created by transaction. </li>
+</ul>
+</li>
+<li>Remove entry after the <code>TXN-END</code> record. </li>
+<li>Txn Status Codes<ul>
+<li><code>R</code>: Running</li>
+<li><code>C</code>: Committing</li>
+<li><code>U</code>: Candidate for undo</li>
+</ul>
+</li>
+<li><code>U</code> is the default mode in recovery. <ul>
+<li>When replaying the log, we cannot see what’s come up ahead, assuming not gonna see a transaction commit record. </li>
+<li>Flip to commit when see a transaction commit record</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>DPT contains one entry per dirty page in the buffer pool including <code>recLSN</code>. <ul>
+<li><code>recLSN</code> is the LSN of the log record that first caused the page to be dirty. </li>
+</ul>
+</li>
+<li>Each checkpoint record includes ATT and DPT in it. </li>
+</ol>
+<h2 id="How-can-we-checkpoint-without-stalling-transactions"><a href="#How-can-we-checkpoint-without-stalling-transactions" class="headerlink" title="How can we checkpoint without stalling transactions?"></a>How can we checkpoint without stalling transactions?</h2><ol>
+<li>In fuzzy checkpoint, there are two kind of records to track checkpoint boundaries. <ul>
+<li><code>CHECKPOINT-BEGIN</code> indicates start of checkpoint. Recovery begins from here. </li>
+<li><code>CHECKPOINT-END</code> contains ATT and DPT at the moment of <code>CHECKPOINT-BEGIN</code>. </li>
+</ul>
+</li>
+<li>The <code>LSN</code> of the <code>CHECKPOINT-BEGIN</code> record is written to the <code>MasterRecord</code> when it completes. </li>
+<li>Any transaction that begins after the checkpoint starts is excluded from the ATT in the <code>CHECKPOINT-END</code> record. </li>
+</ol>
+<h1 id="Recovery"><a href="#Recovery" class="headerlink" title="Recovery"></a>Recovery</h1><h2 id="How-does-ARIES-recover-from-crash"><a href="#How-does-ARIES-recover-from-crash" class="headerlink" title="How does ARIES recover from crash?"></a>How does ARIES recover from crash?</h2><ol>
+<li>The first phase is analysis. <ul>
+<li>Examine the WAL in forward direction starting at MasterRecord to identify dirty pages in the buffer pool and active transactions at the time of the crash. </li>
+<li>This is to figure out which transactions committed or failed since checkpoint.</li>
+</ul>
+</li>
+<li>The second phase is redo phase. <ul>
+<li>Repeat all actions starting from an appropriate point in the log in forward direction. </li>
+<li>This phase is to repeat all actions, even transactions that will abort. </li>
+</ul>
+</li>
+<li>The last phase is undo. <ul>
+<li>Reverse the actions of transactions that did not commit before the crash in reverse order. </li>
+<li>This phase is to reverse effects of failed transactions. </li>
+</ul>
+</li>
+<li>If crashes happen during recovery, just run recovery again. </li>
+</ol>
+<p><img src="/imgs/15445/Recovery/aries.png" width="20%"></p>
+<h2 id="What-does-analysis-phase-do"><a href="#What-does-analysis-phase-do" class="headerlink" title="What does analysis phase do?"></a>What does analysis phase do?</h2><ol>
+<li>Scan log forward from the <code>CHECKPOINT-END</code> of the last successful checkpoint. </li>
+<li>If the DBMS finds a <code>TXN-END</code> record, remove its corresponding transaction from ATT. </li>
+<li>For all other records,<ul>
+<li>If transaction not in ATT, add it with status <code>UNDO</code>. On commit, change transaction status to <code>COMMIT</code>.</li>
+<li>For update log records, if page $P$ not in DPT, add $P$ to DPT, set its <code>recLSN=LSN</code>.</li>
+</ul>
+</li>
+<li>At end of the Analysis Phase,<ul>
+<li>ATT identifies which transactions were active at time of crash. </li>
+<li>DPT identifies which dirty pages might not have made it to disk. </li>
+</ul>
+</li>
+</ol>
+<h2 id="What-does-redo-phase-do"><a href="#What-does-redo-phase-do" class="headerlink" title="What does redo phase do?"></a>What does redo phase do?</h2><ol>
+<li>The goal is to repeat history to reconstruct the database state at the moment of the crash. </li>
+<li>Scan forward from the log record containing smallest <code>recLSN</code> in DPT.</li>
+<li>For each update log record or <code>CLR</code> with a given LSN, redo the action unless affected page is not in DPT, or affected page is in DPT but that record’s LSN is less than the page’s <code>recLSN</code>. <ul>
+<li>If the affected page is not in DPT, that means that that modification is already flushed in disk. </li>
+<li>If that record’s LSN is less than the page’s <code>recLSN</code>, that means that that page is dirty but due to some updates after the record. The modification of that record is also flushed into the disk. </li>
+</ul>
+</li>
+<li>To redo an action, <ul>
+<li>Reapply logged update.</li>
+<li>Set <code>pageLSN</code> to log record’s LSN.</li>
+<li>No additional logging, no forced flushes. </li>
+<li>To improve performance, we can assume that it is not going to crash again and flush all changes to disk asynchronously in the background.</li>
+</ul>
+</li>
+<li>At the end of Redo Phase, write <code>TXN-END</code> log records for all transactions with status <code>C</code> and remove them from the ATT. </li>
+</ol>
+<h2 id="What-does-undo-phase-do"><a href="#What-does-undo-phase-do" class="headerlink" title="What does undo phase do?"></a>What does undo phase do?</h2><ol>
+<li>Undo all transactions that were active at the time of crash and therefore will never commit. </li>
+<li>These are all the transactions with <code>U</code> status in the ATT after the Analysis Phase. </li>
+<li>Process them in reverse LSN order using the <code>lastLSN</code> to speed up traversal. </li>
+<li>Write a <code>CLR</code> for every modification. </li>
+<li>To improve performance, <ul>
+<li>Lazily rollback changes before new transactions access pages. </li>
+<li>Rewrite the application to avoid long-running transactions, which will never be used. </li>
+</ul>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Database-system/" rel="tag"><i class="fa fa-tag"></i> Database system</a>
+              <a href="/tags/Durability/" rel="tag"><i class="fa fa-tag"></i> Durability</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/08/29/Courses/15445/13-Database-Logging/" rel="prev" title="13 Database Logging">
+                  <i class="fa fa-chevron-left"></i> 13 Database Logging
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">LiyunZhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css" integrity="sha256-hLTCMFlKxdNgPXyWlSSxYN0ykJmxxq9Yt3MNfdRGWeA=" crossorigin="anonymous">
+
+
+
+</body>
+</html>
