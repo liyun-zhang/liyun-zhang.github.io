@@ -146,7 +146,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-count">18</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -157,7 +157,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -174,6 +174,281 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/08/31/Courses/15445/15-Introduction-to-Distributed-Databases/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/08/31/Courses/15445/15-Introduction-to-Distributed-Databases/" class="post-title-link" itemprop="url">15 Introduction to Distributed Databases</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-08-31 23:53:22" itemprop="dateCreated datePublished" datetime="2023-08-31T23:53:22+08:00">2023-08-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-09-01 12:27:56" itemprop="dateModified" datetime="2023-09-01T12:27:56+08:00">2023-09-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#system-architecture">System architecture</a>
+<ul>
+<li><a href="#what-will-system-architecture-affect">What will system architecture affect?</a></li>
+<li><a href="#what-is-shared-memory-architecture">What is shared memory architecture?</a></li>
+<li><a href="#what-is-shared-disk-architecture">What is shared disk architecture?</a></li>
+<li><a href="#what-is-shared-nothing-architecture">What is shared nothing architecture?</a></li>
+</ul>
+</li>
+<li><a href="#design-issues">Design issues</a>
+<ul>
+<li><a href="#what-are-the-design-issues-of-distributed-database">What are the design issues of distributed database?</a></li>
+<li><a href="#what-do-nodes-look-like">What do nodes look like?</a></li>
+<li><a href="#how-to-coordinate-execution">How to coordinate execution?</a></li>
+</ul>
+</li>
+<li><a href="#partitioning-schemes">Partitioning Schemes</a>
+<ul>
+<li><a href="#what-do-we-desire-when-partitioning-database">What do we desire when partitioning database?</a></li>
+<li><a href="#how-can-we-partition-database">How can we partition database?</a></li>
+<li><a href="#how-can-we-optimize-horizontal-partitioning">How can we optimize horizontal partitioning?</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="system-architecture"><a class="markdownIt-Anchor" href="#system-architecture"></a> System architecture</h1>
+<h2 id="what-will-system-architecture-affect"><a class="markdownIt-Anchor" href="#what-will-system-architecture-affect"></a> What will system architecture affect?</h2>
+<ol>
+<li>A distributed DBMS’s system architecture specifies what shared resources are directly accessible to CPUs.</li>
+<li>This affects how CPUs coordinate with each other and where they retrieve/store objects in the database.</li>
+<li>There are four architectures: shared everything, shared memory, shared disk and shared nothing.</li>
+<li>In shared everything architecture, CPU, memories and disks are all in local. This is more of a parallel architecture than a distributed architecture.</li>
+</ol>
+<h2 id="what-is-shared-memory-architecture"><a class="markdownIt-Anchor" href="#what-is-shared-memory-architecture"></a> What is shared memory architecture?</h2>
+<ol>
+<li>CPUs have access to common memory address space via a fast interconnect.</li>
+<li>Each processor has a global view of all the in-memory data structures.
+<ul>
+<li>Each process’s scope of memory is the same memory address space, which can be modified by multiple processes.</li>
+</ul>
+</li>
+<li>Each DBMS instance on a processor must “know” about the other instances.</li>
+<li>In practice, most DBMSs do not use this architecture, as it is provided at the OS / kernel level.</li>
+</ol>
+<img src="/imgs/15445/Distributed/shared_mem.png" width="30%">
+<h2 id="what-is-shared-disk-architecture"><a class="markdownIt-Anchor" href="#what-is-shared-disk-architecture"></a> What is shared disk architecture?</h2>
+<ol>
+<li>All CPUs can access a single logical disk directly via an interconnect, but each have their own private memories.</li>
+<li>It can scale execution layer independently from the storage layer.
+<ul>
+<li>The advantage of shared disk over shared nothing is that it can easily scale up with compute layer and storage layer independent.</li>
+<li>What we want to persist after crash is in the storage layer.</li>
+<li>Theoretically, we can kill or add front-end nodes without losing database or add storage disks / change storage layer with modfying compute nodes.</li>
+</ul>
+</li>
+<li>It must send messages between CPUs to learn about their current state.</li>
+<li>This architecture is commonly used in OLAP systems. Many DBSMs begin to think that shared disk architecture is better than shared nothing.</li>
+</ol>
+<img src="/imgs/15445/Distributed/shared_disk.png" width="30%">
+<h2 id="what-is-shared-nothing-architecture"><a class="markdownIt-Anchor" href="#what-is-shared-nothing-architecture"></a> What is shared nothing architecture?</h2>
+<ol>
+<li>Each DBMS instance has its own CPU, memory, and local disk.</li>
+<li>Nodes only communicate with each other via network.
+<ul>
+<li>When executing a query that requires data from different nodes, the DBMS can either send data up to the node connected with application, or that node can ask another node to execute the query and return the result.</li>
+</ul>
+</li>
+<li>All data in the database are sharded into different nodes.
+<ul>
+<li>When adding a new node into the architecture, that node is initially empty. The DBMS must re-shard data so that they are distributed evenly.</li>
+<li>It is more difficult to increase capacity because the DBMS has to physically move data to new nodes.</li>
+<li>It might have small window for queries to receive false positive due to that part of data was in that node and now moving to another node.</li>
+</ul>
+</li>
+<li>It is also difficult to ensure consistency across all nodes in the DBMS, since the nodes must coordinate with each other on the state of transactions.</li>
+<li>However, it can potentially achieve better performance and are more efficient then other types of distributed DBMS architectures.</li>
+</ol>
+<img src="/imgs/15445/Distributed/shared_nothing.png" width="30%">
+<h1 id="design-issues"><a class="markdownIt-Anchor" href="#design-issues"></a> Design issues</h1>
+<h2 id="what-are-the-design-issues-of-distributed-database"><a class="markdownIt-Anchor" href="#what-are-the-design-issues-of-distributed-database"></a> What are the design issues of distributed database?</h2>
+<ol>
+<li>How does the application find data?</li>
+<li>Where does the application send queries?</li>
+<li>How to execute queries on distributed data? Push query to data? Or pull data to query?</li>
+<li>How does the DBMS ensure correctness?</li>
+<li>How do we divide the database across resources?</li>
+</ol>
+<h2 id="what-do-nodes-look-like"><a class="markdownIt-Anchor" href="#what-do-nodes-look-like"></a> What do nodes look like?</h2>
+<ol>
+<li>The first approach is homogenous nodes.
+<ul>
+<li>Every node in the cluster can perform the same set of tasks albeit on potentially different partitions of data.</li>
+<li>Makes provisioning and failover “easier” since any node can replace other nodes.</li>
+</ul>
+</li>
+<li>The second approach is heterogenous nodes.
+<ul>
+<li>Nodes are assigned specific tasks.</li>
+<li>It can allow a single physical node to host multiple “virtual” node types for dedicated tasks.</li>
+<li>A design of heterogenous nodes have two kinds of nodes router and config server.
+<ul>
+<li>Router can directly access shards of database yet it does not know where are that data they want.</li>
+<li>Config server knows the data contained in each shards. However, it does not responsible for retrieving them.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-coordinate-execution"><a class="markdownIt-Anchor" href="#how-to-coordinate-execution"></a> How to coordinate execution?</h2>
+<ol>
+<li>If our DBMS supports multi-operation and distributed transactions, we need a way to coordinate their execution in the system.</li>
+<li>The first approach is centerlized coordinator. There is a centralized coordinator that receives commands from application.
+<ul>
+<li>The first design requires applications to handle transactions.
+<ul>
+<li>The client communicates with the coordinator to acquire locks on the partitions that the client wants to access.</li>
+<li>Once it receives an acknowledgement from the coordinator, the client sends its queries to those partitions.</li>
+<li>Once all queries for a given transaction are done, the client sends a commit request to the coordinator.</li>
+<li>The coordinator then communicates with the partitions involved in the transaction to determine whether the transaction is allowed to commit.</li>
+</ul>
+</li>
+<li>Another design uses a middleware to accept query requests and routes queries to correct partitions.</li>
+</ul>
+</li>
+<li>The second approach is decentralized.
+<ul>
+<li>The client directly sends queries to one of the partitions which will be the leader node of that transaction.</li>
+<li>The leader node will coordinate the following communicating with other partitions and committing.</li>
+</ul>
+</li>
+</ol>
+<h1 id="partitioning-schemes"><a class="markdownIt-Anchor" href="#partitioning-schemes"></a> Partitioning Schemes</h1>
+<h2 id="what-do-we-desire-when-partitioning-database"><a class="markdownIt-Anchor" href="#what-do-we-desire-when-partitioning-database"></a> What do we desire when partitioning database?</h2>
+<ol>
+<li>Applications should not be required to know where data is physically located in a distributed DBMS.
+<ul>
+<li>Any query that run on a single-node DBMS should produce the same result on a distributed DBMS.</li>
+<li>The DBMS executes query fragments on each partition and then combines the results to produce a single answer.</li>
+</ul>
+</li>
+<li>In practice, developers need to be aware of the communication costs of queries to avoid excessively “expensive” data movement.</li>
+<li>The DBMS can partition a database physically for shared nothing or logically for shared disk.
+<ul>
+<li>In Logical partitioning, each node is responsible for certain designated data. They cannot access data out of their duty. Though data are actually stored in independent storage nodes which computation nodes all can access.</li>
+<li>In physical partitioning, data out of their duty cannot be accessed directly since they are stored in the local disk of other nodes.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-can-we-partition-database"><a class="markdownIt-Anchor" href="#how-can-we-partition-database"></a> How can we partition database?</h2>
+<ol>
+<li>The first method is the naive table partitioning.
+<ul>
+<li>Assign an entire table to a single node.</li>
+<li>It assumes that each node has enough storage space for an entire table.</li>
+<li>This is ideal if queries never join data across tables stored on different nodes and access patterns are uniform.</li>
+</ul>
+</li>
+<li>The second method is vertical partitioning.
+<ul>
+<li>Split a table’s attributes into separate partitions.</li>
+<li>It must store tuple information to reconstruct the original record.</li>
+</ul>
+</li>
+<li>The third method is horizontal partitioning.
+<ul>
+<li>Split a table’s tuples into disjoint subsets based on some partitioning key and scheme.</li>
+<li>Choose column(s) that divides the database equally in terms of size, load, or usage.</li>
+<li>It can partition based on hashing, ranges, or predicates.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-can-we-optimize-horizontal-partitioning"><a class="markdownIt-Anchor" href="#how-can-we-optimize-horizontal-partitioning"></a> How can we optimize horizontal partitioning?</h2>
+<ol>
+<li>The main problem is that when adding a new storage nodes, the DBMS needs to reshuffle data.</li>
+<li>We can use the consistent hashing.
+<ul>
+<li>The hashing value is betwen <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> forming a circle.</li>
+<li>Each nodes are assigned a value betwen <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>. Data are stored in the node with the closest value to its hashing values going in clock-wise order.</li>
+<li>When adding a node, only one node needs to transmit data to the new node, instead of transmit data between all pairs of nodes.</li>
+</ul>
+</li>
+<li>With consistent hashing, we can support replication easily.
+<ul>
+<li>Just store data in the first batch of nodes with closest value in clock-wise order.</li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -3078,242 +3353,6 @@ devices, e.g. storage appliances, RAID configuration.</p>
 <ul>
 <li>Partitioning should (ideally) be transparent to the application.</li>
 <li>The application should only access logical tables and not have to worry about how things are physically stored.</li>
-</ul>
-</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/07/07/OpenSource/BusTub/Project-2-B-Tree/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/07/07/OpenSource/BusTub/Project-2-B-Tree/" class="post-title-link" itemprop="url">Project #2: B+Tree</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2023-07-07 13:28:28" itemprop="dateCreated datePublished" datetime="2023-07-07T13:28:28+08:00">2023-07-07</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-07-09 22:07:54" itemprop="dateModified" datetime="2023-07-09T22:07:54+08:00">2023-07-09</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Source-Code/" itemprop="url" rel="index"><span itemprop="name">Open Source Code</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Source-Code/BusTub/" itemprop="url" rel="index"><span itemprop="name">BusTub</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><ul class="markdownIt-TOC">
-<li><a href="#btree-page">B+Tree Page</a></li>
-<li><a href="#btree-search">B+Tree search</a></li>
-<li><a href="#btree-insert">B+Tree insert</a></li>
-<li><a href="#btree-delete">B+Tree delete</a></li>
-</ul>
-</p>
-<h1 id="btree-page"><a class="markdownIt-Anchor" href="#btree-page"></a> B+Tree Page</h1>
-<ol>
-<li>
-<p>The <code>size_</code> in each page means the number of stored values not keys, i.e. in internal nodes, <code>size_</code> is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> larger than the number of keys.</p>
-</li>
-<li>
-<p><code>KeyComparator</code> accept two keys to compare, which will return <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> when they are equal, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span> for the first key “smaller” than the second key, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> for the second key being larger.</p>
-</li>
-<li>
-<p>We need to design the sematic of the binary search that will be used in search, insert and delete a key inside a node.</p>
-<ul>
-<li>In the leaf node:
-<ul>
-<li>For search and delete, we want this function to tell us the index of the key is it exists.</li>
-<li>For insert, we want this function to indicate the index we need to place the key.</li>
-</ul>
-</li>
-<li>In the internal node:
-<ul>
-<li>For search, we only want it to inform us the child that might have the given key.</li>
-<li>For insert, we want it to return the page ID to find a proper leaf page to store the key in forward search and give the index we need to place the split key when backward split is required.</li>
-<li>For delete, we want it the same as for insert in the forward search and to provide the index to help merge two children when the backward merge is required.</li>
-</ul>
-</li>
-<li>In the following implemetation of binary search, it will return the index of the key if it exists, or it will return the largest index with smaller key.
-<ul>
-<li>Notably that if the given key is smaller than all keys in the node, it will return <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>.</li>
-<li>In internal node, we would expect the smallest possible result is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> since the first key is <code>NULL</code> which should be smaller than any other keys.</li>
-</ul>
-</li>
-</ul>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">BinarySearch</span><span class="params">(KeyType key, KeyComparator comparator)</span> <span class="type">const</span> -&gt; <span class="type">int</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> lo = <span class="number">0</span>;</span><br><span class="line">  <span class="type">int</span> hi = <span class="built_in">GetSize</span>();</span><br><span class="line">  <span class="keyword">while</span> (lo &lt; hi) &#123;</span><br><span class="line">    <span class="type">int</span> mid = (lo + hi) / <span class="number">2</span>;</span><br><span class="line">    <span class="keyword">if</span> (<span class="number">0</span> &lt; mid &amp;&amp; <span class="built_in">comparator</span>(key, array_[mid].first) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">      hi = mid;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      lo = mid + <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> lo - <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li>
-<p><code>FindNextPageID</code> will provide the proper child for the caller to access to find a certain key.</p>
-<ul>
-<li>For leaf node, this will only be used in B+Tree search. If the binary search result is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>, we can conclude that that key does not exist and should tell caller that.</li>
-<li>For internal node, this will be used in B+Tree search or the forward search in insert and delete. If the binary search result is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>, then we should return the first value to indicate the key is smaller than all keys.</li>
-</ul>
-</li>
-<li>
-<p><code>InsertKey</code> should</p>
-</li>
-</ol>
-<h1 id="btree-search"><a class="markdownIt-Anchor" href="#btree-search"></a> B+Tree search</h1>
-<ol>
-<li>The thought is simple: we just go down from the root until hit a leaf node. If the key is in the leaf node, return the value. Otherwise, the key does not exists.</li>
-<li>For concurrency control, we can only release the latch of a page after acquired the latch of its child.
-<ul>
-<li>This can be implemented with the move assignment operation of <code>PageGuard</code>. In the execution, the right expression will first acquire the latch of next page, then destroy the original page guard of the left variable.</li>
-</ul>
-</li>
-</ol>
-<h1 id="btree-insert"><a class="markdownIt-Anchor" href="#btree-insert"></a> B+Tree insert</h1>
-<ol>
-<li>
-<p>For concurrency control, I implemented both the optimistic scheme and the pessimistic scheme.</p>
-<ul>
-<li>
-<p>The program will first try with optimistic search with only write latch on leaf node.</p>
-</li>
-<li>
-<p>If the leaf node may overflow, release all latches and start again trying to acquire write latch for all nodes.</p>
-</li>
-</ul>
-</li>
-<li>
-<p>In the optimistic search, we can use the queue in <code>Context</code>.</p>
-<ul>
-<li>When we fetched a new page guard, we push it to the back of <code>ctx.read_set_</code> and pop the front element out of the queue. Every time we just need to access the last element of the queue to find the next page to read.</li>
-<li>When we realised that we have reached the leaf node, we are holding a read latch for that page. Hence, we still need to release the read latch and re-acquire the write latch, i.e. we cannot release the latch of last internal page when we first acquire the leaf page.</li>
-<li>The solution is to release the latch before read the “grand-child” of it.</li>
-</ul>
-</li>
-<li>
-<p>In the pessimistic search, we need to acquire write latch for all pages we want to access.</p>
-<ul>
-<li>We can check whether a node is safe after its write latch is acquired. If the node is safe, we can release all latches acquired before it, including the header page.</li>
-</ul>
-</li>
-<li>
-<p>In the insert function, there are three cases to handle:</p>
-<ul>
-<li>The first case is that this is an empty tree, i.e. the <code>root_page_id_</code> in header page is invalid. We just need to create a new page for the node and update header page.</li>
-<li>The second case is that the leaf node won’t overflow where a simple insertion is enough.</li>
-<li>The last case is that the leaf node might overflow.</li>
-</ul>
-</li>
-<li>
-<p>When the leaf node might overflow:</p>
-<ul>
-<li>After acquired the write latches, we need to check whether there is an overflow again in case that other thread already handled overflow causing unexpected split.</li>
-<li><code>SolveLeafOverflow</code>
-<ul>
-<li>When a leaf reaches max size after insertion, it will immediately split. So this is used after the insertion.</li>
-<li>It will create a new page to store the larger half the nodes and return the first key in the new page to insert to its parent node to indicate to this page.</li>
-<li>Also, it need to take care of the sibling pointers between leaf nodes. The new page will point to what the original page points to. And the original page will point to the new page.</li>
-</ul>
-</li>
-<li><code>SolveInternalOverflow</code>
-<ul>
-<li>Internal nodes won’t split immediately when it reaches max size. This means that internal nodes must split first before insertion, otherwise the address will overflow.</li>
-<li>The process is similar with the leaf case, except that it will choose a proper page to insert the key after split. (Or it just does not need to split if it is a safe node).</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<h1 id="btree-delete"><a class="markdownIt-Anchor" href="#btree-delete"></a> B+Tree delete</h1>
-<ol>
-<li>The concurrency control is similar with the insert operation, except that the condition of whether a node is safe is different.</li>
-<li>Compare with insertion,
-<ul>
-<li>if the tree is empty, there is nothing else to do;</li>
-<li>if the leaf node won’t underflow, a simple deletion is enough;</li>
-<li>if the leaf node might underflow, we need to handle it and possible following cascade underflow.</li>
-</ul>
-</li>
-<li>When the leaf node might overflow:
-<ul>
-<li>Similar with the insertion situation, we need to re-acquire write latches, and check whether the underflow is handled by another thread.</li>
-<li>If the underflowed leaf is the root, i.e. the tree has only one node, we do not need to do anything further.</li>
-<li><code>SolveLeafUnderflow</code>
-<ul>
-<li>There are three situations: left sibling can borrow a key, right sibling can borrow a key or neither siblings can borrow a key.</li>
-<li>When we can borrow a key, the underflow is solved easily, no more cascading. We need to modify the key in parent node that separates the two involving node to the new first key of the right node.</li>
-<li>When we need to merge with one of the siblings, we also need to handle the pointers between leaf nodes. If we move the data of the left node to the right node and delete the left node, it is hard for us to modify the pointer of the left of the left node. Instead, if we move delete the right node, we only need to modify the pointer of the left node to the original pointer of the right node.</li>
-<li>If a leaf only has left sibling or right sibling to merge with, then we do not have a choice.</li>
-</ul>
-</li>
-<li><code>SolveInternalUnderflow</code>
-<ul>
-<li>The process is similar with <code>SolveLeafUnderflow</code>, except how to borrow a key.</li>
-<li>When a node is borrowing a key to its left sibling, it will borrow the first valid key and the fire value, i.e. <code>array_[1].first</code> and <code>array_[0].second</code>.</li>
-<li>When a node is borrowing a key to its right sibling, it will borrow the last key-value pair. And the node accpeting those keys will use the key as its first valid key and the value as its first valid value.</li>
-<li>We need to set the corresponding key in parent node to the borrowed key.</li>
-</ul>
-</li>
 </ul>
 </li>
 </ol>
