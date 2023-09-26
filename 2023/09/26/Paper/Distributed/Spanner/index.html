@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Purpose Model  Structure of implementation  What is the overview of Spanner server organization? What is the zones in Spanner? Software stack  How does Spanner manage key-value pairs? How does Spanne">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spanner">
+<meta property="og:url" content="http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/Spanner/index.html">
+<meta property="og:site_name" content="LiyunZhang">
+<meta property="og:description" content="Purpose Model  Structure of implementation  What is the overview of Spanner server organization? What is the zones in Spanner? Software stack  How does Spanner manage key-value pairs? How does Spanne">
+<meta property="og:locale">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/Spanner/structure.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/Spanner/software.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/Spanner/ec_invariant.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/Spanner/performance.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/Spanner/2pc.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/Spanner/availability.png">
+<meta property="article:published_time" content="2023-09-26T05:47:51.000Z">
+<meta property="article:modified_time" content="2023-09-26T05:50:01.314Z">
+<meta property="article:author" content="LiyunZhang">
+<meta property="article:tag" content="Distributed System">
+<meta property="article:tag" content="Distributed Database">
+<meta property="article:tag" content="Database System">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://liyun-zhang.github.io/imgs/Distributed/Spanner/structure.png">
+
+
+<link rel="canonical" href="http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/Spanner/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-Hans","comments":true,"permalink":"http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/Spanner/","path":"2023/09/26/Paper/Distributed/Spanner/","title":"Spanner"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Spanner | LiyunZhang</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">LiyunZhang</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#purpose"><span class="nav-number">1.</span> <span class="nav-text"> Purpose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#model"><span class="nav-number">2.</span> <span class="nav-text"> Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#structure-of-implementation"><span class="nav-number">2.1.</span> <span class="nav-text"> Structure of implementation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-overview-of-spanner-server-organization"><span class="nav-number">2.1.1.</span> <span class="nav-text"> What is the overview of Spanner server organization?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-zones-in-spanner"><span class="nav-number">2.1.2.</span> <span class="nav-text"> What is the zones in Spanner?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#software-stack"><span class="nav-number">2.1.3.</span> <span class="nav-text"> Software stack</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-spanner-manage-key-value-pairs"><span class="nav-number">2.1.3.1.</span> <span class="nav-text"> How does Spanner manage key-value pairs?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-spanner-support-replication"><span class="nav-number">2.1.3.2.</span> <span class="nav-text"> How does Spanner support replication?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-spanner-manage-lock-table"><span class="nav-number">2.1.3.3.</span> <span class="nav-text"> How does Spanner manage lock table?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-spanner-manage-transactions"><span class="nav-number">2.1.3.4.</span> <span class="nav-text"> How does Spanner manage transactions?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#data-management"><span class="nav-number">2.1.4.</span> <span class="nav-text"> Data management</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-spanner-manage-data-placement"><span class="nav-number">2.1.4.1.</span> <span class="nav-text"> How does Spanner manage data placement?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#when-would-spanner-move-a-directory"><span class="nav-number">2.1.4.2.</span> <span class="nav-text"> When would Spanner move a directory?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-spanner-move-a-directory"><span class="nav-number">2.1.4.3.</span> <span class="nav-text"> How does Spanner move a directory?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-applications-specify-placement-of-data"><span class="nav-number">2.1.4.4.</span> <span class="nav-text"> How does applications specify placement of data?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-data-model-of-spanner"><span class="nav-number">2.1.4.5.</span> <span class="nav-text"> What is the data model of Spanner?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#truetime-api"><span class="nav-number">2.2.</span> <span class="nav-text"> TrueTime API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-truetime-api-represents-time"><span class="nav-number">2.2.1.</span> <span class="nav-text"> How does TrueTime API represents time?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-is-truetime-api-implemented"><span class="nav-number">2.2.2.</span> <span class="nav-text"> How is TrueTime API implemented?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-does-time-masters-need-to-do"><span class="nav-number">2.2.3.</span> <span class="nav-text"> What does time masters need to do?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-does-daemons-need-to-do"><span class="nav-number">2.2.4.</span> <span class="nav-text"> What does daemons need to do?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#concurrency-control"><span class="nav-number">2.3.</span> <span class="nav-text"> Concurrency control</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-spanner-manage-paxos-leader-leases"><span class="nav-number">2.3.1.</span> <span class="nav-text"> How does Spanner manage Paxos leader leases?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#read-write-transactions"><span class="nav-number">2.3.2.</span> <span class="nav-text"> Read-write transactions</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-spanner-assign-timestamps-to-rw-transactions"><span class="nav-number">2.3.2.1.</span> <span class="nav-text"> How does Spanner assign timestamps to RW transactions?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-spanner-enfore-external-consistency-invariant"><span class="nav-number">2.3.2.2.</span> <span class="nav-text"> How does Spanner enfore external-consistency invariant?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-spanner-handle-reads-within-rw-transactions"><span class="nav-number">2.3.2.3.</span> <span class="nav-text"> How does Spanner handle reads within RW transactions?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-client-drive-two-phase-commit"><span class="nav-number">2.3.2.4.</span> <span class="nav-text"> What is the client drive two-phase commit?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-perform-the-two-phase-commit"><span class="nav-number">2.3.2.5.</span> <span class="nav-text"> How to perform the two-phase commit?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#read-only-transactions"><span class="nav-number">2.3.3.</span> <span class="nav-text"> Read-only transactions</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#what-kinds-of-ro-transactions-does-spanner-provide"><span class="nav-number">2.3.3.1.</span> <span class="nav-text"> What kinds of RO transactions does Spanner provide?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-spanner-server-reads-given-its-timestamp"><span class="nav-number">2.3.3.2.</span> <span class="nav-text"> How does Spanner server reads given its timestamp?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-optimize-for-the-safe-read-timestamp"><span class="nav-number">2.3.3.3.</span> <span class="nav-text"> How to optimize for the safe read timestamp?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-perform-ro-transactions"><span class="nav-number">2.3.3.4.</span> <span class="nav-text"> How to perform RO transactions?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-spanner-assign-timestamps-to-ro-transactions"><span class="nav-number">2.3.3.5.</span> <span class="nav-text"> How does Spanner assign timestamps to RO transactions?</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#evaluation"><span class="nav-number">3.</span> <span class="nav-text"> Evaluation</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">LiyunZhang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">33</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+  
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/Spanner/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Spanner | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spanner
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2023-09-26 13:47:51 / Modified: 13:50:01" itemprop="dateCreated datePublished" datetime="2023-09-26T13:47:51+08:00">2023-09-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Paper-Notebook/" itemprop="url" rel="index"><span itemprop="name">Paper Notebook</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Paper-Notebook/Distributed-System/" itemprop="url" rel="index"><span itemprop="name">Distributed System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
+<li><a href="#purpose">Purpose</a></li>
+<li><a href="#model">Model</a>
+<ul>
+<li><a href="#structure-of-implementation">Structure of implementation</a>
+<ul>
+<li><a href="#what-is-the-overview-of-spanner-server-organization">What is the overview of Spanner server organization?</a></li>
+<li><a href="#what-is-the-zones-in-spanner">What is the zones in Spanner?</a></li>
+<li><a href="#software-stack">Software stack</a>
+<ul>
+<li><a href="#how-does-spanner-manage-key-value-pairs">How does Spanner manage key-value pairs?</a></li>
+<li><a href="#how-does-spanner-support-replication">How does Spanner support replication?</a></li>
+<li><a href="#how-does-spanner-manage-lock-table">How does Spanner manage lock table?</a></li>
+<li><a href="#how-does-spanner-manage-transactions">How does Spanner manage transactions?</a></li>
+</ul>
+</li>
+<li><a href="#data-management">Data management</a>
+<ul>
+<li><a href="#how-does-spanner-manage-data-placement">How does Spanner manage data placement?</a></li>
+<li><a href="#when-would-spanner-move-a-directory">When would Spanner move a directory?</a></li>
+<li><a href="#how-does-spanner-move-a-directory">How does Spanner move a directory?</a></li>
+<li><a href="#how-does-applications-specify-placement-of-data">How does applications specify placement of data?</a></li>
+<li><a href="#what-is-the-data-model-of-spanner">What is the data model of Spanner?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#truetime-api">TrueTime API</a>
+<ul>
+<li><a href="#how-does-truetime-api-represents-time">How does TrueTime API represents time?</a></li>
+<li><a href="#how-is-truetime-api-implemented">How is TrueTime API implemented?</a></li>
+<li><a href="#what-does-time-masters-need-to-do">What does time masters need to do?</a></li>
+<li><a href="#what-does-daemons-need-to-do">What does daemons need to do?</a></li>
+</ul>
+</li>
+<li><a href="#concurrency-control">Concurrency control</a>
+<ul>
+<li><a href="#how-does-spanner-manage-paxos-leader-leases">How does Spanner manage Paxos leader leases?</a></li>
+<li><a href="#read-write-transactions">Read-write transactions</a>
+<ul>
+<li><a href="#how-does-spanner-assign-timestamps-to-rw-transactions">How does Spanner assign timestamps to RW transactions?</a></li>
+<li><a href="#how-does-spanner-enfore-external-consistency-invariant">How does Spanner enfore external-consistency invariant?</a></li>
+<li><a href="#how-does-spanner-handle-reads-within-rw-transactions">How does Spanner handle reads within RW transactions?</a></li>
+<li><a href="#what-is-the-client-drive-two-phase-commit">What is the client drive two-phase commit?</a></li>
+<li><a href="#how-to-perform-the-two-phase-commit">How to perform the two-phase commit?</a></li>
+</ul>
+</li>
+<li><a href="#read-only-transactions">Read-only transactions</a>
+<ul>
+<li><a href="#what-kinds-of-ro-transactions-does-spanner-provide">What kinds of RO transactions does Spanner provide?</a></li>
+<li><a href="#how-does-spanner-server-reads-given-its-timestamp">How does Spanner server reads given its timestamp?</a></li>
+<li><a href="#how-to-optimize-for-the-safe-read-timestamp">How to optimize for the safe read timestamp?</a></li>
+<li><a href="#how-to-perform-ro-transactions">How to perform RO transactions?</a></li>
+<li><a href="#how-does-spanner-assign-timestamps-to-ro-transactions">How does Spanner assign timestamps to RO transactions?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#evaluation">Evaluation</a></li>
+</ul>
+</p>
+<h1 id="purpose"><a class="markdownIt-Anchor" href="#purpose"></a> Purpose</h1>
+<ol>
+<li>
+<p>Spanner’s main focus is managing cross-datacenter replicated data.</p>
+</li>
+<li>
+<p>Problems of Bigtable:</p>
+<ul>
+<li>
+<p>Bigtable can be difficult to use for those that have complex, evolving schemas, or those that want strong consistency in the presence of wide-area replication.</p>
+</li>
+<li>
+<p>Many applications at Google have chosen to use Megastore because of its semi-relational data model and support for synchronous replication, despite its relatively poor write throughput.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Spanner new features:</p>
+<ul>
+<li>
+<p>Spanner has evolved from a Bigtable-like versioned key-value store into a temporal multi-version database.</p>
+</li>
+<li>
+<p>Data is stored in schematized semi-relational tables</p>
+<ul>
+<li>Data is versioned, and each version is automatically timestamped with its commit time</li>
+<li>Old versions of data are subject to configurable garbage-collection policies</li>
+<li>Applications can read data at old timestamps.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Spanner assigns globally-meaningful commit timestamps to transactions.</p>
+<ul>
+<li>If a transaction <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> commits before another transaction <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> starts, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>’s commit timestamp is smaller than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>’s.</li>
+<li>Spanner provides externally consistent reads and writes, and globally-consistent reads across the database at a timestamp.</li>
+</ul>
+</li>
+</ol>
+<h1 id="model"><a class="markdownIt-Anchor" href="#model"></a> Model</h1>
+<h2 id="structure-of-implementation"><a class="markdownIt-Anchor" href="#structure-of-implementation"></a> Structure of implementation</h2>
+<h3 id="what-is-the-overview-of-spanner-server-organization"><a class="markdownIt-Anchor" href="#what-is-the-overview-of-spanner-server-organization"></a> What is the overview of Spanner server organization?</h3>
+<ol>
+<li>A Spanner deployment is called a universe.</li>
+<li>Spanner is organized as a set of zones.
+<ul>
+<li>A zone has one zonemaster and between one hundred and several thousand spanservers.</li>
+<li>The zonemaster assigns data to spanservers; the spanservers serve data to clients.</li>
+<li>The per-zone location proxies are used by clients to locate the spanservers assigned to serve their data.</li>
+<li>The per-zone location proxies are used by clients to locate the spanservers assigned to serve their data.</li>
+</ul>
+</li>
+<li>The universe master is primarily a console that displays status information about all the zones for interactive debugging.</li>
+<li>The placement driver handles automated movement of data across zones on the timescale of minutes.
+<ul>
+<li>The placement driver periodically communicates with the spanservers to find data that needs to be moved, either to meet updated replication constraints or to balance load.</li>
+</ul>
+</li>
+<li>The universe master and the placement driver are currently singletons.</li>
+</ol>
+<img src="/imgs/Distributed/Spanner/structure.png" width="50%">
+<h3 id="what-is-the-zones-in-spanner"><a class="markdownIt-Anchor" href="#what-is-the-zones-in-spanner"></a> What is the zones in Spanner?</h3>
+<ol>
+<li>Each zone is the rough analog of a deployment of Bigtable servers.</li>
+<li>Zones are the unit of administrative deployment. The set of zones is also the set of locations across which data can be replicated.</li>
+<li>Zones can be added to or removed from a running system as new datacenters are brought into service and old ones are turned off, respectively.</li>
+<li>Zones are also the unit of physical isolation. There may be one or more zones in a datacenter.</li>
+</ol>
+<h3 id="software-stack"><a class="markdownIt-Anchor" href="#software-stack"></a> Software stack</h3>
+<img src="/imgs/Distributed/Spanner/software.png" width=50%>
+<h4 id="how-does-spanner-manage-key-value-pairs"><a class="markdownIt-Anchor" href="#how-does-spanner-manage-key-value-pairs"></a> How does Spanner manage key-value pairs?</h4>
+<ol>
+<li>At the bottom, each spanserver is responsible for between 100 and 1000 instances of a data structure called a tablet.</li>
+<li>A tablet is similar to Bigtable’s tablet abstraction, in that it implements a bag of the following mappings: <code>(key: string, timestamp: int64) → string</code></li>
+<li>Unlike Bigtable, Spanner assigns timestamps to data, which is more like a multi-version database than a key-value store.</li>
+<li>A tablet’s state is stored in set of B-tree-like files and a write-ahead log, all on a distributed file system called Colossus.</li>
+</ol>
+<h4 id="how-does-spanner-support-replication"><a class="markdownIt-Anchor" href="#how-does-spanner-support-replication"></a> How does Spanner support replication?</h4>
+<ol>
+<li>Each spanserver implements a single Paxos state machine on top of each tablet.
+<ul>
+<li>Its Paxos implementation supports long-lived leaders with time-based leader leases, whose length defaults to 10 seconds.</li>
+<li>The implementation logs every Paxos write twice: once in the tablet’s log, and once in the Paxos log. (made out of expediency, to be remedied eventually)</li>
+<li>The implementation of Paxos is pipelined, so as to improve Spanner’s throughput in the presence of WAN latencies; but writes are applied by Paxos in order.</li>
+</ul>
+</li>
+<li>The Paxos state machines are used to implement a consistently replicated bag of mappings.
+<ul>
+<li>Each state machine stores its metadata and log in its corresponding tablet.</li>
+<li>Writes must initiate the Paxos protocol at the leader; reads access state directly from the underlying tablet at any replica that is sufficiently up-to-date.</li>
+</ul>
+</li>
+</ol>
+<h4 id="how-does-spanner-manage-lock-table"><a class="markdownIt-Anchor" href="#how-does-spanner-manage-lock-table"></a> How does Spanner manage lock table?</h4>
+<ol>
+<li>At every replica that is a leader, each spanserver implements a lock table to implement concurrency control.</li>
+<li>The lock table contains the state for two-phase locking: it maps ranges of keys to lock states.</li>
+<li>Having a long-lived Paxos leader is critical to efficiently managing the lock table.</li>
+</ol>
+<h4 id="how-does-spanner-manage-transactions"><a class="markdownIt-Anchor" href="#how-does-spanner-manage-transactions"></a> How does Spanner manage transactions?</h4>
+<ol>
+<li>
+<p>At every replica that is a leader, each spanserver also implements a transaction manager to support distributed transactions.</p>
+<ul>
+<li>The transaction manager is used to implement a <strong>participant leader</strong>; the other replicas in the group will be referred to as <strong>participant slaves</strong>.</li>
+</ul>
+</li>
+<li>
+<p>If a transaction involves only one Paxos group, it can bypass the transaction manager, since the lock table and Paxos together provide transactionality.</p>
+</li>
+<li>
+<p>If a transaction involves more than one Paxos group, those groups’ leaders coordinate to perform twophase commit.</p>
+<ul>
+<li>
+<p>One of the participant groups is chosen as the coordinator: the participant leader of that group will be referred to as the <strong>coordinator leader</strong>, and the slaves of that group as <strong>coordinator slaves</strong>.</p>
+</li>
+<li>
+<p>The state of each transaction manager is stored in the underlying Paxos group.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="data-management"><a class="markdownIt-Anchor" href="#data-management"></a> Data management</h3>
+<h4 id="how-does-spanner-manage-data-placement"><a class="markdownIt-Anchor" href="#how-does-spanner-manage-data-placement"></a> How does Spanner manage data placement?</h4>
+<ol>
+<li>A <strong>directory</strong> is a set of contiguous keys that share a common prefix.
+<ul>
+<li>A directory is the unit of data placement. All data in a directory has the same replication configuration.</li>
+<li>Directories can be moved while client operations are ongoing.</li>
+<li>A Paxos group may contain multiple directories, i.e. a Spanner tablet is a container that may encapsulate multiple partitions of the row space.</li>
+</ul>
+</li>
+<li>Spanner will shard a directory into multiple fragments if it grows too large.
+<ul>
+<li>Fragments may be served from different Paxos groups.</li>
+<li>Movedir actually moves fragments, and not whole directories, between groups.</li>
+</ul>
+</li>
+</ol>
+<h4 id="when-would-spanner-move-a-directory"><a class="markdownIt-Anchor" href="#when-would-spanner-move-a-directory"></a> When would Spanner move a directory?</h4>
+<ol>
+<li>To shed load from a Paxos group.</li>
+<li>To put directories that are frequently accessed together into the same group.</li>
+<li>To move a directory into a group that is closer to its accessors.</li>
+</ol>
+<h4 id="how-does-spanner-move-a-directory"><a class="markdownIt-Anchor" href="#how-does-spanner-move-a-directory"></a> How does Spanner move a directory?</h4>
+<ol>
+<li>Movedir is not implemented as a single transaction, so as to avoid blocking ongoing reads and writes on a bulky data move.</li>
+<li>Instead, movedir registers the fact that it is starting to move data and moves the data in the background.</li>
+<li>When it has moved all but a nominal amount of the data, it uses a transaction to atomically move that nominal amount and update the metadata for the two Paxos groups.</li>
+</ol>
+<h4 id="how-does-applications-specify-placement-of-data"><a class="markdownIt-Anchor" href="#how-does-applications-specify-placement-of-data"></a> How does applications specify placement of data?</h4>
+<ol>
+<li>A directory is also the smallest unit whose geographicreplication properties can be specified by an application.</li>
+<li>Administrators control two dimensions: the number and types of replicas, and the geographic placement of those replicas.
+<ul>
+<li>They create a menu of named options in these two dimensions.</li>
+</ul>
+</li>
+<li>An application controls how data is replicated, by tagging each database and/or individual directories with a combination of those options.</li>
+</ol>
+<h4 id="what-is-the-data-model-of-spanner"><a class="markdownIt-Anchor" href="#what-is-the-data-model-of-spanner"></a> What is the data model of Spanner?</h4>
+<ol>
+<li>
+<p>Spanner exposes the following set of data features to applications</p>
+<ul>
+<li>A data model based on schematized semi-relational tables</li>
+<li>A query language</li>
+<li>Generalpurpose transactions</li>
+</ul>
+</li>
+<li>
+<p>The application data model is layered on top of the directory-bucketed key-value mappings supported by the implementation.</p>
+<ul>
+<li>
+<p>An application creates one or more databases in a universe.</p>
+</li>
+<li>
+<p>Each database can contain an unlimited number of schematized tables.</p>
+</li>
+<li>
+<p>Tables look like relational-database tables, with rows, columns, and versioned values.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Every table is required to have an ordered set of one or more primary-key columns.</p>
+<ul>
+<li>The primary keys form the name for a row, and each table defines a mapping from the primary-key columns to the non-primary-key columns.</li>
+<li>A row has existence only if some value (even if it is NULL) is defined for the row’s keys.</li>
+</ul>
+</li>
+<li>
+<p>Every Spanner database must be partitioned by clients into one or more hierarchies of tables.</p>
+<ul>
+<li>Each row in a directory table with key K, together with all of the rows in descendant tables that start with K in lexicographic order, forms a directory.</li>
+</ul>
+</li>
+</ol>
+<h2 id="truetime-api"><a class="markdownIt-Anchor" href="#truetime-api"></a> TrueTime API</h2>
+<h3 id="how-does-truetime-api-represents-time"><a class="markdownIt-Anchor" href="#how-does-truetime-api-represents-time"></a> How does TrueTime API represents time?</h3>
+<ol>
+<li>
+<p>TrueTime explicitly represents time as a <code>TTinterval</code>, which is an interval with bounded time uncertainty. The endpoints of a TTinterval are of type <code>TTstamp</code>.</p>
+</li>
+<li>
+<p>The <code>TT.now()</code> method returns a <code>TTinterval</code>: <code>[earliest, latest]</code> that is guaranteed to contain the absolute time during which <code>TT.now()</code> was invoked.</p>
+<ul>
+<li>Denote the absolute time of an event e by the function <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mi>a</mi><mi>b</mi><mi>s</mi></mrow></msub><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">t_{abs}(e)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">b</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">e</span><span class="mclose">)</span></span></span></span>.</li>
+<li>TrueTime guarantees that for an invocation <code>tt = TT.now()</code>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mi>t</mi><mi mathvariant="normal">.</mi><mi>e</mi><mi>a</mi><mi>r</mi><mi>l</mi><mi>i</mi><mi>e</mi><mi>s</mi><mi>t</mi><mo>≤</mo><msub><mi>t</mi><mrow><mi>a</mi><mi>b</mi><mi>s</mi></mrow></msub><mo stretchy="false">(</mo><msub><mi>e</mi><mrow><mi>n</mi><mi>o</mi><mi>w</mi></mrow></msub><mo stretchy="false">)</mo><mo>≤</mo><mi>t</mi><mi>t</mi><mi mathvariant="normal">.</mi><mi>l</mi><mi>a</mi><mi>t</mi><mi>e</mi><mi>s</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">tt.earliest ≤ t_{abs}(e_{now}) ≤ tt.latest</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83041em;vertical-align:-0.13597em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">t</span><span class="mord">.</span><span class="mord mathnormal">e</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">i</span><span class="mord mathnormal">e</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">b</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">t</span><span class="mord">.</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">a</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span></span></span></span>, where <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mrow><mi>n</mi><mi>o</mi><mi>w</mi></mrow></msub></mrow><annotation encoding="application/x-tex">e_{now}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is the invocation event.</li>
+</ul>
+</li>
+<li>
+<p><code>TT.after(t)</code> returns <code>true</code> if t has definitely passed.</p>
+<p><code>TT.before(t)</code> returns <code>true</code> if t has definitely not arrived.</p>
+</li>
+</ol>
+<h3 id="how-is-truetime-api-implemented"><a class="markdownIt-Anchor" href="#how-is-truetime-api-implemented"></a> How is TrueTime API implemented?</h3>
+<ol>
+<li>TrueTime is implemented by a set of <strong>time master</strong> machines per datacenter and a <strong>timeslave daemon</strong> per machine.</li>
+<li>The majority of masters have GPS receivers with dedicated antennas.
+<ul>
+<li>These masters are separated physically to reduce the effects of antenna failures, radio interference, and spoofing.</li>
+</ul>
+</li>
+<li>The remaining masters (which we refer to as <strong>Armageddon masters</strong>) are equipped with atomic clocks.</li>
+</ol>
+<h3 id="what-does-time-masters-need-to-do"><a class="markdownIt-Anchor" href="#what-does-time-masters-need-to-do"></a> What does time masters need to do?</h3>
+<ol>
+<li>
+<p>All masters’ time references are regularly compared against each other.</p>
+</li>
+<li>
+<p>Each master also cross-checks the rate at which its reference advances time against its own local clock, and evicts itself if there is substantial divergence.</p>
+</li>
+<li>
+<p>Between synchronizations,</p>
+<ul>
+<li>
+<p>Armageddon masters advertise a slowly increasing time uncertainty that is derived from conservatively applied worst-case clock drift.</p>
+</li>
+<li>
+<p>GPS masters advertise uncertainty that is typically close to zero.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="what-does-daemons-need-to-do"><a class="markdownIt-Anchor" href="#what-does-daemons-need-to-do"></a> What does daemons need to do?</h3>
+<ol>
+<li>Every daemon polls a variety of masters to reduce vulnerability to errors from any one master.
+<ul>
+<li>Some are GPS masters chosen from nearby datacenters</li>
+<li>The rest are GPS masters from farther datacenters, as well as some Armageddon masters.</li>
+</ul>
+</li>
+<li>Daemons apply a variant of Marzullo’s algorithm to detect and reject liars, and synchronize the local machine clocks to the non-liars.</li>
+<li>To protect against broken local clocks, machines that exhibit frequency excursions larger than the worstcase bound derived from component specifications and operating environment are evicted.</li>
+<li>Between synchronizations,
+<ul>
+<li>A daemon advertises a slowly increasing time uncertainty. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi></mrow><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">ϵ</span></span></span></span> is derived from conservatively applied worst-case local clock drift.</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi></mrow><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">ϵ</span></span></span></span> also depends on time-master uncertainty and communication delay to the time masters.</li>
+</ul>
+</li>
+</ol>
+<h2 id="concurrency-control"><a class="markdownIt-Anchor" href="#concurrency-control"></a> Concurrency control</h2>
+<h3 id="how-does-spanner-manage-paxos-leader-leases"><a class="markdownIt-Anchor" href="#how-does-spanner-manage-paxos-leader-leases"></a> How does Spanner manage Paxos leader leases?</h3>
+<ol>
+<li>Spanner depends on the <strong>disjointness invariant</strong>: for each Paxos group, each Paxos leader’s lease interval is disjoint from every other leader’s.</li>
+<li>The Spanner implementation permits a Paxos leader to abdicate by releasing its slaves from their lease votes.
+<ul>
+<li>To preserve the disjointness invariant, Spanner constrains when abdication is permissible.</li>
+<li>Define <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub></mrow><annotation encoding="application/x-tex">s_{max}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">x</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> to be the maximum timestamp used by a leader. Before abdicating, a leader must wait until <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mi>T</mi><mi mathvariant="normal">.</mi><mi>a</mi><mi>f</mi><mi>t</mi><mi>e</mi><mi>r</mi><mo stretchy="false">(</mo><msub><mi>s</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">TT.after(s_{max})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord">.</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">x</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> is true.</li>
+</ul>
+</li>
+</ol>
+<h3 id="read-write-transactions"><a class="markdownIt-Anchor" href="#read-write-transactions"></a> Read-write transactions</h3>
+<h4 id="how-does-spanner-assign-timestamps-to-rw-transactions"><a class="markdownIt-Anchor" href="#how-does-spanner-assign-timestamps-to-rw-transactions"></a> How does Spanner assign timestamps to RW transactions?</h4>
+<ol>
+<li>For a given transaction, Spanner assigns it the timestamp that Paxos assigns to the Paxos write that represents the transaction commit.</li>
+<li><strong>Monotonicity invariant</strong>: within each Paxos group, Spanner assigns timestamps to Paxos writes in monotonically increasing order, even across leaders.
+<ul>
+<li>This invariant is enforced across leaders by making use of the disjointness invariant: a leader must only assign timestamps within the interval of its leader lease.</li>
+<li>Whenever a timestamp <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi></mrow><annotation encoding="application/x-tex">s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">s</span></span></span></span> is assigned, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub></mrow><annotation encoding="application/x-tex">s_{max}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">x</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is advanced to s to preserve disjointness.</li>
+</ul>
+</li>
+</ol>
+<h4 id="how-does-spanner-enfore-external-consistency-invariant"><a class="markdownIt-Anchor" href="#how-does-spanner-enfore-external-consistency-invariant"></a> How does Spanner enfore external-consistency invariant?</h4>
+<ol>
+<li>
+<p><strong>External-consistency invariant</strong>: if the start of a transaction <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> occurs after the commit of a transaction <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, then the commit timestamp of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> must be greater than the commit timestamp of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</p>
+</li>
+<li>
+<p>Define the start and commit events for a transaction <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>e</mi><mi>i</mi><mrow><mi>s</mi><mi>t</mi><mi>a</mi><mi>r</mi><mi>t</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">e^{start}_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.05222em;vertical-align:-0.258664em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.441336em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.258664em;"><span></span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>e</mi><mi>i</mi><mrow><mi>c</mi><mi>o</mi><mi>m</mi><mi>m</mi><mi>i</mi><mi>t</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">e^{commit}_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0833279999999998em;vertical-align:-0.258664em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.824664em;"><span style="top:-2.441336em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.258664em;"><span></span></span></span></span></span></span></span></span></span> ; and the commit timestamp of a transaction <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">s_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>. The invariant becomes <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mi>a</mi><mi>b</mi><mi>s</mi></mrow></msub><mo stretchy="false">(</mo><msubsup><mi>e</mi><mn>1</mn><mrow><mi>c</mi><mi>o</mi><mi>m</mi><mi>m</mi><mi>i</mi><mi>t</mi></mrow></msubsup><mo stretchy="false">)</mo><mo>&lt;</mo><msub><mi>t</mi><mrow><mi>a</mi><mi>b</mi><mi>s</mi></mrow></msub><mo stretchy="false">(</mo><msubsup><mi>e</mi><mn>2</mn><mrow><mi>s</mi><mi>t</mi><mi>a</mi><mi>r</mi><mi>t</mi></mrow></msubsup><mo stretchy="false">)</mo><mo>⇒</mo><msub><mi>s</mi><mn>1</mn></msub><mo>&lt;</mo><msub><mi>s</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">t_{abs}(e^{commit}_1 ) &lt; t_{abs}(e^{start}_2 ) \Rightarrow s_1 &lt; s_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0746639999999998em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">b</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.824664em;"><span style="top:-2.4518920000000004em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24810799999999997em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.043556em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">b</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.4518920000000004em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24810799999999997em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⇒</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.6891em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</p>
+</li>
+<li>
+<p>Define the arrival event of the commit request at the coordinator leader for a write <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> to be <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>e</mi><mi>i</mi><mrow><mi>s</mi><mi>e</mi><mi>r</mi><mi>v</mi><mi>e</mi><mi>r</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">e^{server}_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.923056em;vertical-align:-0.258664em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.664392em;"><span style="top:-2.441336em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.03588em;">v</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.258664em;"><span></span></span></span></span></span></span></span></span></span>.</p>
+</li>
+<li>
+<p>The protocol for executing transactions and assigning timestamps obeys two rules</p>
+<ul>
+<li><strong>Start</strong>: The coordinator leader for a write <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> assigns a commit timestamp <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">s_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> no less than the value of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mi>T</mi><mi mathvariant="normal">.</mi><mi>n</mi><mi>o</mi><mi>w</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi><mi>l</mi><mi>a</mi><mi>t</mi><mi>e</mi><mi>s</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">TT.now().latest</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord">.</span><span class="mord mathnormal">n</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="mopen">(</span><span class="mclose">)</span><span class="mord">.</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">a</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span></span></span></span>, computed after <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>e</mi><mi>i</mi><mrow><mi>s</mi><mi>e</mi><mi>r</mi><mi>v</mi><mi>e</mi><mi>r</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">e^{server}_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.923056em;vertical-align:-0.258664em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.664392em;"><span style="top:-2.441336em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.03588em;">v</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.258664em;"><span></span></span></span></span></span></span></span></span></span> .</li>
+<li><strong>Commit Wait</strong>: The coordinator leader ensures that clients cannot see any data committed by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> until <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mi>T</mi><mi mathvariant="normal">.</mi><mi>a</mi><mi>f</mi><mi>t</mi><mi>e</mi><mi>r</mi><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">TT.after(s_i)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord">.</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> is true.
+<ul>
+<li>Commit wait ensures that <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">s_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is less than the absolute commit time of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, or <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>i</mi></msub><mo>&lt;</mo><msub><mi>t</mi><mrow><mi>a</mi><mi>b</mi><mi>s</mi></mrow></msub><mo stretchy="false">(</mo><msubsup><mi>e</mi><mi>i</mi><mrow><mi>c</mi><mi>o</mi><mi>m</mi><mi>m</mi><mi>i</mi><mi>t</mi></mrow></msubsup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">s_i &lt; t_{abs}(e^{commit}_i )</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6891em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.0833279999999998em;vertical-align:-0.258664em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">b</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.824664em;"><span style="top:-2.441336em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.258664em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Proof:</p>
+<img src="/imgs/Distributed/Spanner/ec_invariant.png" width="50%">
+</li>
+</ol>
+<h4 id="how-does-spanner-handle-reads-within-rw-transactions"><a class="markdownIt-Anchor" href="#how-does-spanner-handle-reads-within-rw-transactions"></a> How does Spanner handle reads within RW transactions?</h4>
+<ol>
+<li>Reads in a transaction do not see the effects of the transaction’s writes.
+<ul>
+<li>Writes that occur in a transaction are buffered at the client until commit.</li>
+<li>A read returns the timestamps of any data read, and uncommitted writes have not yet been assigned timestamps.</li>
+</ul>
+</li>
+<li>Reads within read-write transactions use wound-wait to avoid deadlocks.
+<ul>
+<li>When Transaction <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">T_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> requests a data item currently held by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">T_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">T_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is allowed to wait only if it has a timestamp larger than that of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">T_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, otherwise <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">T_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is killed (i.e. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">T_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is wounded by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">T_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>).</li>
+<li>This scheme allows the younger transaction requesting a lock to “wait” if the older transaction already holds a lock, but forces the younger one to be suspended (“wound”) if the older transaction requests a lock on an item already held by the younger one.</li>
+</ul>
+</li>
+</ol>
+<h4 id="what-is-the-client-drive-two-phase-commit"><a class="markdownIt-Anchor" href="#what-is-the-client-drive-two-phase-commit"></a> What is the client drive two-phase commit?</h4>
+<ol>
+<li>The client issues reads to the leader replica of the appropriate group, which acquires read locks and then reads the most recent data.</li>
+<li>While a client transaction remains open, it sends keepalive messages to prevent participant leaders from timing out its transaction.</li>
+<li>When a client has completed all reads and buffered all writes, it begins two-phase commit.
+<ul>
+<li>The client chooses a coordinator group.</li>
+<li>Then it sends a commit message to each participant’s leader with the identity of the coordinator and any buffered writes.</li>
+</ul>
+</li>
+<li>Having the client drive two-phase commit avoids sending data twice across wide-area links.</li>
+</ol>
+<h4 id="how-to-perform-the-two-phase-commit"><a class="markdownIt-Anchor" href="#how-to-perform-the-two-phase-commit"></a> How to perform the two-phase commit?</h4>
+<ol>
+<li>A non-coordinator-participant leader,
+<ul>
+<li>It first acquires write locks.</li>
+<li>It then chooses a prepare timestamp that must be larger than any timestamps it has assigned to previous transactions, and logs a prepare record through Paxos.</li>
+<li>Each participant then notifies the coordinator of its prepare timestamp.</li>
+</ul>
+</li>
+<li>The coordinator leader,
+<ul>
+<li>It also first acquires write locks, but skips the prepare phase.</li>
+<li>It chooses a timestamp for the entire transaction after hearing from all other participant leaders.</li>
+<li>The commit timestamp s must be
+<ul>
+<li>Greater or equal to all prepare timestamps,</li>
+<li>Greater than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mi>T</mi><mi mathvariant="normal">.</mi><mi>n</mi><mi>o</mi><mi>w</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi><mi>l</mi><mi>a</mi><mi>t</mi><mi>e</mi><mi>s</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">TT.now().latest</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord">.</span><span class="mord mathnormal">n</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="mopen">(</span><span class="mclose">)</span><span class="mord">.</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">a</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span></span></span></span> at the time the coordinator received its commit message,</li>
+<li>Greater than any timestamps the leader has assigned to previous transactions.</li>
+<li>The coordinator leader logs a commit record through Paxos, or an abort if it timed out while waiting on the other participants.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Before allowing any coordinator replica to apply the commit record, the coordinator leader waits until <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mi>T</mi><mi mathvariant="normal">.</mi><mi>a</mi><mi>f</mi><mi>t</mi><mi>e</mi><mi>r</mi><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">TT.after(s)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord">.</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mopen">(</span><span class="mord mathnormal">s</span><span class="mclose">)</span></span></span></span>.
+<ul>
+<li>This wait is typically overlapped with Paxos communication.</li>
+</ul>
+</li>
+<li>After commit wait, the coordinator sends the commit timestamp to the client and all other participant leaders.</li>
+<li>Each participant leader logs the transaction’s outcome through Paxos. All participants apply at the same timestamp and then release locks.</li>
+</ol>
+<h3 id="read-only-transactions"><a class="markdownIt-Anchor" href="#read-only-transactions"></a> Read-only transactions</h3>
+<h4 id="what-kinds-of-ro-transactions-does-spanner-provide"><a class="markdownIt-Anchor" href="#what-kinds-of-ro-transactions-does-spanner-provide"></a> What kinds of RO transactions does Spanner provide?</h4>
+<ol>
+<li>A read-only transaction is a kind of transaction that has the performance benefits of snapshot isolation.
+<ul>
+<li>Reads in a read-only transaction execute at a system-chosen timestamp without locking, so that incoming writes are not blocked.</li>
+</ul>
+</li>
+<li>A snapshot read is a read in the past that executes without locking.
+<ul>
+<li>A client can specify a timestamp for a snapshot read.</li>
+<li>Or they can provide an upper bound on the desired timestamp’s staleness and let Spanner choose a timestamp.</li>
+</ul>
+</li>
+<li>For both read-only transactions and snapshot reads
+<ul>
+<li>The execution of the reads in a read-only transaction can proceed on any replica that is sufficiently up-to-date.</li>
+<li>Commit is inevitable once a timestamp has been chosen, unless the data at that timestamp has been garbagecollected.
+<ul>
+<li>Clients can avoid buffering results inside a retry loop.</li>
+<li>When a server fails, clients can internally continue the query on a different server by repeating the timestamp and the current read position.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h4 id="how-does-spanner-server-reads-given-its-timestamp"><a class="markdownIt-Anchor" href="#how-does-spanner-server-reads-given-its-timestamp"></a> How does Spanner server reads given its timestamp?</h4>
+<ol>
+<li>Every replica tracks a value called safe time <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mi>s</mi><mi>a</mi><mi>f</mi><mi>e</mi></mrow></msub></mrow><annotation encoding="application/x-tex">t_{safe}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9011879999999999em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> which is the maximum timestamp at which a replica is up-to-date.</li>
+<li>Each Paxos state machine has a safe time <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>t</mi><mrow><mi>s</mi><mi>a</mi><mi>f</mi><mi>e</mi></mrow><mrow><mi>P</mi><mi>a</mi><mi>x</mi><mi>o</mi><mi>s</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">t^{Paxos}_{safe}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2605469999999999em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-2.4168920000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">e</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">x</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span></span></span></span>.
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>t</mi><mrow><mi>s</mi><mi>a</mi><mi>f</mi><mi>e</mi></mrow><mrow><mi>P</mi><mi>a</mi><mi>x</mi><mi>o</mi><mi>s</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">t^{Paxos}_{safe}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2605469999999999em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-2.4168920000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">e</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">x</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span></span></span></span> is the timestamp of the highest-applied Paxos write.</li>
+<li>Because timestamps increase monotonically and writes are applied in order, writes will no longer occur at or below <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>t</mi><mrow><mi>s</mi><mi>a</mi><mi>f</mi><mi>e</mi></mrow><mrow><mi>P</mi><mi>a</mi><mi>x</mi><mi>o</mi><mi>s</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">t^{Paxos}_{safe}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2605469999999999em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-2.4168920000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">e</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">x</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span></span></span></span> with respect to Paxos.</li>
+</ul>
+</li>
+<li>Each transaction manager has a safe time <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>t</mi><mrow><mi>s</mi><mi>a</mi><mi>f</mi><mi>e</mi></mrow><mrow><mi>T</mi><mi>M</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">t^{TM}_{safe}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2605469999999999em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-2.4168920000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">e</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">T</span><span class="mord mathnormal mtight" style="margin-right:0.10903em;">M</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span></span></span></span>.
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>t</mi><mrow><mi>s</mi><mi>a</mi><mi>f</mi><mi>e</mi></mrow><mrow><mi>T</mi><mi>M</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">t^{TM}_{safe}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2605469999999999em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-2.4168920000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">e</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">T</span><span class="mord mathnormal mtight" style="margin-right:0.10903em;">M</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span></span></span></span> is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">∞</mi></mrow><annotation encoding="application/x-tex">\infty</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord">∞</span></span></span></span> at a replica if there are zero prepared (but not committed) transactions, i.e. transactions in between the two phases of two-phase commit.</li>
+<li>If there are any such transactions, then the state affected by those transactions is indeterminate.
+<ul>
+<li>A participant replica does not know yet whether such transactions will commit.</li>
+<li>The commit protocol ensures that every participant knows a lower bound on a prepared transaction’s timestamp.</li>
+<li>Every participant leader (for a group <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span></span></span></span>) for a transaction <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> assigns a prepare timestamp <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>s</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>g</mi></mrow><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>p</mi><mi>a</mi><mi>r</mi><mi>e</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">s^{prepare}_{i,g}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1952720000000001em;vertical-align:-0.412972em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7823em;"><span style="top:-2.4231360000000004em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.03588em;">g</span></span></span></span><span style="top:-3.1809080000000005em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.412972em;"><span></span></span></span></span></span></span></span></span></span> to its prepare record.</li>
+<li>The coordinator leader ensures that the transaction’s commit timestamp <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>i</mi></msub><mo>≥</mo><msubsup><mi>s</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>g</mi></mrow><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>p</mi><mi>a</mi><mi>r</mi><mi>e</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">s_i ≥ s^{prepare}_{i,g}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7859700000000001em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.1952720000000001em;vertical-align:-0.412972em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7823em;"><span style="top:-2.4231360000000004em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.03588em;">g</span></span></span></span><span style="top:-3.1809080000000005em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.412972em;"><span></span></span></span></span></span></span></span></span></span> over all participant groups <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span></span></span></span>.</li>
+<li>For every replica in a group <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span></span></span></span>, over all transactions <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> prepared at <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>t</mi><mrow><mi>s</mi><mi>a</mi><mi>f</mi><mi>e</mi></mrow><mrow><mi>T</mi><mi>M</mi></mrow></msubsup><mo>=</mo><mi>m</mi><mi>i</mi><msub><mi>n</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msubsup><mi>s</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>g</mi></mrow><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>p</mi><mi>a</mi><mi>r</mi><mi>e</mi></mrow></msubsup><mo stretchy="false">)</mo><mtext>−</mtext><mn>1</mn></mrow><annotation encoding="application/x-tex">t^{TM}_{safe} = min_i(s^{prepare}_{i,g}) − 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2605469999999999em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-2.4168920000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">e</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">T</span><span class="mord mathnormal mtight" style="margin-right:0.10903em;">M</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.1952720000000001em;vertical-align:-0.412972em;"></span><span class="mord mathnormal">m</span><span class="mord mathnormal">i</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7823em;"><span style="top:-2.4231360000000004em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.03588em;">g</span></span></span></span><span style="top:-3.1809080000000005em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.412972em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mord">−</span><span class="mord">1</span></span></span></span> over all transactions prepared at <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span></span></span></span>.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Define <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mi>s</mi><mi>a</mi><mi>f</mi><mi>e</mi></mrow></msub><mo>=</mo><mi>m</mi><mi>i</mi><mi>n</mi><mo stretchy="false">(</mo><msubsup><mi>t</mi><mrow><mi>s</mi><mi>a</mi><mi>f</mi><mi>e</mi></mrow><mrow><mi>P</mi><mi>a</mi><mi>x</mi><mi>o</mi><mi>s</mi></mrow></msubsup><mo separator="true">,</mo><msubsup><mi>t</mi><mrow><mi>s</mi><mi>a</mi><mi>f</mi><mi>e</mi></mrow><mrow><mi>T</mi><mi>M</mi></mrow></msubsup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">t_{safe} = min(t^{Paxos}_{safe} , t^{TM}_{safe})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9011879999999999em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.2605469999999999em;vertical-align:-0.4192159999999999em;"></span><span class="mord mathnormal">m</span><span class="mord mathnormal">i</span><span class="mord mathnormal">n</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-2.4168920000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">e</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">x</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-2.4168920000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">e</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">T</span><span class="mord mathnormal mtight" style="margin-right:0.10903em;">M</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>. A replica can satisfy a read at a timestamp <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.61508em;vertical-align:0em;"></span><span class="mord mathnormal">t</span></span></span></span> if <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>≤</mo><msub><mi>t</mi><mrow><mi>s</mi><mi>a</mi><mi>f</mi><mi>e</mi></mrow></msub></mrow><annotation encoding="application/x-tex">t ≤ t_{safe}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7719400000000001em;vertical-align:-0.13597em;"></span><span class="mord mathnormal">t</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.9011879999999999em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span>.</li>
+</ol>
+<h4 id="how-to-optimize-for-the-safe-read-timestamp"><a class="markdownIt-Anchor" href="#how-to-optimize-for-the-safe-read-timestamp"></a> How to optimize for the safe read timestamp?</h4>
+<ol>
+<li>
+<p>No reads can occur at timestamps later than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>t</mi><mrow><mi>s</mi><mi>a</mi><mi>f</mi><mi>e</mi></mrow><mrow><mi>T</mi><mi>M</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">t^{TM}_{safe}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2605469999999999em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-2.4168920000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">e</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">T</span><span class="mord mathnormal mtight" style="margin-right:0.10903em;">M</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span></span></span></span>, even if the reads do not conflict with the transaction.</p>
+<ul>
+<li>
+<p>Can be removed by augmenting <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>t</mi><mrow><mi>s</mi><mi>a</mi><mi>f</mi><mi>e</mi></mrow><mrow><mi>T</mi><mi>M</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">t^{TM}_{safe}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2605469999999999em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-2.4168920000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">e</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">T</span><span class="mord mathnormal mtight" style="margin-right:0.10903em;">M</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span></span></span></span> with a fine-grained mapping from key ranges to preparedtransaction timestamps.</p>
+</li>
+<li>
+<p>This information can be stored in the lock table, which already maps key ranges to lock metadata.</p>
+</li>
+<li>
+<p>When a read arrives, it only needs to be checked against the fine-grained safe time for key ranges with which the read conflicts.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>t</mi><mrow><mi>s</mi><mi>a</mi><mi>f</mi><mi>e</mi></mrow><mrow><mi>P</mi><mi>a</mi><mi>x</mi><mi>o</mi><mi>s</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">t^{Paxos}_{safe}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2605469999999999em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-2.4168920000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">e</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">x</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span></span></span></span> cannot advance in the absence of Paxos writes. A snapshot read at <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.61508em;vertical-align:0em;"></span><span class="mord mathnormal">t</span></span></span></span> cannot execute at Paxos groups whose last write happened before <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.61508em;vertical-align:0em;"></span><span class="mord mathnormal">t</span></span></span></span>.</p>
+<ul>
+<li>Spanner addresses this problem by taking advantage of the disjointness of leader-lease intervals.</li>
+<li>Each Paxos leader advances <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>t</mi><mrow><mi>s</mi><mi>a</mi><mi>f</mi><mi>e</mi></mrow><mrow><mi>P</mi><mi>a</mi><mi>x</mi><mi>o</mi><mi>s</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">t^{Paxos}_{safe}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2605469999999999em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-2.4168920000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">e</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">x</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span></span></span></span> by keeping a threshold above which future writes’ timestamps will occur.
+<ul>
+<li>It maintains a mapping <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>i</mi><mi>n</mi><mi>N</mi><mi>e</mi><mi>x</mi><mi>t</mi><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">MinNextTS(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord mathnormal">i</span><span class="mord mathnormal">n</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal">e</span><span class="mord mathnormal">x</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span> from Paxos sequence number <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">n</span></span></span></span> to the minimum timestamp that may be assigned to Paxos sequence number <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n + 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>.</li>
+<li>A replica can advance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>t</mi><mrow><mi>s</mi><mi>a</mi><mi>f</mi><mi>e</mi></mrow><mrow><mi>P</mi><mi>a</mi><mi>x</mi><mi>o</mi><mi>s</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">t^{Paxos}_{safe}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2605469999999999em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-2.4168920000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">e</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">x</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span></span></span></span> to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>i</mi><mi>n</mi><mi>N</mi><mi>e</mi><mi>x</mi><mi>t</mi><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mtext>−</mtext><mn>1</mn></mrow><annotation encoding="application/x-tex">MinNextTS(n) − 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord mathnormal">i</span><span class="mord mathnormal">n</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal">e</span><span class="mord mathnormal">x</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mord">−</span><span class="mord">1</span></span></span></span> when it has applied through <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">n</span></span></span></span>.</li>
+</ul>
+</li>
+<li>A single leader can enforce its <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>i</mi><mi>n</mi><mi>N</mi><mi>e</mi><mi>x</mi><mi>t</mi><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">MinNextTS()</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord mathnormal">i</span><span class="mord mathnormal">n</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal">e</span><span class="mord mathnormal">x</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mclose">)</span></span></span></span> promises easily.
+<ul>
+<li>The timestamps promised by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>i</mi><mi>n</mi><mi>N</mi><mi>e</mi><mi>x</mi><mi>t</mi><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">MinNextTS()</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord mathnormal">i</span><span class="mord mathnormal">n</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal">e</span><span class="mord mathnormal">x</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mclose">)</span></span></span></span> lie within a leader’s lease, the disjointness invariant enforces <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>i</mi><mi>n</mi><mi>N</mi><mi>e</mi><mi>x</mi><mi>t</mi><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">MinNextTS()</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord mathnormal">i</span><span class="mord mathnormal">n</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal">e</span><span class="mord mathnormal">x</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mclose">)</span></span></span></span> promises across leaders.</li>
+<li>If a leader wishes to advance MinNextTS() beyond the end of its leader lease, it must first extend its lease.</li>
+</ul>
+</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub></mrow><annotation encoding="application/x-tex">s_{max}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">x</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is always advanced to the highest value in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>i</mi><mi>n</mi><mi>N</mi><mi>e</mi><mi>x</mi><mi>t</mi><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">MinNextTS()</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord mathnormal">i</span><span class="mord mathnormal">n</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal">e</span><span class="mord mathnormal">x</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mclose">)</span></span></span></span> to preserve disjointness.</li>
+</ul>
+</li>
+</ol>
+<h4 id="how-to-perform-ro-transactions"><a class="markdownIt-Anchor" href="#how-to-perform-ro-transactions"></a> How to perform RO transactions?</h4>
+<ol>
+<li>A read-only transaction executes in two phases
+<ul>
+<li>Assign a timestamp <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mrow><mi>r</mi><mi>e</mi><mi>a</mi><mi>d</mi></mrow></msub></mrow><annotation encoding="application/x-tex">s_{read}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">d</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></li>
+<li>Then execute the transaction’s reads as snapshot reads at sread.</li>
+<li>The snapshot reads can execute at any replicas that are sufficiently up-to-date.</li>
+</ul>
+</li>
+<li>The simple assignment of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mrow><mi>r</mi><mi>e</mi><mi>a</mi><mi>d</mi></mrow></msub><mo>=</mo><mi>T</mi><mi>T</mi><mi mathvariant="normal">.</mi><mi>n</mi><mi>o</mi><mi>w</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi><mi>l</mi><mi>a</mi><mi>t</mi><mi>e</mi><mi>s</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">s_{read} = TT.now().latest</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">d</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord">.</span><span class="mord mathnormal">n</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="mopen">(</span><span class="mclose">)</span><span class="mord">.</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">a</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span></span></span></span>
+<ul>
+<li>At any time after a transaction starts, it preserves external consistency by an argument analogous to that presented for writes.</li>
+<li>Such a timestamp may require the execution of the data reads at <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mrow><mi>r</mi><mi>e</mi><mi>a</mi><mi>d</mi></mrow></msub></mrow><annotation encoding="application/x-tex">s_{read}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">d</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> to block if <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mi>s</mi><mi>a</mi><mi>f</mi><mi>e</mi></mrow></msub></mrow><annotation encoding="application/x-tex">t_{safe}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9011879999999999em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> has not advanced sufficiently.</li>
+</ul>
+</li>
+<li>To reduce the chances of blocking, Spanner should assign the oldest timestamp that preserves external consistency.</li>
+</ol>
+<h4 id="how-does-spanner-assign-timestamps-to-ro-transactions"><a class="markdownIt-Anchor" href="#how-does-spanner-assign-timestamps-to-ro-transactions"></a> How does Spanner assign timestamps to RO transactions?</h4>
+<ol>
+<li>Assigning a timestamp requires a negotiation phase between all of the Paxos groups that are involved in the reads.</li>
+<li>Spanner requires a scope expression for every read-only transaction, which is an expression that summarizes the keys that will be read by the entire transaction.</li>
+<li>If the scope’s values are served by a single Paxos group
+<ul>
+<li>The client issues the read-only transaction to that group’s leader. That leader assigns <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mrow><mi>r</mi><mi>e</mi><mi>a</mi><mi>d</mi></mrow></msub></mrow><annotation encoding="application/x-tex">s_{read}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">d</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> and executes the read.</li>
+<li>Define <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mi>a</mi><mi>s</mi><mi>t</mi><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">LastTS()</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">L</span><span class="mord mathnormal">a</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mclose">)</span></span></span></span> to be the timestamp of the last committed write at a Paxos group.</li>
+<li>If there are no prepared transactions, the assignment <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mrow><mi>r</mi><mi>e</mi><mi>a</mi><mi>d</mi></mrow></msub><mo>=</mo><mi>L</mi><mi>a</mi><mi>s</mi><mi>t</mi><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">s_{read} = LastTS()</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">d</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">L</span><span class="mord mathnormal">a</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mclose">)</span></span></span></span> trivially satisfies external consistency: the transaction will see the result of the last write, and therefore be ordered after it.</li>
+</ul>
+</li>
+<li>If the scope’s values are served by multiple Paxos groups
+<ul>
+<li>The most complicated option is to do a round of communication with all of the groups’s leaders to negotiate <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mrow><mi>r</mi><mi>e</mi><mi>a</mi><mi>d</mi></mrow></msub></mrow><annotation encoding="application/x-tex">s_{read}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">d</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> based on <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mi>a</mi><mi>s</mi><mi>t</mi><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">LastTS()</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">L</span><span class="mord mathnormal">a</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mclose">)</span></span></span></span>.</li>
+<li>A simpler choice is that the client avoids a negotiation round, and just has its reads execute at <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mrow><mi>r</mi><mi>e</mi><mi>a</mi><mi>d</mi></mrow></msub><mo>=</mo><mi>T</mi><mi>T</mi><mi mathvariant="normal">.</mi><mi>n</mi><mi>o</mi><mi>w</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi><mi>l</mi><mi>a</mi><mi>t</mi><mi>e</mi><mi>s</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">s_{read} = TT.now().latest</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">d</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord">.</span><span class="mord mathnormal">n</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="mopen">(</span><span class="mclose">)</span><span class="mord">.</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">a</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span></span></span></span>.</li>
+</ul>
+</li>
+<li>If a transaction has just committed, a non-conflicting read-only transaction must still be assigned <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mrow><mi>r</mi><mi>e</mi><mi>a</mi><mi>d</mi></mrow></msub></mrow><annotation encoding="application/x-tex">s_{read}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">d</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> so as to follow that transaction.
+<ul>
+<li>This weakness can be remedied by augmenting <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mi>a</mi><mi>s</mi><mi>t</mi><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">LastTS()</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">L</span><span class="mord mathnormal">a</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mclose">)</span></span></span></span> with a fine-grained mapping from key ranges to commit timestamps in the lock table.</li>
+<li>When a read-only transaction arrives, its timestamp can be assigned by taking the maximum value of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mi>a</mi><mi>s</mi><mi>t</mi><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">LastTS()</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">L</span><span class="mord mathnormal">a</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mclose">)</span></span></span></span> for the key ranges with which the transaction conflicts, unless there is a conflicting prepared transaction.</li>
+</ul>
+</li>
+</ol>
+<h1 id="evaluation"><a class="markdownIt-Anchor" href="#evaluation"></a> Evaluation</h1>
+<ol>
+<li>
+<p>For the performance experiment, the author tested for the two common benchmarks: latency and throughput.</p>
+<ul>
+<li>
+<p>For the latency experiments, clients issued sufficiently few operations so as to avoid queuing at the servers.</p>
+</li>
+<li>
+<p>For the throughput experiments, clients issued sufficiently many operations so as to saturate the servers’ CPUs.</p>
+</li>
+<li>
+<p>The result is as shown below. 1D means one replica with commit wait disabled.</p>
+</li>
+<li>
+<p>As the number of replicas increases,</p>
+<ul>
+<li>The latency stays roughly constant with less standard deviation because Paxos executes in parallel at a group’s replicas, hence the latency to achieve a quorum becomes less sensitive to slowness at one slave replica.</li>
+</ul>
+<img src="/imgs/Distributed/Spanner/performance.png" width="75%">
+</li>
+</ul>
+</li>
+<li>
+<p>The author also tested the scalability of two-phase commit.</p>
+<img src="/imgs/Distributed/Spanner/2pc.png" width=50%>
+</li>
+<li>
+<p>The availability after server failure is another important metric.</p>
+<ul>
+<li>
+<p>Non-leader killing has no effect on read throughput.</p>
+</li>
+<li>
+<p>Killing leaders while giving time to handoff leadership to a different zone has a minor effect aroung <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn><mo>−</mo><mn>4</mn><mi mathvariant="normal">%</mi></mrow><annotation encoding="application/x-tex">3-4\%</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.80556em;vertical-align:-0.05556em;"></span><span class="mord">4</span><span class="mord">%</span></span></span></span>.</p>
+</li>
+<li>
+<p>Killing leaders with no warning has a severe effect: the rate of completion drops almost to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>.</p>
+<img src="/imgs/Distributed/Spanner/availability.png" width="50%">
+</li>
+</ul>
+</li>
+<li>
+<p>The uncertainty of TrueTime would affect the reliability of Spanner.</p>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Distributed-System/" rel="tag"><i class="fa fa-tag"></i> Distributed System</a>
+              <a href="/tags/Distributed-Database/" rel="tag"><i class="fa fa-tag"></i> Distributed Database</a>
+              <a href="/tags/Database-System/" rel="tag"><i class="fa fa-tag"></i> Database System</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/09/26/Paper/Distributed/2-Phase-Commit/" rel="prev" title="2-Phase Commit">
+                  <i class="fa fa-chevron-left"></i> 2-Phase Commit
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/09/26/Paper/Distributed/Spark/" rel="next" title="Spark">
+                  Spark <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">LiyunZhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css" integrity="sha256-hLTCMFlKxdNgPXyWlSSxYN0ykJmxxq9Yt3MNfdRGWeA=" crossorigin="anonymous">
+
+
+
+</body>
+</html>

@@ -30,11 +30,11 @@
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/15445/2pl/sx_comp_matrix.png">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/15445/2pl/intention.png">
 <meta property="article:published_time" content="2023-08-04T08:47:09.000Z">
-<meta property="article:modified_time" content="2023-08-05T09:36:14.195Z">
+<meta property="article:modified_time" content="2023-09-26T06:00:50.634Z">
 <meta property="article:author" content="LiyunZhang">
-<meta property="article:tag" content="Database system">
 <meta property="article:tag" content="Concurrency Control">
 <meta property="article:tag" content="Transaction">
+<meta property="article:tag" content="Database System">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://liyun-zhang.github.io/imgs/15445/2pl/sx_comp_matrix.png">
 
@@ -157,18 +157,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-count">33</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">19</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -231,7 +231,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-08-05 17:36:14" itemprop="dateModified" datetime="2023-08-05T17:36:14+08:00">2023-08-05</time>
+      <time title="Modified: 2023-09-26 14:00:50" itemprop="dateModified" datetime="2023-09-26T14:00:50+08:00">2023-09-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -282,31 +282,20 @@
 <h1 id="two-phase-locking"><a class="markdownIt-Anchor" href="#two-phase-locking"></a> Two-phase Locking</h1>
 <h2 id="how-can-we-guarantee-serializable-without-knowing-the-entire-schedule-ahead-of-time"><a class="markdownIt-Anchor" href="#how-can-we-guarantee-serializable-without-knowing-the-entire-schedule-ahead-of-time"></a> How can we guarantee serializable without knowing the entire schedule ahead of time?</h2>
 <ol>
-<li>
-<p>We can use locks to protect database objects.</p>
+<li>We can use locks to protect database objects.
 <ul>
-<li>
-<p>When a transaction wants to access some objects, it needs to acquire locks of that objects from a centralized lock manager.</p>
-</li>
-<li>
-<p>Locks are issued by applications and handled in lock manager while latches are issued and acquired locally. Hence acquiring locks are more expensive than acquiring latches even if locks are free.</p>
-</li>
+<li>When a transaction wants to access some objects, it needs to acquire locks of that objects from a centralized lock manager.</li>
+<li>Locks are issued by applications and handled in lock manager while latches are issued and acquired locally. Hence acquiring locks are more expensive than acquiring latches even if locks are free.</li>
 </ul>
 </li>
-<li>
-<p>There are <code>S-LOCK</code> and <code>X-LOCK</code>.</p>
+<li>There are <code>S-LOCK</code> and <code>X-LOCK</code>.
 <ul>
-<li>
-<p><code>S-LOCKs</code> are shared locks for reads while <code>X-LOCKs</code> are exclusive locks for writes.</p>
-</li>
-<li>
-<p>Their compatibility matrix is as followed:</p>
-<img src="/imgs/15445/2pl/sx_comp_matrix.png" width="50%">
-</li>
+<li><code>S-LOCKs</code> are shared locks for reads while <code>X-LOCKs</code> are exclusive locks for writes.</li>
+<li>Their compatibility matrix is as followed:<br />
+<img src="/imgs/15445/2pl/sx_comp_matrix.png" width="50%"></li>
 </ul>
 </li>
-<li>
-<p>Lock manager keeps track of what transaction hold what locks and what transactions are waiting to acquire any locks.</p>
+<li>Lock manager keeps track of what transaction hold what locks and what transactions are waiting to acquire any locks.
 <ul>
 <li>When transactions request or upgrade locks, lock manager grants or blocks requests. When transactions release or downgrade locks, lock manager updates its internal lock-table.</li>
 <li>Lock manager is responsible for detecting deadlock and choosing some transactions to kill.</li>
@@ -410,39 +399,24 @@
 </ol>
 <h2 id="how-to-support-multiple-granularities"><a class="markdownIt-Anchor" href="#how-to-support-multiple-granularities"></a> How to support multiple granularities?</h2>
 <ol>
-<li>
-<p>With only <code>S-LOCK</code> and <code>X-LOCK</code>, we have to check the locks of all children when we try to lock a higher-level node.</p>
-</li>
-<li>
-<p>An intention lock allows a higher-level node to be locked in shared or exclusive mode without having to check all descendent nodes.</p>
-</li>
-<li>
-<p>If a node is locked in an intention mode, then some transaction is doing explicit locking at a lower level in the tree.</p>
+<li>With only <code>S-LOCK</code> and <code>X-LOCK</code>, we have to check the locks of all children when we try to lock a higher-level node.</li>
+<li>An intention lock allows a higher-level node to be locked in shared or exclusive mode without having to check all descendent nodes.</li>
+<li>If a node is locked in an intention mode, then some transaction is doing explicit locking at a lower level in the tree.
 <ul>
-<li>
-<p>Intention-Shared (<code>IS</code>) indicates explicit locking at lower level with shared locks.</p>
-</li>
-<li>
-<p>Intention-Exclusive (<code>IX</code>) indicates explicit locking at lower level with exclusive locks.</p>
-</li>
-<li>
-<p>Shared+Intention-Exclusive (<code>SIX</code>) indicates that the subtree rooted by that node is locked explicitly in shared mode and explicit locking is being done at a lower level with exclusive-mode locks.</p>
-</li>
-<li>
-<p>Their compatibility matrix is as followed:</p>
-<img src="/imgs/15445/2pl/intention.png" width="50%">
-</li>
+<li>Intention-Shared (<code>IS</code>) indicates explicit locking at lower level with shared locks.</li>
+<li>Intention-Exclusive (<code>IX</code>) indicates explicit locking at lower level with exclusive locks.</li>
+<li>Shared+Intention-Exclusive (<code>SIX</code>) indicates that the subtree rooted by that node is locked explicitly in shared mode and explicit locking is being done at a lower level with exclusive-mode locks.</li>
+<li>Their compatibility matrix is as followed:<br />
+<img src="/imgs/15445/2pl/intention.png" width="50%"></li>
 </ul>
 </li>
-<li>
-<p>Each transaction obtains appropriate lock at highest level of the database hierarchy.</p>
+<li>Each transaction obtains appropriate lock at highest level of the database hierarchy.
 <ul>
 <li>To get <code>S</code> or <code>IS</code> lock on a node, the transaction must hold at least <code>IS</code> on parent node.</li>
 <li>To get <code>X</code>, <code>IX</code>, or <code>SIX</code> on a node, must hold at least <code>IX</code> on parent node.</li>
 </ul>
 </li>
-<li>
-<p>Multiple lock granularities is shown in the <code>S</code>, <code>X</code>, <code>SIX</code> locks on higher-level objects.</p>
+<li>Multiple lock granularities is shown in the <code>S</code>, <code>X</code>, <code>SIX</code> locks on higher-level objects.
 <ul>
 <li>Intention-Shared (<code>IS</code>): Intent to get <code>S</code> lock(s) at finer granularity.</li>
 <li>Intention-Exclusive (<code>IX</code>): Intent to get <code>X</code> lock(s) at finer granularity.</li>
@@ -469,9 +443,9 @@
 
     <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Database-system/" rel="tag"><i class="fa fa-tag"></i> Database system</a>
               <a href="/tags/Concurrency-Control/" rel="tag"><i class="fa fa-tag"></i> Concurrency Control</a>
               <a href="/tags/Transaction/" rel="tag"><i class="fa fa-tag"></i> Transaction</a>
+              <a href="/tags/Database-System/" rel="tag"><i class="fa fa-tag"></i> Database System</a>
           </div>
 
         

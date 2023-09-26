@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Purpose Model  ALPS systems  What are the desirable properties of ALPS systems? What is the problem of linearizability?   Causal+ consistency  What is causal consistency? How to handle conflicts? How">
+<meta property="og:type" content="article">
+<meta property="og:title" content="COPS">
+<meta property="og:url" content="http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/COPS/index.html">
+<meta property="og:site_name" content="LiyunZhang">
+<meta property="og:description" content="Purpose Model  ALPS systems  What are the desirable properties of ALPS systems? What is the problem of linearizability?   Causal+ consistency  What is causal consistency? How to handle conflicts? How">
+<meta property="og:locale">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/COPS/models.png">
+<meta property="article:published_time" content="2023-09-26T05:54:58.000Z">
+<meta property="article:modified_time" content="2023-09-26T05:55:58.939Z">
+<meta property="article:author" content="LiyunZhang">
+<meta property="article:tag" content="Distributed System">
+<meta property="article:tag" content="Consistency Level">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://liyun-zhang.github.io/imgs/Distributed/COPS/models.png">
+
+
+<link rel="canonical" href="http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/COPS/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-Hans","comments":true,"permalink":"http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/COPS/","path":"2023/09/26/Paper/Distributed/COPS/","title":"COPS"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>COPS | LiyunZhang</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">LiyunZhang</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#purpose"><span class="nav-number">1.</span> <span class="nav-text"> Purpose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#model"><span class="nav-number">2.</span> <span class="nav-text"> Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#alps-systems"><span class="nav-number">2.1.</span> <span class="nav-text"> ALPS systems</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-are-the-desirable-properties-of-alps-systems"><span class="nav-number">2.1.1.</span> <span class="nav-text"> What are the desirable properties of ALPS systems?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-problem-of-linearizability"><span class="nav-number">2.1.2.</span> <span class="nav-text"> What is the problem of linearizability?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#causal-consistency"><span class="nav-number">2.2.</span> <span class="nav-text"> Causal+ consistency</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-causal-consistency"><span class="nav-number">2.2.1.</span> <span class="nav-text"> What is causal consistency?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-handle-conflicts"><span class="nav-number">2.2.2.</span> <span class="nav-text"> How to handle conflicts?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-decide-which-write-is-the-last-write"><span class="nav-number">2.2.3.</span> <span class="nav-text"> How to decide which write is the last write?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-are-other-consistency-models"><span class="nav-number">2.2.4.</span> <span class="nav-text"> What are other consistency models?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-is-causal-ensured-in-cops"><span class="nav-number">2.2.5.</span> <span class="nav-text"> How is causal+ ensured in COPS?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#why-previous-systems-cannot-provide-scalability"><span class="nav-number">2.2.6.</span> <span class="nav-text"> Why previous systems cannot provide scalability?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cops-system"><span class="nav-number">2.3.</span> <span class="nav-text"> COPS system</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-are-the-components-of-cops"><span class="nav-number">2.3.1.</span> <span class="nav-text"> What are the components of COPS?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-consistency-is-achieved-in-cops"><span class="nav-number">2.3.2.</span> <span class="nav-text"> What consistency is achieved in COPS?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#key-value-store"><span class="nav-number">2.3.3.</span> <span class="nav-text"> Key-value store</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-stored-in-cops-storage"><span class="nav-number">2.3.3.1.</span> <span class="nav-text"> What is stored in COPS storage?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-cops-support-scalability-in-kv-storage"><span class="nav-number">2.3.3.2.</span> <span class="nav-text"> How does COPS support scalability in KV-storage?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#client-library"><span class="nav-number">2.3.4.</span> <span class="nav-text"> Client library</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-provided-in-the-client-api"><span class="nav-number">2.3.4.1.</span> <span class="nav-text"> What is provided in the client API?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-context-in-library"><span class="nav-number">2.3.4.2.</span> <span class="nav-text"> What is the context in library?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-does-cops-gt-store-in-context"><span class="nav-number">2.3.4.3.</span> <span class="nav-text"> What does COPS-GT store in context?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-are-the-concerns-of-cops-gt-context"><span class="nav-number">2.3.4.4.</span> <span class="nav-text"> What are the concerns of COPS-GT context?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-does-cops-store-in-context"><span class="nav-number">2.3.4.5.</span> <span class="nav-text"> What does COPS store in context?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-cops-or-cops-gt-write-to-local-cluster"><span class="nav-number">2.3.4.6.</span> <span class="nav-text"> How does COPS (or COPS-GT) write to local cluster?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-replica-writes-between-clusters"><span class="nav-number">2.3.4.7.</span> <span class="nav-text"> How to replica writes between clusters?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-read-values-in-cops"><span class="nav-number">2.3.4.8.</span> <span class="nav-text"> How to read values in COPS?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#why-does-cops-gt-need-to-proviced-get_trans-what-is-wrong-with-the-get-interface"><span class="nav-number">2.3.4.9.</span> <span class="nav-text"> Why does COPS-GT need to proviced get_trans? What is wrong with the get interface?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-get_trans-work"><span class="nav-number">2.3.4.10.</span> <span class="nav-text"> How does get_trans work?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#garbage-collection"><span class="nav-number">2.3.5.</span> <span class="nav-text"> Garbage collection</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-cops-gt-collect-version-garbage"><span class="nav-number">2.3.5.1.</span> <span class="nav-text"> How does COPS-GT collect version garbage?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-cops-gt-collect-dependency-garbage"><span class="nav-number">2.3.5.2.</span> <span class="nav-text"> How does COPS-GT collect dependency garbage?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-cops-collect-client-metadata-garbage"><span class="nav-number">2.3.5.3.</span> <span class="nav-text"> How does COPS collect client metadata garbage?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#fault-tolerance"><span class="nav-number">2.3.6.</span> <span class="nav-text"> Fault tolerance</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-cops-handle-client-failures"><span class="nav-number">2.3.6.1.</span> <span class="nav-text"> How does COPS handle client failures?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-cops-handle-key-value-node-failures"><span class="nav-number">2.3.6.2.</span> <span class="nav-text"> How does COPS handle key-value node failures?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-will-happen-when-datacenter-failed"><span class="nav-number">2.3.6.3.</span> <span class="nav-text"> What will happen when datacenter failed?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-cops-with-conflict-detection-cops-cd-detect-conflict"><span class="nav-number">2.3.6.4.</span> <span class="nav-text"> How does COPS with conflict detection (COPS-CD) detect conflict?</span></a></li></ol></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">LiyunZhang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">33</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+  
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/COPS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="COPS | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          COPS
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2023-09-26 13:54:58 / Modified: 13:55:58" itemprop="dateCreated datePublished" datetime="2023-09-26T13:54:58+08:00">2023-09-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Paper-Notebook/" itemprop="url" rel="index"><span itemprop="name">Paper Notebook</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Paper-Notebook/Distributed-System/" itemprop="url" rel="index"><span itemprop="name">Distributed System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
+<li><a href="#purpose">Purpose</a></li>
+<li><a href="#model">Model</a>
+<ul>
+<li><a href="#alps-systems">ALPS systems</a>
+<ul>
+<li><a href="#what-are-the-desirable-properties-of-alps-systems">What are the desirable properties of ALPS systems?</a></li>
+<li><a href="#what-is-the-problem-of-linearizability">What is the problem of linearizability?</a></li>
+</ul>
+</li>
+<li><a href="#causal-consistency">Causal+ consistency</a>
+<ul>
+<li><a href="#what-is-causal-consistency">What is causal consistency?</a></li>
+<li><a href="#how-to-handle-conflicts">How to handle conflicts?</a></li>
+<li><a href="#how-to-decide-which-write-is-the-last-write">How to decide which write is the last write?</a></li>
+<li><a href="#what-are-other-consistency-models">What are other consistency models?</a></li>
+<li><a href="#how-is-causal-ensured-in-cops">How is causal+ ensured in COPS?</a></li>
+<li><a href="#why-previous-systems-cannot-provide-scalability">Why previous systems cannot provide scalability?</a></li>
+</ul>
+</li>
+<li><a href="#cops-system">COPS system</a>
+<ul>
+<li><a href="#what-are-the-components-of-cops">What are the components of COPS?</a></li>
+<li><a href="#what-consistency-is-achieved-in-cops">What consistency is achieved in COPS?</a></li>
+<li><a href="#key-value-store">Key-value store</a>
+<ul>
+<li><a href="#what-is-stored-in-cops-storage">What is stored in COPS storage?</a></li>
+<li><a href="#how-does-cops-support-scalability-in-kv-storage">How does COPS support scalability in KV-storage?</a></li>
+</ul>
+</li>
+<li><a href="#client-library">Client library</a>
+<ul>
+<li><a href="#what-is-provided-in-the-client-api">What is provided in the client API?</a></li>
+<li><a href="#what-is-the-context-in-library">What is the context in library?</a></li>
+<li><a href="#what-does-cops-gt-store-in-context">What does COPS-GT store in context?</a></li>
+<li><a href="#what-are-the-concerns-of-cops-gt-context">What are the concerns of COPS-GT context?</a></li>
+<li><a href="#what-does-cops-store-in-context">What does COPS store in context?</a></li>
+<li><a href="#how-does-cops-or-cops-gt-write-to-local-cluster">How does COPS (or COPS-GT) write to local cluster?</a></li>
+<li><a href="#how-to-replica-writes-between-clusters">How to replica writes between clusters?</a></li>
+<li><a href="#how-to-read-values-in-cops">How to read values in COPS?</a></li>
+<li><a href="#why-does-cops-gt-need-to-proviced-get_trans-what-is-wrong-with-the-get-interface">Why does COPS-GT need to proviced get_trans? What is wrong with the get interface?</a></li>
+<li><a href="#how-does-get_trans-work">How does get_trans work?</a></li>
+</ul>
+</li>
+<li><a href="#garbage-collection">Garbage collection</a>
+<ul>
+<li><a href="#how-does-cops-gt-collect-version-garbage">How does COPS-GT collect version garbage?</a></li>
+<li><a href="#how-does-cops-gt-collect-dependency-garbage">How does COPS-GT collect dependency garbage?</a></li>
+<li><a href="#how-does-cops-collect-client-metadata-garbage">How does COPS collect client metadata garbage?</a></li>
+</ul>
+</li>
+<li><a href="#fault-tolerance">Fault tolerance</a>
+<ul>
+<li><a href="#how-does-cops-handle-client-failures">How does COPS handle client failures?</a></li>
+<li><a href="#how-does-cops-handle-key-value-node-failures">How does COPS handle key-value node failures?</a></li>
+<li><a href="#what-will-happen-when-datacenter-failed">What will happen when datacenter failed?</a></li>
+<li><a href="#how-does-cops-with-conflict-detection-cops-cd-detect-conflict">How does COPS with conflict detection (COPS-CD) detect conflict?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="purpose"><a class="markdownIt-Anchor" href="#purpose"></a> Purpose</h1>
+<ol>
+<li>Issues
+<ul>
+<li>Systems often sacrifice strong consistency to achieve these goals, exposing inconsistencies to their clients and necessitating complex application logic.</li>
+<li>The author referred to systems with these four properties—Availability, low Latency, Partition-tolerance, and high Scalability—as ALPS systems.</li>
+<li>Eventually consistent systems may expose versions out of order.</li>
+</ul>
+</li>
+<li>Contribution:
+<ul>
+<li>The author identified and defined a consistency model—causal consistency with convergent conflict handling, or causal+ —that is the strongest achieved under ALPS systems.
+<ul>
+<li>The convergent conflict handling component of causal+ consistency ensures that replicas never permanently diverge and that conflicting updates to the same key are dealt with identically at all sites.</li>
+<li>When combined with causal consistency, this property ensures that clients see only progressively newer versions of keys.</li>
+</ul>
+</li>
+<li>The scalability of Clusters of Order-Preserving Servers (COPS) system can enforce causal dependencies between keys stored across an entire cluster, rather than a single server like previous systems.</li>
+<li>In COPS-GT, the author introduced get transactions in order to obtain a consistent view of multiple keys without locking or blocking.</li>
+</ul>
+</li>
+</ol>
+<h1 id="model"><a class="markdownIt-Anchor" href="#model"></a> Model</h1>
+<h2 id="alps-systems"><a class="markdownIt-Anchor" href="#alps-systems"></a> ALPS systems</h2>
+<h3 id="what-are-the-desirable-properties-of-alps-systems"><a class="markdownIt-Anchor" href="#what-are-the-desirable-properties-of-alps-systems"></a> What are the desirable properties of ALPS systems?</h3>
+<ol>
+<li><strong>Availability</strong>:
+<ul>
+<li>All operations issued to the data store complete successfully.</li>
+<li>No operation can block indefinitely or return an error signifying that data is unavailable.</li>
+</ul>
+</li>
+<li><strong>Low Latency</strong>: Client operations complete “quickly.”
+<ul>
+<li>Commercial service-level objectives suggest average performance of a few milliseconds and worse-case performance (i.e., 99.9th percentile) of 10s or 100s of milliseconds.</li>
+</ul>
+</li>
+<li><strong>Partition Tolerance</strong>: The data store continues to operate under network partitions.</li>
+<li><strong>High Scalability</strong>: The data store scales out linearly. Adding N resources to the system increases aggregate throughput and storage capacity by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>.</li>
+<li><strong>Stronger Consistency</strong>:
+<ul>
+<li>Linearizability dictates that operations appear to take effect across the entire system at a single instance in time between the invocation and completion of the operation.</li>
+<li>Eventual consistency models not only might subsequent reads not reflect the latest value, reads across multiple objects might reflect an incoherent mix of old and new values.</li>
+</ul>
+</li>
+</ol>
+<h3 id="what-is-the-problem-of-linearizability"><a class="markdownIt-Anchor" href="#what-is-the-problem-of-linearizability"></a> What is the problem of linearizability?</h3>
+<ol>
+<li>The CAP Theorem proves that a shared-data system that has availability and partition tolerance cannot achieve linearizability.</li>
+<li>Low latency—defined as latency less than the maximum widearea delay between replicas—has also been proven incompatible with linearizability and sequential consistency.</li>
+</ol>
+<h2 id="causal-consistency"><a class="markdownIt-Anchor" href="#causal-consistency"></a> Causal+ consistency</h2>
+<h3 id="what-is-causal-consistency"><a class="markdownIt-Anchor" href="#what-is-causal-consistency"></a> What is causal consistency?</h3>
+<ol>
+<li>Values are stored and retrieved from logical replicas, each of which hosts the entire key space.</li>
+<li>The potential causality between operations denoted by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>⇝</mo></mrow><annotation encoding="application/x-tex">\leadsto</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.37788em;vertical-align:0em;"></span><span class="mrel amsrm">⇝</span></span></span></span>:
+<ul>
+<li><strong>Execution Thread</strong>: If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi></mrow><annotation encoding="application/x-tex">a</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">a</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span> are two operations in a single thread of execution, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>⇝</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">a \leadsto b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel amsrm">⇝</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span> if operation <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi></mrow><annotation encoding="application/x-tex">a</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">a</span></span></span></span> happens before operation <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span>.</li>
+<li><strong>Gets From</strong>: If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi></mrow><annotation encoding="application/x-tex">a</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">a</span></span></span></span> is a put operation and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span> is a get operation that returns the value written by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi></mrow><annotation encoding="application/x-tex">a</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">a</span></span></span></span>, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>⇝</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">a \leadsto b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel amsrm">⇝</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span>.</li>
+<li><strong>Transitivity</strong>: For operations <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi></mrow><annotation encoding="application/x-tex">a</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">a</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span>, and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi></mrow><annotation encoding="application/x-tex">c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">c</span></span></span></span>, if <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>⇝</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">a \leadsto b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel amsrm">⇝</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>⇝</mo><mi>c</mi></mrow><annotation encoding="application/x-tex">b \leadsto c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel amsrm">⇝</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">c</span></span></span></span>, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>⇝</mo><mi>c</mi></mrow><annotation encoding="application/x-tex">a \leadsto c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel amsrm">⇝</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">c</span></span></span></span>.</li>
+</ul>
+</li>
+<li>Causal consistency requires that values returned from get operations at a replica are consistent with the order defined by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>⇝</mo></mrow><annotation encoding="application/x-tex">\leadsto</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.37788em;vertical-align:0em;"></span><span class="mrel amsrm">⇝</span></span></span></span> (causality).
+<ul>
+<li>It must appear the operation that writes a value occurs after all operations that causally precede it.</li>
+<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>⇝̸</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">a \not\leadsto b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel"><span class="mord vbox"><span class="thinbox"><span class="rlap"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="inner"><span class="mrel"></span></span><span class="fix"></span></span></span></span></span></span><span class="base"><span class="strut" style="height:0.37788em;vertical-align:0em;"></span><span class="mrel amsrm">⇝</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>⇝̸</mo><mi>a</mi></mrow><annotation encoding="application/x-tex">b \not\leadsto a</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel"><span class="mord vbox"><span class="thinbox"><span class="rlap"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="inner"><span class="mrel"></span></span><span class="fix"></span></span></span></span></span></span><span class="base"><span class="strut" style="height:0.37788em;vertical-align:0em;"></span><span class="mrel amsrm">⇝</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">a</span></span></span></span>, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi></mrow><annotation encoding="application/x-tex">a</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">a</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span> are concurrent. Causal consistency does not order concurrent operations.</li>
+</ul>
+</li>
+</ol>
+<h3 id="how-to-handle-conflicts"><a class="markdownIt-Anchor" href="#how-to-handle-conflicts"></a> How to handle conflicts?</h3>
+<ol>
+<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi></mrow><annotation encoding="application/x-tex">a</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">a</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span> are both puts to the same key, then they are in conflict.
+<ul>
+<li>Conflicts are unordered by causal consistency, and allow replicas to diverge forever.</li>
+<li>Conflicts may represent an exceptional condition that requires special handling.</li>
+</ul>
+</li>
+<li>Convergent conflict handling requires that all conflicting puts be handled in the same manner at all replicas, using a handler function <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">h</span></span></span></span>.
+<ul>
+<li>This handler function <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">h</span></span></span></span> must be <strong>associative</strong> and <strong>commutative</strong>, so that replicas can handle conflicting writes in the order they receive them and that the results of these handlings will converge.
+<ul>
+<li>The last-writer-wins rule (Thomas’s write rule): one of the conflicting writes as having occurred later and has it overwrite the “earlier” write.</li>
+<li>The default COPS system avoids conflict detection using a last-writer-wins strategy. The “last” write is determined by comparing version numbers.</li>
+<li>Another way is to mark them as conflicting and require their resolution by some other means.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>All potential forms of convergent conflict handling avoid the first issue by ensuring that replicas reach the same result after exchanging operations.</li>
+<li>the second issue with conflicts is only avoided by the use of more explicit conflict resolution procedures.
+<ul>
+<li>These explicit procedures provide greater flexibility for applications, but require additional programmer complexity and/or performance overhead.</li>
+</ul>
+</li>
+</ol>
+<h3 id="how-to-decide-which-write-is-the-last-write"><a class="markdownIt-Anchor" href="#how-to-decide-which-write-is-the-last-write"></a> How to decide which write is the last write?</h3>
+<ol>
+<li>It uses last-write-win strategy. So the problem is how to decide which write is the last write.</li>
+<li>The decision is made by attaching the current wall-clock time as version number on each put.
+<ul>
+<li>Local shard server assigns <code>version number (v#) = time</code> when it receives client <code>put()</code></li>
+<li>Remote datacenter receives <code>put(k, -, v#)</code>
+<ul>
+<li>If <code>v#</code> is larger than version of currently stored value for <code>k</code>, then it replaces the current value with new value, and update <code>v#</code>.</li>
+<li>Otherwise, it just ignores new value.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>If two <code>put(k)</code> happen at exactly the same time at different datacenters, we can break tie with a unique ID in the low bits of <code>v#</code>.</li>
+<li>COPS uses Lamport clocks to assign <code>v#</code>
+<ul>
+<li>Each server implements a “Lamport clock” or “logical clock”
+<ul>
+<li><code>Tmax = highest v# seen</code> (from self and others)</li>
+<li><code>T = max(Tmax + 1, wall-clock time)</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>In the naive strategy, if one datacenter’s (or server’s) clock is fast by an hour, it will cause that datacenter’s values to win. In the worst case, it prevents any other update for an hour.
+<ul>
+<li>But in  COPS, if some server has a fast clock, everyone who sees a version from that server will advance their Lamport clock.</li>
+</ul>
+</li>
+</ol>
+<h3 id="what-are-other-consistency-models"><a class="markdownIt-Anchor" href="#what-are-other-consistency-models"></a> What are other consistency models?</h3>
+<ol>
+<li>
+<p>Linearizability (or strong consistency) maintains a global, real-time ordering.</p>
+</li>
+<li>
+<p>Sequential consistency ensures at least a global ordering.</p>
+</li>
+<li>
+<p>Causal consistency ensures partial orderings between dependent operations.</p>
+</li>
+<li>
+<p>FIFO (PRAM) consistency only preserves the partial ordering of an execution thread, not between threads.</p>
+</li>
+<li>
+<p>Per-key sequential consistency ensures that, for each individual key, all operations have a global order.</p>
+</li>
+<li>
+<p>Eventual consistency, a “catch-all” term used today suggesting eventual convergence to some type of agreement.</p>
+</li>
+<li>
+<p>The strength of those models is as shown below:</p>
+<img src="/imgs/Distributed/COPS/models.png" width="50%">
+</li>
+</ol>
+<h3 id="how-is-causal-ensured-in-cops"><a class="markdownIt-Anchor" href="#how-is-causal-ensured-in-cops"></a> How is causal+ ensured in COPS?</h3>
+<ol>
+<li>
+<p><strong>Progressing property</strong></p>
+<ul>
+<li>
+<p>Different values a key has is referred as the versions of a key, which is denote <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mi>e</mi><msub><mi>y</mi><mrow><mi>v</mi><mi>e</mi><mi>r</mi><mi>s</mi><mi>i</mi><mi>o</mi><mi>n</mi></mrow></msub></mrow><annotation encoding="application/x-tex">key_{version}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">v</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</p>
+</li>
+<li>
+<p>In COPS, versions are assigned in a manner that ensures that if <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub><mo>⇝</mo><msub><mi>y</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">x_i \leadsto y_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel amsrm">⇝</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.716668em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>&lt;</mo><mi>j</mi></mrow><annotation encoding="application/x-tex">i &lt; j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69862em;vertical-align:-0.0391em;"></span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span>.</p>
+</li>
+<li>
+<p>Once a replica in COPS returns version <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathnormal">i</span></span></span></span> of a key, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">x_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, causal+ consistency ensures it will then only return that version or a causally later version.</p>
+</li>
+<li>
+<p>The handling of a conflict is causally later than the conflicting puts it resolves.</p>
+<ul>
+<li>
+<p>Assume a replica first returns <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">x_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> and then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">x_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, where <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo mathvariant="normal">≠</mo><mi>k</mi></mrow><annotation encoding="application/x-tex">i \ne k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel"><span class="mrel"><span class="mord vbox"><span class="thinbox"><span class="rlap"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="inner"><span class="mrel"></span></span><span class="fix"></span></span></span></span></span><span class="mrel">=</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub><mo>⇝̸</mo><msub><mi>x</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">x_i \not\leadsto x_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel"><span class="mord vbox"><span class="thinbox"><span class="rlap"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="inner"><span class="mrel"></span></span><span class="fix"></span></span></span></span></span></span><span class="base"><span class="strut" style="height:0.37788em;vertical-align:0em;"></span><span class="mrel amsrm">⇝</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</p>
+</li>
+<li>
+<p>Causal consistency ensures that if <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">x_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is returned after <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">x_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>k</mi></msub><mo>⇝̸</mo><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">x_k \not\leadsto x_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel"><span class="mord vbox"><span class="thinbox"><span class="rlap"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="inner"><span class="mrel"></span></span><span class="fix"></span></span></span></span></span></span><span class="base"><span class="strut" style="height:0.37788em;vertical-align:0em;"></span><span class="mrel amsrm">⇝</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, and so <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">x_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">x_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> conflict.</p>
+</li>
+<li>
+<p>But, if <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">x_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">x_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> conflict, then convergent conflict handling ensures that as soon as both are present at a replica, their handling <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo separator="true">,</mo><msub><mi>x</mi><mi>k</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">h(x_i,x_k)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">h</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>, which is causally after both, will be returned instead of either <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">x_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> or <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">x_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, which contradicts our assumption.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Thus, each replica in COPS always returns non-decreasing versions of a key.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">y_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.716668em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> depends on <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">x_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> if and only if <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>u</mi><mi>t</mi><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>⇝</mo><mi>p</mi><mi>u</mi><mi>t</mi><mo stretchy="false">(</mo><msub><mi>y</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">put(x_i) \leadsto put(y_j)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">u</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel amsrm">⇝</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">u</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>.</p>
+<ul>
+<li>These dependencies are in essence the reverse of the causal ordering of writes.</li>
+<li>COPS provides causal+ consistency during replication by writing a version only after writing all of its dependencies.</li>
+</ul>
+</li>
+</ol>
+<h3 id="why-previous-systems-cannot-provide-scalability"><a class="markdownIt-Anchor" href="#why-previous-systems-cannot-provide-scalability"></a> Why previous systems cannot provide scalability?</h3>
+<ol>
+<li>
+<p>They all use a form of log serialization and exchange.</p>
+<ul>
+<li>
+<p>All operations at a logical replica are written to a single log in serialized order, commonly marked with a version vector.</p>
+</li>
+<li>
+<p>Log-exchange-based serialization inhibits replica scalability, as it relies on a single serialization point in each replica to establish ordering.</p>
+</li>
+<li>
+<p>Either causal dependencies between keys are limited to the set of keys that can be stored on one node, or a single node (or replicated state machine) must provide a commit ordering and log for all operations across a cluster.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>In COPS, nodes in each datacenter are responsible for different partitions of the keyspace, but the system can track and enforce dependencies between keys stored on different nodes.</p>
+<ul>
+<li>COPS explicitly encodes dependencies in metadata associated with each key’s version.</li>
+<li>When keys are replicated remotely, the receiving datacenter performs dependency checks before committing the incoming version.</li>
+</ul>
+</li>
+</ol>
+<h2 id="cops-system"><a class="markdownIt-Anchor" href="#cops-system"></a> COPS system</h2>
+<h3 id="what-are-the-components-of-cops"><a class="markdownIt-Anchor" href="#what-are-the-components-of-cops"></a> What are the components of COPS?</h3>
+<ol>
+<li>Key-value store
+<ul>
+<li>Each key-value pair has associated metadata.
+<ul>
+<li>In COPS, this metadata is a version number.</li>
+<li>In COPS-GT, it is both a version number and a list of dependencies (other keys and their respective versions).</li>
+</ul>
+</li>
+<li>The key-value store exports three additional operations as part of its key-value interface: <code>get_by_version</code>, <code>put_after</code>, and <code>dep_check</code>.</li>
+<li>For COPS-GT, the system keeps around old versions of key-value pairs, not just the most recent put, to ensure that it can provide get transactions.</li>
+</ul>
+</li>
+<li>Client library
+<ul>
+<li>The client library exports two main operations to applications: reads via <code>get</code> (in COPS) or <code>get_trans</code> (in COPS-GT), and writes via <code>put</code>.</li>
+<li>The client library also maintains state about a client’s current dependencies through a <code>context</code> parameter in the client library API.</li>
+</ul>
+</li>
+<li>A client of COPS is an application that uses the COPS client library to call directly into the COPS key-value store.</li>
+<li>Clients communicate only with their local COPS cluster running in the same datacenter.</li>
+</ol>
+<h3 id="what-consistency-is-achieved-in-cops"><a class="markdownIt-Anchor" href="#what-consistency-is-achieved-in-cops"></a> What consistency is achieved in COPS?</h3>
+<ol>
+<li>Each local COPS cluster is set up as a linearizable (strongly consistent) key-value store.
+<ul>
+<li>Linearizable systems can be implemented scalably by partitioning the keyspace into N linearizable partitions.</li>
+<li>The composability of linearizability ensures that the resulting system as a whole remains linearizable.</li>
+<li>Linearizability is acceptable locally because we expect very low latency and no partitions within a cluster.</li>
+</ul>
+</li>
+<li>Replication between COPS clusters happens asynchronously to ensure low latency for client operations and availability in the face of external partitions.</li>
+<li>The COPS design strives to provide causal+ consistency with resource and performance overhead similar to existing eventually consistent systems.
+<ul>
+<li>COPS and COPS-GT need to minimize overhead of consistency-preserving replication
+<ul>
+<li>A naive implementation, however, would require checks on all of a value’s dependencies.</li>
+</ul>
+</li>
+<li>COPS-GT needs to minimize space requirements</li>
+<li>COPS-GT needs to ensure fast <code>get_trans</code> operations
+<ul>
+<li>A naive algorithm could block and/or take an unbounded number of get rounds to complete.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="key-value-store"><a class="markdownIt-Anchor" href="#key-value-store"></a> Key-value store</h3>
+<h4 id="what-is-stored-in-cops-storage"><a class="markdownIt-Anchor" href="#what-is-stored-in-cops-storage"></a> What is stored in COPS storage?</h4>
+<ol>
+<li>COPS must track the versions of written values, as well as their dependencies in the case of COPS-GT.</li>
+<li>In COPS, the system stores the most recent version number and value for each key.</li>
+<li>In COPS-GT, the system maps each key to a list of version entries, each consisting of <code>&lt;version, value, deps&gt;</code>.
+<ul>
+<li>The deps field is a list of the version’s zero or more dependencies; each dependency is a <code>&lt;key, version&gt;</code> pair.</li>
+</ul>
+</li>
+</ol>
+<h4 id="how-does-cops-support-scalability-in-kv-storage"><a class="markdownIt-Anchor" href="#how-does-cops-support-scalability-in-kv-storage"></a> How does COPS support scalability in KV-storage?</h4>
+<ol>
+<li>It partitions the keyspace across a cluster’s nodes using consistent hashing.</li>
+<li>Every key stored in COPS has one primary node in each cluster.
+<ul>
+<li>The set of primary nodes for a key across all clusters are termed as the <strong>equivalent nodes</strong> for that key.</li>
+<li>After a write completes locally, the primary node places it in a replication queue, from which it is sent asynchronously to remote equivalent nodes.</li>
+<li>Those nodes, in turn, wait until the value’s dependencies are satisfied in their local cluster before locally committing the value.</li>
+<li>This dependency checking mechanism ensures writes happen in a causally consistent order and reads never block.</li>
+</ul>
+</li>
+<li>In practice, COPS’s consistent hashing assigns each node responsibility for a few different key ranges.
+<ul>
+<li>Key ranges may have different sizes and node mappings in different datacenters</li>
+<li>The total number of equivalent nodes with which a given node needs to communicate is proportional to the number of datacenters (i.e., communication is not all-to-all between nodes in different datacenters).</li>
+</ul>
+</li>
+</ol>
+<h3 id="client-library"><a class="markdownIt-Anchor" href="#client-library"></a> Client library</h3>
+<h4 id="what-is-provided-in-the-client-api"><a class="markdownIt-Anchor" href="#what-is-provided-in-the-client-api"></a> What is provided in the client API?</h4>
+<ol>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mi>t</mi><mi>x</mi><mi mathvariant="normal">_</mi><mi>i</mi><mi>d</mi><mo>←</mo><mi>c</mi><mi>r</mi><mi>e</mi><mi>a</mi><mi>t</mi><mi>e</mi><mi>C</mi><mi>o</mi><mi>n</mi><mi>t</mi><mi>e</mi><mi>x</mi><mi>t</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">ctx\_id\leftarrow createContext()</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.00444em;vertical-align:-0.31em;"></span><span class="mord mathnormal">c</span><span class="mord mathnormal">t</span><span class="mord mathnormal">x</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal">i</span><span class="mord mathnormal">d</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">←</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">c</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal">a</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal">x</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mclose">)</span></span></span></span></li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mi>o</mi><mi>o</mi><mi>l</mi><mo>←</mo><mi>d</mi><mi>e</mi><mi>l</mi><mi>e</mi><mi>t</mi><mi>e</mi><mi>C</mi><mi>o</mi><mi>n</mi><mi>t</mi><mi>e</mi><mi>x</mi><mi>t</mi><mo stretchy="false">(</mo><mi>c</mi><mi>t</mi><mi>x</mi><mi mathvariant="normal">_</mi><mi>i</mi><mi>d</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">bool\leftarrow deleteContext(ctx\_id)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span><span class="mord mathnormal">o</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">←</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord mathnormal">d</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">e</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal">x</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mord mathnormal">c</span><span class="mord mathnormal">t</span><span class="mord mathnormal">x</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal">i</span><span class="mord mathnormal">d</span><span class="mclose">)</span></span></span></span></li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mi>o</mi><mi>o</mi><mi>l</mi><mo>←</mo><mi>p</mi><mi>u</mi><mi>t</mi><mo stretchy="false">(</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo separator="true">,</mo><mi>v</mi><mi>a</mi><mi>l</mi><mi>u</mi><mi>e</mi><mo separator="true">,</mo><mi>c</mi><mi>t</mi><mi>x</mi><mi mathvariant="normal">_</mi><mi>i</mi><mi>d</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">bool\leftarrow put(key,value,ctx\_id)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span><span class="mord mathnormal">o</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">←</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">u</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">u</span><span class="mord mathnormal">e</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">c</span><span class="mord mathnormal">t</span><span class="mord mathnormal">x</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal">i</span><span class="mord mathnormal">d</span><span class="mclose">)</span></span></span></span></li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>v</mi><mi>a</mi><mi>l</mi><mi>u</mi><mi>e</mi><mo>←</mo><mi>g</mi><mi>e</mi><mi>t</mi><mo stretchy="false">(</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo separator="true">,</mo><mi>c</mi><mi>t</mi><mi>x</mi><mi mathvariant="normal">_</mi><mi>i</mi><mi>d</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">value\leftarrow get(key,ctx\_id)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">u</span><span class="mord mathnormal">e</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">←</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal">e</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">c</span><span class="mord mathnormal">t</span><span class="mord mathnormal">x</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal">i</span><span class="mord mathnormal">d</span><span class="mclose">)</span></span></span></span> for COPS, or <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">⟨</mo><mi>v</mi><mi>a</mi><mi>l</mi><mi>u</mi><mi>e</mi><mi>s</mi><mo stretchy="false">⟩</mo><mo>←</mo><mi>g</mi><mi>e</mi><mi>t</mi><mi mathvariant="normal">_</mi><mi>t</mi><mi>r</mi><mi>a</mi><mi>n</mi><mi>s</mi><mo stretchy="false">(</mo><mo stretchy="false">⟨</mo><mi>k</mi><mi>e</mi><mi>y</mi><mi>s</mi><mo stretchy="false">⟩</mo><mo separator="true">,</mo><mi>c</mi><mi>t</mi><mi>x</mi><mi mathvariant="normal">_</mi><mi>i</mi><mi>d</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\langle values\rangle\leftarrow get\_trans(\langle keys\rangle,ctx\_id)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⟨</span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">u</span><span class="mord mathnormal">e</span><span class="mord mathnormal">s</span><span class="mclose">⟩</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">←</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal">e</span><span class="mord mathnormal">t</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">a</span><span class="mord mathnormal">n</span><span class="mord mathnormal">s</span><span class="mopen">(</span><span class="mopen">⟨</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mord mathnormal">s</span><span class="mclose">⟩</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">c</span><span class="mord mathnormal">t</span><span class="mord mathnormal">x</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal">i</span><span class="mord mathnormal">d</span><span class="mclose">)</span></span></span></span> for COPS-GT
+<ul>
+<li>COPS-GT provides <code>get_trans</code>, which returns a consistent view of multiple key-value pairs in a single call.</li>
+</ul>
+</li>
+</ol>
+<h4 id="what-is-the-context-in-library"><a class="markdownIt-Anchor" href="#what-is-the-context-in-library"></a> What is the context in library?</h4>
+<ol>
+<li>All functions take a context argument, which the library uses internally to track causal dependencies across each client’s operations.</li>
+<li>The context defines the causal+ “thread of execution.” A single process may contain many separate threads of execution.</li>
+<li>By separating different threads of execution, COPS avoids false dependencies that would result from intermixing them.</li>
+</ol>
+<h4 id="what-does-cops-gt-store-in-context"><a class="markdownIt-Anchor" href="#what-does-cops-gt-store-in-context"></a> What does COPS-GT store in context?</h4>
+<ol>
+<li>
+<p>The client library in COPS-GT stores the client’s context in a table of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">⟨</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo separator="true">,</mo><mi>v</mi><mi>e</mi><mi>r</mi><mi>s</mi><mi>i</mi><mi>o</mi><mi>n</mi><mo separator="true">,</mo><mi>d</mi><mi>e</mi><mi>p</mi><mi>s</mi><mo stretchy="false">⟩</mo></mrow><annotation encoding="application/x-tex">\langle key, version, deps\rangle</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⟨</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">d</span><span class="mord mathnormal">e</span><span class="mord mathnormal">p</span><span class="mord mathnormal">s</span><span class="mclose">⟩</span></span></span></span> entries.</p>
+<ul>
+<li>Clients reference their context using a context ID (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mi>t</mi><mi>x</mi><mi mathvariant="normal">_</mi><mi>i</mi><mi>d</mi></mrow><annotation encoding="application/x-tex">ctx\_id</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.00444em;vertical-align:-0.31em;"></span><span class="mord mathnormal">c</span><span class="mord mathnormal">t</span><span class="mord mathnormal">x</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal">i</span><span class="mord mathnormal">d</span></span></span></span>) in the API.</li>
+</ul>
+</li>
+<li>
+<p>When a client gets a key from the data store, the library adds this key and its causal dependencies to the context.</p>
+</li>
+<li>
+<p>When a client puts a value, the library sets the put’s dependencies to the most recent version of each key in the current context.</p>
+<ul>
+<li>A successful put into the data store returns the version number v assigned to the written value.</li>
+<li>The client library then adds this new entry, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">⟨</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo separator="true">,</mo><mi>v</mi><mo separator="true">,</mo><mi>D</mi><mo stretchy="false">⟩</mo></mrow><annotation encoding="application/x-tex">\langle key, v, D\rangle</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⟨</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">⟩</span></span></span></span>, to the context.</li>
+</ul>
+</li>
+</ol>
+<h4 id="what-are-the-concerns-of-cops-gt-context"><a class="markdownIt-Anchor" href="#what-are-the-concerns-of-cops-gt-context"></a> What are the concerns of COPS-GT context?</h4>
+<ol>
+<li>The context therefore includes all values previously read or written in the client’s session, as well as all of those dependencies’ dependencies.</li>
+<li>State requirements for storing these dependencies, both in the client library and in the data store.
+<ul>
+<li>To mitigate the client and data-store state required to track dependencies, COPS-GT provides garbage collection.</li>
+</ul>
+</li>
+<li>The number of potential checks that must occur when replicating writes between clusters, in order to ensure causal consistency.
+<ul>
+<li>The dependencies that must be checked are termed the nearest dependencies.
+<ul>
+<li>If the storage node committing a node determins that its direct dependencies are all committed, then it can infer that all former dependencies are also committed.</li>
+<li>Hence, each dependency check only need to check nodes within <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> step in the graph of causal dependencies.</li>
+</ul>
+</li>
+<li>The nearest dependencies are sufficient for the key-value store to provide causal+ consistency.</li>
+<li>The full dependency list is only needed to provide <code>get_trans</code> operations in COPS-GT.</li>
+</ul>
+</li>
+</ol>
+<h4 id="what-does-cops-store-in-context"><a class="markdownIt-Anchor" href="#what-does-cops-store-in-context"></a> What does COPS store in context?</h4>
+<ol>
+<li>It does not store or even retrieve the dependencies of any value it gets
+<ul>
+<li>The retrieved value is nearer than any of its dependencies, rendering them unnecessary.</li>
+<li>The COPS client library stores only <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">⟨</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo separator="true">,</mo><mi>v</mi><mi>e</mi><mi>r</mi><mi>s</mi><mi>i</mi><mi>o</mi><mi>n</mi><mo stretchy="false">⟩</mo></mrow><annotation encoding="application/x-tex">\langle key, version\rangle</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⟨</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mclose">⟩</span></span></span></span> entries.</li>
+</ul>
+</li>
+<li>For a get operation, the retrieved <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">⟨</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo separator="true">,</mo><mi>v</mi><mi>e</mi><mi>r</mi><mi>s</mi><mi>i</mi><mi>o</mi><mi>n</mi><mo stretchy="false">⟩</mo></mrow><annotation encoding="application/x-tex">\langle key, version\rangle</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⟨</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mclose">⟩</span></span></span></span> is added to the context.</li>
+<li>For a put operation, the library uses the current context as the nearest dependencies, clears the context, and then repopulates it with only this put.
+<ul>
+<li>This put depends on all previous key-version pairs and thus is nearer than them.</li>
+</ul>
+</li>
+</ol>
+<h4 id="how-does-cops-or-cops-gt-write-to-local-cluster"><a class="markdownIt-Anchor" href="#how-does-cops-or-cops-gt-write-to-local-cluster"></a> How does COPS (or COPS-GT) write to local cluster?</h4>
+<ol>
+<li>All writes in COPS first go to the client’s local cluster and then propagate asynchronously to remote clusters.</li>
+<li>The key-value store exports a single API call to provide both operations: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">⟨</mo><mi>b</mi><mi>o</mi><mi>o</mi><mi>l</mi><mo separator="true">,</mo><mi>v</mi><mi>e</mi><mi>r</mi><mi>s</mi><mo stretchy="false">⟩</mo><mo>←</mo><mi>p</mi><mi>u</mi><mi>t</mi><mi mathvariant="normal">_</mi><mi>a</mi><mi>f</mi><mi>t</mi><mi>e</mi><mi>r</mi><mo stretchy="false">(</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo separator="true">,</mo><mi>v</mi><mi>a</mi><mi>l</mi><mo separator="true">,</mo><mo stretchy="false">[</mo><mi>d</mi><mi>e</mi><mi>p</mi><mi>s</mi><mo stretchy="false">]</mo><mo separator="true">,</mo><mi>n</mi><mi>e</mi><mi>a</mi><mi>r</mi><mi>e</mi><mi>s</mi><mi>t</mi><mo separator="true">,</mo><mi>v</mi><mi>e</mi><mi>r</mi><mi>s</mi><mo>=</mo><mi mathvariant="normal">∅</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\langle bool,vers\rangle \leftarrow put\_after(key,val,[deps],nearest,vers=\empty)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⟨</span><span class="mord mathnormal">b</span><span class="mord mathnormal">o</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">s</span><span class="mclose">⟩</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">←</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">u</span><span class="mord mathnormal">t</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mopen">[</span><span class="mord mathnormal">d</span><span class="mord mathnormal">e</span><span class="mord mathnormal">p</span><span class="mord mathnormal">s</span><span class="mclose">]</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">n</span><span class="mord mathnormal">e</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∅</span><span class="mclose">)</span></span></span></span></li>
+<li>When a client calls <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>u</mi><mi>t</mi><mo stretchy="false">(</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo separator="true">,</mo><mi>v</mi><mi>a</mi><mi>l</mi><mo separator="true">,</mo><mi>c</mi><mi>t</mi><mi>x</mi><mi mathvariant="normal">_</mi><mi>i</mi><mi>d</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">put (key,val,ctx\_id)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">u</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">c</span><span class="mord mathnormal">t</span><span class="mord mathnormal">x</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal">i</span><span class="mord mathnormal">d</span><span class="mclose">)</span></span></span></span>,
+<ul>
+<li>The library computes the complete set of dependencies deps, and identifies some of those dependency tuples as the value’s nearest ones.</li>
+<li>The library then calls put after without the version argument (i.e., it sets <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>v</mi><mi>e</mi><mi>r</mi><mi>s</mi><mi>i</mi><mi>o</mi><mi>n</mi><mo>=</mo><mi mathvariant="normal">∅</mi></mrow><annotation encoding="application/x-tex">version=\empty</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.80556em;vertical-align:-0.05556em;"></span><span class="mord">∅</span></span></span></span>).</li>
+<li>In COPS-GT, the library includes deps in the <code>put_after</code> call because dependencies must be stored with the value.</li>
+<li>In COPS, the library only needs to include nearest and does not include deps.</li>
+</ul>
+</li>
+<li>The key’s primary storage node in the local cluster assigns the key a version number and returns it to the client library.</li>
+<li>Each client is restricted to a single outstanding put; this is necessary because later puts must know the version numbers of earlier puts so they may depend on them.</li>
+<li>The put after operation ensures that val is committed to each cluster only after all of the entries in its dependency list have been written.
+<ul>
+<li>In the client’s local cluster, this property holds automatically, as the local store provides linearizability.</li>
+<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi></mrow><annotation encoding="application/x-tex">y</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> depends on <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">x</span></span></span></span>, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>u</mi><mi>t</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">put(x)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">u</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span></span></span></span> must have been committed before <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>u</mi><mi>t</mi><mo stretchy="false">(</mo><mi>y</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">put(y)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">u</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> was issued.</li>
+</ul>
+</li>
+</ol>
+<h4 id="how-to-replica-writes-between-clusters"><a class="markdownIt-Anchor" href="#how-to-replica-writes-between-clusters"></a> How to replica writes between clusters?</h4>
+<ol>
+<li>After a write commits locally, the primary storage node asynchronously replicates that write to its equivalent nodes in different clusters using a stream of <code>put_after</code> operations.
+<ul>
+<li>The primary node includes the key’s version number in the put after call.</li>
+<li>The deps argument is included in COPS-GT, and not included in COPS.</li>
+</ul>
+</li>
+<li>It requires the remote nodes receiving updates to commit an update only after its dependencies have been committed to the same cluster.
+<ul>
+<li>A node that receives a put after request from another cluster must determine if the value’s nearest dependencies have already been satisfied locally.</li>
+<li>It does so by issuing a check to the local nodes responsible for the those dependencies: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mi>o</mi><mi>o</mi><mi>l</mi><mo>←</mo><mi>d</mi><mi>e</mi><mi>p</mi><mi mathvariant="normal">_</mi><mi>c</mi><mi>h</mi><mi>e</mi><mi>c</mi><mi>k</mi><mo stretchy="false">(</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo separator="true">,</mo><mi>v</mi><mi>e</mi><mi>r</mi><mi>s</mi><mi>i</mi><mi>o</mi><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">bool\leftarrow dep\_check(key, version)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span><span class="mord mathnormal">o</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">←</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord mathnormal">d</span><span class="mord mathnormal">e</span><span class="mord mathnormal">p</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal">c</span><span class="mord mathnormal">h</span><span class="mord mathnormal">e</span><span class="mord mathnormal">c</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span></li>
+<li>The way that nearest dependencies are computed ensures that all dependencies have been satisfied before the value is committed, which in turn ensures causal consistency.</li>
+</ul>
+</li>
+</ol>
+<h4 id="how-to-read-values-in-cops"><a class="markdownIt-Anchor" href="#how-to-read-values-in-cops"></a> How to read values in COPS?</h4>
+<ol>
+<li>Reads are satisfied in the local cluster.</li>
+<li>The library issues a read to the node responsible for the key in the local cluster: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">⟨</mo><mi>v</mi><mi>a</mi><mi>l</mi><mi>u</mi><mi>e</mi><mo separator="true">,</mo><mi>v</mi><mi>e</mi><mi>r</mi><mi>s</mi><mi>i</mi><mi>o</mi><mi>n</mi><mo separator="true">,</mo><mi>d</mi><mi>e</mi><mi>p</mi><mi>s</mi><mo stretchy="false">⟩</mo><mo>←</mo><mi>g</mi><mi>e</mi><mi>t</mi><mi mathvariant="normal">_</mi><mi>b</mi><mi>y</mi><mi mathvariant="normal">_</mi><mi>v</mi><mi>e</mi><mi>r</mi><mi>s</mi><mi>i</mi><mi>o</mi><mi>n</mi><mo stretchy="false">(</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo separator="true">,</mo><mi>v</mi><mi>e</mi><mi>r</mi><mi>s</mi><mi>i</mi><mi>o</mi><mi>n</mi><mo>=</mo><mi>L</mi><mi>A</mi><mi>T</mi><mi>E</mi><mi>S</mi><mi>T</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\langle value, version,deps\rangle\leftarrow get\_by\_version(key,version=LATEST)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⟨</span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">u</span><span class="mord mathnormal">e</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">d</span><span class="mord mathnormal">e</span><span class="mord mathnormal">p</span><span class="mord mathnormal">s</span><span class="mclose">⟩</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">←</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal">e</span><span class="mord mathnormal">t</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal">b</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">L</span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mclose">)</span></span></span></span></li>
+<li>This read can request either the latest version of the key or a specific older one. Requesting a specific version is necessary to enable get transactions.</li>
+<li>Upon receiving a response, the client library adds the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">⟨</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo separator="true">,</mo><mi>v</mi><mi>e</mi><mi>r</mi><mi>s</mi><mi>i</mi><mi>o</mi><mi>n</mi><mo separator="true">,</mo><mo stretchy="false">[</mo><mi>d</mi><mi>e</mi><mi>p</mi><mi>s</mi><mo stretchy="false">]</mo><mo stretchy="false">⟩</mo></mrow><annotation encoding="application/x-tex">\langle key,version,[deps]\rangle</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⟨</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mopen">[</span><span class="mord mathnormal">d</span><span class="mord mathnormal">e</span><span class="mord mathnormal">p</span><span class="mord mathnormal">s</span><span class="mclose">]</span><span class="mclose">⟩</span></span></span></span> tuple to the client context, and returns value to the calling code.</li>
+<li>The deps are stored only in COPS-GT, not in COPS.</li>
+</ol>
+<h4 id="why-does-cops-gt-need-to-proviced-get_trans-what-is-wrong-with-the-get-interface"><a class="markdownIt-Anchor" href="#why-does-cops-gt-need-to-proviced-get_trans-what-is-wrong-with-the-get-interface"></a> Why does COPS-GT need to proviced get_trans? What is wrong with the get interface?</h4>
+<ol>
+<li>Reading a set of dependent keys using a single-key get interface cannot ensure causal+ consistency, even though the data store itself is causal+ consistent.</li>
+<li>It may have a “time-to-check-to-time-to-use” race condition, i.e. check operation and usage is not an atomic operation.</li>
+<li>The standard way to achieve such a guarantee is to read and write all related keys in a transaction
+<ul>
+<li>This requires a single serialization point for all grouped keys, which COPS avoids for greater scalability and simplicity.</li>
+</ul>
+</li>
+</ol>
+<h4 id="how-does-get_trans-work"><a class="markdownIt-Anchor" href="#how-does-get_trans-work"></a> How does get_trans work?</h4>
+<ol>
+<li>
+<p>To retrieve multiple values in a causal+ consistent manner, a client calls get trans with the desired set of keys.</p>
+</li>
+<li>
+<p>In the first round, the library issues n concurrent <code>get_by_version</code> operations to the local cluster, one for each key the client listed in <code>get_trans</code>.</p>
+<ul>
+<li>
+<p>Because COPS-GT commits writes locally, the local data store guarantees that each of these explicitly listed keys’ dependencies are already satisfied</p>
+</li>
+<li>
+<p>All listed keys have been written locally and reads on them will immediately return.</p>
+</li>
+<li>
+<p>Each <code>get_by_version</code> operation returns a <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">⟨</mo><mi>v</mi><mi>a</mi><mi>l</mi><mi>u</mi><mi>e</mi><mo separator="true">,</mo><mi>v</mi><mi>e</mi><mi>r</mi><mi>s</mi><mi>i</mi><mi>o</mi><mi>n</mi><mo separator="true">,</mo><mi>d</mi><mi>e</mi><mi>p</mi><mi>s</mi><mo stretchy="false">⟩</mo></mrow><annotation encoding="application/x-tex">\langle value, version, deps\rangle</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⟨</span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">u</span><span class="mord mathnormal">e</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">d</span><span class="mord mathnormal">e</span><span class="mord mathnormal">p</span><span class="mord mathnormal">s</span><span class="mclose">⟩</span></span></span></span> tuple, where deps is a list of keys and versions.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>The client library then examines every dependency entry <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">⟨</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo separator="true">,</mo><mi>v</mi><mi>e</mi><mi>r</mi><mi>s</mi><mi>i</mi><mi>o</mi><mi>n</mi><mo stretchy="false">⟩</mo></mrow><annotation encoding="application/x-tex">\langle key, version\rangle</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⟨</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mclose">⟩</span></span></span></span>.</p>
+<ul>
+<li>The causal dependencies for that result are satisfied
+<ul>
+<li>If either the client did not request the dependent key.</li>
+<li>Or if it did, the version it retrieved was <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≥</mo></mrow><annotation encoding="application/x-tex">≥</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7719400000000001em;vertical-align:-0.13597em;"></span><span class="mrel">≥</span></span></span></span> the version in the dependency list.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>For all keys that are not satisfied, the library issues a second round of concurrent get by version operations.</p>
+<ul>
+<li>The version requested will be the newest version seen in any dependency list from the first round.</li>
+<li>These versions satisfy all causal dependencies from the first round because they are <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≥</mo></mrow><annotation encoding="application/x-tex">≥</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7719400000000001em;vertical-align:-0.13597em;"></span><span class="mrel">≥</span></span></span></span> the needed versions.</li>
+<li>Because dependencies are transitive and these second-round versions are all depended on by versions retrieved in the first round, they do not introduce any new dependencies that need to be satisfied.</li>
+</ul>
+</li>
+<li>
+<p>The second round happens only when the client must read newer versions than those retrieved in the first round.</p>
+<ul>
+<li>This case occurs only if keys involved in the get transaction are updated during the first round.</li>
+</ul>
+</li>
+</ol>
+<h3 id="garbage-collection"><a class="markdownIt-Anchor" href="#garbage-collection"></a> Garbage collection</h3>
+<h4 id="how-does-cops-gt-collect-version-garbage"><a class="markdownIt-Anchor" href="#how-does-cops-gt-collect-version-garbage"></a> How does COPS-GT collect version garbage?</h4>
+<ol>
+<li>The <code>get_trans</code> algorithm limits the number of versions needed to complete a get transaction.
+<ul>
+<li>COPS-GT limits the total running time of get trans through a configurable parameter, <code>trans_time</code>.</li>
+<li>If the timeout fires, the client library will restart the get trans call and satisfy the transaction with newer versions of the keys.</li>
+</ul>
+</li>
+<li>After a new version of a key is written, COPS-GT only needs to keep the old version around for <code>trans_time</code> plus a small delta for clock skew.</li>
+<li>The space overhead is bounded by the number of old versions that can be created within the <code>trans_time</code>.
+<ul>
+<li>This number is determined by the maximum write throughput that the node can sustain.</li>
+<li>This overhead is per-machine and does not grow with the cluster size or the number of datacenters.</li>
+</ul>
+</li>
+</ol>
+<h4 id="how-does-cops-gt-collect-dependency-garbage"><a class="markdownIt-Anchor" href="#how-does-cops-gt-collect-dependency-garbage"></a> How does COPS-GT collect dependency garbage?</h4>
+<ol>
+<li>COPS-GT can garbage collect these dependencies once the versions associated with old dependencies are no longer needed for correctness in get transaction operations.</li>
+<li>After <code>trans_time</code> seconds after a value has been committed in all datacenters, COPS-GT can clean a value’s dependencies.
+<ul>
+<li>To clean dependencies each remote datacenter notifies the originating datacenter when the write has committed and the timeout period has elapsed.</li>
+<li>Once all datacenters confirm, the originating datacenter cleans its own dependencies and informs the others to do likewise.</li>
+</ul>
+</li>
+<li>To minimize bandwidth devoted to cleaning dependencies, a replica only notifies the originating datacenter if this version of a key is the newest after <code>trans_time</code> seconds
+<ul>
+<li>If it is not, there is no need to collect the dependencies because the entire version will be collected.</li>
+</ul>
+</li>
+<li>Under normal operation, dependencies are garbage collected after <code>trans_time</code> plus a round-trip time.</li>
+<li>During a partition, dependencies on the most recent versions of keys cannot be collected.</li>
+</ol>
+<h4 id="how-does-cops-collect-client-metadata-garbage"><a class="markdownIt-Anchor" href="#how-does-cops-collect-client-metadata-garbage"></a> How does COPS collect client metadata garbage?</h4>
+<ol>
+<li>The COPS client library tracks all operations during a client session (single thread of execution) using the ctx id passed with all operation.
+<ul>
+<li>In both systems, each get since the last put adds another nearest dependency.</li>
+<li>Additionally in COPS-GT, all new values and their dependencies returned in get trans operations and all put operations add normal dependencies.</li>
+</ul>
+</li>
+<li>Clients need to track dependencies only until they are guaranteed to be satisfied everywhere.</li>
+<li>Once a <code>put_after</code> commits successfully to all datacenters, COPS flags that key version as <em>never-depend</em>, in order to indicate that clients need not express a dependence upon it.
+<ul>
+<li>The client library will immediately remove a never-depend item from the list of dependencies in the client context.</li>
+<li>Anything that a never-depend key depended on must have been flagged never-depend, so it too can be garbage collected from the context.</li>
+</ul>
+</li>
+<li>The COPS storage nodes remove unnecessary dependencies from <code>put_after</code> operations.
+<ul>
+<li>When a node receives a <code>put_after</code>, it checks each item in the dependency list and removes items with version numbers older than a global checkpoint time.</li>
+</ul>
+</li>
+</ol>
+<h3 id="fault-tolerance"><a class="markdownIt-Anchor" href="#fault-tolerance"></a> Fault tolerance</h3>
+<h4 id="how-does-cops-handle-client-failures"><a class="markdownIt-Anchor" href="#how-does-cops-handle-client-failures"></a> How does COPS handle client failures?</h4>
+<ol>
+<li>From the storage system’s perspective, if a client fails, it simply stops issuing new requests; no recovery is necessary.</li>
+<li>From a client’s perspective, COPS’s dependency tracking makes it easier to handle failures of other clients, by ensuring properties such as referential integrity.</li>
+</ol>
+<h4 id="how-does-cops-handle-key-value-node-failures"><a class="markdownIt-Anchor" href="#how-does-cops-handle-key-value-node-failures"></a> How does COPS handle key-value node failures?</h4>
+<ol>
+<li>
+<p>COPS can use any underlying faulttolerant linearizable key-value store.</p>
+<ul>
+<li>The author uses chain replication within a cluster to mask node failures.</li>
+</ul>
+</li>
+<li>
+<p>Dependency garbage collection follows a similar pattern of interlocking chains.</p>
+<p>Version garbage collection is done locally on each node and can operate as in the single node case.</p>
+<p>Calculation of the global checkpoint time, for client metadata garbage collection, operates normally with each tail updating its corresponding key range minimums.</p>
+</li>
+</ol>
+<h4 id="what-will-happen-when-datacenter-failed"><a class="markdownIt-Anchor" href="#what-will-happen-when-datacenter-failed"></a> What will happen when datacenter failed?</h4>
+<ol>
+<li>Any put after operations that originated in the failed datacenter, but which were not yet copied out, will be lost.</li>
+<li>The storage required for replication queues in the active datacenters will grow.
+<ul>
+<li>They will be unable to send put after operations to the failed datacenter, and thus COPS will be unable to garbage collect those dependencies.</li>
+<li>Solutions: Allow the queues to grow if the partition is likely to heal soon, or reconfigure COPS to no longer use the failed datacenter.</li>
+</ul>
+</li>
+</ol>
+<h4 id="how-does-cops-with-conflict-detection-cops-cd-detect-conflict"><a class="markdownIt-Anchor" href="#how-does-cops-with-conflict-detection-cops-cd-detect-conflict"></a> How does COPS with conflict detection (COPS-CD) detect conflict?</h4>
+<ol>
+<li>All put operations carry with them previous version metadata
+<ul>
+<li>It indicates the most recent previous version of the key that was visible at the local cluster at the time of the write.</li>
+</ul>
+</li>
+<li>All put operations now have an implicit dependency on that previous version
+<ul>
+<li>This ensures that a new version will only be written after its previous version.</li>
+</ul>
+</li>
+<li>COPS-CD has an applicationspecified convergent conflict handler that is invoked when a conflict is detected.
+<ul>
+<li>A put operation <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mi>e</mi><mi>w</mi></mrow><annotation encoding="application/x-tex">new</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">n</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02691em;">w</span></span></span></span> to a key (with previous version <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>v</mi></mrow><annotation encoding="application/x-tex">prev</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span></span></span></span>) is in conflict with the key’s current visible version <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mi>u</mi><mi>r</mi><mi>r</mi></mrow><annotation encoding="application/x-tex">curr</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">c</span><span class="mord mathnormal">u</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span>: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>v</mi><mo mathvariant="normal">≠</mo><mi>c</mi><mi>u</mi><mi>r</mi><mi>r</mi></mrow><annotation encoding="application/x-tex">prev \neq curr</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel"><span class="mrel"><span class="mord vbox"><span class="thinbox"><span class="rlap"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="inner"><span class="mrel"></span></span><span class="fix"></span></span></span></span></span><span class="mrel">=</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">c</span><span class="mord mathnormal">u</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> if and only if <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mi>e</mi><mi>w</mi></mrow><annotation encoding="application/x-tex">new</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">n</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02691em;">w</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mi>u</mi><mi>r</mi><mi>r</mi></mrow><annotation encoding="application/x-tex">curr</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">c</span><span class="mord mathnormal">u</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> conflict.</li>
+</ul>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Distributed-System/" rel="tag"><i class="fa fa-tag"></i> Distributed System</a>
+              <a href="/tags/Consistency-Level/" rel="tag"><i class="fa fa-tag"></i> Consistency Level</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/09/26/Paper/Distributed/Memcache/" rel="prev" title="Memcache">
+                  <i class="fa fa-chevron-left"></i> Memcache
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/09/26/OpenSource/6.824/6-824-Labs/" rel="next" title="6.824 Labs">
+                  6.824 Labs <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">LiyunZhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css" integrity="sha256-hLTCMFlKxdNgPXyWlSSxYN0ykJmxxq9Yt3MNfdRGWeA=" crossorigin="anonymous">
+
+
+
+</body>
+</html>
