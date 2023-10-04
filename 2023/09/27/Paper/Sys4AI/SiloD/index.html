@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Paper: SiloD: A Co-design of Caching and Scheduling for Deep Learning Clusters @[toc] BackgroundHow to separate storage and computing in DL training? Separate storage and computing. The training execu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SiloD">
+<meta property="og:url" content="http://liyun-zhang.github.io/2023/09/27/Paper/Sys4AI/SiloD/index.html">
+<meta property="og:site_name" content="LiyunZhang">
+<meta property="og:description" content="Paper: SiloD: A Co-design of Caching and Scheduling for Deep Learning Clusters @[toc] BackgroundHow to separate storage and computing in DL training? Separate storage and computing. The training execu">
+<meta property="og:locale">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/Sys4ai/SiloD/cache.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/Sys4ai/SiloD/structure.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/Sys4ai/SiloD/indirect.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/Sys4ai/SiloD/optimal.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/Sys4ai/SiloD/demand.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/Sys4ai/SiloD/quiver.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/Sys4ai/SiloD/variance.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/Sys4ai/SiloD/effective.png">
+<meta property="article:published_time" content="2023-09-27T07:46:11.000Z">
+<meta property="article:modified_time" content="2023-10-04T08:25:00.034Z">
+<meta property="article:author" content="LiyunZhang">
+<meta property="article:tag" content="Cache System">
+<meta property="article:tag" content="Sys4AI">
+<meta property="article:tag" content="Scheduler">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://liyun-zhang.github.io/imgs/Sys4ai/SiloD/cache.png">
+
+
+<link rel="canonical" href="http://liyun-zhang.github.io/2023/09/27/Paper/Sys4AI/SiloD/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-Hans","comments":true,"permalink":"http://liyun-zhang.github.io/2023/09/27/Paper/Sys4AI/SiloD/","path":"2023/09/27/Paper/Sys4AI/SiloD/","title":"SiloD"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>SiloD | LiyunZhang</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">LiyunZhang</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Background"><span class="nav-number">1.</span> <span class="nav-text">Background</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-separate-storage-and-computing-in-DL-training"><span class="nav-number">1.1.</span> <span class="nav-text">How to separate storage and computing in DL training?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-levarage-cache-subsystem-for-DL-training"><span class="nav-number">1.2.</span> <span class="nav-text">How to levarage cache subsystem for DL training?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-cache-data-for-DL-training"><span class="nav-number">1.3.</span> <span class="nav-text">How to cache data for DL training?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-is-the-problem-of-static-allocation"><span class="nav-number">1.4.</span> <span class="nav-text">What is the problem of static allocation?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Purpose"><span class="nav-number">2.</span> <span class="nav-text">Purpose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Model"><span class="nav-number">3.</span> <span class="nav-text">Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#What-does-SiloD-do"><span class="nav-number">3.1.</span> <span class="nav-text">What does SiloD do?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-does-SiloD-estimate-performance"><span class="nav-number">3.2.</span> <span class="nav-text">How does SiloD estimate performance?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-integrate-SiloD-with-existing-scheduler"><span class="nav-number">3.3.</span> <span class="nav-text">How to integrate SiloD with existing scheduler?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-use-SiloD-without-modifying-existing-scheduler"><span class="nav-number">3.4.</span> <span class="nav-text">How to use SiloD without modifying existing scheduler?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-does-SiloD-allocate-resources"><span class="nav-number">3.5.</span> <span class="nav-text">How does SiloD allocate resources?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-handle-delayed-data-access-and-irregular-data-access"><span class="nav-number">3.6.</span> <span class="nav-text">How to handle delayed data access and irregular data access?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-does-SiloD-support-fault-tolerance"><span class="nav-number">3.7.</span> <span class="nav-text">How does SiloD support fault tolerance?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Evaluation"><span class="nav-number">4.</span> <span class="nav-text">Evaluation</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">LiyunZhang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">34</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+  
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/09/27/Paper/Sys4AI/SiloD/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="SiloD | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SiloD
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-09-27 15:46:11" itemprop="dateCreated datePublished" datetime="2023-09-27T15:46:11+08:00">2023-09-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-10-04 16:25:00" itemprop="dateModified" datetime="2023-10-04T16:25:00+08:00">2023-10-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Paper-Notebook/" itemprop="url" rel="index"><span itemprop="name">Paper Notebook</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Paper-Notebook/Sys4AI/" itemprop="url" rel="index"><span itemprop="name">Sys4AI</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>Paper: <a target="_blank" rel="noopener" href="https://dl.acm.org/doi/abs/10.1145/3552326.3567499">SiloD: A Co-design of Caching and Scheduling for Deep Learning Clusters</a></p>
+<p>@[toc]</p>
+<h1 id="Background"><a href="#Background" class="headerlink" title="Background"></a>Background</h1><h2 id="How-to-separate-storage-and-computing-in-DL-training"><a href="#How-to-separate-storage-and-computing-in-DL-training" class="headerlink" title="How to separate storage and computing in DL training?"></a>How to separate storage and computing in DL training?</h2><ol>
+<li>Separate storage and computing. The training executes on a compute cluster equipped with GPUs/TPUs while reading data from a separate cluster hosting the storage service. </li>
+<li>When submitting a DL job, users can simply specify the storage account and the location of the desired dataset, and the job can directly load the data through remote IO. </li>
+<li>The remote IO between compute and storage services could become a bottleneck. The worst case is to read the entire training dataset remotely in each epoch. </li>
+<li>The data access pattern and the computation pattern, despite being highly diverse for different training jobs, are both highly stable and predictable within each individual job. </li>
+</ol>
+<h2 id="How-to-levarage-cache-subsystem-for-DL-training"><a href="#How-to-levarage-cache-subsystem-for-DL-training" class="headerlink" title="How to levarage cache subsystem for DL training?"></a>How to levarage cache subsystem for DL training?</h2><ol>
+<li>Leverage local disks of GPU servers, instead of the small cache memory in traditional systems, to cache a subset of data to reduce the demands to remote IO. </li>
+<li>The first type of cache subsystem is built into a data loading library. <ul>
+<li>The cache is built with the processes of a training job, and is statically allocated. </li>
+<li>DL training jobs have diverse demands on cache and remote IO. Isolated cache with a static allocation can neither satisfy nor exploit such diversity. </li>
+</ul>
+</li>
+<li>The second type of cache subsystem is distributed cache which consolidates the local storage of all cluster servers into a large storage pool shared by all jobs. <ul>
+<li>Modern GPU cluster usually has a high-speed storage fabric (separate from the InfiniBand network used for distributed training) that supports accessing data from peer servers as fast as local disk. </li>
+<li>A distributed cache across the local cluster can generally satisfy the IO demands of training jobs. </li>
+</ul>
+</li>
+</ol>
+<h2 id="How-to-cache-data-for-DL-training"><a href="#How-to-cache-data-for-DL-training" class="headerlink" title="How to cache data for DL training?"></a>How to cache data for DL training?</h2><ol>
+<li>Due to the random-and-exactly-once data access pattern, it has been shown that uniform caching is optimal for single training job. </li>
+<li>In uniform caching, accessed data items are cached until the cache capacity is reached, and will not be evicted thereafter. There is no eviction unless the cache capacity is reduced. <ul>
+<li>Other cache eviction policies like LRU (Least-Recently-Used) may evict useful items, leading to the thrashing issue. </li>
+<li>In uniform caching, part of the dataset is staying at the local disk permanently and can be used in each epoch. </li>
+<li>LRU will only reserve data used recently while they won’t be used in near future. </li>
+</ul>
+</li>
+<li>It is noteworthy that the cached data are evenly distributed in each batch, instead of cache some batches entirely. <ul>
+<li>Each data item has a unique ID. The missed data items are fetched from the remote storage. Because each epoch shuffles the data loading order, the expected cache hit ratio is uniform for all items. </li>
+<li>In this way, we can improve the performance of the pipeline of data loading. </li>
+</ul>
+</li>
+<li><p>For deep learning training, uniform caching leads to a constant and predictable cache hit ratio w.r.t. the cache capacity regardless of which items being cached. </p>
+<p><img src="/imgs/Sys4ai/SiloD/cache.png" width="50%"></p>
+</li>
+</ol>
+<h2 id="What-is-the-problem-of-static-allocation"><a href="#What-is-the-problem-of-static-allocation" class="headerlink" title="What is the problem of static allocation?"></a>What is the problem of static allocation?</h2><ol>
+<li>When there are multiple jobs in a cluster, uniform caching transforms the cache management from cache eviction problem to a cache space allocation problem. </li>
+<li>The job’s cache efficiency as the amount of remote IO (in MB/s) saved per GB of cache allocated. </li>
+<li>$𝑓^\ast$ and $d$ are the IO demand to achieve the ideal training speed and the dataset size, respectively. A job’s cache efficiency is $\frac{𝑓^\ast}{d}$. </li>
+<li>The cache efficiency of different dataset can varies largely. A static cache allocation could not take advantage of the diverse cache-efficiency of DL jobs.</li>
+</ol>
+<h1 id="Purpose"><a href="#Purpose" class="headerlink" title="Purpose"></a>Purpose</h1><ol>
+<li>Issue:<ul>
+<li>Existing deep learning schedulers do not manage storage resources thus fail to consider the diverse caching effects across different training jobs. </li>
+<li>State-of-the-art deep learning schedulers focus on arbitrating compute resources (e.g., GPUs and CPUs) with different optimization objectives like job completion time (JCT), fairness, or cluster utilization. </li>
+</ul>
+</li>
+<li>Challenge:<ul>
+<li>Deep learning schedulers have diverse scheduling objectives. An ad-hoc solution to every scheduling policy increases design complexity and is hard to scale. </li>
+<li>Deep learning training exhibits highly diverse performance patterns: different jobs impose different cache and IO demands. This further complicates the system design. </li>
+<li>Even deep learning-aware cache systems could exhibit poor performance because of caching policies that ignore scheduling impacts. </li>
+</ul>
+</li>
+<li>Contribution:<ul>
+<li>Co-design the cluster scheduler and the cache subsystems for deep learning training. </li>
+<li>The job performance estimator is enhanced. <ul>
+<li>To help different schedulers to jointly consider the impact of storage and compute resource allocation while preserving their respective scheduling objectives. </li>
+<li>SiloD derives a unified way of performance estimation by further leveraging the pipelined execution of data loading and computation. </li>
+<li>SiloD is able to augment different state-of-the-art deep learning schedulers to jointly perform cache and remote IO allocation while preserving the original objectives of these scheduling policies. </li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="Model"><a href="#Model" class="headerlink" title="Model"></a>Model</h1><h2 id="What-does-SiloD-do"><a href="#What-does-SiloD-do" class="headerlink" title="What does SiloD do?"></a>What does SiloD do?</h2><ol>
+<li>SiloD allocates compute and cache-related resources jointly to training jobs. SiloD treats cache and remote IO as first-class citizens. <ul>
+<li>Existing multi-resource schedulers can just treat storage resources as yet another resource types whose impact has already been captured by the performance estimator</li>
+</ul>
+</li>
+<li>The scheduling problem can be generally abstracted as allocating cluster resources defined in <code>totalResource</code> to jobs with the help of a performance estimator <code>perf(j, R)</code>. </li>
+<li>SiloD further enhances the estimator <code>perf</code> with <code>SiloDPerf</code> to estimate the joint impact of compute and storage resources. <ul>
+<li>The SiloD-augmented performance estimator transforms a joint performance estimation into a two-step process. </li>
+<li>It first estimates whether data loading will become the bottleneck of the entire training. </li>
+<li>If so, SiloD will use <code>IOPerf</code>, a performance estimator we introduce to analyze the impact of storage to estimate the job performance under IO bottleneck. </li>
+</ul>
+</li>
+</ol>
+<h2 id="How-does-SiloD-estimate-performance"><a href="#How-does-SiloD-estimate-performance" class="headerlink" title="How does SiloD estimate performance?"></a>How does SiloD estimate performance?</h2><ol>
+<li>The end-to-end throughput is then determined by the bottleneck stage, i.e. <code>SiloDPerf</code>$=min\{f^\ast,f\}$. <ul>
+<li>$f^\ast$ is a job’s computation throughput when IO is not the bottleneck, i.e., <code>perf</code>, which is the original estimator used by an existing scheduler. </li>
+<li>$f$ is the throughput of data loading, i.e., <code>IOPerf</code>, which is the estimator for IO given some cache allocation. </li>
+</ul>
+</li>
+<li>A job’s remote IO demand can be calculated as $b=f\cdot (1-\frac{c}{d})$. <ul>
+<li>$𝑐$ is the allocated cache space and $𝑑$ the size of the training dataset. The expected cache hit ratio of a job is $\frac{c}{d}$. </li>
+<li>$𝑏$ is the remote IO demand of a job, which equals to the data loading throughput multiplied by the cache miss ratio. </li>
+</ul>
+</li>
+<li>A job’s IO throughput 𝑓 (i.e., <code>IOPerf</code>) can be estimated by $f=\frac{b}{1-c/d}$. </li>
+<li>When a job is fetching data at its ideal throughput (i.e., $f = f^\ast$), its cache efficiency is exactly the negative derivative of $b$, i.e. Cache Efficiency$=-\frac{\partial b}{\partial c}=\frac{f^\ast}{d}$. <ul>
+<li>The different computation throughput $f^\ast$ of different neural model and dataset size $d$ is the sources of the heterogeneity. </li>
+</ul>
+</li>
+<li><p>The policy assumes the ideal throughput of a job $𝑓^\ast$ (when IO is not a bottleneck) can be profiled offline.</p>
+<h2 id="How-to-integrate-SiloD-with-existing-scheduler"><a href="#How-to-integrate-SiloD-with-existing-scheduler" class="headerlink" title="How to integrate SiloD with existing scheduler?"></a>How to integrate SiloD with existing scheduler?</h2></li>
+<li><p>In Shortest Job First (SJF), each job will have a performance score defined as its weighted sum of resource demand of all resource types multiplied by its duration. </p>
+<ul>
+<li>$score=\displaystyle\min_{R}\sum_{t}w_t\cdot R_t\cdot (\frac{j.numSteps\cdot j.stepDataSize}{perf(j,\bold{R})})$</li>
+<li>$w_t$ is the weight of the $t$-th resource type, $\bold{R}$ is a vector of allocation of all resource types, and $R_{t}$ is the allocation of the $t$-th resource type in $\bold{R}$, $𝑗.numSteps$ is the total number of steps and $𝑗.stepDataSize$ is the size of data consumed per step of job $j$. </li>
+<li>The jobs with the least score will be scheduled first by the multi-resource SJF policy. </li>
+</ul>
+</li>
+<li>The vanilla programming in Gavel’s max-min fairness is $\displaystyle\max_{R}\min_{j}\frac{perf(j,R[j])}{perf(j,R^{equal})},s.t. Sum(R)≤totalResource$. <ul>
+<li>$𝑅[𝑗]$ is the resource allocated to job $j$ and $R^{equal}$ is the equal resource division among all jobs. </li>
+<li>The max-min fairness objective maximizes the job with the least performance improvement over the equal resource division. </li>
+</ul>
+</li>
+<li>When intergrate SiloD, $\bold{R}$ includes cache and remote IO as another two types of resources in addition to compute resources and the performance estimator function $perf(j,\bold{R})$ is replaced by $SiloDPerf(j,\bold{R})$. </li>
+</ol>
+<h2 id="How-to-use-SiloD-without-modifying-existing-scheduler"><a href="#How-to-use-SiloD-without-modifying-existing-scheduler" class="headerlink" title="How to use SiloD without modifying existing scheduler?"></a>How to use SiloD without modifying existing scheduler?</h2><ol>
+<li>The greedy policy minimizes the remote IO consumption in a best-effort manner so that the impact of IO to original scheduling objectives can be minimized. </li>
+<li>It can be done by allocating more cache to the most cache-efficient jobs. </li>
+<li>Each job first calculates its cache efficiency. The datasets with the highest cache efficiency are first cached until the cache space is full. <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> job j <span class="keyword">in</span> <span class="keyword">all</span> jobs do</span><br><span class="line">  j.CacheEfficiency <span class="operator">=</span> j.fStar <span class="operator">/</span> j.datasetSize</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> job j <span class="keyword">in</span> descending <span class="keyword">order</span> <span class="keyword">of</span> j.CacheEfficiency do</span><br><span class="line">  alloc.Cache[j] <span class="operator">=</span> <span class="built_in">min</span>(j.datasetSize, totalCache)</span><br><span class="line">  totalCache <span class="operator">-</span><span class="operator">=</span> alloc.Cache[j]</span><br><span class="line"> </span><br><span class="line"><span class="keyword">return</span> alloc</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="How-does-SiloD-allocate-resources"><a href="#How-does-SiloD-allocate-resources" class="headerlink" title="How does SiloD allocate resources?"></a>How does SiloD allocate resources?</h2><ol>
+<li>SiloD Data Manager serves in the storage layer to enforce the allocations made by the scheduler. <ul>
+<li>A cluster scheduler uses the interface to allocate cache and remote IO to two types of entities: jobs and datasets. <ul>
+<li>Remote IO is allocated to jobs directly, while cache is allocated to datasets, and to the associated jobs indirectly.</li>
+<li>Multiple jobs can transparently share the same cache space for the same dataset. In contrast, since jobs using the same dataset still read data items in different order, remote IO is exclusive to each job. </li>
+<li>The cache consumption is charged by only once for each dataset instead for every jobs. The cache efficiency is defined at dataset-level, which is the sum of all jobs’ cache efficiency using the same dataset. </li>
+<li>For distributed data-parallel training, the remote IO allocation is equally distributed to each worker of the job. </li>
+</ul>
+</li>
+<li>SiloD data manager sets up FUSE (Filesystem in USErspace) clients co-located with training tasks to manage the cache, throttling remote IO and maintaining the metadata of datasets on each server. </li>
+</ul>
+</li>
+<li>SiloD Scheduler extends the responsibility of the compute-only resource scheduler from job scheduling to compute-storage joint allocation.<br><img src="/imgs/Sys4ai/SiloD/structure.png" width="50%"></li>
+</ol>
+<h2 id="How-to-handle-delayed-data-access-and-irregular-data-access"><a href="#How-to-handle-delayed-data-access-and-irregular-data-access" class="headerlink" title="How to handle delayed data access and irregular data access?"></a>How to handle delayed data access and irregular data access?</h2><ol>
+<li>Since DL training reads each data item exactly once per epoch, any newly cached data items will never be accessed again until the next epoch. <ul>
+<li>Even though the newly cached item consumes the cache space, but it does not help to reduce the remote IO until the next epoch. Therefore, accurate estimation of job performance should use the effective cache size. </li>
+<li>However, since multiple jobs may use the same dataset, it is unknown beforehand if a newly cached item by one job is effective or not for other jobs. </li>
+<li>The delayed effectiveness only has a limited impact that lasts for at most one epoch for newly cached items. A DL job usually trains a model for tens of epochs, thus for most of the time, the cached data are effective. </li>
+<li>SiloD also supports fine-grained management for policies to inspect the effective cache size and the instantaneous remote IO demand, by maintaining a bitset for each job to track its accessed items. </li>
+</ul>
+</li>
+<li>When a cluster is mixed by regular jobs satisfying SiloD’s assumptions and irregular jobs, we partition the cache and remote IO into two parts for all regular jobs and irregular jobs, respectively. <ul>
+<li>Allocate resources to the regular jobs in the first partition still using <code>SiloDPerf</code>. </li>
+<li>The irregular jobs in the second partition fall back to the original scheduling policy and estimator, and share the cache and remote IO within the partition. </li>
+<li>In this way, the regular DL jobs can still benefit from exploiting the heterogeneous cache efficiency without being impacted by potential anomalies due to mis-estimation of irregular jobs. </li>
+</ul>
+</li>
+</ol>
+<h2 id="How-does-SiloD-support-fault-tolerance"><a href="#How-does-SiloD-support-fault-tolerance" class="headerlink" title="How does SiloD support fault tolerance?"></a>How does SiloD support fault tolerance?</h2><ol>
+<li>The allocation of remote IO and cache is stored in “pod annotation” for the pods of each job, which is kept reliably by Kubernetes. </li>
+<li>For the job with multiple pods, the remote IO allocation is proportionally divided to each pod and the cache allocation is same for all pods. </li>
+<li>When SiloD Data Manager recovers from crashes, it reconstructs the status by collecting the information from pods. </li>
+<li>The cache content on each server is stored on local disk thus can be reliably restored when the server restarts. </li>
+<li>SiloD does not add stateful information into the cluster scheduler, thus their fault tolerance is handled by their original approach. </li>
+</ol>
+<h1 id="Evaluation"><a href="#Evaluation" class="headerlink" title="Evaluation"></a>Evaluation</h1><ol>
+<li><p>First, the author showed the evidence of the issues: </p>
+<ul>
+<li>They presented the increasing of dataset size and the GPU performance as the indirect evidence of remote IO bottleneck.<br><img src="/imgs/Sys4ai/SiloD/indirect.png" width="50%"></li>
+<li><p>Then the required remote IO to reach the optimal speed for GPU is calculated and the GPU cluster’s aggregate IO demand is profiled to prove that remote IO without cache is slowing down the training prosedure.<br><img src="/imgs/Sys4ai/SiloD/optimal.png" width="25%"><br><img src="/imgs/Sys4ai/SiloD/demand.png" width="25%"></p>
+</li>
+<li><p>When discussing design for cache subsystem, the author also provided the sub-optimal evidence of current scheduler without knowing the cache subsystem.<br><img src="/imgs/Sys4ai/SiloD/quiver.png" width="50%"></p>
+</li>
+</ul>
+</li>
+<li>When further exploring the cache efficiency, the author showed the variance between difference datasets and effective cache size.<br><img src="/imgs/Sys4ai/SiloD/variance.png" width="35%" /> <img src="/imgs/Sys4ai/SiloD/effective.png" width="35%" /></li>
+<li>To evaluate SiloD in a large-scale cluster of fast V100 GPUs with a lower cost, the authors design an approach to accelerating the training on a K80 GPU cluster to investigate the data loading performance of running the same trace in a V100 GPU cluster. <ul>
+<li>In the experiment, they first profile the training speed of selected models on real V100 GPUs. </li>
+<li>Then, execute the same model on K80 GPUs by processing the same training pipeline of data loading, preprocessing and model aggregation, but replacing the model execution (forward pass and backward pass) with “<code>sleep()</code>” for the profiled duration from V100. </li>
+<li>Since deep learning training usually has a very stable mini-batch duration, the IO behaviour in accelerated K80 GPUs is almost the same as real training of V100 GPUs. </li>
+</ul>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Cache-System/" rel="tag"><i class="fa fa-tag"></i> Cache System</a>
+              <a href="/tags/Sys4AI/" rel="tag"><i class="fa fa-tag"></i> Sys4AI</a>
+              <a href="/tags/Scheduler/" rel="tag"><i class="fa fa-tag"></i> Scheduler</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/09/26/OpenSource/6.824/6-824-Labs/" rel="prev" title="6.824 Labs">
+                  <i class="fa fa-chevron-left"></i> 6.824 Labs
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">LiyunZhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css" integrity="sha256-hLTCMFlKxdNgPXyWlSSxYN0ykJmxxq9Yt3MNfdRGWeA=" crossorigin="anonymous">
+
+
+
+</body>
+</html>

@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Purpose Model  Related  What is object-based storage? What is strong consistency and eventual consistency? Chain replication  What is chain replication? What is the problem of basic chain replication">
+    <meta name="description" content="Paper: Object Storage on CRAQ High-throughput chain replication for read-mostly workloads @[toc] Purpose Issue: many commercially-deployed systems sacrifice stronger consistency properties in the desi">
 <meta property="og:type" content="article">
 <meta property="og:title" content="CRAQ">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/CRAQ/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="Purpose Model  Related  What is object-based storage? What is strong consistency and eventual consistency? Chain replication  What is chain replication? What is the problem of basic chain replication">
+<meta property="og:description" content="Paper: Object Storage on CRAQ High-throughput chain replication for read-mostly workloads @[toc] Purpose Issue: many commercially-deployed systems sacrifice stronger consistency properties in the desi">
 <meta property="og:locale">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/CRAQ/basicCR.png">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/CRAQ/read.png">
@@ -35,7 +35,7 @@
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/CRAQ/7.png">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/CRAQ/10-13.png">
 <meta property="article:published_time" content="2023-09-26T05:20:23.000Z">
-<meta property="article:modified_time" content="2023-09-26T05:23:58.869Z">
+<meta property="article:modified_time" content="2023-10-04T08:30:18.583Z">
 <meta property="article:author" content="LiyunZhang">
 <meta property="article:tag" content="Distributed System">
 <meta property="article:tag" content="Distributed Storage">
@@ -149,7 +149,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#purpose"><span class="nav-number">1.</span> <span class="nav-text"> Purpose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#model"><span class="nav-number">2.</span> <span class="nav-text"> Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#related"><span class="nav-number">2.1.</span> <span class="nav-text"> Related</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-object-based-storage"><span class="nav-number">2.1.1.</span> <span class="nav-text"> What is object-based storage?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-strong-consistency-and-eventual-consistency"><span class="nav-number">2.1.2.</span> <span class="nav-text"> What is strong consistency and eventual consistency?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#chain-replication"><span class="nav-number">2.1.3.</span> <span class="nav-text"> Chain replication</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-chain-replication"><span class="nav-number">2.1.3.1.</span> <span class="nav-text"> What is chain replication?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-problem-of-basic-chain-replication"><span class="nav-number">2.1.3.2.</span> <span class="nav-text"> What is the problem of basic chain replication?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-cr-handle-client-requests"><span class="nav-number">2.1.3.3.</span> <span class="nav-text"> How does CR handle client requests?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#why-cr-cannot-provide-read-from-intermediate-nodes"><span class="nav-number">2.1.3.4.</span> <span class="nav-text"> Why CR cannot provide read from intermediate nodes?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#craq-system-model"><span class="nav-number">2.2.</span> <span class="nav-text"> CRAQ System Model</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-craq-handle-write-requests"><span class="nav-number">2.2.1.</span> <span class="nav-text"> How does CRAQ handle write requests?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-craq-handle-read-requests-to-guarantee-strong-consistency"><span class="nav-number">2.2.2.</span> <span class="nav-text"> How does CRAQ handle read requests to guarantee strong consistency?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#in-what-scenarios-does-craq-out-performs-basic-cr"><span class="nav-number">2.2.3.</span> <span class="nav-text"> In what scenarios does CRAQ out-performs basic CR?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-craq-support-eventual-consistency"><span class="nav-number">2.2.4.</span> <span class="nav-text"> How does CRAQ support eventual consistency?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-craq-recover-from-failure"><span class="nav-number">2.2.5.</span> <span class="nav-text"> How does CRAQ recover from failure?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-craq-manage-configuration"><span class="nav-number">2.2.6.</span> <span class="nav-text"> How does CRAQ manage configuration?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-craq-handle-transient-failure-eg-partition-failure"><span class="nav-number">2.2.7.</span> <span class="nav-text"> How does CRAQ handle transient failure (e.g. partition failure)?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-should-craq-choose-nodes-within-a-datacenter"><span class="nav-number">2.2.8.</span> <span class="nav-text"> How should CRAQ choose nodes within a Datacenter?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-craq-support-mini-transaction-of-single-key-operations"><span class="nav-number">2.2.9.</span> <span class="nav-text"> How does CRAQ support mini-transaction of single-key operations?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-craq-lower-write-latency-with-multicast"><span class="nav-number">2.2.10.</span> <span class="nav-text"> How does CRAQ lower write latency with multicast?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-craq-use-zookeeper-to-manage-configuration"><span class="nav-number">2.2.11.</span> <span class="nav-text"> How does CRAQ use ZooKeeper to manage configuration?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-nodes-communicate-with-each-other"><span class="nav-number">2.2.12.</span> <span class="nav-text"> How does nodes communicate with each other?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#evaluation"><span class="nav-number">3.</span> <span class="nav-text"> Evaluation</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Purpose"><span class="nav-number">1.</span> <span class="nav-text">Purpose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Model"><span class="nav-number">2.</span> <span class="nav-text">Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Related"><span class="nav-number">2.1.</span> <span class="nav-text">Related</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#What-is-object-based-storage"><span class="nav-number">2.1.1.</span> <span class="nav-text">What is object-based storage?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-is-strong-consistency-and-eventual-consistency"><span class="nav-number">2.1.2.</span> <span class="nav-text">What is strong consistency and eventual consistency?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Chain-replication"><span class="nav-number">2.1.3.</span> <span class="nav-text">Chain replication</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#What-is-chain-replication"><span class="nav-number">2.1.3.1.</span> <span class="nav-text">What is chain replication?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#What-is-the-problem-of-basic-chain-replication"><span class="nav-number">2.1.3.2.</span> <span class="nav-text">What is the problem of basic chain replication?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#How-does-CR-handle-client-requests"><span class="nav-number">2.1.3.3.</span> <span class="nav-text">How does CR handle client requests?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Why-CR-cannot-provide-read-from-intermediate-nodes"><span class="nav-number">2.1.3.4.</span> <span class="nav-text">Why CR cannot provide read from intermediate nodes?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CRAQ-System-Model"><span class="nav-number">2.2.</span> <span class="nav-text">CRAQ System Model</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-CRAQ-handle-write-requests"><span class="nav-number">2.2.1.</span> <span class="nav-text">How does CRAQ handle write requests?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-CRAQ-handle-read-requests-to-guarantee-strong-consistency"><span class="nav-number">2.2.2.</span> <span class="nav-text">How does CRAQ handle read requests to guarantee strong consistency?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#In-what-scenarios-does-CRAQ-out-performs-basic-CR"><span class="nav-number">2.2.3.</span> <span class="nav-text">In what scenarios does CRAQ out-performs basic CR?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-CRAQ-support-eventual-consistency"><span class="nav-number">2.2.4.</span> <span class="nav-text">How does CRAQ support eventual consistency?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-CRAQ-recover-from-failure"><span class="nav-number">2.2.5.</span> <span class="nav-text">How does CRAQ recover from failure?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-CRAQ-manage-configuration"><span class="nav-number">2.2.6.</span> <span class="nav-text">How does CRAQ manage configuration?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-CRAQ-handle-transient-failure-e-g-partition-failure"><span class="nav-number">2.2.7.</span> <span class="nav-text">How does CRAQ handle transient failure (e.g. partition failure)?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-should-CRAQ-choose-nodes-within-a-Datacenter"><span class="nav-number">2.2.8.</span> <span class="nav-text">How should CRAQ choose nodes within a Datacenter?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-CRAQ-support-mini-transaction-of-single-key-operations"><span class="nav-number">2.2.9.</span> <span class="nav-text">How does CRAQ support mini-transaction of single-key operations?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-CRAQ-lower-write-latency-with-multicast"><span class="nav-number">2.2.10.</span> <span class="nav-text">How does CRAQ lower write latency with multicast?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-CRAQ-use-ZooKeeper-to-manage-configuration"><span class="nav-number">2.2.11.</span> <span class="nav-text">How does CRAQ use ZooKeeper to manage configuration?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-nodes-communicate-with-each-other"><span class="nav-number">2.2.12.</span> <span class="nav-text">How does nodes communicate with each other?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Evaluation"><span class="nav-number">3.</span> <span class="nav-text">Evaluation</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -162,18 +162,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">33</span>
+          <span class="site-state-item-count">34</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-count">8</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-count">21</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -228,9 +228,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2023-09-26 13:20:23 / Modified: 13:23:58" itemprop="dateCreated datePublished" datetime="2023-09-26T13:20:23+08:00">2023-09-26</time>
+      <time title="Created: 2023-09-26 13:20:23" itemprop="dateCreated datePublished" datetime="2023-09-26T13:20:23+08:00">2023-09-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-10-04 16:30:18" itemprop="dateModified" datetime="2023-10-04T16:30:18+08:00">2023-10-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -255,311 +261,210 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
-<li><a href="#purpose">Purpose</a></li>
-<li><a href="#model">Model</a>
-<ul>
-<li><a href="#related">Related</a>
-<ul>
-<li><a href="#what-is-object-based-storage">What is object-based storage?</a></li>
-<li><a href="#what-is-strong-consistency-and-eventual-consistency">What is strong consistency and eventual consistency?</a></li>
-<li><a href="#chain-replication">Chain replication</a>
-<ul>
-<li><a href="#what-is-chain-replication">What is chain replication?</a></li>
-<li><a href="#what-is-the-problem-of-basic-chain-replication">What is the problem of basic chain replication?</a></li>
-<li><a href="#how-does-cr-handle-client-requests">How does CR handle client requests?</a></li>
-<li><a href="#why-cr-cannot-provide-read-from-intermediate-nodes">Why CR cannot provide read from intermediate nodes?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#craq-system-model">CRAQ System Model</a>
-<ul>
-<li><a href="#how-does-craq-handle-write-requests">How does CRAQ handle write requests?</a></li>
-<li><a href="#how-does-craq-handle-read-requests-to-guarantee-strong-consistency">How does CRAQ handle read requests to guarantee strong consistency?</a></li>
-<li><a href="#in-what-scenarios-does-craq-out-performs-basic-cr">In what scenarios does CRAQ out-performs basic CR?</a></li>
-<li><a href="#how-does-craq-support-eventual-consistency">How does CRAQ support eventual consistency?</a></li>
-<li><a href="#how-does-craq-recover-from-failure">How does CRAQ recover from failure?</a></li>
-<li><a href="#how-does-craq-manage-configuration">How does CRAQ manage configuration?</a></li>
-<li><a href="#how-does-craq-handle-transient-failure-eg-partition-failure">How does CRAQ handle transient failure (e.g. partition failure)?</a></li>
-<li><a href="#how-should-craq-choose-nodes-within-a-datacenter">How should CRAQ choose nodes within a Datacenter?</a></li>
-<li><a href="#how-does-craq-support-mini-transaction-of-single-key-operations">How does CRAQ support mini-transaction of single-key operations?</a></li>
-<li><a href="#how-does-craq-lower-write-latency-with-multicast">How does CRAQ lower write latency with multicast?</a></li>
-<li><a href="#how-does-craq-use-zookeeper-to-manage-configuration">How does CRAQ use ZooKeeper to manage configuration?</a></li>
-<li><a href="#how-does-nodes-communicate-with-each-other">How does nodes communicate with each other?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#evaluation">Evaluation</a></li>
-</ul>
-</p>
-<h1 id="purpose"><a class="markdownIt-Anchor" href="#purpose"></a> Purpose</h1>
-<ol>
+    <div class="post-body" itemprop="articleBody"><p>Paper: <a target="_blank" rel="noopener" href="http://nil.csail.mit.edu/6.824/2020/papers/craq.pdf">Object Storage on CRAQ High-throughput chain replication for read-mostly workloads</a></p>
+<p>@[toc]</p>
+<h1 id="Purpose"><a href="#Purpose" class="headerlink" title="Purpose"></a>Purpose</h1><ol>
 <li>Issue: many commercially-deployed systems sacrifice stronger consistency properties in the desire for greater availability and higher throughput.</li>
-<li>Contribution:
-<ul>
-<li>This system is an improvement on Chain Replication, maintains strong consistency while greatly improving read throughput by enabling any chain node to handle read operations.
-<ul>
-<li>By distributing load across all object replicas, CRAQ scales linearly with chain size without increasing consistency coordination.</li>
+<li>Contribution:<ul>
+<li>This system is an improvement on Chain Replication, maintains strong consistency while greatly improving read throughput by enabling any chain node to handle read operations. <ul>
+<li>By distributing load across all object replicas, CRAQ scales linearly with chain size without increasing consistency coordination. </li>
 </ul>
 </li>
-<li>CRAQ’s design naturally supports eventual-consistency among read operations for lower-latency reads during write contention and degradation to read-only behavior during transient partitions.
-<ul>
+<li>CRAQ’s design naturally supports eventual-consistency among read operations for lower-latency reads during write contention and degradation to read-only behavior during transient partitions. <ul>
 <li>CRAQ allows applications to specify the maximum staleness acceptable for read operations.</li>
 </ul>
 </li>
-<li>Leveraging these load-balancing properties, we describe a wide-area system design for building CRAQ chains across geographically-diverse clusters that preserves strong locality properties.</li>
+<li>Leveraging these load-balancing properties, we describe a wide-area system design for building CRAQ chains across geographically-diverse clusters that preserves strong locality properties. </li>
 </ul>
 </li>
 </ol>
-<h1 id="model"><a class="markdownIt-Anchor" href="#model"></a> Model</h1>
-<h2 id="related"><a class="markdownIt-Anchor" href="#related"></a> Related</h2>
-<h3 id="what-is-object-based-storage"><a class="markdownIt-Anchor" href="#what-is-object-based-storage"></a> What is object-based storage?</h3>
-<ol>
-<li>Object-based storage: Supported by key-value databases, data is presented to applications as entire units.</li>
-<li>Object stores support two basic primitives: read (or query) operations return the data block stored under an object name, and write (or update) operations change the state of a single object.</li>
-<li>Object stores are better suited for flat namespaces, such as in key-value databases, as opposed to hierarchical directory structures where file systems are better.</li>
-<li>Object stores simplify the process of supporting whole-object modifications.<br />
-Typically only need to reason about the ordering of modifications to a specific object, as opposed to the entire storage system.<br />
-Significantly cheaper to provide consistency guarantees per object instead of across all operations and/or objects.</li>
+<h1 id="Model"><a href="#Model" class="headerlink" title="Model"></a>Model</h1><h2 id="Related"><a href="#Related" class="headerlink" title="Related"></a>Related</h2><h3 id="What-is-object-based-storage"><a href="#What-is-object-based-storage" class="headerlink" title="What is object-based storage?"></a>What is object-based storage?</h3><ol>
+<li>Object-based storage: Supported by key-value databases, data is presented to applications as entire units. </li>
+<li>Object stores support two basic primitives: read (or query) operations return the data block stored under an object name, and write (or update) operations change the state of a single object.  </li>
+<li>Object stores are better suited for flat namespaces, such as in key-value databases, as opposed to hierarchical directory structures where file systems are better. </li>
+<li>Object stores simplify the process of supporting whole-object modifications.<br>Typically only need to reason about the ordering of modifications to a specific object, as opposed to the entire storage system.<br>Significantly cheaper to provide consistency guarantees per object instead of across all operations and/or objects. </li>
 </ol>
-<h3 id="what-is-strong-consistency-and-eventual-consistency"><a class="markdownIt-Anchor" href="#what-is-strong-consistency-and-eventual-consistency"></a> What is strong consistency and eventual consistency?</h3>
-<ol>
-<li>
-<p>Strong consistency guarantees that all read and write operations to an object are executed in some sequential order, and that a read to an object always sees the latest written value.</p>
+<h3 id="What-is-strong-consistency-and-eventual-consistency"><a href="#What-is-strong-consistency-and-eventual-consistency" class="headerlink" title="What is strong consistency and eventual consistency?"></a>What is strong consistency and eventual consistency?</h3><ol>
+<li><p>Strong consistency guarantees that all read and write operations to an object are executed in some sequential order, and that a read to an object always sees the latest written value. </p>
 </li>
-<li>
-<p>Eventual consistency implies that</p>
+<li><p>Eventual consistency implies that </p>
 <ul>
-<li>
-<p>Writes to an object are still applied in a sequential order on all nodes, but eventually-consistent reads to different nodes can return stale data for some period of inconsistency.</p>
+<li><p>Writes to an object are still applied in a sequential order on all nodes, but eventually-consistent reads to different nodes can return stale data for some period of inconsistency. </p>
 </li>
-<li>
-<p>However, read operations will never return an older version than the latest committed write.</p>
+<li><p>However, read operations will never return an older version than the latest committed write. </p>
 </li>
-<li>
-<p>A client will also see monotonic read consistency if it maintains a session with a particular node.</p>
-</li>
+<li>A client will also see monotonic read consistency if it maintains a session with a particular node. </li>
 </ul>
 </li>
-<li>
-<p>The Eventual consistency is still different from the guarantees from ZooKeeper or Raft. In ZooKeeper or Raft, clients only see monotonic read consistency even if they cross sessions with different servers.</p>
+<li><p>The Eventual consistency is still different from the guarantees from ZooKeeper or Raft. In ZooKeeper or Raft, clients only see monotonic read consistency even if they cross sessions with different servers. </p>
 </li>
 </ol>
-<h3 id="chain-replication"><a class="markdownIt-Anchor" href="#chain-replication"></a> Chain replication</h3>
-<h4 id="what-is-chain-replication"><a class="markdownIt-Anchor" href="#what-is-chain-replication"></a> What is chain replication?</h4>
-<ol>
-<li>It organizes all nodes storing an object in a chain, where the chain tail handles all read requests, and the chain head handles all write requests,  as shown below:<br />
-<img src="/imgs/Distributed/CRAQ/basicCR.png" alt="" /></li>
-<li>Writes propagate down the chain before the client is acknowledged, thus providing a simple ordering of all object operations, and hence strong consistency, at the tail.</li>
-<li>The lack of any complex or multi-round protocols yields simplicity, good throughput, and easy recovery.</li>
+<h3 id="Chain-replication"><a href="#Chain-replication" class="headerlink" title="Chain replication"></a>Chain replication</h3><h4 id="What-is-chain-replication"><a href="#What-is-chain-replication" class="headerlink" title="What is chain replication?"></a>What is chain replication?</h4><ol>
+<li>It organizes all nodes storing an object in a chain, where the chain tail handles all read requests, and the chain head handles all write requests,  as shown below:<br><img src="/imgs/Distributed/CRAQ/basicCR.png" alt=""></li>
+<li>Writes propagate down the chain before the client is acknowledged, thus providing a simple ordering of all object operations, and hence strong consistency, at the tail. </li>
+<li>The lack of any complex or multi-round protocols yields simplicity, good throughput, and easy recovery. </li>
 </ol>
-<h4 id="what-is-the-problem-of-basic-chain-replication"><a class="markdownIt-Anchor" href="#what-is-the-problem-of-basic-chain-replication"></a> What is the problem of basic chain replication?</h4>
-<ol>
+<h4 id="What-is-the-problem-of-basic-chain-replication"><a href="#What-is-the-problem-of-basic-chain-replication" class="headerlink" title="What is the problem of basic chain replication?"></a>What is the problem of basic chain replication?</h4><ol>
 <li>All reads for an object must go to the same node, leading to potential hotspots.</li>
-<li>Multiple chains can be constructed across a cluster of nodes for better load balancing via consistent hashing or a more centralized directory approach.</li>
-<li>But these algorithms might still find load imbalances if particular objects are disproportionally popular.<br />
-All reads to a chain may then be handled by a potentially-distant node, namely the chain’s tail.</li>
+<li>Multiple chains can be constructed across a cluster of nodes for better load balancing via consistent hashing or a more centralized directory approach. </li>
+<li>But these algorithms might still find load imbalances if particular objects are disproportionally popular.<br>All reads to a chain may then be handled by a potentially-distant node, namely the chain’s tail. </li>
 </ol>
-<h4 id="how-does-cr-handle-client-requests"><a class="markdownIt-Anchor" href="#how-does-cr-handle-client-requests"></a> How does CR handle client requests?</h4>
-<ol>
-<li>The <em>head</em> of the chain handles all write operations from clients.
-<ul>
-<li>When a write operation is received by a node, it is propagated to the next node in the chain.</li>
-<li>Once the write reaches the tail node, it has been applied to all replicas in the chain, and it is considered committed.</li>
-<li>When the tail commits the write, a reply is sent to the client. The CR paper describes the tail sending a message directly back to the client.</li>
+<h4 id="How-does-CR-handle-client-requests"><a href="#How-does-CR-handle-client-requests" class="headerlink" title="How does CR handle client requests?"></a>How does CR handle client requests?</h4><ol>
+<li>The <em>head</em> of the chain handles all write operations from clients. <ul>
+<li>When a write operation is received by a node, it is propagated to the next node in the chain. </li>
+<li>Once the write reaches the tail node, it has been applied to all replicas in the chain, and it is considered committed. </li>
+<li>When the tail commits the write, a reply is sent to the client. The CR paper describes the tail sending a message directly back to the client. </li>
 </ul>
 </li>
-<li>The tail node handles all read operations, so only values which are committed can be returned by a read.</li>
-<li>The simple topology of CR makes write operations cheaper than in other protocols offering strong consistency.<br />
-Multiple concurrent writes can be pipelined down the chain, with transmission costs equally spread over all nodes.</li>
+<li>The tail node handles all read operations, so only values which are committed can be returned by a read. </li>
+<li>The simple topology of CR makes write operations cheaper than in other protocols offering strong consistency.<br>Multiple concurrent writes can be pipelined down the chain, with transmission costs equally spread over all nodes. </li>
 </ol>
-<h4 id="why-cr-cannot-provide-read-from-intermediate-nodes"><a class="markdownIt-Anchor" href="#why-cr-cannot-provide-read-from-intermediate-nodes"></a> Why CR cannot provide read from intermediate nodes?</h4>
-<ol>
-<li>The reading result can violate the strong consistency.</li>
-<li>Concurrent reads to different nodes could see different writes as they are in the process of propagating down the chain.</li>
+<h4 id="Why-CR-cannot-provide-read-from-intermediate-nodes"><a href="#Why-CR-cannot-provide-read-from-intermediate-nodes" class="headerlink" title="Why CR cannot provide read from intermediate nodes?"></a>Why CR cannot provide read from intermediate nodes?</h4><ol>
+<li>The reading result can violate the strong consistency. </li>
+<li>Concurrent reads to different nodes could see different writes as they are in the process of propagating down the chain. </li>
 </ol>
-<h2 id="craq-system-model"><a class="markdownIt-Anchor" href="#craq-system-model"></a> CRAQ System Model</h2>
-<h3 id="how-does-craq-handle-write-requests"><a class="markdownIt-Anchor" href="#how-does-craq-handle-write-requests"></a> How does CRAQ handle write requests?</h3>
-<ol>
-<li>A node in CRAQ can store multiple versions of an object, each including a monotonically-increasing version number and an additional attribute whether the version is clean or dirty. All versions are initially marked as clean.</li>
-<li>When a node receives a new version of an object via a write being propagated down the chain, the node appends this latest version to its list for the object.
-<ul>
-<li>If the node is not the tail, it marks the version as dirty, and propagates the write to its successor.</li>
-<li>Otherwise, if the node is the tail, it marks the version as clean, at which time we call the object version (write) as committed.</li>
-<li>The tail node can then notify all other nodes of the commit by sending an acknowledgement backwards through the chain.</li>
+<h2 id="CRAQ-System-Model"><a href="#CRAQ-System-Model" class="headerlink" title="CRAQ System Model"></a>CRAQ System Model</h2><h3 id="How-does-CRAQ-handle-write-requests"><a href="#How-does-CRAQ-handle-write-requests" class="headerlink" title="How does CRAQ handle write requests?"></a>How does CRAQ handle write requests?</h3><ol>
+<li>A node in CRAQ can store multiple versions of an object, each including a monotonically-increasing version number and an additional attribute whether the version is clean or dirty. All versions are initially marked as clean. </li>
+<li>When a node receives a new version of an object via a write being propagated down the chain, the node appends this latest version to its list for the object. <ul>
+<li>If the node is not the tail, it marks the version as dirty, and propagates the write to its successor. </li>
+<li>Otherwise, if the node is the tail, it marks the version as clean, at which time we call the object version (write) as committed. </li>
+<li>The tail node can then notify all other nodes of the commit by sending an acknowledgement backwards through the chain. </li>
 </ul>
 </li>
-<li>When an acknowledgement message for an object version arrives at a node, the node marks the object version as clean. The node can then delete all prior versions of the object.</li>
+<li>When an acknowledgement message for an object version arrives at a node, the node marks the object version as clean. The node can then delete all prior versions of the object. </li>
 <li>If the node has exactly one version for an object, the object is implicitly in the clean state; otherwise, the object is dirty and the properlyordered version must be retrieved from the chain tail.</li>
 </ol>
-<h3 id="how-does-craq-handle-read-requests-to-guarantee-strong-consistency"><a class="markdownIt-Anchor" href="#how-does-craq-handle-read-requests-to-guarantee-strong-consistency"></a> How does CRAQ handle read requests to guarantee strong consistency?</h3>
-<ol>
-<li>When a node receives a read request for an object, if the latest known version of the requested object is clean, the node returns this value.</li>
-<li>If the latest version number of the object requested is dirty, the node contacts the tail and asks for the tail’s last committed version number (a version query). The node then returns that version of the object.</li>
-<li>The tail could commit a new version between when it replied to the version request and when the intermediate node sends a reply to the client.<br />
-This does not violate strong consistency, as read operations are serialized with respect to the tail.</li>
+<h3 id="How-does-CRAQ-handle-read-requests-to-guarantee-strong-consistency"><a href="#How-does-CRAQ-handle-read-requests-to-guarantee-strong-consistency" class="headerlink" title="How does CRAQ handle read requests to guarantee strong consistency?"></a>How does CRAQ handle read requests to guarantee strong consistency?</h3><ol>
+<li>When a node receives a read request for an object, if the latest known version of the requested object is clean, the node returns this value. </li>
+<li>If the latest version number of the object requested is dirty, the node contacts the tail and asks for the tail’s last committed version number (a version query). The node then returns that version of the object. </li>
+<li>The tail could commit a new version between when it replied to the version request and when the intermediate node sends a reply to the client.<br>This does not violate strong consistency, as read operations are serialized with respect to the tail. </li>
 </ol>
-<p><img src="/imgs/Distributed/CRAQ/read.png" alt="" /></p>
-<h3 id="in-what-scenarios-does-craq-out-performs-basic-cr"><a class="markdownIt-Anchor" href="#in-what-scenarios-does-craq-out-performs-basic-cr"></a> In what scenarios does CRAQ out-performs basic CR?</h3>
-<ol>
-<li>In read-mostly workloads, most of the read requests handled solely by the C − 1 non-tail nodes (as clean reads), and thus throughput in these scenarios scales linearly with chain size C.</li>
-<li>In write-heavy workloads, most read requests to non-tail nodes as dirty. But these version queries are lighter-weight than full reads, allowing the tail to process them at a much higher rate before it becomes saturated.</li>
+<p><img src="/imgs/Distributed/CRAQ/read.png" alt=""></p>
+<h3 id="In-what-scenarios-does-CRAQ-out-performs-basic-CR"><a href="#In-what-scenarios-does-CRAQ-out-performs-basic-CR" class="headerlink" title="In what scenarios does CRAQ out-performs basic CR?"></a>In what scenarios does CRAQ out-performs basic CR?</h3><ol>
+<li>In read-mostly workloads, most of the read requests handled solely by the C − 1 non-tail nodes (as clean reads), and thus throughput in these scenarios scales linearly with chain size C. </li>
+<li>In write-heavy workloads, most read requests to non-tail nodes as dirty. But these version queries are lighter-weight than full reads, allowing the tail to process them at a much higher rate before it becomes saturated. </li>
 </ol>
-<h3 id="how-does-craq-support-eventual-consistency"><a class="markdownIt-Anchor" href="#how-does-craq-support-eventual-consistency"></a> How does CRAQ support eventual consistency?</h3>
-<ol>
-<li>
-<p>It allows read operations to a chain node to return the newest object version known to it.</p>
+<h3 id="How-does-CRAQ-support-eventual-consistency"><a href="#How-does-CRAQ-support-eventual-consistency" class="headerlink" title="How does CRAQ support eventual consistency?"></a>How does CRAQ support eventual consistency?</h3><ol>
+<li><p>It allows read operations to a chain node to return the newest object version known to it. </p>
 </li>
-<li>
-<p>It can also support eventual consistency with maximum-bounded inconsistency.</p>
+<li><p>It can also support eventual consistency with maximum-bounded inconsistency. </p>
 <ul>
-<li>The limit imposed can be based on time (relative to a node’s local clock) or on absolute version numbers.</li>
+<li>The limit imposed can be based on time (relative to a node’s local clock) or on absolute version numbers. </li>
 </ul>
 </li>
-<li>
-<p>If the chain is still available, this inconsistency is actually in terms of the returned version being newer than the last committed one.</p>
+<li><p>If the chain is still available, this inconsistency is actually in terms of the returned version being newer than the last committed one. </p>
 <p>If the system is partitioned and the node cannot participate in writes, the version may be older than the current committed one.</p>
 </li>
 </ol>
-<h3 id="how-does-craq-recover-from-failure"><a class="markdownIt-Anchor" href="#how-does-craq-recover-from-failure"></a> How does CRAQ recover from failure?</h3>
-<ol>
-<li>Each chain node needs to know its predecessor and successor, as well as the chain head and tail.</li>
-<li>When a head fails, its immediate successor takes over as the new chain head; likewise, the tail’s predecessor takes over when the tail fails.</li>
-<li>If intermediate node fails, drop it from chain, predecessor may need to re-send recent writes since write request pipeline may have been broken from the failure server.</li>
+<h3 id="How-does-CRAQ-recover-from-failure"><a href="#How-does-CRAQ-recover-from-failure" class="headerlink" title="How does CRAQ recover from failure?"></a>How does CRAQ recover from failure?</h3><ol>
+<li>Each chain node needs to know its predecessor and successor, as well as the chain head and tail. </li>
+<li>When a head fails, its immediate successor takes over as the new chain head; likewise, the tail’s predecessor takes over when the tail fails. </li>
+<li>If intermediate node fails, drop it from chain, predecessor may need to re-send recent writes since write request pipeline may have been broken from the failure server. </li>
 </ol>
-<h3 id="how-does-craq-manage-configuration"><a class="markdownIt-Anchor" href="#how-does-craq-manage-configuration"></a> How does CRAQ manage configuration?</h3>
-<ol>
-<li>An object’s identifier consists of both a chain identifier and a key identifier.</li>
-<li>Applications can specify their requirements in multiple ways:
-<ul>
-<li>Implicit Datacenters &amp; Global Chain Size <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">{</mo><mi>n</mi><mi>u</mi><mi>m</mi><mi mathvariant="normal">_</mi><mi>d</mi><mi>a</mi><mi>t</mi><mi>a</mi><mi>c</mi><mi>e</mi><mi>n</mi><mi>t</mi><mi>e</mi><mi>r</mi><mi>s</mi><mo separator="true">,</mo><mi>c</mi><mi>h</mi><mi>a</mi><mi>i</mi><mi>n</mi><mi mathvariant="normal">_</mi><mi>s</mi><mi>i</mi><mi>z</mi><mi>e</mi><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">\{num\_datacenters, chain\_size\}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mopen">{</span><span class="mord mathnormal">n</span><span class="mord mathnormal">u</span><span class="mord mathnormal">m</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal">d</span><span class="mord mathnormal">a</span><span class="mord mathnormal">t</span><span class="mord mathnormal">a</span><span class="mord mathnormal">c</span><span class="mord mathnormal">e</span><span class="mord mathnormal">n</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">s</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">c</span><span class="mord mathnormal">h</span><span class="mord mathnormal">a</span><span class="mord mathnormal">i</span><span class="mord mathnormal">n</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="mord mathnormal">e</span><span class="mclose">}</span></span></span></span>.
-<ul>
+<h3 id="How-does-CRAQ-manage-configuration"><a href="#How-does-CRAQ-manage-configuration" class="headerlink" title="How does CRAQ manage configuration?"></a>How does CRAQ manage configuration?</h3><ol>
+<li>An object’s identifier consists of both a chain identifier and a key identifier. </li>
+<li>Applications can specify their requirements in multiple ways:<ul>
+<li>Implicit Datacenters &amp; Global Chain Size $\{num_datacenters, chain_size\}$. <ul>
 <li>To determine exactly which datacenters store the chain, consistent hashing is used with unique datacenter identifiers.</li>
 </ul>
 </li>
-<li>Explicit Datacenters &amp; Global Chain Size <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">{</mo><mi>c</mi><mi>h</mi><mi>a</mi><mi>i</mi><mi>n</mi><mi mathvariant="normal">_</mi><mi>s</mi><mi>i</mi><mi>z</mi><mi>e</mi><mo separator="true">,</mo><mi>d</mi><msub><mi>c</mi><mn>1</mn></msub><mo separator="true">,</mo><mi>d</mi><msub><mi>c</mi><mn>2</mn></msub><mo separator="true">,</mo><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mo separator="true">,</mo><mi>d</mi><msub><mi>c</mi><mi>N</mi></msub><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">\{chain\_size, dc_1, dc_2, ..., dc_N\}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mopen">{</span><span class="mord mathnormal">c</span><span class="mord mathnormal">h</span><span class="mord mathnormal">a</span><span class="mord mathnormal">i</span><span class="mord mathnormal">n</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="mord mathnormal">e</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">d</span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">d</span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">.</span><span class="mord">.</span><span class="mord">.</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">d</span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">}</span></span></span></span>
-<ul>
-<li>The order of the chain is the same as specified with head within <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><msub><mi>c</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">dc_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord mathnormal">d</span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> and tail within <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><msub><mi>c</mi><mi>N</mi></msub></mrow><annotation encoding="application/x-tex">dc_N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord mathnormal">d</span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
-<li>To determine which nodes within a datacenter store objects assigned to the chain, consistent hashing is used on the chain identifier.</li>
-<li>Each datacenter <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><msub><mi>c</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">dc_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord mathnormal">d</span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> has a node which connects to the tail of datacenter <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><msub><mi>c</mi><mrow><mi>i</mi><mtext>−</mtext><mn>1</mn></mrow></msub></mrow><annotation encoding="application/x-tex">dc_{i−1}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.902771em;vertical-align:-0.208331em;"></span><span class="mord mathnormal">d</span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mord mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span></span></span></span> and a node which connects to the head of datacenter <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><msub><mi>c</mi><mrow><mi>i</mi><mo>+</mo><mn>1</mn></mrow></msub></mrow><annotation encoding="application/x-tex">dc_{i+1}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.902771em;vertical-align:-0.208331em;"></span><span class="mord mathnormal">d</span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span></span></span></span>.</li>
-<li><code>chain_size</code> being <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> indicates that the chain should use all nodes within each datacenter.</li>
+<li>Explicit Datacenters &amp; Global Chain Size $\{chain_size, dc_1, dc_2, …, dc_N\}$<ul>
+<li>The order of the chain is the same as specified with head within $dc_1$ and tail within $dc_N$. </li>
+<li>To determine which nodes within a datacenter store objects assigned to the chain, consistent hashing is used on the chain identifier. </li>
+<li>Each datacenter $dc_i$ has a node which connects to the tail of datacenter $dc_{i−1}$ and a node which connects to the head of datacenter $dc_{i+1}$. </li>
+<li><code>chain_size</code> being $0$ indicates that the chain should use all nodes within each datacenter. </li>
 </ul>
 </li>
-<li>Explicit Datacenter Chain Sizes <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">{</mo><mi>d</mi><msub><mi>c</mi><mn>1</mn></msub><mo separator="true">,</mo><mi>c</mi><mi>h</mi><mi>a</mi><mi>i</mi><mi>n</mi><mi mathvariant="normal">_</mi><mi>s</mi><mi>i</mi><mi>z</mi><msub><mi>e</mi><mn>1</mn></msub><mo separator="true">,</mo><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mo separator="true">,</mo><mi>d</mi><msub><mi>c</mi><mi>N</mi></msub><mo separator="true">,</mo><mi>c</mi><mi>h</mi><mi>a</mi><mi>i</mi><mi>n</mi><mi mathvariant="normal">_</mi><mi>s</mi><mi>i</mi><mi>z</mi><msub><mi>e</mi><mi>N</mi></msub><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">\{dc_1, chain\_size_1, ..., dc_N, chain\_size_N\}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mopen">{</span><span class="mord mathnormal">d</span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">c</span><span class="mord mathnormal">h</span><span class="mord mathnormal">a</span><span class="mord mathnormal">i</span><span class="mord mathnormal">n</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">.</span><span class="mord">.</span><span class="mord">.</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">d</span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">c</span><span class="mord mathnormal">h</span><span class="mord mathnormal">a</span><span class="mord mathnormal">i</span><span class="mord mathnormal">n</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">}</span></span></span></span>
-<ul>
-<li>This allows for non-uniformity in chain load balancing.</li>
-<li>The chain nodes within each datacenter are chosen in the same manner as the previous method, and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mi>h</mi><mi>a</mi><mi>i</mi><mi>n</mi><mi mathvariant="normal">_</mi><mi>s</mi><mi>i</mi><mi>z</mi><msub><mi>e</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">chain\_size_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.00444em;vertical-align:-0.31em;"></span><span class="mord mathnormal">c</span><span class="mord mathnormal">h</span><span class="mord mathnormal">a</span><span class="mord mathnormal">i</span><span class="mord mathnormal">n</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> can also be set to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>.</li>
+<li>Explicit Datacenter Chain Sizes $\{dc_1, chain_size_1, …, dc_N, chain_size_N\}$<ul>
+<li>This allows for non-uniformity in chain load balancing. </li>
+<li>The chain nodes within each datacenter are chosen in the same manner as the previous method, and $chain_size_i$ can also be set to $0$. </li>
 </ul>
 </li>
-</ul>
-</li>
-</ol>
-<h3 id="how-does-craq-handle-transient-failure-eg-partition-failure"><a class="markdownIt-Anchor" href="#how-does-craq-handle-transient-failure-eg-partition-failure"></a> How does CRAQ handle transient failure (e.g. partition failure)?</h3>
-<ol>
-<li>In methods 2 and 3 above, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><msub><mi>c</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">dc_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord mathnormal">d</span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> can be set as a master datacenter.
-<ul>
-<li>If a datacenter is the master for a chain, writes to the chain will only be accepted by that datacenter during transient failures.</li>
-</ul>
-</li>
-<li>When a master is not defined,
-<ul>
-<li>Writes will only continue in a partition if the partition contains a majority of the nodes in the global chain.</li>
-<li>The minority partition will become read-only for maximumbounded inconsistent read operations.</li>
 </ul>
 </li>
 </ol>
-<h3 id="how-should-craq-choose-nodes-within-a-datacenter"><a class="markdownIt-Anchor" href="#how-should-craq-choose-nodes-within-a-datacenter"></a> How should CRAQ choose nodes within a Datacenter?</h3>
-<ol>
-<li>In CRAQ’s current implementation, we place chains within a datacenter using consistent hashing, mapping potentially many chain identifiers to a single head node.</li>
-<li>Another approach is to use the membership management service as a directory service in assigning and storing randomized chain membership, i.e., each chain can include some random set of server nodes.
-<ul>
-<li>This approach improves the potential for parallel system recovery.</li>
+<h3 id="How-does-CRAQ-handle-transient-failure-e-g-partition-failure"><a href="#How-does-CRAQ-handle-transient-failure-e-g-partition-failure" class="headerlink" title="How does CRAQ handle transient failure (e.g. partition failure)?"></a>How does CRAQ handle transient failure (e.g. partition failure)?</h3><ol>
+<li>In methods 2 and 3 above, $dc_1$ can be set as a master datacenter. <ul>
+<li>If a datacenter is the master for a chain, writes to the chain will only be accepted by that datacenter during transient failures. </li>
+</ul>
+</li>
+<li>When a master is not defined, <ul>
+<li>Writes will only continue in a partition if the partition contains a majority of the nodes in the global chain. </li>
+<li>The minority partition will become read-only for maximumbounded inconsistent read operations. </li>
+</ul>
+</li>
+</ol>
+<h3 id="How-should-CRAQ-choose-nodes-within-a-Datacenter"><a href="#How-should-CRAQ-choose-nodes-within-a-Datacenter" class="headerlink" title="How should CRAQ choose nodes within a Datacenter?"></a>How should CRAQ choose nodes within a Datacenter?</h3><ol>
+<li>In CRAQ’s current implementation, we place chains within a datacenter using consistent hashing, mapping potentially many chain identifiers to a single head node. </li>
+<li>Another approach is to use the membership management service as a directory service in assigning and storing randomized chain membership, i.e., each chain can include some random set of server nodes. <ul>
+<li>This approach improves the potential for parallel system recovery. </li>
 <li>But it would increase centralization and state, and require storing more metadata information in the coordination service.</li>
 </ul>
 </li>
 </ol>
-<h3 id="how-does-craq-support-mini-transaction-of-single-key-operations"><a class="markdownIt-Anchor" href="#how-does-craq-support-mini-transaction-of-single-key-operations"></a> How does CRAQ support mini-transaction of single-key operations?</h3>
-<ol>
-<li>For Prepend/Append and Increment/Decrement operations,
-<ul>
-<li>The head of the chain storing the key’s object can simply apply the operation to the latest version of the object, even if the latest version is dirty, and then propagate a full replacement write down the chain.</li>
-<li>If these operations are frequent, the head can buffer the requests and batch the updates. These enhancements would be much more expensive using a traditional two-phase-commit protocol.</li>
+<h3 id="How-does-CRAQ-support-mini-transaction-of-single-key-operations"><a href="#How-does-CRAQ-support-mini-transaction-of-single-key-operations" class="headerlink" title="How does CRAQ support mini-transaction of single-key operations?"></a>How does CRAQ support mini-transaction of single-key operations?</h3><ol>
+<li>For Prepend/Append and Increment/Decrement operations, <ul>
+<li>The head of the chain storing the key’s object can simply apply the operation to the latest version of the object, even if the latest version is dirty, and then propagate a full replacement write down the chain. </li>
+<li>If these operations are frequent, the head can buffer the requests and batch the updates. These enhancements would be much more expensive using a traditional two-phase-commit protocol. </li>
 </ul>
 </li>
-<li>For the test-and-set operation,
-<ul>
-<li>The head of the chain checks if its most recent committed version number equals the version number specified in the operation.</li>
-<li>If there are no outstanding uncommitted versions of the object, the head accepts the operation and propagates an update down the chain.</li>
-<li>If there are outstanding writes, we simply reject the test-and-set operation, and clients are careful to back off their request rate if continuously rejected.</li>
+<li>For the test-and-set operation, <ul>
+<li>The head of the chain checks if its most recent committed version number equals the version number specified in the operation. </li>
+<li>If there are no outstanding uncommitted versions of the object, the head accepts the operation and propagates an update down the chain. </li>
+<li>If there are outstanding writes, we simply reject the test-and-set operation, and clients are careful to back off their request rate if continuously rejected. </li>
 </ul>
 </li>
-<li>The optimistic two-phase protocol need only be implemented with the chain heads, not all involved nodes.
-<ul>
-<li>The chain heads can lock any keys involved in the minitransaction until it is fully committed.</li>
-<li>It reduces the write throughput of CRAQ as writes to the same object can no longer be pipelined.</li>
+<li>The optimistic two-phase protocol need only be implemented with the chain heads, not all involved nodes. <ul>
+<li>The chain heads can lock any keys involved in the minitransaction until it is fully committed. </li>
+<li>It reduces the write throughput of CRAQ as writes to the same object can no longer be pipelined. </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-does-craq-lower-write-latency-with-multicast"><a class="markdownIt-Anchor" href="#how-does-craq-lower-write-latency-with-multicast"></a> How does CRAQ lower write latency with multicast?</h3>
-<ol>
-<li>Within a datacenter, this would take the form of a network-layer multicast protocol, while application-layer multicast protocols may be better-suited for wide-area chains.</li>
-<li>No ordering or reliability guarantees are required from these multicast protocols.</li>
-<li>The actual value can be multicast to the entire chain. Then, only a small metadata message needs to be propagated down the chain to ensure that all replicas have received a write before the tail.</li>
-<li>If a node does not receive the multicast for any reason, the node can fetch the object from its predecessor after receiving the write commit message and before further propagating the commit message.</li>
-<li>When the tail receives a propagated write request, a multicast acknowledgment message can be sent to the multicast group instead of propagating it backwards along the chain.</li>
+<h3 id="How-does-CRAQ-lower-write-latency-with-multicast"><a href="#How-does-CRAQ-lower-write-latency-with-multicast" class="headerlink" title="How does CRAQ lower write latency with multicast?"></a>How does CRAQ lower write latency with multicast?</h3><ol>
+<li>Within a datacenter, this would take the form of a network-layer multicast protocol, while application-layer multicast protocols may be better-suited for wide-area chains. </li>
+<li>No ordering or reliability guarantees are required from these multicast protocols. </li>
+<li>The actual value can be multicast to the entire chain. Then, only a small metadata message needs to be propagated down the chain to ensure that all replicas have received a write before the tail. </li>
+<li>If a node does not receive the multicast for any reason, the node can fetch the object from its predecessor after receiving the write commit message and before further propagating the commit message. </li>
+<li>When the tail receives a propagated write request, a multicast acknowledgment message can be sent to the multicast group instead of propagating it backwards along the chain. </li>
 </ol>
-<h3 id="how-does-craq-use-zookeeper-to-manage-configuration"><a class="markdownIt-Anchor" href="#how-does-craq-use-zookeeper-to-manage-configuration"></a> How does CRAQ use ZooKeeper to manage configuration?</h3>
-<ol>
-<li>
-<p>During initialization, a CRAQ node creates an ephemeral file in <code>/nodes/dc_name/node_id</code>.</p>
+<h3 id="How-does-CRAQ-use-ZooKeeper-to-manage-configuration"><a href="#How-does-CRAQ-use-ZooKeeper-to-manage-configuration" class="headerlink" title="How does CRAQ use ZooKeeper to manage configuration?"></a>How does CRAQ use ZooKeeper to manage configuration?</h3><ol>
+<li><p>During initialization, a CRAQ node creates an ephemeral file in <code>/nodes/dc_name/node_id</code>. </p>
 <ul>
-<li>
-<p>The content of the file contains the node’s IP address and port number.</p>
+<li><p>The content of the file contains the node’s IP address and port number. </p>
 </li>
-<li>
-<p>CRAQ nodes can query <code>/nodes/dc_name</code> to determine the membership list for its datacenter. They creates a watch on the children list of <code>/nodes/dc_name</code>.</p>
+<li><p>CRAQ nodes can query <code>/nodes/dc_name</code> to determine the membership list for its datacenter. They creates a watch on the children list of <code>/nodes/dc_name</code>. </p>
 </li>
 </ul>
 </li>
-<li>
-<p>When a CRAQ node receives a request to create a new chain, a file is created in <code>/chains/chain_id</code>.</p>
+<li><p>When a CRAQ node receives a request to create a new chain, a file is created in <code>/chains/chain_id</code>. </p>
 <ul>
-<li>The chain’s placement strategy determines the contents of the file, but it only includes this chain configuration information, not the list of a chain’s current nodes.</li>
-<li>Instead of letting nodes register their membership for each chain they belong to (<em>i.e.</em>, chain metadata explicitly names the chain’s current members), any node participating in the chain will query the chain file and place a watch on it.</li>
-<li>This is based on the assumption that the number of chains will generally be at least an order of magnitude larger than the number of nodes in the system, or that chain dynamism may be significantly greater than nodes joining or leaving the system.</li>
+<li>The chain’s placement strategy determines the contents of the file, but it only includes this chain configuration information, not the list of a chain’s current nodes. </li>
+<li>Instead of letting nodes register their membership for each chain they belong to (<em>i.e.</em>, chain metadata explicitly names the chain’s current members), any node participating in the chain will query the chain file and place a watch on it. </li>
+<li>This is based on the assumption that the number of chains will generally be at least an order of magnitude larger than the number of nodes in the system, or that chain dynamism may be significantly greater than nodes joining or leaving the system. </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-does-nodes-communicate-with-each-other"><a class="markdownIt-Anchor" href="#how-does-nodes-communicate-with-each-other"></a> How does nodes communicate with each other?</h3>
-<ol>
-<li>The nodes within each datacenter organize themselves into a one-hop DHT using the identifiers generated when joining the system.
-<ul>
-<li>A node’s chain predecessor and successor, the head node and the tail node are defined as its predecessor and successor in the DHT ring.</li>
+<h3 id="How-does-nodes-communicate-with-each-other"><a href="#How-does-nodes-communicate-with-each-other" class="headerlink" title="How does nodes communicate with each other?"></a>How does nodes communicate with each other?</h3><ol>
+<li>The nodes within each datacenter organize themselves into a one-hop DHT using the identifiers generated when joining the system. <ul>
+<li>A node’s chain predecessor and successor, the head node and the tail node are defined as its predecessor and successor in the DHT ring. </li>
 </ul>
 </li>
-<li>All RPC-based communication between nodes, or between nodes and clients, is over TCP connections.
-<ul>
-<li>Each node maintains a pool of connected TCP connections with its chain’s predecessor, successor, and tail.</li>
-<li>For chains that span across multiple datacenters, the last node of one datacenter maintains a connection to the first node of its successor datacenter.</li>
-<li>Any node that maintains a connection to a node outside of its datacenter must also place a watch on the node list of the external datacenter.</li>
+<li>All RPC-based communication between nodes, or between nodes and clients, is over TCP connections. <ul>
+<li>Each node maintains a pool of connected TCP connections with its chain’s predecessor, successor, and tail. </li>
+<li>For chains that span across multiple datacenters, the last node of one datacenter maintains a connection to the first node of its successor datacenter. </li>
+<li>Any node that maintains a connection to a node outside of its datacenter must also place a watch on the node list of the external datacenter. </li>
 </ul>
 </li>
 </ol>
-<h1 id="evaluation"><a class="markdownIt-Anchor" href="#evaluation"></a> Evaluation</h1>
-<ol>
-<li>
-<p>The main contribution is that it support read from intermediate nodes. So the author measured the read throughput of CRAQ and compared it with basic CR.</p>
-<p><img src="/imgs/Distributed/CRAQ/4.png" alt="" /><img src="/imgs/Distributed/CRAQ/6.png" alt="" /></p>
+<h1 id="Evaluation"><a href="#Evaluation" class="headerlink" title="Evaluation"></a>Evaluation</h1><ol>
+<li><p>The main contribution is that it support read from intermediate nodes. So the author measured the read throughput of CRAQ and compared it with basic CR. </p>
+<p><img src="/imgs/Distributed/CRAQ/4.png" alt=""><img src="/imgs/Distributed/CRAQ/6.png" alt=""></p>
 </li>
-<li>
-<p>The author also tested the factors affecting read throughput, i.e. number of clients, number of nodes, and writes.</p>
-<p><img src="/imgs/Distributed/CRAQ/5.png" alt="" /><img src="/imgs/Distributed/CRAQ/7.png" alt="" /></p>
+<li><p>The author also tested the factors affecting read throughput, i.e. number of clients, number of nodes, and writes. </p>
+<p><img src="/imgs/Distributed/CRAQ/5.png" alt=""><img src="/imgs/Distributed/CRAQ/7.png" alt=""></p>
 </li>
-<li>
-<p>Another important test in distributed system is that how long does the system take to recover, and how do they perform during the failure.</p>
-<p><img src="/imgs/Distributed/CRAQ/10-13.png" alt="" /></p>
+<li><p>Another important test in distributed system is that how long does the system take to recover, and how do they perform during the failure. </p>
+<p><img src="/imgs/Distributed/CRAQ/10-13.png" alt=""></p>
 </li>
 </ol>
 
