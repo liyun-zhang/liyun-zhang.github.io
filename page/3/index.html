@@ -146,7 +146,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">35</span>
+          <span class="site-state-item-count">36</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -174,6 +174,362 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/08/29/Courses/15445/13-Database-Logging/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/08/29/Courses/15445/13-Database-Logging/" class="post-title-link" itemprop="url">13 Database Logging</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-08-29 11:42:20" itemprop="dateCreated datePublished" datetime="2023-08-29T11:42:20+08:00">2023-08-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-09-26 14:01:04" itemprop="dateModified" datetime="2023-09-26T14:01:04+08:00">2023-09-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#crash">Crash</a>
+<ul>
+<li><a href="#how-to-recover-from-crash">How to recover from crash?</a></li>
+<li><a href="#what-are-the-possible-classification-of-failures">What are the possible classification of failures?</a></li>
+</ul>
+</li>
+<li><a href="#naive-solution">Naive solution</a>
+<ul>
+<li><a href="#what-buffer-pool-policies-can-we-choose">What buffer pool policies can we choose?</a></li>
+<li><a href="#what-are-the-pros-and-cons-of-no-steal-and-force-policy">What are the pros and cons of no-steal and force policy?</a></li>
+<li><a href="#how-does-shadow-paging-work">How does shadow paging work?</a></li>
+<li><a href="#what-are-the-disadvantages-of-shadow-paging">What are the disadvantages of shadow paging?</a></li>
+<li><a href="#how-does-journal-file-work">How does journal file work?</a></li>
+</ul>
+</li>
+<li><a href="#write-ahead-log">Write-ahead log</a>
+<ul>
+<li><a href="#what-is-the-main-idea-of-wal">What is the main idea of WAL?</a></li>
+<li><a href="#how-to-write-under-wal-protocol">How to write under WAL protocol?</a></li>
+<li><a href="#how-to-reduce-flushing-the-log-buffer">How to reduce flushing the log buffer?</a></li>
+<li><a href="#how-to-store-changes">How to store changes?</a></li>
+<li><a href="#what-is-log-structured-system">What is log-structured system?</a></li>
+<li><a href="#how-to-prevent-wal-from-growing-forever">How to prevent WAL from growing forever?</a></li>
+<li><a href="#what-is-the-problem-of-this-naive-checkpoint-protocol">What is the problem of this naive checkpoint protocol?</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="crash"><a class="markdownIt-Anchor" href="#crash"></a> Crash</h1>
+<h2 id="how-to-recover-from-crash"><a class="markdownIt-Anchor" href="#how-to-recover-from-crash"></a> How to recover from crash?</h2>
+<ol>
+<li>Recovery algorithms are techniques to ensure database consistency, transaction atomicity, and durability despite failures.</li>
+<li>The DBMS needs to ensure the following:
+<ul>
+<li>The changes for any transaction are durable once the DBMS has told somebody that it committed.</li>
+<li>No partial changes are durable if the transaction aborted.</li>
+</ul>
+</li>
+<li>Recovery algorithms have two parts:
+<ul>
+<li>The first is runtime part: Actions during normal transaction processing to ensure that the DBMS can recover from a failure.</li>
+<li>The second is startup part: Actions after a failure to recover the database to a state that ensures atomicity, consistency, and durability.</li>
+</ul>
+</li>
+</ol>
+<h2 id="what-are-the-possible-classification-of-failures"><a class="markdownIt-Anchor" href="#what-are-the-possible-classification-of-failures"></a> What are the possible classification of failures?</h2>
+<ol>
+<li>Transaction failures:
+<ul>
+<li>Logical errors: Transaction cannot complete due to some internal error condition (e.g., integrity constraint violation).</li>
+<li>Internal state errors: DBMS must terminate an active transaction due to an error condition (e.g., deadlock).</li>
+</ul>
+</li>
+<li>System failures:
+<ul>
+<li>Software failure: Problem with the OS or DBMS implementation (e.g., uncaught divide-by-zero exception).</li>
+<li>Hardware failure: The computer hosting the DBMS crashes (e.g., power plug gets pulled).</li>
+<li>Fail-stop assumption: Non-volatile storage contents are assumed to not be corrupted by system crash.</li>
+</ul>
+</li>
+<li>Storage media failure:
+<ul>
+<li>Non-repairable hardware failure: A head crash or similar disk failure destroys all or part of non-volatile storage.</li>
+<li>Destruction is assumed to be detectable (e.g., disk controller use checksums to detect failures).</li>
+<li>No DBMS can recover from this! Database must be restored from archived version.</li>
+<li>Stable storage is a non-existent form of non-volatile storage that survives all possible failures scenarios.</li>
+</ul>
+</li>
+</ol>
+<h1 id="naive-solution"><a class="markdownIt-Anchor" href="#naive-solution"></a> Naive solution</h1>
+<h2 id="what-buffer-pool-policies-can-we-choose"><a class="markdownIt-Anchor" href="#what-buffer-pool-policies-can-we-choose"></a> What buffer pool policies can we choose?</h2>
+<ol>
+<li>Steal policy:
+<ul>
+<li>Whether the DBMS allows an uncommitted transaction to overwrite the most recent committed value of an object in non-volatile storage.</li>
+<li>Steal: Is allowed</li>
+<li>No-steal: Is not allowed</li>
+</ul>
+</li>
+<li>Force policy:
+<ul>
+<li>Whether the DBMS requires that all updates made by a transaction are reflected on non-volatile storage before the transaction can commit.</li>
+<li>Force: Is required</li>
+<li>No-force: Is not required</li>
+</ul>
+</li>
+<li>Undo: The process of removing the effects of an incomplete or aborted transaction.</li>
+<li>Redo: The process of re-applying the effects of a committed transaction for durability.</li>
+<li>Stead and no-force policy has the best runtime performance since it does not need to wait for conflicted uncommitted transactions and not necessarily to flush when commit.</li>
+<li>No-steal and force policy has the best recovery performance since it does not need undo and redo anything.</li>
+</ol>
+<h2 id="what-are-the-pros-and-cons-of-no-steal-and-force-policy"><a class="markdownIt-Anchor" href="#what-are-the-pros-and-cons-of-no-steal-and-force-policy"></a> What are the pros and cons of no-steal and force policy?</h2>
+<ol>
+<li>This approach is the easiest to implement:
+<ul>
+<li>Never have to undo changes of an aborted transaction because the changes were not written to disk.</li>
+<li>Never have to redo changes of a committed transaction because all the changes are guaranteed to be written to disk at commit time (assuming atomic hardware writes).</li>
+</ul>
+</li>
+<li>An uncommitted transaction and another committing transaction may have written the same page. Then the buffer pool manager needs to copy that page with only modifications from the committing transaction and writes that copied page to non-volatile storage.</li>
+<li>The disadvantages are as following:
+<ul>
+<li>Copying data is expensive.</li>
+<li>The buffer pool manager needs to be aware of the context.</li>
+<li>Cannot support write sets that exceed the amount of physical memory available.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-does-shadow-paging-work"><a class="markdownIt-Anchor" href="#how-does-shadow-paging-work"></a> How does shadow paging work?</h2>
+<ol>
+<li>Instead of copying the entire database, the DBMS copies pages on write to create two versions
+<ul>
+<li>Master: Contains only changes from committed transactions. Read-only transactions access the current master.</li>
+<li>Shadow: Temporary database with changes made from uncommitted transactions.</li>
+</ul>
+</li>
+<li>Active modifying transaction copies the page table as the shadow page table.
+<ul>
+<li>When it tries to modify a page, it will copy that page, and modify the shadow page table to point to the new copied page.</li>
+<li>To install updates when a transaction commits, overwrite the root so it points to the shadow, thereby swapping the master and shadow. Then DMBS needs to do some garbage collection.</li>
+</ul>
+</li>
+<li>The buffer pool policy is no-steal and force.</li>
+<li>To support rollbacks and recovery, the DBMS needs to Remove the shadow pages. Leave the master and the DB root pointer alone on undo phase, and no need to redo at all.</li>
+</ol>
+<h2 id="what-are-the-disadvantages-of-shadow-paging"><a class="markdownIt-Anchor" href="#what-are-the-disadvantages-of-shadow-paging"></a> What are the disadvantages of shadow paging?</h2>
+<ol>
+<li>Copying the entire page table is expensive:
+<ul>
+<li>We can use a page table structured like a B+tree (LMDB). There is no need to copy entire tree, only need to copy paths in the tree that lead to updated leaf nodes.</li>
+</ul>
+</li>
+<li>Commit overhead is high:
+<ul>
+<li>Need to flush every updated page, page table, and root.</li>
+<li>Data gets fragmented, which is bad for sequential scans.</li>
+<li>Require the DBMS to perform writes to random non-contiguous pages on disk.</li>
+<li>Need garbage collection.</li>
+</ul>
+</li>
+<li>Only supports one writer transaction at a time or transactions in a batch. If two concurrent writer write on the same page, they all copies from master version causing only one write is reflected on the committed database.</li>
+</ol>
+<h2 id="how-does-journal-file-work"><a class="markdownIt-Anchor" href="#how-does-journal-file-work"></a> How does journal file work?</h2>
+<ol>
+<li>When a transaction modifies a page, the DBMS copies the original page to a separate journal file before overwriting master version.</li>
+<li>After restarting, if a journal file exists, then the DBMS restores it to undo changes from uncommitted transactions.</li>
+</ol>
+<h1 id="write-ahead-log"><a class="markdownIt-Anchor" href="#write-ahead-log"></a> Write-ahead log</h1>
+<h2 id="what-is-the-main-idea-of-wal"><a class="markdownIt-Anchor" href="#what-is-the-main-idea-of-wal"></a> What is the main idea of WAL?</h2>
+<ol>
+<li>Maintain a log file separate from data files that contains the changes that transactions make to database.
+<ul>
+<li>Assume that the log is on stable storage.</li>
+<li>Log contains enough information to perform the necessary undo and redo actions to restore the database.</li>
+</ul>
+</li>
+<li>DBMS must write to disk the log file records that correspond to changes made to a database object before it can flush that object to disk.
+<ul>
+<li>The buffer pool policy is steal and no-force.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-write-under-wal-protocol"><a class="markdownIt-Anchor" href="#how-to-write-under-wal-protocol"></a> How to write under WAL protocol?</h2>
+<ol>
+<li>The DBMS stages all a transaction’s log records in volatile storage backed by buffer pool.
+<ul>
+<li>All log records pertaining to an updated page are written to non-volatile storage before the page itself is over-written in non-volatile storage.</li>
+<li>A transaction is not considered committed until all its log records have been written to stable storage.</li>
+</ul>
+</li>
+<li>A <code>&lt;BEGIN&gt;</code> record is written to the log for each transaction to mark its starting point.
+<ul>
+<li>Most DBMS only writes <code>&lt;BEGIN&gt;</code> on first write command of a transaction instead of on the beginning.</li>
+</ul>
+</li>
+<li>When a transaction finishes, the DBMS will write a <code>&lt;COMMIT&gt;</code> record on the log, and make sure that all log records are flushed before it returns an acknowledgement to application.</li>
+<li>Each log entry contains information about the change to a single object
+<ul>
+<li>Transaction ID, object ID, before value (for undo) and after value (for redo).</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-reduce-flushing-the-log-buffer"><a class="markdownIt-Anchor" href="#how-to-reduce-flushing-the-log-buffer"></a> How to reduce flushing the log buffer?</h2>
+<ol>
+<li>Flushing the log buffer to disk every time a transaction commits will become a bottleneck.</li>
+<li>The DBMS can use the group commit optimization to batch multiple log flushes together to amortize overhead.
+<ul>
+<li>When the buffer is full, flush it to disk. Or if there is a timeout.</li>
+<li>Log records from different transaction are mixed. This is fine since we can sort them out by recorded transaction ID.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-store-changes"><a class="markdownIt-Anchor" href="#how-to-store-changes"></a> How to store changes?</h2>
+<ol>
+<li>The first logging scheme is physical logging.
+<ul>
+<li>Record the byte-level changes made to a specific page.</li>
+</ul>
+</li>
+<li>The second is logical logging.
+<ul>
+<li>Record the high-level operations executed by transactions, e.g. queries.</li>
+<li>Logical logging requires less data written in each log record than physical logging.</li>
+<li>Difficult to implement recovery with logical logging if you have concurrent transactions running at lower isolation levels.
+<ul>
+<li>The crash may happen in the middle of a query.</li>
+<li>It is hard to determine which parts of the database may have been modified by a query before crash.</li>
+</ul>
+</li>
+<li>Also takes longer to recover because you must re-execute every transaction all over again.</li>
+</ul>
+</li>
+<li>The last is physiological logging.
+<ul>
+<li>Hybrid approach with byte-level changes for a single tuple identified by page ID and slot number.</li>
+</ul>
+</li>
+</ol>
+<h2 id="what-is-log-structured-system"><a class="markdownIt-Anchor" href="#what-is-log-structured-system"></a> What is log-structured system?</h2>
+<ol>
+<li>Log-structured DBMSs do not have dirty pages.
+<ul>
+<li>Any page retrieved from disk is immutable.</li>
+<li>All modifications are reflected through logs.</li>
+</ul>
+</li>
+<li>The DBMS buffers log records in in-memory pages (MemTable).
+<ul>
+<li>If this buffer is full, it must be flushed to disk. But it may contain changes from uncommitted transactions.</li>
+</ul>
+</li>
+<li>These DBMSs still maintain a separate WAL to recreate the MemTable on crash.</li>
+</ol>
+<h2 id="how-to-prevent-wal-from-growing-forever"><a class="markdownIt-Anchor" href="#how-to-prevent-wal-from-growing-forever"></a> How to prevent WAL from growing forever?</h2>
+<ol>
+<li>If the WAL will grow forever, after a crash, the DBMS must replay the entire log, which will take a long time.</li>
+<li>The DBMS periodically takes a checkpoint where it flushes all buffers out to disk.</li>
+<li>In blocking / consistent checkpoint protocol,
+<ul>
+<li>Procedure
+<ul>
+<li>Pause all queries</li>
+<li>Flush all WAL records in memory to disk</li>
+<li>Flush all modified pages in the buffer pool to disk</li>
+<li>Write a <code>&lt;CHECKPOINT&gt;</code> entry to WAL and flush to disk</li>
+<li>Resume queries</li>
+</ul>
+</li>
+<li>On recovery, we can use the <code>&lt;CHECKPOINT&gt;</code> record as the starting point for analyzing the WAL.
+<ul>
+<li>Any transaction that committed before the checkpoint is ignored.</li>
+<li>Redo transactions that is committed after checkpoint and undo transactions that is not committed before the crash.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="what-is-the-problem-of-this-naive-checkpoint-protocol"><a class="markdownIt-Anchor" href="#what-is-the-problem-of-this-naive-checkpoint-protocol"></a> What is the problem of this naive checkpoint protocol?</h2>
+<ol>
+<li>The DBMS must stall transactions when it takes a checkpoint to ensure a consistent snapshot.
+<ul>
+<li>Checkpointing too often causes the runtime performance to degrade due to system spends too much time flushing buffers.</li>
+<li>But waiting a long time is just as bad since the checkpoint will be large and slow, which makes recovery time much longer.</li>
+</ul>
+</li>
+<li>Scanning the log to find uncommitted transactions can take a long time.</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -3104,210 +3460,6 @@ M834 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">�
 </ul>
 </li>
 <li><strong>Hybrid hash join</strong>: If the keys are skewed, then the DBMS keeps the hot partition in-memory and immediately perform the comparison instead of spilling it to disk.</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/06/27/OpenSource/BusTub/Project-1-Buffer-Pool/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/27/OpenSource/BusTub/Project-1-Buffer-Pool/" class="post-title-link" itemprop="url">Project #1: Buffer Pool</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2023-06-27 15:29:31" itemprop="dateCreated datePublished" datetime="2023-06-27T15:29:31+08:00">2023-06-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-09-26 13:58:38" itemprop="dateModified" datetime="2023-09-26T13:58:38+08:00">2023-09-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Source-Code/" itemprop="url" rel="index"><span itemprop="name">Open Source Code</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Source-Code/BusTub/" itemprop="url" rel="index"><span itemprop="name">BusTub</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><ul class="markdownIt-TOC">
-<li><a href="#task-1-lru-k-replacement-policy">Task #1 - LRU-K Replacement Policy</a></li>
-<li><a href="#task-2-buffer-pool-manager">Task #2 - Buffer Pool Manager</a>
-<ul>
-<li><a href="#basic">Basic</a></li>
-<li><a href="#leaderboard-optimization">Leaderboard optimization</a></li>
-</ul>
-</li>
-<li><a href="#task-3-readwrite-page-guards">Task #3 - Read/Write Page Guards</a></li>
-</ul>
-</p>
-<h1 id="task-1-lru-k-replacement-policy"><a class="markdownIt-Anchor" href="#task-1-lru-k-replacement-policy"></a> Task #1 - LRU-K Replacement Policy</h1>
-<ol>
-<li>
-<p>Evict rule:</p>
-<ul>
-<li>When all evictable frames have more than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi></mrow><annotation encoding="application/x-tex">K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span></span></span></span> access records, evict the one whose backward k-distance is maximum.</li>
-<li>When some frames only have less than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi></mrow><annotation encoding="application/x-tex">K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span></span></span></span> access records, evict the one with earliest first access record among those less than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi></mrow><annotation encoding="application/x-tex">K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span></span></span></span> frames.</li>
-</ul>
-</li>
-<li>
-<p>Comparison:</p>
-<ul>
-<li>When each frame is created or stored with a new page, push an access record of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> to its history to represent <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>+</mo><mi>inf</mi><mo>⁡</mo></mrow><annotation encoding="application/x-tex">+\inf</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.77777em;vertical-align:-0.08333em;"></span><span class="mord">+</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">in<span style="margin-right:0.07778em;">f</span></span></span></span></span>.</li>
-<li>Each comparison use the first two records in the list. If the first record (the earliest backward most k-distance) is the same, it must be <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> causing comparing second record where represent true first access of that frame.</li>
-<li>Remember to update second comparison timestamp when the first time find <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> in first timestamp.</li>
-</ul>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">size_t</span> k_timestamp = frame.second.<span class="built_in">GetKTimestamp</span>();</span><br><span class="line"><span class="type">size_t</span> sec_timestamp = frame.second.<span class="built_in">GetSecondTimestamp</span>();</span><br><span class="line"><span class="keyword">if</span> (k_timestamp &lt; cmp_k_timestamp) &#123;</span><br><span class="line">	victim = frame.first;</span><br><span class="line">	cmp_k_timestamp = k_timestamp;</span><br><span class="line">	<span class="keyword">if</span> (k_timestamp == <span class="number">0</span>) &#123;</span><br><span class="line">		cmp_sec_timestamp = sec_timestamp;</span><br><span class="line">	&#125;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (k_timestamp == cmp_k_timestamp &amp;&amp; sec_timestamp &lt; cmp_sec_timestamp) &#123;</span><br><span class="line">	victim = frame.first;</span><br><span class="line">	cmp_sec_timestamp = sec_timestamp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li>
-<p>After successfully choosing a victim, we need to clear its history (leaving the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> as sentinel), set it to non-evictable, and recude the current size of replacer.</p>
-</li>
-</ol>
-<h1 id="task-2-buffer-pool-manager"><a class="markdownIt-Anchor" href="#task-2-buffer-pool-manager"></a> Task #2 - Buffer Pool Manager</h1>
-<h2 id="basic"><a class="markdownIt-Anchor" href="#basic"></a> Basic</h2>
-<ol>
-<li>
-<p>When the page that is asked to fetch is already in the buffer pool, we still need to do several things:</p>
-<ul>
-<li>Set it to non-evictable.</li>
-<li>Record its access in replacer.</li>
-<li>Increase its pin count.</li>
-</ul>
-</li>
-<li>
-<p>When the page is not in buffer pool, or creating a new page:</p>
-<ul>
-<li>First, we need to acquire a free frame.
-<ul>
-<li>Erase it from page table when we are evicting one.</li>
-<li>Write the content to disk when the old page is dirty.</li>
-</ul>
-</li>
-<li>Then, similar to the other situation, we need to:
-<ul>
-<li>Set it to non-evictable</li>
-<li>Record its access in replacer</li>
-<li>Put it in page table</li>
-<li>Set its pin count to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span></li>
-<li>Set <code>is_dirty_</code> to <code>false</code></li>
-<li>Set its page ID to frame.</li>
-</ul>
-</li>
-<li>Even in <code>NewPage</code>, the <code>is_dirty_</code> is false due to it can directly “write” empty to file by increasing offset which is done when larger page ID is written. There is no need to actually write empty content.</li>
-</ul>
-</li>
-<li>
-<p>When setting <code>is_dirty_</code> in <code>Unpin</code>, if the page is already dirty, we should not set it to clean no matter what we are told to.</p>
-</li>
-</ol>
-<h2 id="leaderboard-optimization"><a class="markdownIt-Anchor" href="#leaderboard-optimization"></a> Leaderboard optimization</h2>
-<ol>
-<li>Fine-grain lock
-<ul>
-<li>A coarse-grain lock is easier to program while sacrificing performance.</li>
-<li>In fine-grain lock, a <code>core_latch_</code> is used to protect the core data of buffer pool manager, i.e. <code>page_table_</code>, <code>free_list_</code>, <code>next_page_id_</code>). Each frame has its own latch to protect its data, i.e. <code>pin_count_</code>, <code>is_dirty_</code>, <code>page_id_</code>.</li>
-<li>In each function thread, it will at most grab the <code>core_latch_</code> and one of frame latches.</li>
-<li>To avoid deadlock, each procedule is designed that a thread will try to acquire a page latch only if it already has a core_latch, or it won’t want a core_latech later.</li>
-<li>To obtain atomic when switching from <code>core_latch_</code> to a page latch, we need to acquire the page latch before release the <code>core_latch_</code>.
-<ul>
-<li>If release <code>core_latch_</code> first, some other thread may change the frame we want to use (e.g. evict the frame, modify its metadata) before we can acquire the frame latch.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Delay write out:
-<ul>
-<li>Disk I/Os consume a large amount of time. So we need to avoid holding a lock while communicate with disk.</li>
-<li>When we need to write data into disk, instead of immediately call the <code>disk_manager_-&gt;WritePage</code>, we create a temporary buffer in memory, and copy data into the buffer. After all locks are released, we actually write those content in buffer into disk.</li>
-<li>A similar thought is to delay read data until all locks are released. However, <code>ReadData</code> are call in <code>FetchPage</code> where  we can only release the frame latch after the whole frame is ready for others to visit. Still, we can <code>ReadData</code> after <code>core_latch_</code> is released since the <code>core_latch_</code> could be the bottleneck of the manager.</li>
-<li>However, there is a problem:
-<ul>
-<li>When a page is evicted, and only a short time later, that exact page is fetched again. Since all latches are release before write dirty data to disk, there is a chance that <code>FetchPage</code> read stale data from disk before the up-to-date data is written to disk.</li>
-<li>Then my another thought is to maintain a list of page IDs in the writing buffer. If the page ID of <code>FetchPage</code> is in the list, it just copy data from the writing buffer and erase that page from writing buffer.</li>
-<li>The problem here is that we need to guarantee the atomic between getting the writing content and writing them to disk. Otherwise, tricky concurrent operations may cause the written content to be wrong.</li>
-<li>Hence we cannot unlock the latches until we are sure the content is written, which also makes fine-grained latches meaningless given that disk I/O is the key problem of performance.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Pre-fetch
-<ul>
-<li>To better suit the scan case, when we accessing three consecutive page IDs in a row, the buffer pool manager is allowed to pre-fetch several following pages.</li>
-<li>Different from fetching pages through <code>FetchPage</code>, pre-fetched frames need to set <code>pin_count_</code> to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> and evictable.</li>
-<li>Pre-fetch should not stall <code>FetchPage</code> from returning, so it must be run in a separate thread.</li>
-<li>The problem is that pre-fetch must be an independent background thread. It won’t know whether the buffer pool manager is destroyed, which will cause heap-use-after-free error.</li>
-</ul>
-</li>
-</ol>
-<h1 id="task-3-readwrite-page-guards"><a class="markdownIt-Anchor" href="#task-3-readwrite-page-guards"></a> Task #3 - Read/Write Page Guards</h1>
-<ol>
-<li>Any <code>PageGuard</code> will automatically unpin itself when it is deconstructed. But they don’t need to pin themselves since they are pinned before <code>PageGuard</code> is created when fetching or creating page.</li>
-<li>If a <code>Read/WritePageGuard</code> is acquired through <code>FetchPageRead</code> or <code>FetchPageWrite</code>, the latch is acquired inside these functions. However, if a <code>PageGuard</code> is acquired through it construction function, the latch won’t be acquired automatically.</li>
-<li>No matter how <code>Read/WritePageGuard</code> is acquired, the latch will always be released automatically when the <code>PageGuard</code> is deconstructed by deconstructor or move operation.</li>
-<li>In the move assignment, we need to first drop the original page, copy from right reference and finally deconstruct right reference.</li>
 </ol>
 
       
