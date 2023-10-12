@@ -1726,7 +1726,20 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-08-17 12:47:30" itemprop="dateModified" datetime="2023-08-17T12:47:30+08:00">2023-08-17</time>
+      <time title="Modified: 2023-10-12 13:24:14" itemprop="dateModified" datetime="2023-10-12T13:24:14+08:00">2023-10-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/" itemprop="url" rel="index"><span itemprop="name">Open Source Code</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/BusTub/" itemprop="url" rel="index"><span itemprop="name">BusTub</span></a>
+        </span>
     </span>
 
   
@@ -1753,8 +1766,10 @@
 </li>
 <li><a href="#optimizer">Optimizer</a>
 <ul>
-<li><a href="#optimize-nested-loop-join">Optimize nested loop join</a></li>
-<li><a href="#to-push-down-a-comparisonexpression-we-need-to-ajust-the-expressions-of-the-two-sides">To push down a <code>ComparisonExpression</code>, we need to ajust the expressions of the two sides.</a></li>
+<li><a href="#nested-loop-join">Nested loop join</a></li>
+<li><a href="#order-by">Order by</a></li>
+<li><a href="#projection">Projection</a></li>
+<li><a href="#filter">Filter</a></li>
 </ul>
 </li>
 </ul>
@@ -1932,24 +1947,64 @@
 </ol>
 <h1 id="optimizer"><a class="markdownIt-Anchor" href="#optimizer"></a> Optimizer</h1>
 <ol>
-<li>When trying to optimize a plan, the root plan is passed to the optimizer and the optimizer will perform a post-root-order DFS of the plan tree.</li>
+<li>When trying to optimize a plan, the root plan is passed to the optimizer and the optimizer will perform a DFS of the plan tree.</li>
 <li>Each optimizer tries to recognize the pattern they need to handle and produce a new plan when it is matched.</li>
-<li>To optimize limit followed by sort into top-N, we just need to check whether the child of a limit plan is a sort.</li>
 </ol>
-<h2 id="optimize-nested-loop-join"><a class="markdownIt-Anchor" href="#optimize-nested-loop-join"></a> Optimize nested loop join</h2>
+<h2 id="nested-loop-join"><a class="markdownIt-Anchor" href="#nested-loop-join"></a> Nested loop join</h2>
 <ol>
 <li>To optimize nested loop join with hash join, the optimizer need to find a nested loop join and separate all the conditions from <code>LogicExpression</code> into <code>ComparisonExpression</code>.
 <ul>
 <li>If all the <code>ComparisonExpression</code> are <code>ComparisonType::Equal</code>, we can create a new plan of <code>HashJoin</code> with <code>left_key_expressions</code> and <code>right_key_expressions</code> extracted from those <code>ComparisonExpression</code>.</li>
 </ul>
 </li>
-<li>We can push down predicates of nested loop join to reduce the complexity of join.
+<li>Push down predicates of nested loop join to reduce the output of children of join to reduce the complexity of join.
 <ul>
-<li>If a predicate is the conjunctions of <code>ComparisonExpression</code>s, we can decompose it into basic <code>ComparisonExpression</code> to examine them one by one to determine whether they can be pushed down.</li>
-<li>If the two sides of a <code>ComparisonExpression</code> are from two different tables, it cannot be pushed down.</li>
-<li>
-<h2 id="to-push-down-a-comparisonexpression-we-need-to-ajust-the-expressions-of-the-two-sides"><a class="markdownIt-Anchor" href="#to-push-down-a-comparisonexpression-we-need-to-ajust-the-expressions-of-the-two-sides"></a> To push down a <code>ComparisonExpression</code>, we need to ajust the expressions of the two sides.</h2>
+<li>Only predicates that only involve one side of input of join operator can be pushed down.</li>
+<li>Some predicates need to be pushed into the left child, some are pushed to the right child, while some are remained in the join.</li>
+<li>To push down predicate, we can create a new <code>FilterPlanNode</code> as a child of join and father of original child.</li>
+</ul>
 </li>
+<li>Nested loop join can be replaced by hash join when the predicates are all equal conditions.</li>
+<li>If the parent planner of a nested loop join is an aggregation planner and that aggregation planner involves only data from one side, we can push down that aggregation as one of the children of join.
+<ul>
+<li>The insight is that aggregation usually output less rows than its input since aggregation groups rows before sending one row for each group.</li>
+<li>The columns in the mathmatical expressions need to be modified according to the side of aggregation.</li>
+</ul>
+</li>
+</ol>
+<h2 id="order-by"><a class="markdownIt-Anchor" href="#order-by"></a> Order by</h2>
+<ol>
+<li>To optimize limit followed by sort into top-N, we just need to check whether the child of a limit plan is a sort.</li>
+<li>When sorting the table, instead of exeuting sort algorithms, we may use the existing index to traverse the table.
+<ul>
+<li>It can only be used when the desired order is ascending or default and the child of sorting planner is SeqScan planner.</li>
+</ul>
+</li>
+</ol>
+<h2 id="projection"><a class="markdownIt-Anchor" href="#projection"></a> Projection</h2>
+<ol>
+<li><code>SELECT *</code>, aggregations, or renaming the columns in the planner may cauing multiple identical project planner.
+<ul>
+<li>The child of projection planner is not required to be a projection.</li>
+<li>We can remove the projection planner as long as it has the same schema as its child except column name.</li>
+<li>Then the output schema of the child is replaced by the output schema of projection.</li>
+</ul>
+</li>
+<li>The child of projection planner may be emitting unnecessary columns.
+<ul>
+<li>Besides naive projection, a projection planner could also perform arithmathical expressions.</li>
+<li>If the child is another projection, we can merge them and express the new projection under the column schema of the input schema of the child.</li>
+<li>If the child  is an aggregation planner, it only need to calculate those necessary aggregations.</li>
+</ul>
+</li>
+</ol>
+<h2 id="filter"><a class="markdownIt-Anchor" href="#filter"></a> Filter</h2>
+<ol>
+<li>Always true filters can be eliminated to avoid re-evaluation for every row.</li>
+<li>The filter planner with a child of sequential scan can be merged to reduce the data transmission between executors.</li>
+<li>When the predicate of sequential scan is all equal conditions and there exists a corresponding index, the sequential scan can be replaced by index scan to avoid scanning the entire table.
+<ul>
+<li>It needs to modify the <code>IndexScanPlanner</code> and the <code>IndexScanExecutor</code> to support scanning only the row designated by the equal conditions.</li>
 </ul>
 </li>
 </ol>
