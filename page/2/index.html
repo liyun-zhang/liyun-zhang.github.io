@@ -146,7 +146,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">37</span>
+          <span class="site-state-item-count">38</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -174,6 +174,323 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/2-Phase-Commit/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/09/26/Paper/Distributed/2-Phase-Commit/" class="post-title-link" itemprop="url">2-Phase Commit</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2023-09-26 13:45:59 / Modified: 13:47:09" itemprop="dateCreated datePublished" datetime="2023-09-26T13:45:59+08:00">2023-09-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Paper-Notebook/" itemprop="url" rel="index"><span itemprop="name">Paper Notebook</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Paper-Notebook/Distributed-System/" itemprop="url" rel="index"><span itemprop="name">Distributed System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#before-or-after-atomicity">Before-or-After Atomicity</a>
+<ul>
+<li><a href="#what-is-before-or-after-atomicity">What is before-or-after atomicity?</a></li>
+<li><a href="#what-is-the-problem-of-before-or-after-atomicity">What is the problem of before-or-after atomicity?</a></li>
+<li><a href="#what-kind-of-coordination-is-correct">What kind of coordination is correct?</a></li>
+</ul>
+</li>
+<li><a href="#locking-disciplines">Locking disciplines</a>
+<ul>
+<li><a href="#simple-locking">Simple locking</a>
+<ul>
+<li><a href="#what-are-the-rules-of-simple-locking">What are the rules of simple locking?</a></li>
+<li><a href="#what-are-lock-point-and-lock-set-of-a-transaction">What are lock point and lock set of a transaction?</a></li>
+<li><a href="#how-can-we-implement-lock-manager">How can we implement lock manager?</a></li>
+<li><a href="#how-to-argue-the-correctness-of-simple-locking">How to argue the correctness of simple locking?</a></li>
+</ul>
+</li>
+<li><a href="#two-phase-locking">Two-phase locking</a>
+<ul>
+<li><a href="#what-are-the-rules-of-two-phase-locking">What are the rules of two-phase locking?</a></li>
+<li><a href="#how-can-we-implement-lock-manager-2">How can we implement lock manager?</a></li>
+<li><a href="#how-does-locks-interact-with-log-based-recovery">How does locks interact with log-based recovery?</a></li>
+</ul>
+</li>
+<li><a href="#distributed-two-phase-commit">Distributed two-phase commit</a>
+<ul>
+<li><a href="#what-is-correct-in-multi-site-transaction">What is correct in multi-site transaction?</a></li>
+<li><a href="#what-is-the-problem-of-multi-site-transaction">What is the problem of multi-site transaction?</a></li>
+<li><a href="#what-is-the-steps-of-distributed-two-phase-commit-protocol">What is the steps of distributed two-phase commit protocol?</a></li>
+<li><a href="#how-to-handle-the-lost-delayed-or-duplicated-message-problem">How to handle the lost, delayed, or duplicated message problem?</a></li>
+<li><a href="#how-does-a-worker-site-recover-from-crashes">How does a worker site recover from crashes?</a></li>
+<li><a href="#how-can-we-optimize-the-protocol">How can we optimize the protocol?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="before-or-after-atomicity"><a class="markdownIt-Anchor" href="#before-or-after-atomicity"></a> Before-or-After Atomicity</h1>
+<h2 id="what-is-before-or-after-atomicity"><a class="markdownIt-Anchor" href="#what-is-before-or-after-atomicity"></a> What is before-or-after atomicity?</h2>
+<ol>
+<li>
+<p>Before-or-after property states that several actions that concurrently operate on the same data should not interfere with one another.</p>
+</li>
+<li>
+<p>Concurrent actions have the before-or-after property if their effect from the point of view of their invokers is the same as if the actions occurred either completely before or completely after one another.</p>
+</li>
+</ol>
+<h2 id="what-is-the-problem-of-before-or-after-atomicity"><a class="markdownIt-Anchor" href="#what-is-the-problem-of-before-or-after-atomicity"></a> What is the problem of before-or-after atomicity?</h2>
+<ol>
+<li>The programmer does not necessarily know the identities of all the other actions that might touch the shared vari­ able.</li>
+<li>This lack of knowledge can make it problematic to coordinate actions by explicit program steps.</li>
+<li>Instead, what the programmer needs is an automatic, implicit mechanism that ensures proper handling of every shared variable.</li>
+</ol>
+<h2 id="what-kind-of-coordination-is-correct"><a class="markdownIt-Anchor" href="#what-kind-of-coordination-is-correct"></a> What kind of coordination is correct?</h2>
+<ol>
+<li>Coordination among concurrent actions can be considered to be correct if every result is guaranteed to be one that could have been obtained by some purely serial application of those same actions.</li>
+<li>As long as the intermediate states are not visible above the implementing layer, and the system is guaranteed to end up in one of the acceptable final states, we can declare the coordination to be correct.</li>
+</ol>
+<h1 id="locking-disciplines"><a class="markdownIt-Anchor" href="#locking-disciplines"></a> Locking disciplines</h1>
+<h2 id="simple-locking"><a class="markdownIt-Anchor" href="#simple-locking"></a> Simple locking</h2>
+<h3 id="what-are-the-rules-of-simple-locking"><a class="markdownIt-Anchor" href="#what-are-the-rules-of-simple-locking"></a> What are the rules of simple locking?</h3>
+<ol>
+<li>Each transaction must acquire a lock for every shared data object it intends to read or write before doing any actual reading and writing.</li>
+<li>It may release its locks only after the transaction installs its last update and commits or completely restores the data and aborts.</li>
+<li>Applications that discover which objects need to be read by reading other shared data objects have no alter­ native but to lock every object that they might need to read.</li>
+</ol>
+<h3 id="what-are-lock-point-and-lock-set-of-a-transaction"><a class="markdownIt-Anchor" href="#what-are-lock-point-and-lock-set-of-a-transaction"></a> What are lock point and lock set of a transaction?</h3>
+<ol>
+<li><em>Lock point</em>: the first instant at which it has acquired all of its locks.</li>
+<li><em>Lock set</em>: The collection of locks it has acquired when it reaches its lock point.</li>
+</ol>
+<h3 id="how-can-we-implement-lock-manager"><a class="markdownIt-Anchor" href="#how-can-we-implement-lock-manager"></a> How can we implement lock manager?</h3>
+<ol>
+<li>
+<p>Acquire locks</p>
+<ul>
+<li>
+<p>Each transaction supply its intended lock set as an argu­ment to the <strong>begin_transaction</strong> operation, which acquires all of the locks of the lock set, if necessary waiting for them to become available.</p>
+<ul>
+<li>Interpose itself on all calls to read data and to log changes, to verify that they refer to variables that are in the lock set.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Release locks</p>
+<ul>
+<li>Intercept the call to <em>commit</em> or <em>abort</em> (or, if the application uses roll-forward recovery, to log an <em>END</em> record) at which time it auto­matically releases all of the locks of the lock set.</li>
+</ul>
+</li>
+</ol>
+<h3 id="how-to-argue-the-correctness-of-simple-locking"><a class="markdownIt-Anchor" href="#how-to-argue-the-correctness-of-simple-locking"></a> How to argue the correctness of simple locking?</h3>
+<ol>
+<li>Imagine that an all-seeing outside observer maintains an ordered list to which it adds each transaction identifier as soon as the transaction reaches its lock point and removes it from the list when it begins to release its locks.</li>
+<li>Each transaction has agreed not to read or write anything until that transaction has been added to the observer’s list.</li>
+<li>Since no data object can appear in the lock sets of two transactions, no data object in any transaction’s lock set appears in the lock set of the transaction preceding it in the list, and by induction to any transaction earlier in the list.</li>
+<li>Thus all of this transaction’s input values are the same as they will be when the preceding transaction in the list commits or aborts.</li>
+<li>The same argument applies to the transaction before the preceding one, so all inputs to any trans­ action are identical to the inputs that would be available if all the transactions ahead of it in the list ran serially, in the order of the list.</li>
+<li>Thus the simple locking discipline ensures that this transaction runs completely after the preceding one and completely before the next one.</li>
+<li>Concurrent transactions will produce results as if they had been serialized in the order that they reached their lock points.</li>
+</ol>
+<h2 id="two-phase-locking"><a class="markdownIt-Anchor" href="#two-phase-locking"></a> Two-phase locking</h2>
+<h3 id="what-are-the-rules-of-two-phase-locking"><a class="markdownIt-Anchor" href="#what-are-the-rules-of-two-phase-locking"></a> What are the rules of two-phase locking?</h3>
+<ol>
+<li>It avoids the requirement that a transaction must know in advance which locks to acquire.</li>
+<li>The twophase locking discipline allows a transaction to acquire locks as it proceeds, and the trans­ action may read or write a data object as soon as it acquires a lock on that object.</li>
+<li>The primary constraint is that the transaction may not release any locks until it passes its lock point.</li>
+<li>The transaction can release a lock on an object that it only reads any time after it reaches its lock point if it will never need to read that object again, even to abort.</li>
+</ol>
+<h3 id="how-can-we-implement-lock-manager-2"><a class="markdownIt-Anchor" href="#how-can-we-implement-lock-manager-2"></a> How can we implement lock manager?</h3>
+<ol>
+<li>Intercept all calls to read and write data; it acquires a lock (perhaps having to wait) on the first use of each shared variable.</li>
+<li>As with simple locking, it then holds the locks until it intercepts the call to <em>commit</em>, <em>abort</em>, or log the <em>END</em> record of the transaction, at which time it releases them all at once.</li>
+</ol>
+<h3 id="how-does-locks-interact-with-log-based-recovery"><a class="markdownIt-Anchor" href="#how-does-locks-interact-with-log-based-recovery"></a> How does locks interact with log-based recovery?</h3>
+<ol>
+<li>
+<p>Whether locks themselves are data objects for which changes should be logged?</p>
+<ul>
+<li>
+<p>At the completion of crash recovery there should be no pending transactions because any transactions that were pending at the time of the crash should have been rolled back by the recovery procedure, and recov­ ery does not allow any new transactions to begin until it completes.</p>
+</li>
+<li>
+<p>Since locks exist only to coordinate pending transactions, it would clearly be an error if there were locks still set when crash recovery is complete.</p>
+</li>
+<li>
+<p>Locks belong in vol­atile storage, where they will automatically disappear on a crash, rather than in non­-volatile storage, where the recovery procedure would have to hunt them down to release them.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>whether or not the log-based recovery algorithm will construct a correct system state?</p>
+<ul>
+<li>The transactions that were not complete at the instant of the crash had nonoverlapping lock sets at the moment that the lock values vanished.</li>
+<li>Those particular actions can safely be redone or undone without con­ cern for before-or-after atomicity during recovery.</li>
+<li>The locks created a particular serialization of the transactions and the log has captured that serialization.</li>
+<li>Since <em>RECOVER</em> performs <em>UNDO</em> actions in reverse order as specified in the log, and it per­ forms <em>REDO</em> actions in forward order, again as specified in the log, <em>RECOVER</em> reconstructs exactly that same serialization.</li>
+</ul>
+</li>
+</ol>
+<h2 id="distributed-two-phase-commit"><a class="markdownIt-Anchor" href="#distributed-two-phase-commit"></a> Distributed two-phase commit</h2>
+<h3 id="what-is-correct-in-multi-site-transaction"><a class="markdownIt-Anchor" href="#what-is-correct-in-multi-site-transaction"></a> What is correct in multi-site transaction?</h3>
+<ol>
+<li>Correctness of the multiple-site ato­ micity protocol will be achieved if all the sites commit or if all the sites abort.</li>
+<li>It is failed if some sites commit their part of a multiple-site transaction while others abort their part of that same transaction.</li>
+</ol>
+<h3 id="what-is-the-problem-of-multi-site-transaction"><a class="markdownIt-Anchor" href="#what-is-the-problem-of-multi-site-transaction"></a> What is the problem of multi-site transaction?</h3>
+<ol>
+<li>The coordinator has created a higher-layer transaction and each of the workers is to perform a transaction that is nested in the higher-layer transaction.</li>
+<li>The complication is that the coordinator and workers cannot reliably communicate.</li>
+<li>The problem thus reduces to constructing a reliable distributed version of the two-phase commit protocol. We can do that by applying persistent senders and duplicate suppression.</li>
+</ol>
+<h3 id="what-is-the-steps-of-distributed-two-phase-commit-protocol"><a class="markdownIt-Anchor" href="#what-is-the-steps-of-distributed-two-phase-commit-protocol"></a> What is the steps of distributed two-phase commit protocol?</h3>
+<ol>
+<li>
+<p>Beginning</p>
+<ul>
+<li>
+<p>The coordinator creates a top-layer outcome record for the overall transaction.</p>
+</li>
+<li>
+<p>It persistently sends the content of sub-transactions to each site, referring to the same transaction, respectively.</p>
+</li>
+<li>
+<p>A worker site, upon receiving a request, checks for duplicates and then creates a transaction of its own, but it makes the transaction a nested one, with its superior being the coordinator’s original transaction.</p>
+</li>
+<li>
+<p>Then the worker site goes about doing the pre-commit part of the requested action, reporting back to coordinator that this much has gone well.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Two-phase commit</p>
+<ul>
+<li>Phase one:
+<ul>
+<li>The coordinatior , upon collecting a complete set of such responses then moves to the two-phase commit part of the transaction, by sending <code>PREPARE</code> messages to each worker site.</li>
+<li>Each worker site, upon receiving this message, commits—but only tentatively—or aborts.</li>
+<li>Having created durable tentative versions (or logged to journal storage its planned updates) and having recorded an outcome record saying that it is <code>PREPARED</code> either to commit or abort, worker sites persistently sends a response to coorinator of commit or abort.</li>
+<li>If all workers send PREPARED messages, phase one of the two-phase commit is complete.</li>
+<li>If any worker responds with an abort message, or doesn’t respond at all, the coordinator has the usual choice of aborting the entire transaction or perhaps trying a different worker site to carry out that component transaction.</li>
+</ul>
+</li>
+<li>Phase two:
+<ul>
+<li>The coordinator commits the entire transaction by marking its own outcome record <code>COMMITTED</code>.</li>
+<li>It sends a completion message back to each worker site.</li>
+<li>Each worker site, upon receiving such a message, changes its state from <code>PREPARED</code> to <code>COM­MITTED</code>, performs any needed post-commit actions, and exits.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="how-to-handle-the-lost-delayed-or-duplicated-message-problem"><a class="markdownIt-Anchor" href="#how-to-handle-the-lost-delayed-or-duplicated-message-problem"></a> How to handle the lost, delayed, or duplicated message problem?</h3>
+<ol>
+<li>If coordinator doesn’t receive a response of ready message of some sub-transaction request from one or more of the workers in a reasonable time she resends the message to the non-responding workers as many times as necessary to elicit a response.</li>
+<li>If a worker site receives a duplicate request of <code>PREPARE</code> from coordinator, its persistent sender sends back a duplicate of the <code>PREPARED</code> or <code>ABORTED</code> response.</li>
+<li>If the coordinator goes down before the coordinator sends final <code>COMMITTED</code> message in phase-two, all of the workers must wait until it recovers; in this protocol, the coordinator is a single point of failure.</li>
+<li>The coordinator must remem­ ber, reliably and for an indefinite time, the outcome of this transaction.
+<ul>
+<li>If a completion message does not arrive in a reasonable period of time, the persistent sender at the worker site will resend its <code>PREPARED</code> message.</li>
+<li>Whenever the coordinator receives a duplicate <code>PREPARED</code> message, it simply sends back the current state of the outcome record for the named transaction.</li>
+</ul>
+</li>
+</ol>
+<h3 id="how-does-a-worker-site-recover-from-crashes"><a class="markdownIt-Anchor" href="#how-does-a-worker-site-recover-from-crashes"></a> How does a worker site recover from crashes?</h3>
+<ol>
+<li>It must classify any <code>PREPARED</code> transaction as a tentative win­ner that it should restore to the <code>PREPARED</code> state.</li>
+<li>If the worker is using locks for before-or-after atomicity, the recovery procedure must reacquire any locks the PREPARED transaction was holding at the time of the failure.</li>
+<li>The recovery procedure must restart the persistent sender, to learn the current status of the higher-layer transaction.</li>
+<li>If the worker site uses version histories, only the last step, restarting the persistent sender, is required.</li>
+<li>If worker site crashes after sending <code>PREPARED</code> before receiving <code>COMMIT</code>, other servers will actually commit. So we want server recovery as <code>PREPARED</code>. So before sending <code>PREPARED</code>, servers need to make their log durable.</li>
+</ol>
+<h3 id="how-can-we-optimize-the-protocol"><a class="markdownIt-Anchor" href="#how-can-we-optimize-the-protocol"></a> How can we optimize the protocol?</h3>
+<ol>
+<li>The initial RPC request and response could also carry the PREPARE and PREPARED messages, respectively.
+<ul>
+<li>Once a worker sends a <code>PREPARED</code> message, it loses the ability to unilaterally abort, and it must remain on the knife edge awaiting instructions from the coordinator.</li>
+<li>To minimize this wait, it is usually preferable to delay the <code>PREPARE</code>/<code>PREPARED</code> message pair until the coordinator knows that the other workers seem to be in a position to do their parts.</li>
+</ul>
+</li>
+<li>Have a fourth acknowl­ edgment message from the worker sites to the coordinator.
+<ul>
+<li>Once all acknowledgments are in, the coordinator can then safely discard its outcome record, since every worker site is known to have gotten the word.</li>
+</ul>
+</li>
+<li>Presumed commit: The coordi­nator answers any inquiry about a non-existent outcome record by sending a <code>COMMITTED</code> response.
+<ul>
+<li>The coordinator commits by destroying the out­ come record, so a fourth acknowledgment message from every worker is unnecessary.</li>
+<li>The coor­dinator can persistently ask for acknowledgment of aborted transactions, and discard the outcome record after all these acknowledgments are in.</li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -4285,281 +4602,6 @@ Paxos remains non-blocking if a majority participants are alive, provided there 
 <ul>
 <li>Each txn executes at a single location and propagates the changes to the replica.</li>
 <li>Can either do physical or logical replication.</li>
-</ul>
-</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/08/31/Courses/15445/15-Introduction-to-Distributed-Databases/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/08/31/Courses/15445/15-Introduction-to-Distributed-Databases/" class="post-title-link" itemprop="url">15 Introduction to Distributed Databases</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2023-08-31 23:53:22" itemprop="dateCreated datePublished" datetime="2023-08-31T23:53:22+08:00">2023-08-31</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-09-26 14:01:14" itemprop="dateModified" datetime="2023-09-26T14:01:14+08:00">2023-09-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><ul class="markdownIt-TOC">
-<li><a href="#system-architecture">System architecture</a>
-<ul>
-<li><a href="#what-will-system-architecture-affect">What will system architecture affect?</a></li>
-<li><a href="#what-is-shared-memory-architecture">What is shared memory architecture?</a></li>
-<li><a href="#what-is-shared-disk-architecture">What is shared disk architecture?</a></li>
-<li><a href="#what-is-shared-nothing-architecture">What is shared nothing architecture?</a></li>
-</ul>
-</li>
-<li><a href="#design-issues">Design issues</a>
-<ul>
-<li><a href="#what-are-the-design-issues-of-distributed-database">What are the design issues of distributed database?</a></li>
-<li><a href="#what-do-nodes-look-like">What do nodes look like?</a></li>
-<li><a href="#how-to-coordinate-execution">How to coordinate execution?</a></li>
-</ul>
-</li>
-<li><a href="#partitioning-schemes">Partitioning Schemes</a>
-<ul>
-<li><a href="#what-do-we-desire-when-partitioning-database">What do we desire when partitioning database?</a></li>
-<li><a href="#how-can-we-partition-database">How can we partition database?</a></li>
-<li><a href="#how-can-we-optimize-horizontal-partitioning">How can we optimize horizontal partitioning?</a></li>
-</ul>
-</li>
-</ul>
-</p>
-<h1 id="system-architecture"><a class="markdownIt-Anchor" href="#system-architecture"></a> System architecture</h1>
-<h2 id="what-will-system-architecture-affect"><a class="markdownIt-Anchor" href="#what-will-system-architecture-affect"></a> What will system architecture affect?</h2>
-<ol>
-<li>A distributed DBMS’s system architecture specifies what shared resources are directly accessible to CPUs.</li>
-<li>This affects how CPUs coordinate with each other and where they retrieve/store objects in the database.</li>
-<li>There are four architectures: shared everything, shared memory, shared disk and shared nothing.</li>
-<li>In shared everything architecture, CPU, memories and disks are all in local. This is more of a parallel architecture than a distributed architecture.</li>
-</ol>
-<h2 id="what-is-shared-memory-architecture"><a class="markdownIt-Anchor" href="#what-is-shared-memory-architecture"></a> What is shared memory architecture?</h2>
-<ol>
-<li>CPUs have access to common memory address space via a fast interconnect.</li>
-<li>Each processor has a global view of all the in-memory data structures.
-<ul>
-<li>Each process’s scope of memory is the same memory address space, which can be modified by multiple processes.</li>
-</ul>
-</li>
-<li>Each DBMS instance on a processor must “know” about the other instances.</li>
-<li>In practice, most DBMSs do not use this architecture, as it is provided at the OS / kernel level.</li>
-</ol>
-<img src="/imgs/15445/Distributed/shared_mem.png" width="30%">
-<h2 id="what-is-shared-disk-architecture"><a class="markdownIt-Anchor" href="#what-is-shared-disk-architecture"></a> What is shared disk architecture?</h2>
-<ol>
-<li>All CPUs can access a single logical disk directly via an interconnect, but each have their own private memories.</li>
-<li>It can scale execution layer independently from the storage layer.
-<ul>
-<li>The advantage of shared disk over shared nothing is that it can easily scale up with compute layer and storage layer independent.</li>
-<li>What we want to persist after crash is in the storage layer.</li>
-<li>Theoretically, we can kill or add front-end nodes without losing database or add storage disks / change storage layer with modfying compute nodes.</li>
-</ul>
-</li>
-<li>It must send messages between CPUs to learn about their current state.</li>
-<li>This architecture is commonly used in OLAP systems. Many DBSMs begin to think that shared disk architecture is better than shared nothing.</li>
-</ol>
-<img src="/imgs/15445/Distributed/shared_disk.png" width="30%">
-<h2 id="what-is-shared-nothing-architecture"><a class="markdownIt-Anchor" href="#what-is-shared-nothing-architecture"></a> What is shared nothing architecture?</h2>
-<ol>
-<li>Each DBMS instance has its own CPU, memory, and local disk.</li>
-<li>Nodes only communicate with each other via network.
-<ul>
-<li>When executing a query that requires data from different nodes, the DBMS can either send data up to the node connected with application, or that node can ask another node to execute the query and return the result.</li>
-</ul>
-</li>
-<li>All data in the database are sharded into different nodes.
-<ul>
-<li>When adding a new node into the architecture, that node is initially empty. The DBMS must re-shard data so that they are distributed evenly.</li>
-<li>It is more difficult to increase capacity because the DBMS has to physically move data to new nodes.</li>
-<li>It might have small window for queries to receive false positive due to that part of data was in that node and now moving to another node.</li>
-</ul>
-</li>
-<li>It is also difficult to ensure consistency across all nodes in the DBMS, since the nodes must coordinate with each other on the state of transactions.</li>
-<li>However, it can potentially achieve better performance and are more efficient then other types of distributed DBMS architectures.</li>
-</ol>
-<img src="/imgs/15445/Distributed/shared_nothing.png" width="30%">
-<h1 id="design-issues"><a class="markdownIt-Anchor" href="#design-issues"></a> Design issues</h1>
-<h2 id="what-are-the-design-issues-of-distributed-database"><a class="markdownIt-Anchor" href="#what-are-the-design-issues-of-distributed-database"></a> What are the design issues of distributed database?</h2>
-<ol>
-<li>How does the application find data?</li>
-<li>Where does the application send queries?</li>
-<li>How to execute queries on distributed data? Push query to data? Or pull data to query?</li>
-<li>How does the DBMS ensure correctness?</li>
-<li>How do we divide the database across resources?</li>
-</ol>
-<h2 id="what-do-nodes-look-like"><a class="markdownIt-Anchor" href="#what-do-nodes-look-like"></a> What do nodes look like?</h2>
-<ol>
-<li>The first approach is homogenous nodes.
-<ul>
-<li>Every node in the cluster can perform the same set of tasks albeit on potentially different partitions of data.</li>
-<li>Makes provisioning and failover “easier” since any node can replace other nodes.</li>
-</ul>
-</li>
-<li>The second approach is heterogenous nodes.
-<ul>
-<li>Nodes are assigned specific tasks.</li>
-<li>It can allow a single physical node to host multiple “virtual” node types for dedicated tasks.</li>
-<li>A design of heterogenous nodes have two kinds of nodes router and config server.
-<ul>
-<li>Router can directly access shards of database yet it does not know where are that data they want.</li>
-<li>Config server knows the data contained in each shards. However, it does not responsible for retrieving them.</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-to-coordinate-execution"><a class="markdownIt-Anchor" href="#how-to-coordinate-execution"></a> How to coordinate execution?</h2>
-<ol>
-<li>If our DBMS supports multi-operation and distributed transactions, we need a way to coordinate their execution in the system.</li>
-<li>The first approach is centerlized coordinator. There is a centralized coordinator that receives commands from application.
-<ul>
-<li>The first design requires applications to handle transactions.
-<ul>
-<li>The client communicates with the coordinator to acquire locks on the partitions that the client wants to access.</li>
-<li>Once it receives an acknowledgement from the coordinator, the client sends its queries to those partitions.</li>
-<li>Once all queries for a given transaction are done, the client sends a commit request to the coordinator.</li>
-<li>The coordinator then communicates with the partitions involved in the transaction to determine whether the transaction is allowed to commit.</li>
-</ul>
-</li>
-<li>Another design uses a middleware to accept query requests and routes queries to correct partitions.</li>
-</ul>
-</li>
-<li>The second approach is decentralized.
-<ul>
-<li>The client directly sends queries to one of the partitions which will be the leader node of that transaction.</li>
-<li>The leader node will coordinate the following communicating with other partitions and committing.</li>
-</ul>
-</li>
-</ol>
-<h1 id="partitioning-schemes"><a class="markdownIt-Anchor" href="#partitioning-schemes"></a> Partitioning Schemes</h1>
-<h2 id="what-do-we-desire-when-partitioning-database"><a class="markdownIt-Anchor" href="#what-do-we-desire-when-partitioning-database"></a> What do we desire when partitioning database?</h2>
-<ol>
-<li>Applications should not be required to know where data is physically located in a distributed DBMS.
-<ul>
-<li>Any query that run on a single-node DBMS should produce the same result on a distributed DBMS.</li>
-<li>The DBMS executes query fragments on each partition and then combines the results to produce a single answer.</li>
-</ul>
-</li>
-<li>In practice, developers need to be aware of the communication costs of queries to avoid excessively “expensive” data movement.</li>
-<li>The DBMS can partition a database physically for shared nothing or logically for shared disk.
-<ul>
-<li>In Logical partitioning, each node is responsible for certain designated data. They cannot access data out of their duty. Though data are actually stored in independent storage nodes which computation nodes all can access.</li>
-<li>In physical partitioning, data out of their duty cannot be accessed directly since they are stored in the local disk of other nodes.</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-can-we-partition-database"><a class="markdownIt-Anchor" href="#how-can-we-partition-database"></a> How can we partition database?</h2>
-<ol>
-<li>The first method is the naive table partitioning.
-<ul>
-<li>Assign an entire table to a single node.</li>
-<li>It assumes that each node has enough storage space for an entire table.</li>
-<li>This is ideal if queries never join data across tables stored on different nodes and access patterns are uniform.</li>
-</ul>
-</li>
-<li>The second method is vertical partitioning.
-<ul>
-<li>Split a table’s attributes into separate partitions.</li>
-<li>It must store tuple information to reconstruct the original record.</li>
-</ul>
-</li>
-<li>The third method is horizontal partitioning.
-<ul>
-<li>Split a table’s tuples into disjoint subsets based on some partitioning key and scheme.</li>
-<li>Choose column(s) that divides the database equally in terms of size, load, or usage.</li>
-<li>It can partition based on hashing, ranges, or predicates.</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-can-we-optimize-horizontal-partitioning"><a class="markdownIt-Anchor" href="#how-can-we-optimize-horizontal-partitioning"></a> How can we optimize horizontal partitioning?</h2>
-<ol>
-<li>The main problem is that when adding a new storage nodes, the DBMS needs to reshuffle data.</li>
-<li>We can use the consistent hashing.
-<ul>
-<li>The hashing value is betwen <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> forming a circle.</li>
-<li>Each nodes are assigned a value betwen <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>. Data are stored in the node with the closest value to its hashing values going in clock-wise order.</li>
-<li>When adding a node, only one node needs to transmit data to the new node, instead of transmit data between all pairs of nodes.</li>
-</ul>
-</li>
-<li>With consistent hashing, we can support replication easily.
-<ul>
-<li>Just store data in the first batch of nodes with closest value in clock-wise order.</li>
 </ul>
 </li>
 </ol>

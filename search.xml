@@ -4,6 +4,35 @@
   
     
     <entry>
+      <title>Project #4: Concurrency Control</title>
+      <link href="/2023/10/12/OpenSource/BusTub/Project-4-Concurrency-Control/"/>
+      <url>/2023/10/12/OpenSource/BusTub/Project-4-Concurrency-Control/</url>
+      
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC"><li><a href="#lockmanager">LockManager</a><ul><li><a href="#locks">Locks</a></li><li><a href="#lock">Lock</a><ul><li><a href="#before-granting-locks">Before granting locks</a></li><li><a href="#grant-locks">Grant locks</a></li></ul></li><li><a href="#unlocktable">UnlockTable</a></li></ul></li><li><a href="#concurrent-query-execution">Concurrent query execution</a><ul><li><a href="#seqscan-executor">SeqScan Executor</a></li><li><a href="#insert-delete-and-update-executors">Insert, Delete and Update Executors</a></li><li><a href="#transaction-manager">Transaction manager</a></li></ul></li></ul></p><h1 id="lockmanager"><a class="markdownIt-Anchor" href="#lockmanager"></a> LockManager</h1><h2 id="locks"><a class="markdownIt-Anchor" href="#locks"></a> Locks</h2><ol><li><code>LockManager</code> is used to protect the data in database. According to the lock granularities, the lock information is stored in <code>table_lock_map_</code> and <code>row_lock_map_</code>.</li><li>The interface of <code>LockManager</code> may be executed concurrently by each transaction. Hence <code>table_lock_map_latch_</code> and <code>row_lock_map_latch_</code> are necessary to protect the data of <code>LockManager</code>.</li><li>The information of each object is stored in <code>LockRequestQueue</code> where all requests are stored including both granted and waiting requests. Each queue has a <code>latch_</code> to protect its data and also as the lock of condition variable.</li><li>The <code>table_lock_map_latch_</code> or <code>row_lock_map_latch_</code> can be released one the <code>latch_</code> of correspongding queue is acquired to support better throughput of processing lock requests.</li></ol><h2 id="lock"><a class="markdownIt-Anchor" href="#lock"></a> Lock</h2><h3 id="before-granting-locks"><a class="markdownIt-Anchor" href="#before-granting-locks"></a> Before granting locks</h3><ol><li>Check whether this transaction is allowed to acquire this lock based on its isolation level and current state.</li><li>Check whether this transaction is upgrading its lock.<ul><li>If so, chekc whether there is another transaction is upgrading.</li><li>If not, check whether it can upgrade to this new lock mode.</li><li>If can, set the <code>upgrading_</code> of this queue, remove the recording of currently holding lock from the transaction, update the <code>lock_mode_</code> and <code>granted_</code> of the request in queue, use this request as the request to be granted.</li></ul></li><li>If this is not an upgrading, create a new request and insert it into the queue.</li><li>When locking a row, we also need to ensure that appropriate locks are held in table.</li></ol><h3 id="grant-locks"><a class="markdownIt-Anchor" href="#grant-locks"></a> Grant locks</h3><ol><li>As long as the transaction is not aborted, try to grant the lock. If failed, sleep the process with condition variable.</li><li>The rules of granting locks are as followed:<ul><li>If there are granted locks and it is compatible with all granted locks, grant the lock.</li><li>If there is no granted lock,<ul><li>If there is an upgrading request, when this is the upgrading request or this is compatible with the upgrading request, grant the lock.</li><li>If there is no upgrading request, when this is the first requst in waiting list or this is compatible with the first request, grant the lock.</li></ul></li></ul></li><li>If exit the loop of trying to grant the lock due to the transaction is aborted, its request need to be deleted from the queue. Else, add the record of holding lock to the transaction.</li></ol><h2 id="unlocktable"><a class="markdownIt-Anchor" href="#unlocktable"></a> UnlockTable</h2><ol><li>The transaction should not have any record of holding locks of rows of this table.</li><li>Find the request of this transaction, remove it from the queue, update transaction state according to the isolation level and unlocked lock, remove the recording from transaction.</li><li>When unlocking a table, we need to ensure that no lock of rows in that table is held.</li></ol><h1 id="concurrent-query-execution"><a class="markdownIt-Anchor" href="#concurrent-query-execution"></a> Concurrent query execution</h1><h2 id="seqscan-executor"><a class="markdownIt-Anchor" href="#seqscan-executor"></a> SeqScan Executor</h2><ol><li>The concurrency control of delete depends on the <code>SeqScan</code> executor. In <code>Init()</code>, we need to determine the lock type according to <code>exec_ctx_-&gt;IsDelete()</code>.<ul><li>If this scan is for future deletion, we need to acquire an exclusive lock on rows and an intension-exclusive lock on table.</li><li>Otherwise, we just lock table with intension-shared lock if the isolation level is not <code>READ_UNCOMMITED</code>.</li></ul></li><li>In <code>Next</code>, if there are shared lock on previous row and the isolation level is <code>READ_COMMITTED</code>, we need to release the shared lock first. Hence we can only execute <code>++(*iter_)</code> at the beginning, instead of right after fetched the row.<ul><li>Also, when reading tuples, we always acquire a lock first. If, after reading, the tuple does not match the predicate, we should force unlock the lock despite the lock mode.</li></ul></li><li>A corner case for this is that some transactions may execute a deletion before another sequential scan. Then the later sequential scan should only acquire shared lock while the first deletion has already acquired an exclusive lock.</li><li>When there is no more tuple to emit, we should unlock the shared lock locked by this executor on the table.</li></ol><h2 id="insert-delete-and-update-executors"><a class="markdownIt-Anchor" href="#insert-delete-and-update-executors"></a> Insert, Delete and Update Executors</h2><ol><li>As aforementioned, the concurrency control of deletion depends on <code>SeqScan</code>. Therefore, we do not need to do anything extra in <code>Delete</code> executor.</li><li>For insert and update, we need to acquire an intension-exclusive lock on the table in the <code>Init</code>.</li><li>Insert needs to acquire an exclusive lock on the inserted row, but only after the row in generated.</li><li>Update can use an in-place update and needs an exclusive lock before that.</li></ol><h2 id="transaction-manager"><a class="markdownIt-Anchor" href="#transaction-manager"></a> Transaction manager</h2><ol><li>On abort, transaction manager need to restore the changes made by this transaction. The first is to restore the changes maken to tables directly.<ul><li>The reversion must be performed in the opposite order as the modification.</li><li>If the transaction inserted or deleted some tuples, we just need to reverse the <code>is_deleted_</code> flag in metadata.</li><li>If the transaction updated some tuples without in-place upate optimization, we need to insert a delete record and an insert record.</li><li>If the transaction uses in-place update optimization, we need to keep the old tuples and their meta in the record to restore when aborted.</li><li>Modification to indexes needs to be reverted similarly.</li></ul></li><li>After reverted modifications in abort, or entered commit, all locks held by the transaction need to be released. We only need to check the lock sets in transaction.</li></ol>]]></content>
+      
+      
+      <categories>
+          
+          <category> Open Source Code </category>
+          
+          <category> BusTub </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Database System </tag>
+            
+            <tag> Transaction </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Parameter Server</title>
       <link href="/2023/10/09/Paper/Sys4AI/Parameter-Server/"/>
       <url>/2023/10/09/Paper/Sys4AI/Parameter-Server/</url>
@@ -260,9 +289,9 @@
       
         <tags>
             
-            <tag> Distributed System </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Distributed System </tag>
             
             <tag> Distributed Database </tag>
             
@@ -291,9 +320,9 @@
       
         <tags>
             
-            <tag> Distributed System </tag>
-            
             <tag> Concurrency Control </tag>
+            
+            <tag> Distributed System </tag>
             
         </tags>
       
@@ -529,9 +558,9 @@
       
         <tags>
             
-            <tag> Distributed System </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Distributed System </tag>
             
         </tags>
       
@@ -558,9 +587,9 @@
       
         <tags>
             
-            <tag> Distributed System </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Distributed System </tag>
             
         </tags>
       
@@ -587,9 +616,9 @@
       
         <tags>
             
-            <tag> Distributed System </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Distributed System </tag>
             
         </tags>
       
@@ -674,9 +703,9 @@
       
         <tags>
             
-            <tag> Concurrency Control </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Concurrency Control </tag>
             
             <tag> Transaction </tag>
             
@@ -705,9 +734,9 @@
       
         <tags>
             
-            <tag> Concurrency Control </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Concurrency Control </tag>
             
             <tag> Transaction </tag>
             
@@ -736,9 +765,9 @@
       
         <tags>
             
-            <tag> Concurrency Control </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Concurrency Control </tag>
             
             <tag> Transaction </tag>
             
@@ -796,9 +825,9 @@
       
         <tags>
             
-            <tag> Concurrency Control </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Concurrency Control </tag>
             
             <tag> Transaction </tag>
             
@@ -972,9 +1001,9 @@
       
         <tags>
             
-            <tag> Concurrency Control </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Concurrency Control </tag>
             
         </tags>
       
