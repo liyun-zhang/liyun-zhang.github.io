@@ -146,18 +146,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-count">41</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -174,6 +174,756 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/MapReduce/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/09/26/Paper/Distributed/MapReduce/" class="post-title-link" itemprop="url">MapReduce</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-09-26 13:00:23" itemprop="dateCreated datePublished" datetime="2023-09-26T13:00:23+08:00">2023-09-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-10-04 16:26:28" itemprop="dateModified" datetime="2023-10-04T16:26:28+08:00">2023-10-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Paper-Notebook/" itemprop="url" rel="index"><span itemprop="name">Paper Notebook</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Paper-Notebook/Distributed-System/" itemprop="url" rel="index"><span itemprop="name">Distributed System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>Paper: <a target="_blank" rel="noopener" href="http://nil.csail.mit.edu/6.824/2020/papers/mapreduce.pdf">MapReduce: Simplified Data Processing on Large Clusters</a></p>
+<p><ul class="markdownIt-TOC">
+<li><a href="#purpose">Purpose</a></li>
+<li><a href="#model">Model</a>
+<ul>
+<li><a href="#paper-ideas">Paper ideas</a>
+<ul>
+<li><a href="#what-does-users-need-to-do">What does users need to do?</a></li>
+<li><a href="#what-does-run-time-system-need-to-do">What does run-time system need to do?</a></li>
+<li><a href="#how-does-the-system-run">How does the system run?</a></li>
+<li><a href="#what-does-master-need-to-do">What does master need to do?</a></li>
+<li><a href="#how-to-handle-worker-failure">How to handle worker failure?</a></li>
+<li><a href="#how-to-handle-master-failure">How to handle master failure?</a></li>
+<li><a href="#how-to-partition-reduce-tasks">How to partition reduce tasks?</a></li>
+<li><a href="#how-to-handle-straggler-problem">How to handle straggler problem?</a></li>
+</ul>
+</li>
+<li><a href="#reproduce">Reproduce</a>
+<ul>
+<li><a href="#how-do-we-assign-map-tasks">How do we assign map tasks?</a></li>
+<li><a href="#how-do-we-assign-reduce-tasks">How do we assign reduce tasks?</a></li>
+<li><a href="#when-can-workers-stop-requesting-for-more-map-tasksreduce-tasks">When can workers stop requesting for more map tasks/reduce tasks?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#experiments-and-results">Experiments and results</a></li>
+</ul>
+</p>
+<h1 id="purpose"><a class="markdownIt-Anchor" href="#purpose"></a> Purpose</h1>
+<ol>
+<li>Issues: Hard to parallel computation, distribute data, and handle server failures</li>
+<li>Contribution: Proposed an interface where users only need to write relatively simple Map function and Reduce function, and the system will parallel and distribute automatically.</li>
+</ol>
+<h1 id="model"><a class="markdownIt-Anchor" href="#model"></a> Model</h1>
+<h2 id="paper-ideas"><a class="markdownIt-Anchor" href="#paper-ideas"></a> Paper ideas</h2>
+<h3 id="what-does-users-need-to-do"><a class="markdownIt-Anchor" href="#what-does-users-need-to-do"></a> What does users need to do?</h3>
+<ol>
+<li>Users need to provide a Map function and a Reduce function.</li>
+<li>Map function will read the original data as key-value pairs, take one pair as input each time, and output intermediate key-value pairs, i.e. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mi>a</mi><mi>p</mi><mo stretchy="false">(</mo><mi>k</mi><mn>1</mn><mo separator="true">,</mo><mi>v</mi><mn>1</mn><mo stretchy="false">)</mo><mo>→</mo><mi>l</mi><mi>i</mi><mi>s</mi><mi>t</mi><mo stretchy="false">(</mo><mi>k</mi><mn>2</mn><mo separator="true">,</mo><mi>v</mi><mn>2</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">map(k1,v1)\rightarrow list(k2,v2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">m</span><span class="mord mathnormal">a</span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">i</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord">2</span><span class="mclose">)</span></span></span></span></li>
+<li>Reduce function will take the intermediate-key and a list of all intermediate-values for that key as input, and merge these values to form a smaller set of values, i.e. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mi>e</mi><mi>d</mi><mi>u</mi><mi>c</mi><mi>e</mi><mo stretchy="false">(</mo><mi>k</mi><mn>2</mn><mo separator="true">,</mo><mi>l</mi><mi>i</mi><mi>s</mi><mi>t</mi><mo stretchy="false">(</mo><mi>v</mi><mn>2</mn><mo stretchy="false">)</mo><mo stretchy="false">)</mo><mo>→</mo><mi>l</mi><mi>i</mi><mi>s</mi><mi>t</mi><mo stretchy="false">(</mo><mi>v</mi><mn>2</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">reduce(k2,list(v2))\rightarrow list(v2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal">d</span><span class="mord mathnormal">u</span><span class="mord mathnormal">c</span><span class="mord mathnormal">e</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">i</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord">2</span><span class="mclose">)</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">i</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord">2</span><span class="mclose">)</span></span></span></span></li>
+<li>Users need to implement the Mapper and Reducer as interface provided by the system, and pass to the MapReduce specification. After passing the input and output files, invoke the <code>MapReduce</code> function to execute.</li>
+</ol>
+<h3 id="what-does-run-time-system-need-to-do"><a class="markdownIt-Anchor" href="#what-does-run-time-system-need-to-do"></a> What does run-time system need to do?</h3>
+<ol>
+<li>Partition data</li>
+<li>Schedule across a set of machines</li>
+<li>Handle machine failures</li>
+<li>Manage inter-machine communication.</li>
+</ol>
+<h3 id="how-does-the-system-run"><a class="markdownIt-Anchor" href="#how-does-the-system-run"></a> How does the system run?</h3>
+<ol>
+<li>
+<p>When the <code>MapReduce</code> function is invoked, one <strong>master</strong> process and several <strong>worker</strong> processes will be forked.</p>
+</li>
+<li>
+<p>Master will assign work to workers, either a Map work, or a Reduce work.</p>
+</li>
+<li>
+<p>Master tries to make most of the <code>(3) read</code> run locally. In the <code>(5) remote read</code>, network communication is inevitable.</p>
+<img src="/imgs/Distributed/MapReduce/01.png" style="zoom: 50%;" />
+</li>
+</ol>
+<h3 id="what-does-master-need-to-do"><a class="markdownIt-Anchor" href="#what-does-master-need-to-do"></a> What does master need to do?</h3>
+<ol>
+<li>
+<p>Master pings every worker periodically, and marks those no response in a certain amount of time as failed.</p>
+</li>
+<li>
+<p>Track the state of each map task and reduce task (idle, in-progress or completed), and the identity of the worker machine (for non-idle tasks).</p>
+</li>
+<li>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi></mrow><annotation encoding="application/x-tex">M</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span></span></span></span> is the number map tasks, while <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span> is the number of reduce tasks. The master must make <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>M</mi><mo>+</mo><mi>R</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(M+R)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mclose">)</span></span></span></span> scheduling decisions, and keeps <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>M</mi><mo>∗</mo><mi>R</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(M*R)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mclose">)</span></span></span></span> state in memory (all map task/reduce task pair).</p>
+</li>
+</ol>
+<h3 id="how-to-handle-worker-failure"><a class="markdownIt-Anchor" href="#how-to-handle-worker-failure"></a> How to handle worker failure?</h3>
+<ol>
+<li>
+<p>What kinds of worker failure need re-execution?</p>
+<ul>
+<li>
+<p>Any tasks in progress</p>
+</li>
+<li>
+<p>Completed map tasks also need to be re-executed, since their output is stored on the local disks and is inaccessible.</p>
+</li>
+<li>
+<p>Completed reduce tasks don’t need to be re-executed, since their output is stored on the global file system.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Master will mark the state of those tasks that need re-execution to idle, and can assign them to other workers in the future.</p>
+</li>
+</ol>
+<h3 id="how-to-handle-master-failure"><a class="markdownIt-Anchor" href="#how-to-handle-master-failure"></a> How to handle master failure?</h3>
+<ol>
+<li>
+<p>One way is to make the master write periodic checkpoints of the master data structure.</p>
+</li>
+<li>
+<p>Given that there is only a single master, its failure is unlikely. Therefore another way is to abort the MapReduce computation if the master fails, and clients can try again later. (This is the way the author takes)</p>
+</li>
+</ol>
+<h3 id="how-to-partition-reduce-tasks"><a class="markdownIt-Anchor" href="#how-to-partition-reduce-tasks"></a> How to partition reduce tasks?</h3>
+<p>The number of reduce tasks/output files (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span>) is specified by the users. The default partitioning uses hashing, namely partition according to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mi>a</mi><mi>s</mi><mi>h</mi><mo stretchy="false">(</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo stretchy="false">)</mo><mtext> </mtext><mi>m</mi><mi>o</mi><mi>d</mi><mtext> </mtext><mi>R</mi></mrow><annotation encoding="application/x-tex">hash(key)\ mod\ R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">h</span><span class="mord mathnormal">a</span><span class="mord mathnormal">s</span><span class="mord mathnormal">h</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span><span class="mspace"> </span><span class="mord mathnormal">m</span><span class="mord mathnormal">o</span><span class="mord mathnormal">d</span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span>.</p>
+<h3 id="how-to-handle-straggler-problem"><a class="markdownIt-Anchor" href="#how-to-handle-straggler-problem"></a> How to handle straggler problem?</h3>
+<ol>
+<li>Straggler: a machine that takes an unusually long time to complete on of the last few map or reduce tasks. This may be caused by a bad disk, its scheduling system scheduling it a different other tasks.</li>
+<li>So when a MapReduce operation is close to completion, the master schedules backup executions of the remaining in-progress tasks.</li>
+</ol>
+<h2 id="reproduce"><a class="markdownIt-Anchor" href="#reproduce"></a> Reproduce</h2>
+<p>This reproduce part is based on the Lab 1 of MIT 6.824.</p>
+<h3 id="how-do-we-assign-map-tasks"><a class="markdownIt-Anchor" href="#how-do-we-assign-map-tasks"></a> How do we assign map tasks?</h3>
+<p>Each worker will request for more map tasks when it becomes idle, and the master will assign files directly to them.</p>
+<h3 id="how-do-we-assign-reduce-tasks"><a class="markdownIt-Anchor" href="#how-do-we-assign-reduce-tasks"></a> How do we assign reduce tasks?</h3>
+<ol>
+<li>When worker is notified that there is no more map tasks, they will begin to request for reduce tasks. This time, the master won’t assign files directly, instead, master will only assign a number in the range from <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">R-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>. Then each worker will try to read intermediate files from each workers according to its number automatically.</li>
+<li>This requires those map workers store their output in a previously agreed file name for reduce workers to request.</li>
+</ol>
+<h3 id="when-can-workers-stop-requesting-for-more-map-tasksreduce-tasks"><a class="markdownIt-Anchor" href="#when-can-workers-stop-requesting-for-more-map-tasksreduce-tasks"></a> When can workers stop requesting for more map tasks/reduce tasks?</h3>
+<ol>
+<li>Only after all map tasks is completed, workers can stop requesting for more map tasks and begin to request for reduce tasks, since reduce tasks may depend on those unfinished map tasks. So the lifecycle of workers can be partitioned into two phase, the map phase and the reduce phase.</li>
+<li>Also, only after all reduce tasks is completed, workers can stop requesting for more reduce tasks and quit the program. This is because those executing, yet uncompleted, tasks may fail, and when that happens, we need other workers to re-execute those tasks.</li>
+<li>Similarly, reduce workers cannot delete those intermediate files right after they read them. Because if they fail, their successor need to read those files.</li>
+</ol>
+<h1 id="experiments-and-results"><a class="markdownIt-Anchor" href="#experiments-and-results"></a> Experiments and results</h1>
+<ol>
+<li>
+<p><strong>What to notice when configurate cluster?</strong></p>
+<ul>
+<li>Need to reserve some memory for other tasks running on the cluster. The author reserved <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mn>1.5</mn></mrow><annotation encoding="application/x-tex">1-1.5</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">.</span><span class="mord">5</span></span></span></span> GB out of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4</mn></mrow><annotation encoding="application/x-tex">4</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">4</span></span></span></span> GB.</li>
+<li>Best test when the CPUs, disks, and network were mostly idle.</li>
+</ul>
+</li>
+<li>
+<p>The author tested two representative situations, grep and sort.</p>
+</li>
+<li>
+<p>In the grep test, the execution time includes a minute of startup overhead over <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>150</mn></mrow><annotation encoding="application/x-tex">150</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">5</span><span class="mord">0</span></span></span></span> seconds of total time. The overhead is due to the propagation of the program to all worker machines, and delays interacting with GFS to open the set of input files and to get the information needed for the locality optimization.</p>
+<img src="/imgs/Distributed/MapReduce/02.png" style="zoom: 33%;" />
+</li>
+<li>
+<p>In the sort test,</p>
+<ul>
+<li>It only consists of less than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>50</mn></mrow><annotation encoding="application/x-tex">50</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">5</span><span class="mord">0</span></span></span></span> lines of user code</li>
+<li>The entire computation time including startup overhead is similar to the best reported result at that time.</li>
+<li>The author tested three kind of rates, the rate of reading by map workers (<em>input rate</em>), the rate of communicating intermediate files between map workers and reduce workers (<em>shuffle rate</em>), and the rate of writing output files by reduce workers (<em>output rate</em>). These are the I/O parts which affect the perfornmence significantly.
+<ul>
+<li>The input rate is less than for grep, because sort map tasks spend more time writing intermediate output to their local disks.</li>
+<li>The input rate is higher than the shuffle rate and the output rate because of locality optimization.</li>
+<li>The shuffle rate is higher than the output rate because the output phase writes replicas due to the mechanism for reliability  of the underlying file system.</li>
+</ul>
+</li>
+<li>The author also tested when <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>200</mn></mrow><annotation encoding="application/x-tex">200</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mord">0</span><span class="mord">0</span></span></span></span> out of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1746</mn></mrow><annotation encoding="application/x-tex">1746</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">7</span><span class="mord">4</span><span class="mord">6</span></span></span></span> workers are killed several minutes. The underlying cluster scheduler immediately restarted new worker processes on these mechines (only the processes were killed, the machines were still functioning properly). The entire computation time increases of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>5</mn><mi mathvariant="normal">%</mi></mrow><annotation encoding="application/x-tex">5\%</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.80556em;vertical-align:-0.05556em;"></span><span class="mord">5</span><span class="mord">%</span></span></span></span> over the normal execution time.</li>
+</ul>
+<img src="/imgs/Distributed/MapReduce/03.png" style="zoom:50%;" />
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/09/03/Courses/15445/17-Distributed-OLAP-Databases/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/09/03/Courses/15445/17-Distributed-OLAP-Databases/" class="post-title-link" itemprop="url">17 Distributed OLAP Databases</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-09-03 12:05:46" itemprop="dateCreated datePublished" datetime="2023-09-03T12:05:46+08:00">2023-09-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-09-26 14:01:27" itemprop="dateModified" datetime="2023-09-26T14:01:27+08:00">2023-09-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#how-should-we-divide-tables">How should we divide tables?</a></li>
+<li><a href="#execution-models">Execution models</a>
+<ul>
+<li><a href="#how-to-execute-when-required-data-are-in-different-nodes">How to execute when required data are in different nodes?</a></li>
+<li><a href="#how-to-handle-query-fault">How to handle query fault?</a></li>
+<li><a href="#when-pushing-query-to-data-what-are-the-queries">When pushing query to data, what are the queries?</a></li>
+</ul>
+</li>
+<li><a href="#distributed-join-algorithms">Distributed Join Algorithms</a>
+<ul>
+<li><a href="#how-to-perform-distributed-joins">How to perform distributed joins?</a></li>
+<li><a href="#what-is-semi-join">What is semi-join?</a></li>
+</ul>
+</li>
+<li><a href="#cloud-systems">Cloud systems</a>
+<ul>
+<li><a href="#what-is-the-difference-for-dbmss-running-in-cloud-systems">What is the difference for DBMSs running in cloud systems?</a></li>
+<li><a href="#how-to-store-data-of-different-schema">How to store data of different schema?</a></li>
+<li><a href="#how-to-share-data-between-systems">How to share data between systems?</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="how-should-we-divide-tables"><a class="markdownIt-Anchor" href="#how-should-we-divide-tables"></a> How should we divide tables?</h1>
+<ol>
+<li>The first schema is star schema.
+<ul>
+<li>Star schemas contain two types of tables: fact tables and dimension tables.</li>
+<li>The fact table contains multiple “events” that occur in the application. It will contain the minimal unique information per event.</li>
+<li>The rest of the attributes will be foreign key references to outer dimension tables.</li>
+<li>In a star schema, there can only be one dimension-level out from the fact table.</li>
+</ul>
+</li>
+<li>The second schema is snowflake schema.
+<ul>
+<li>It allows for more than one dimension out from the fact table.</li>
+</ul>
+</li>
+<li>Snowflake schemas take up less storage space. Denormalized data models may incur integrity and consistency violations.</li>
+<li>Snowflake schemas require more joins to get the data needed for a query. Queries on star schemas will usually be faster.</li>
+</ol>
+<h1 id="execution-models"><a class="markdownIt-Anchor" href="#execution-models"></a> Execution models</h1>
+<h2 id="how-to-execute-when-required-data-are-in-different-nodes"><a class="markdownIt-Anchor" href="#how-to-execute-when-required-data-are-in-different-nodes"></a> How to execute when required data are in different nodes?</h2>
+<ol>
+<li>The first approach is to push query to data.
+<ul>
+<li>Send the query (or a portion of it) to the node that contains the data.</li>
+<li>The result is then sent back to where the query is being executed, which uses local data and the data sent to it, to complete the query.</li>
+<li>Perform as much filtering and processing as possible where data resides before transmitting over network.</li>
+<li>This is more common in a shared nothing system.</li>
+</ul>
+</li>
+<li>The second approach is to pull data to query.
+<ul>
+<li>Bring the data to the node that is executing a query that needs it for processing.</li>
+<li>This is normally what a shared disk system would do.</li>
+<li>The problem with this is that the size of the data relative to the size of the query could be very different.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-handle-query-fault"><a class="markdownIt-Anchor" href="#how-to-handle-query-fault"></a> How to handle query fault?</h2>
+<ol>
+<li>The data that a node receives from remote sources are cached in the buffer pool.
+<ul>
+<li>When buffer pool run out of memory, the DBMS can write some pages out to disk in some ephemeral pages.</li>
+<li>This allows the DBMS to support intermediate results that are large than the amount of memory available.</li>
+<li>Ephemeral pages are not persisted after a restart.</li>
+</ul>
+</li>
+<li>Most shared-nothing distributed OLAP DBMSs are designed to assume that nodes do not fail during query execution.
+<ul>
+<li>If one node fails during query execution, then the whole query fails.</li>
+</ul>
+</li>
+<li>The DBMS could take a snapshot of the intermediate results for a query during execution to allow it to recover if nodes fail.
+<ul>
+<li>Most of the DMBSs do not want to pay the penalty of writing intermediate results to disk for quick queries.</li>
+<li>This is adopted if the query takes a long time.</li>
+</ul>
+</li>
+<li>In shared-disk distributed OLAP DMBSs, they can write results to the shared disk to prevent performing the same calculation again. However, the frequency of writing to disk is also a trade-off.</li>
+</ol>
+<h2 id="when-pushing-query-to-data-what-are-the-queries"><a class="markdownIt-Anchor" href="#when-pushing-query-to-data-what-are-the-queries"></a> When pushing query to data, what are the queries?</h2>
+<ol>
+<li>The DBMSs only need to push fragments of the query instead of the whole query.</li>
+<li>The first approach is pushing physical operators.
+<ul>
+<li>Generate a single query plan and then break it up into partition-specific  fragments.</li>
+<li>Most systems implement this approach.</li>
+</ul>
+</li>
+<li>The second approach is pushing another SQL query.
+<ul>
+<li>The DBMS will rewrite original query into partition-specific queries.</li>
+<li>This approach allows for local optimization at each node.</li>
+</ul>
+</li>
+</ol>
+<h1 id="distributed-join-algorithms"><a class="markdownIt-Anchor" href="#distributed-join-algorithms"></a> Distributed Join Algorithms</h1>
+<h2 id="how-to-perform-distributed-joins"><a class="markdownIt-Anchor" href="#how-to-perform-distributed-joins"></a> How to perform distributed joins?</h2>
+<ol>
+<li>One approach is to put entire tables on a single node and then perform the join.
+<ul>
+<li>You lose the parallelism of a distributed DBMS.</li>
+<li>It has expensive data transferring over the network.</li>
+</ul>
+</li>
+<li>To join tables, the DBMS needs to get the proper tuples on the same node. Once the data is at the node, the DBMS then executes the single-node join algorithms.</li>
+<li>The best scenario is that one table is replicated at every node.
+<ul>
+<li>Each node joins its local data in parallel and then sends their results to a coordinating node.</li>
+</ul>
+</li>
+<li>The second scenario is that tables are partitioned on the join attribute.
+<ul>
+<li>Each node only needs to acquire tuples of the second table that will match the tuples of the left table that are already in it.</li>
+<li>Each node performs the join on local data and then sends to a coordinator node for coalescing.</li>
+</ul>
+</li>
+<li>The third scenario is that both tables are partitioned on different keys while one of the tables is small.
+<ul>
+<li>The DBMS will broadcast that table to all nodes.</li>
+</ul>
+</li>
+<li>The worst scenario is that both tables are not partitioned on the join key.
+<ul>
+<li>The DBMS copies the tables by shuffling them across nodes.</li>
+</ul>
+</li>
+</ol>
+<h2 id="what-is-semi-join"><a class="markdownIt-Anchor" href="#what-is-semi-join"></a> What is semi-join?</h2>
+<ol>
+<li>If the result only contains columns sfrom the left table, the DBMSs use semi-join to minimize the amount of data sent during joins.</li>
+<li>This is like a projection pushdown. The DBMS transmits only the necessary columns of the left table to other nodes.</li>
+<li>For DBMSs that do not support <code>SEMI JOIN</code>, we can fake it with <code>EXISTS</code>.
+<ul>
+<li>Wrap the predicates of <code>WHERE</code>  clause with <code>EXISTS (SELECT 1 from S WHERE predicates)</code>.</li>
+</ul>
+</li>
+</ol>
+<h1 id="cloud-systems"><a class="markdownIt-Anchor" href="#cloud-systems"></a> Cloud systems</h1>
+<h2 id="what-is-the-difference-for-dbmss-running-in-cloud-systems"><a class="markdownIt-Anchor" href="#what-is-the-difference-for-dbmss-running-in-cloud-systems"></a> What is the difference for DBMSs running in cloud systems?</h2>
+<ol>
+<li>The first approach is managed DBMS.
+<ul>
+<li>No significant modification to the DBMS to be aware that it is running in a cloud environment.</li>
+</ul>
+</li>
+<li>The second approach is cloud-native DBMS.
+<ul>
+<li>The system is designed explicitly to run in a cloud environment.</li>
+<li>Usually based on a shared-disk architecture.</li>
+</ul>
+</li>
+<li>A “serverless” DBMS evicts tenants when they become idle, rather than always maintaining compute resources for each customer.</li>
+</ol>
+<h2 id="how-to-store-data-of-different-schema"><a class="markdownIt-Anchor" href="#how-to-store-data-of-different-schema"></a> How to store data of different schema?</h2>
+<ol>
+<li>A Data Lake is a centralized repository for storing large amounts of structured, semi-structured, and un- structured data without having to define a schema or ingest the data into proprietary internal formats.</li>
+<li>Data lakes are usually faster at ingesting data, as they do not require transformation right away. Yet, when they are fetching data, they need to look up the catalog before transforming data into the desired schema.</li>
+<li>They do require the user to write their own transformation piplines.</li>
+</ol>
+<h2 id="how-to-share-data-between-systems"><a class="markdownIt-Anchor" href="#how-to-share-data-between-systems"></a> How to share data between systems?</h2>
+<ol>
+<li>Most DBMSs use a proprietary on-disk binary file format for their databases.</li>
+<li>The only way to share data between systems is to convert data into a common text-based format.</li>
+<li>There are new open-source binary file formats that make it easier to access data across systems.</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/09/02/Courses/15445/16-Distributed-OLTP-Databases/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/09/02/Courses/15445/16-Distributed-OLTP-Databases/" class="post-title-link" itemprop="url">16 Distributed OLTP Databases</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-09-02 00:02:00" itemprop="dateCreated datePublished" datetime="2023-09-02T00:02:00+08:00">2023-09-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-09-26 14:01:19" itemprop="dateModified" datetime="2023-09-26T14:01:19+08:00">2023-09-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#what-is-the-difference-between-oltp-and-olap">What is the difference between OLTP and OLAP?</a></li>
+<li><a href="#2-phase-commit-2pc">2-Phase Commit (2PC)</a>
+<ul>
+<li><a href="#what-is-the-procedure-of-2pc">What is the procedure of 2PC?</a></li>
+<li><a href="#what-would-happen-if-some-nodes-crash-during-2pc">What would happen if some nodes crash during 2PC?</a></li>
+<li><a href="#how-to-recover-from-crash-during-2pc">How to recover from crash during 2PC?</a></li>
+<li><a href="#how-can-we-optimize-2pc-to-reduce-communication">How can we optimize 2PC to reduce communication?</a></li>
+<li><a href="#what-is-the-difference-betwen-2pc-and-paxos">What is the difference betwen 2PC and Paxos?</a></li>
+</ul>
+</li>
+<li><a href="#replication">Replication</a>
+<ul>
+<li><a href="#how-can-we-execute-readwrite-with-replication">How can we execute read/write with replication?</a></li>
+<li><a href="#when-should-notify-application-of-result">When should notify application of result?</a></li>
+<li><a href="#when-should-propagate-updates-between-nodes">When should propagate updates between nodes?</a></li>
+<li><a href="#what-should-be-sent-to-the-followers">What should be sent to the followers?</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="what-is-the-difference-between-oltp-and-olap"><a class="markdownIt-Anchor" href="#what-is-the-difference-between-oltp-and-olap"></a> What is the difference between OLTP and OLAP?</h1>
+<ol>
+<li>OLTP is the front-end databases that communicate and interact with the outside world, e.g. applications. And OLAP is the back-end databases that used to analyze the data in those front-end databases.</li>
+<li>OLTP often executes repetitive short-lived read/write txns, while OLAP executes long-running, read-only queries involving complex joins.</li>
+<li>Before going into OLAP system, data in OLTP databases need an intermediate step called ETL, or Extract, Transform, and Load, which combines the OLTP databases into a universal schema for the data warehouse.</li>
+</ol>
+<h1 id="2-phase-commit-2pc"><a class="markdownIt-Anchor" href="#2-phase-commit-2pc"></a> 2-Phase Commit (2PC)</h1>
+<h2 id="what-is-the-procedure-of-2pc"><a class="markdownIt-Anchor" href="#what-is-the-procedure-of-2pc"></a> What is the procedure of 2PC?</h2>
+<ol>
+<li>When application sends a commit request to the coordinator, the coordinator tells other nodes to go into the first phase, prepare phase.</li>
+<li>When participants are ready, they will reply to the coordinator with acknowledgement.</li>
+<li>If the coordinator receives acknoledgement from all participants, they can begin the second phase, commit phase.
+<ul>
+<li>And the coordinator will response to application with success after receiving all acknowledgement of commit phase from all participants.</li>
+</ul>
+</li>
+<li>If the coordinator receives abort messages from any of the participants, the coordinator responses to application with abort message and begins the abort phase.
+<ul>
+<li>As usual, participants need to reply acknowledgement to coordinator in abort phase.</li>
+</ul>
+</li>
+</ol>
+<h2 id="what-would-happen-if-some-nodes-crash-during-2pc"><a class="markdownIt-Anchor" href="#what-would-happen-if-some-nodes-crash-during-2pc"></a> What would happen if some nodes crash during 2PC?</h2>
+<ol>
+<li>If the coordinator crashes, participants must decide what to do after a timeout, either abort or elect a new coordinator.
+<ul>
+<li>The system is not available during this timeout.</li>
+</ul>
+</li>
+<li>If one of the participants crashes, coordinator assumes that it responded with an abort if it hasn’t sent an acknowledgement yet.
+<ul>
+<li>Nodes use a timeout to determine that participant is dead.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-recover-from-crash-during-2pc"><a class="markdownIt-Anchor" href="#how-to-recover-from-crash-during-2pc"></a> How to recover from crash during 2PC?</h2>
+<ol>
+<li>Each node records the inbound/outbound messages and outcome of each phase in a non-volatile storage log.</li>
+<li>On recovery, examine the log for 2PC messages
+<ul>
+<li>If local txn in prepared state, contact coordinator.</li>
+<li>If local txn not in prepared, abort it.</li>
+<li>If local txn was committing and node is the coordinator, send <code>COMMIT</code> message to nodes.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-can-we-optimize-2pc-to-reduce-communication"><a class="markdownIt-Anchor" href="#how-can-we-optimize-2pc-to-reduce-communication"></a> How can we optimize 2PC to reduce communication?</h2>
+<ol>
+<li>The first method is early prepare voting.
+<ul>
+<li>If you send a query to a remote node that you know will be the last one you execute there, then that node will also return their vote for the prepare phase with the query result.</li>
+<li>This is rare due to rarely write database application with the idea of last query.</li>
+<li>However, this can be used in RPC sorts of things where we can sure that this process will terminate after executed certain query.</li>
+</ul>
+</li>
+<li>The second method is early ACK after prepare.
+<ul>
+<li>If all nodes vote to commit a txn, the coordinator can send the client an acknowledgement that their txn was successful before the commit phase finishes, i.e. send acknowledgement to client after receiving all acknowledgement from participants.</li>
+<li>This could cause a small windown of client receiving success, yet cannot see modifications from servers due to commit phase is not finished yet.</li>
+</ul>
+</li>
+</ol>
+<h2 id="what-is-the-difference-betwen-2pc-and-paxos"><a class="markdownIt-Anchor" href="#what-is-the-difference-betwen-2pc-and-paxos"></a> What is the difference betwen 2PC and Paxos?</h2>
+<ol>
+<li>2-phase commit is a degenerate case of Paxos.
+<ul>
+<li>Paxos uses <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>F</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">2F + 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> coordinators and makes progress as long as at least <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">F + 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> of them are working properly.</li>
+<li>2-phase commit sets <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F = 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>.</li>
+</ul>
+</li>
+<li>2-phase commit blocks if coordinator fails after the prepare message is sent, until coordinator recovers.<br />
+Paxos remains non-blocking if a majority participants are alive, provided there is a sufficiently long period without further failures.</li>
+<li>2-phase commit requires all nodes to agree on the commit while Paxos only requires majority agreement.</li>
+<li>In 2-phase commit, each node may have different data, executing different commands. However, in Paxos, all nodes are only replications.</li>
+</ol>
+<h1 id="replication"><a class="markdownIt-Anchor" href="#replication"></a> Replication</h1>
+<h2 id="how-can-we-execute-readwrite-with-replication"><a class="markdownIt-Anchor" href="#how-can-we-execute-readwrite-with-replication"></a> How can we execute read/write with replication?</h2>
+<ol>
+<li>The first approach is primary-replica.
+<ul>
+<li>All updates go to a designated primary for each object. The primary propagates updates to its replicas without an atomic commit protocol.</li>
+<li>Read-only txns may be allowed to access replicas.</li>
+<li>If the primary goes down, then hold an election to select a new primary.</li>
+</ul>
+</li>
+<li>The second approach is multi-primary.
+<ul>
+<li>Txns can update data objects at any replica.</li>
+<li>Replicas must synchronize with each other using an atomic commit protocol.</li>
+</ul>
+</li>
+</ol>
+<h2 id="when-should-notify-application-of-result"><a class="markdownIt-Anchor" href="#when-should-notify-application-of-result"></a> When should notify application of result?</h2>
+<ol>
+<li>When a txn commits on a replicated database, the DBMS decides whether it must wait for that txn’s changes to propagate to other nodes before it can send the acknowledgement to application.</li>
+<li>The first propagation level is synchronous, which leads to strong consistency.
+<ul>
+<li>The primary sends updates to replicas and then waits for them to acknowledge that they fully applied (i.e., logged) the changes before sending acknowledgement to application.</li>
+</ul>
+</li>
+<li>The second propagation level is asynchronous, which leads to eventual consistency.
+<ul>
+<li>The primary immediately returns the acknowledgement to the client without waiting for replicas to apply the changes.</li>
+</ul>
+</li>
+</ol>
+<h2 id="when-should-propagate-updates-between-nodes"><a class="markdownIt-Anchor" href="#when-should-propagate-updates-between-nodes"></a> When should propagate updates between nodes?</h2>
+<ol>
+<li>The first approach is continuous.
+<ul>
+<li>The DBMS sends log messages immediately as it generates them.</li>
+<li>It also needs to send a commit/abort message.</li>
+</ul>
+</li>
+<li>The second approach is on commit.
+<ul>
+<li>The DBMS only sends the log messages for a txn to the replicas once the txn is commits.</li>
+<li>Do not waste time sending log records for aborted txns.</li>
+<li>It assumes that a txn’s log records fits entirely in memory.</li>
+</ul>
+</li>
+</ol>
+<h2 id="what-should-be-sent-to-the-followers"><a class="markdownIt-Anchor" href="#what-should-be-sent-to-the-followers"></a> What should be sent to the followers?</h2>
+<ol>
+<li>The first choice is active-active.
+<ul>
+<li>A txn executes at each replica independently.</li>
+<li>Need to check at the end whether the txn ends up with the same result at each replica.</li>
+</ul>
+</li>
+<li>The second choice is active-passive.
+<ul>
+<li>Each txn executes at a single location and propagates the changes to the replica.</li>
+<li>Can either do physical or logical replication.</li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -2301,1122 +3051,8 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/07/16/Courses/15445/09-Concurrency-Control/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/07/16/Courses/15445/09-Concurrency-Control/" class="post-title-link" itemprop="url">09 Concurrency Control</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2023-07-16 16:35:24" itemprop="dateCreated datePublished" datetime="2023-07-16T16:35:24+08:00">2023-07-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-09-26 14:00:47" itemprop="dateModified" datetime="2023-09-26T14:00:47+08:00">2023-09-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><ul class="markdownIt-TOC">
-<li><a href="#concurency-control-recovery">Concurency control &amp; recovery</a>
-<ul>
-<li><a href="#what-do-we-want-from-concurrency-control-recovery">What do we want from concurrency control &amp; recovery?</a></li>
-<li><a href="#how-does-applications-issue-changes-to-a-dbms">How does applications issue changes to a DBMS?</a></li>
-<li><a href="#what-does-the-dbms-want-to-prevent-when-supporting-concurrency">What does the DBMS want to prevent when supporting concurrency?</a></li>
-</ul>
-</li>
-<li><a href="#correctness">Correctness</a>
-<ul>
-<li><a href="#what-is-the-correctness-criteria">What is the correctness criteria?</a></li>
-<li><a href="#how-to-ensure-atomicity">How to ensure atomicity?</a></li>
-<li><a href="#what-is-consistency">What is consistency?</a></li>
-<li><a href="#isolation">Isolation</a>
-<ul>
-<li><a href="#what-do-we-want-from-isolation">What do we want from isolation?</a></li>
-<li><a href="#how-to-decide-whether-a-schedule-matches-isolation">How to decide whether a schedule matches isolation?</a></li>
-<li><a href="#what-conflicts-do-we-want-to-prevent">What conflicts do we want to prevent?</a></li>
-<li><a href="#how-do-we-determine-whether-a-schedule-is-conflict-serializable">How do we determine whether a schedule is conflict serializable?</a></li>
-<li><a href="#how-do-we-determine-whether-a-schedule-is-view-serializable">How do we determine whether a schedule is view serializable?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</p>
-<h1 id="concurency-control-recovery"><a class="markdownIt-Anchor" href="#concurency-control-recovery"></a> Concurency control &amp; recovery</h1>
-<h2 id="what-do-we-want-from-concurrency-control-recovery"><a class="markdownIt-Anchor" href="#what-do-we-want-from-concurrency-control-recovery"></a> What do we want from concurrency control &amp; recovery?</h2>
-<ol>
-<li>The concurrency control is responsible for lost update problem.
-<ul>
-<li>How can we avoid race conditions when updating records at the same time?</li>
-<li>This involves the buffer pool manager layer, access methods layer and operator execution layer.</li>
-</ul>
-</li>
-<li>Recovery is responsible for durability problems.
-<ul>
-<li>How can we ensure the correct state in case of a power failure?</li>
-<li>This involves the disk manager layer and buffer pool manager layer.</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-does-applications-issue-changes-to-a-dbms"><a class="markdownIt-Anchor" href="#how-does-applications-issue-changes-to-a-dbms"></a> How does applications issue changes to a DBMS?</h2>
-<ol>
-<li>A transaction is the execution of a sequence of one or more operations (e.g., SQL queries) on a database to perform some higher-level function.
-<ul>
-<li>Transaction is the basic unit of change in a DBMS. Partial transactions are not allowed.</li>
-<li>A new transaction starts with the <code>BEGIN</code> command.</li>
-<li>The transaction stops with either <code>COMMIT</code> or <code>ABORT</code>:
-<ul>
-<li>If commit, the DBMS either saves all the transaction’s changes <strong>or aborts</strong> it.</li>
-<li>If abort, all changes are undone so that it’s like as if the transaction never executed at all.</li>
-<li>Abort can be either self-inflicted or caused by the DBMS.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>In a strawman system, each transaction is executed one-by-one as  they arrive at the DBMS.
-<ul>
-<li>Before a transaction starts, copy the entire database to a new file and make all changes to that file.
-<ul>
-<li>If the txn completes successfully, overwrite the original file with the new one.</li>
-<li>If the txn fails, just remove the dirty copy.</li>
-</ul>
-</li>
-<li>The problem of this system is that there is no concurrency and copying the entire database can be expensive if the it is large.</li>
-</ul>
-</li>
-<li>Besides correctness and fairness, we also want the DBMS to allow concurrent execution of independent transactions to provide better utilization / throughput and increase response times to users.</li>
-</ol>
-<h2 id="what-does-the-dbms-want-to-prevent-when-supporting-concurrency"><a class="markdownIt-Anchor" href="#what-does-the-dbms-want-to-prevent-when-supporting-concurrency"></a> What does the DBMS want to prevent when supporting concurrency?</h2>
-<ol>
-<li>Arbitrary interleaving of operations can lead to temporary inconsistency and permanent inconsistency.
-<ul>
-<li>Temporary inconsistency is unavoidable and it is fine as long as no other transactions can see it.</li>
-<li>Permanent inconsistency is unacceptable.</li>
-</ul>
-</li>
-<li>The DBMS is only concerned about what data is read/written from/to the database. Changes to the “outside world”, e.g. sending an email, are beyond the scope of the DBMS.</li>
-</ol>
-<h1 id="correctness"><a class="markdownIt-Anchor" href="#correctness"></a> Correctness</h1>
-<h2 id="what-is-the-correctness-criteria"><a class="markdownIt-Anchor" href="#what-is-the-correctness-criteria"></a> What is the correctness criteria?</h2>
-<ol>
-<li><strong>Atomicity</strong>: All actions in transaction happen, or none happen, i.e. “all or nothing”.</li>
-<li><strong>Consistency</strong>: If each transaction is consistent and the DB starts consistent, then it ends up consistent.</li>
-<li><strong>Isolation</strong>: Execution of one transaction is isolated from that of other transactions.</li>
-<li><strong>Durability</strong>: If a txn commits, its effects persist.</li>
-</ol>
-<h2 id="how-to-ensure-atomicity"><a class="markdownIt-Anchor" href="#how-to-ensure-atomicity"></a> How to ensure atomicity?</h2>
-<ol>
-<li>The first approach is logging (Write Ahead Log / WAL).
-<ul>
-<li>DBMS logs all actions so that it can undo the actions of aborted transactions.</li>
-<li>Maintain undo records both in memory and on disk.</li>
-<li>When the DBMS come back from a crash, it need to undo partial transactions according to the undo records.</li>
-</ul>
-</li>
-<li>Another approach is shadow paging.
-<ul>
-<li>DBMS makes copies of pages and txns make changes to those copies.</li>
-<li>Only when the txn commits is the page made visible to others by modifying the pointer at directory.</li>
-<li>It does not need extra operations when come back from crash.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-is-consistency"><a class="markdownIt-Anchor" href="#what-is-consistency"></a> What is consistency?</h2>
-<ol>
-<li>At a high level, consisitency means the “world” represented by the database is logically correct. All questions (i.e., queries) that the application asks about the data will return logically correct results.</li>
-<li>There are two notions of consistency
-<ul>
-<li>Database consistency means that the database accurately models the real world and follows integrity constraints.
-<ul>
-<li>Transactions in the future see the effects of transactions committed in the past inside of the database.</li>
-<li>The designer of DBMS should maintain this consistency.</li>
-</ul>
-</li>
-<li>Transaction consistency means that if the database is consistent before the transaction starts, it will also be consistent after.
-<ul>
-<li>The application programmer is responsible for this consistency. The DBMS does not know the semantics of correctness.</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<h2 id="isolation"><a class="markdownIt-Anchor" href="#isolation"></a> Isolation</h2>
-<h3 id="what-do-we-want-from-isolation"><a class="markdownIt-Anchor" href="#what-do-we-want-from-isolation"></a> What do we want from isolation?</h3>
-<ol>
-<li>Users submit txns, and each txn executes as if it was running by itself, i.e. it is executed in a strawman system where no other transaction is executing at the same time.</li>
-<li>Isolation provides an easier programming model to reason about.</li>
-<li>But the DBMS achieves concurrency by interleaving the actions (reads/writes of DB objects) of txns. Hence we need to schedule to interleave txns but still make it appear as if they ran one-at-a-time.</li>
-<li>There is no guarantee that <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> will execute before <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> or vice-versa, if both are submitted together. The net effect must be equivalent to these two transactions running serially in some order.</li>
-</ol>
-<h3 id="how-to-decide-whether-a-schedule-matches-isolation"><a class="markdownIt-Anchor" href="#how-to-decide-whether-a-schedule-matches-isolation"></a> How to decide whether a schedule matches isolation?</h3>
-<ol>
-<li>If the schedule is equivalent to some serial execution, we can consider it correct.</li>
-<li>For any database state, if the effect of executing the first schedule is identical to the effect of executing the second schedule, we say these two schedules are equivalent.</li>
-<li>A schedule is serializable schedule if it is equivalent to some serial execution of the transactions.
-<ul>
-<li>If each transaction preserves consistency, every serializable schedule preserves consistency.</li>
-</ul>
-</li>
-<li>There are two different levels of serializability: conflict serializability (most commonly used) and view serializability.</li>
-</ol>
-<h3 id="what-conflicts-do-we-want-to-prevent"><a class="markdownIt-Anchor" href="#what-conflicts-do-we-want-to-prevent"></a> What conflicts do we want to prevent?</h3>
-<ol>
-<li>Two operations conflict if: They are by different transactions, and they are on the same object while one of them is a write.</li>
-<li>A read-write conflict will cause unrepeatable read.
-<ul>
-<li>Transaction gets different values when reading the same object multiple times.</li>
-<li>The conflict is between the write from one transaction and a repeated following read from another transaction, i.e. this is actually <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mi>e</mi><mi>a</mi><msub><mi>d</mi><mn>1</mn></msub><mo>−</mo><mi>w</mi><mi>r</mi><mi>i</mi><mi>t</mi><mi>e</mi><mo>−</mo><mi>r</mi><mi>e</mi><mi>a</mi><msub><mi>d</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">read_1-write-read_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal">a</span><span class="mord"><span class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.74285em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal">a</span><span class="mord"><span class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> conflict where the conflict is between <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mi>r</mi><mi>i</mi><mi>t</mi><mi>e</mi><mo>−</mo><mi>r</mi><mi>e</mi><mi>a</mi><msub><mi>d</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">write-read_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.74285em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal">a</span><span class="mord"><span class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
-<li>If there is only one read, it is not a read-write conflict. The first read will never be a read-write conflict.</li>
-</ul>
-</li>
-</ol>
-<ul>
-<li>A write-read conflict will cause dirty read.
-<ul>
-<li>One transaction reads data written by another transaction that has not committed yet.</li>
-<li>The problem will happen when the read transaction is commited before the write transaction aborts.</li>
-<li>If the write transaction successfully commits, there is no problem. But we cannot know that when we commit the read transaction first.</li>
-</ul>
-</li>
-<li>A write-write conflict will cause lost update.
-<ul>
-<li>One transaction overwrites uncommitted data from another uncommitted transaction.</li>
-<li>This may cause the result becoming combination of two partial transactions.</li>
-<li>There is no problem when every data written by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is the last write to that data, i.e. every data written by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is not overwritten by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>. The problem happens when <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> overwrites some data of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> while <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> overwrites some data of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
-</ul>
-</li>
-</ul>
-<h3 id="how-do-we-determine-whether-a-schedule-is-conflict-serializable"><a class="markdownIt-Anchor" href="#how-do-we-determine-whether-a-schedule-is-conflict-serializable"></a> How do we determine whether a schedule is conflict serializable?</h3>
-<ol>
-<li>When there are only two schedules:
-<ul>
-<li>Two schedules are conflict equivalent if and only if they involve the same actions of the same transactions and every pair of conflicting actions is ordered the same way.</li>
-<li>Schedule S is conflict serializable if S is conflict equivalent to some serial schedule.</li>
-<li>We can transform S into a serial schedule by swapping consecutive non-conflicting operations of different transactions.</li>
-</ul>
-</li>
-<li>For more schedules, we can use the dependency graphs.
-<ul>
-<li>Create one node per txn in the graph.</li>
-<li>Create an edge from <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> if an operation <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>O</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">O_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> conflicts with an<br />
-operation <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>O</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">O_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>O</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">O_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> appears earlier in the schedule than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>O</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">O_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span>.</li>
-<li>A schedule is conflict serializable if and only if its dependency graph is acyclic.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-do-we-determine-whether-a-schedule-is-view-serializable"><a class="markdownIt-Anchor" href="#how-do-we-determine-whether-a-schedule-is-view-serializable"></a> How do we determine whether a schedule is view serializable?</h3>
-<ol>
-<li>Schedules <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">S_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">S_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> are view equivalent if:
-<ul>
-<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> reads initial value of A in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">S_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> also reads initial value of A in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">S_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
-<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> reads value of A written by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">S_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> also reads value of A written by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">T_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">S_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
-<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> writes final value of A in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">S_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">T_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> also writes final value of A in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">S_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
-</ul>
-</li>
-<li>In a word, each transaction is different schedules read the same values written by the same transaction and at the final end of all transactions, all data are written by the same transaction in the same value.</li>
-<li>View Serializability allows for (slightly) more schedules than Conflict Serializability does. Neither definition allows all serializable schedules.</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/07/15/Courses/15445/08-Query-Planning-Optimization/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/07/15/Courses/15445/08-Query-Planning-Optimization/" class="post-title-link" itemprop="url">08 Query Planning & Optimization</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2023-07-15 19:52:41" itemprop="dateCreated datePublished" datetime="2023-07-15T19:52:41+08:00">2023-07-15</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-09-26 14:00:43" itemprop="dateModified" datetime="2023-09-26T14:00:43+08:00">2023-09-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><ul class="markdownIt-TOC">
-<li><a href="#query-planning">Query planning</a>
-<ul>
-<li><a href="#what-are-the-logical-plans-and-physical-plans">What are the logical plans and physical plans?</a></li>
-<li><a href="#what-is-the-process-flow-of-query-execution">What is the process flow of query execution?</a></li>
-<li><a href="#how-does-optimizer-work">How does optimizer work?</a></li>
-</ul>
-</li>
-<li><a href="#heuristics-optimization">Heuristics optimization</a>
-<ul>
-<li><a href="#how-should-we-optimize-logical-plans">How should we optimize logical plans?</a></li>
-<li><a href="#how-should-we-optimize-for-nested-sub-queries">How should we optimize for nested sub-queries?</a></li>
-<li><a href="#how-can-we-rewrite-expression">How can we rewrite expression?</a></li>
-</ul>
-</li>
-<li><a href="#cost-based-search">Cost-based search</a>
-<ul>
-<li><a href="#cost-estimation">Cost estimation</a>
-<ul>
-<li><a href="#what-cost-do-we-care">What cost do we care?</a></li>
-<li><a href="#how-do-dbms-estimate-the-costs">How do DBMS estimate the costs?</a></li>
-<li><a href="#what-statistics-does-the-dbms-maintain">What statistics does the DBMS maintain?</a></li>
-</ul>
-</li>
-<li><a href="#query-optimization">Query optimization</a>
-<ul>
-<li><a href="#how-do-we-perform-cost-based-optimization">How do we perform cost-based optimization?</a></li>
-<li><a href="#how-does-bottom-up-optimization-work">How does bottom-up optimization work?</a></li>
-<li><a href="#how-does-top-down-optimization-work">How does top-down optimization work?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</p>
-<h1 id="query-planning"><a class="markdownIt-Anchor" href="#query-planning"></a> Query planning</h1>
-<h2 id="what-are-the-logical-plans-and-physical-plans"><a class="markdownIt-Anchor" href="#what-are-the-logical-plans-and-physical-plans"></a> What are the logical plans and physical plans?</h2>
-<ol>
-<li>The optimizer generates a mapping of a logical algebra expression to the optimal equivalent physical algebra expression.</li>
-<li>Physical operators define a specific execution strategy using an access path, i.e. a specific algorithm.
-<ul>
-<li>They depend on the physical format of the data that they process, i.e., sorting, compression.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-is-the-process-flow-of-query-execution"><a class="markdownIt-Anchor" href="#what-is-the-process-flow-of-query-execution"></a> What is the process flow of query execution?</h2>
-<ol>
-<li>The application connected to the database system and sends a SQL query, which may be rewritten to a different format in SQL rewriter.</li>
-<li>The SQL string is parsed into tokens that make up the syntax tree.</li>
-<li>The binder converts named objects in the syntax tree to internal identifiers by consulting the system catalog.</li>
-<li>The binder emits a logical plan which may be fed to a tree rewriter for additional schema info.</li>
-<li>The logical plan is given to the optimizer which selects the most efficient procedure to execute the plan.</li>
-</ol>
-<img src="/imgs/15445/Optimizer/architecture.png" width="50%">
-<h2 id="how-does-optimizer-work"><a class="markdownIt-Anchor" href="#how-does-optimizer-work"></a> How does optimizer work?</h2>
-<ol>
-<li>One way is heuristics / rules.
-<ul>
-<li>Rewrite the query to remove stupid / inefficient things.</li>
-<li>These techniques may need to examine catalog, but they do not need to examine data.</li>
-</ul>
-</li>
-<li>Another way is the cost-based search.
-<ul>
-<li>We need to use a model to estimate the cost of executing a plan.</li>
-<li>Enumerate multiple equivalent plans for a query and pick the one with the lowest cost.</li>
-</ul>
-</li>
-</ol>
-<h1 id="heuristics-optimization"><a class="markdownIt-Anchor" href="#heuristics-optimization"></a> Heuristics optimization</h1>
-<h2 id="how-should-we-optimize-logical-plans"><a class="markdownIt-Anchor" href="#how-should-we-optimize-logical-plans"></a> How should we optimize logical plans?</h2>
-<ol>
-<li>Split conjunctive predicates.
-<ul>
-<li>Decompose predicates into their simplest forms to make it easier for the optimizer to move them around.</li>
-</ul>
-</li>
-<li>Predicate pushdown
-<ul>
-<li>Move the predicate to the lowest applicable point in the plan.</li>
-</ul>
-</li>
-<li>Replace cartesian products with joins
-<ul>
-<li>Replace all Cartesian Products with inner joins using the join predicates.</li>
-</ul>
-</li>
-<li>Projection pushdown
-<ul>
-<li>This is to eliminate redundant attributes before pipeline breakers to reduce materialization cost and the data passed aroung.</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-should-we-optimize-for-nested-sub-queries"><a class="markdownIt-Anchor" href="#how-should-we-optimize-for-nested-sub-queries"></a> How should we optimize for nested sub-queries?</h2>
-<ol>
-<li>Rewrite to de-correlate and/or flatten them
-<ul>
-<li>E.g. an <code>EXISTS</code> sub-query in <code>WHERE</code> clause may be rewrited as an inner-join.</li>
-</ul>
-</li>
-<li>Decompose nested query and store result to temporary table.
-<ul>
-<li>For those sub-queries uncorrelated with outer query, the optimizer breaks up queries into blocks and then concentrates on one block at a time.</li>
-<li>Sub-queries are written to a temporary table that are discarded after the query finishes.</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-can-we-rewrite-expression"><a class="markdownIt-Anchor" href="#how-can-we-rewrite-expression"></a> How can we rewrite expression?</h2>
-<ol>
-<li>This is implemented using if/then/else clauses or a pattern-matching rule engine.
-<ul>
-<li>Search for expressions that match a pattern. When a match is found, rewrite the expression. Halt if there are no more rules that match.</li>
-</ul>
-</li>
-<li>One approach is replacing impossible or unnecessary predicates by false.</li>
-<li>Another approach is merging predicates, e.g. numeric ranging predicates.</li>
-</ol>
-<h1 id="cost-based-search"><a class="markdownIt-Anchor" href="#cost-based-search"></a> Cost-based search</h1>
-<h2 id="cost-estimation"><a class="markdownIt-Anchor" href="#cost-estimation"></a> Cost estimation</h2>
-<h3 id="what-cost-do-we-care"><a class="markdownIt-Anchor" href="#what-cost-do-we-care"></a> What cost do we care?</h3>
-<ol>
-<li>Physical Costs
-<ul>
-<li>Predict CPU cycles, I/O, cache misses, RAM consumption, network messages.</li>
-<li>This cost depends heavily on hardware.</li>
-</ul>
-</li>
-<li>Logical Costs
-<ul>
-<li>Estimate output size per operator.</li>
-<li>This cost is independent of the operator algorithm since algorithms are physical.</li>
-<li>It need estimations for operator result sizes.</li>
-</ul>
-</li>
-<li>Algorithmic Costs
-<ul>
-<li>Mainly the complexity of the operator algorithm implementation.</li>
-</ul>
-</li>
-<li>We may use a combination of multiple costs that are weighted by magic constant factors.
-<ul>
-<li>Some assumptions is that processing a tuple in memory is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>400</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">400\times</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">4</span><span class="mord">0</span><span class="mord">0</span><span class="mord">×</span></span></span></span> faster than reading a tuple from disk, and sequential I/O is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">4\times</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">4</span><span class="mord">×</span></span></span></span> faster than random I/O.</li>
-<li>Most commonly used cost is the combination of the physical costs and logical costs.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-do-dbms-estimate-the-costs"><a class="markdownIt-Anchor" href="#how-do-dbms-estimate-the-costs"></a> How do DBMS estimate the costs?</h3>
-<ol>
-<li>The DBMS stores internal statistics about tables, attributes, and indexes in its internal catalog.
-<ul>
-<li>Different systems update them at different times.</li>
-</ul>
-</li>
-<li>Then DBMS derives the <strong>selection cardinality</strong> (<strong>selectivity</strong>) of a predicate which is the fraction of tuples that qualify.</li>
-<li>We can make some assumptions to estimate selectivity
-<ul>
-<li>Uniform data: The distribution of values (except for the heavy hitters) is the same. May maintain a heavy hitter list that stores most common values and assume that the occurrence of the rest data is the same.</li>
-<li>Independent predicates: The predicates on attributes are independent, i.e. the conjuction of predicates can result in multiplication or addition of probabilities.</li>
-<li>Inclusion principle: The domain of join keys overlap such that each key in the inner relation will also exist in the outer table.</li>
-<li>These assumptions may not be true.</li>
-</ul>
-</li>
-</ol>
-<h3 id="what-statistics-does-the-dbms-maintain"><a class="markdownIt-Anchor" href="#what-statistics-does-the-dbms-maintain"></a> What statistics does the DBMS maintain?</h3>
-<ol>
-<li>Histograms:
-<ul>
-<li>The naive and most accurate way is to maintain an occurrence count per value in a column.</li>
-<li>Equi-width histograms maintain counts for a group of values. All buckets have the same width, i.e. the same number of values.</li>
-<li>Equi-depth histograms vary the width of buckets so that the total number of occurrences for each bucket is roughly the same.</li>
-<li>Equi-width or equi-depth histograms use the total count of a bucket dividing by the number of values in that bucket as the count of each values.</li>
-</ul>
-</li>
-<li>Sketches:
-<ul>
-<li>Probabilistic data structure that gives an approximate count for a given value.</li>
-<li>Cost-model can replace histograms with sketches to improve its selectivity estimate accuracy.</li>
-</ul>
-</li>
-<li>Sampling:
-<ul>
-<li>DBMS maintains a small subset of each table that it then uses to evaluate expressions to compute selectivity.</li>
-<li>The selectivity is estimated by running the same query on the sample table.</li>
-<li>Sample table is updated when the underlying tables changes significantly.</li>
-</ul>
-</li>
-</ol>
-<h2 id="query-optimization"><a class="markdownIt-Anchor" href="#query-optimization"></a> Query optimization</h2>
-<h3 id="how-do-we-perform-cost-based-optimization"><a class="markdownIt-Anchor" href="#how-do-we-perform-cost-based-optimization"></a> How do we perform cost-based optimization?</h3>
-<ol>
-<li>After performing rule-based rewriting, the DBMS will enumerate different plans for the query and estimate their costs.
-<ul>
-<li>It chooses the best plan it has seen for the query after exhausting all plans or some timeout.</li>
-<li>The time spent on search should be significantly smaller than the time of executing query. DBMS can set a time threshold to end search.</li>
-</ul>
-</li>
-<li>DBMS mainly enumerates the access methods (sequential scan, binary search / clustered indexes, index scan) and evaluation ordering.</li>
-<li>Query planning for OLTP queries is easy because they are <strong>sargable</strong> (Search Argument Able).
-<ul>
-<li>It is usually just picking the best index.</li>
-<li>Joins are almost always on foreign key relationships with a small cardinality.</li>
-</ul>
-</li>
-<li>For multi-relation query planning, there are two choices.
-<ul>
-<li>Bottom-up optimization: Start with nothing and then build up the plan to get to the outcome that you want.</li>
-<li>Top-down optimization: Start with the outcome that you want, and then work down the tree to find the optimal plan that gets you to that goal.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-does-bottom-up-optimization-work"><a class="markdownIt-Anchor" href="#how-does-bottom-up-optimization-work"></a> How does bottom-up optimization work?</h3>
-<ol>
-<li>Break query up into blocks and generate the logical operators for each block. For each logical operator, generate a set of physical operators that implement it.</li>
-<li>The whole diagram can be layered by relations or temporary relations, i.e. results of logical operators.</li>
-<li>We can visualize the whole optimization diagram as a tree with different layers.
-<ul>
-<li>The top layer is the output of the query and the bottom layer is all the relations.</li>
-<li>The middle layers are the enumerations of different ordering. Each layer only performs one more operator than its last layer.</li>
-<li>Hence each pair of layers is connected with an undetermined physical operator.</li>
-</ul>
-</li>
-<li>From bottom layer up, we enumarate the possible physical algorithm of each logical operator.
-<ul>
-<li>Then estimate the cost of all possible physical algorithms.</li>
-<li>Leave only the more efficient physical algorithm for each logical operator after comare with only the possible physical algorithms of the same logical operator.</li>
-</ul>
-</li>
-<li>When reaches the top layer, we can determine the most efficient path of all possible paths.</li>
-<li>Then iteratively construct a “left-deep” join tree that minimizes the estimated amount of work to execute the plan.
-<ul>
-<li>Generate a left-deep tree is to take advantages of pipeline.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-does-top-down-optimization-work"><a class="markdownIt-Anchor" href="#how-does-top-down-optimization-work"></a> How does top-down optimization work?</h3>
-<ol>
-<li>Start with a logical plan of what we want the query to be.</li>
-<li>Perform a branch-and-bound search to traverse the plan tree by converting logical operators into physical operators.
-<ul>
-<li>When traversing from logical operator to logical operators, it is enumarating different ordering.</li>
-<li>When traversing from logical operator to physical operators, it is enumarating different physical algorithm.</li>
-<li>The layers are similar with bottom-up optimization.</li>
-<li>When we meet a logical operator, we need to estimate the cost of its all possible physical algorithms.
-<ul>
-<li>So for each physical algorithm, we need to go deeper until the bottom to calculate the estimation.</li>
-<li>For the sub-logical-operators in the physical algorithm, we will enumarate its optimal execution in the lower levels.</li>
-</ul>
-</li>
-<li>During the search, we can cut-off a branch if its cost is already more expensive then another branch we have already seen.</li>
-</ul>
-</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/07/12/Courses/15445/07-Query-Execution/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/07/12/Courses/15445/07-Query-Execution/" class="post-title-link" itemprop="url">07 Query Execution</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2023-07-12 16:51:12" itemprop="dateCreated datePublished" datetime="2023-07-12T16:51:12+08:00">2023-07-12</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-09-26 14:00:41" itemprop="dateModified" datetime="2023-09-26T14:00:41+08:00">2023-09-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><ul class="markdownIt-TOC">
-<li><a href="#sequential-execution">Sequential Execution</a>
-<ul>
-<li><a href="#processing-model">Processing model</a>
-<ul>
-<li><a href="#what-does-processing-model-do">What does processing model do?</a></li>
-<li><a href="#how-does-iterator-model-execute">How does iterator model execute?</a></li>
-<li><a href="#how-does-materialization-model-execute">How does materialization model execute?</a></li>
-<li><a href="#how-does-vectorization-model-execute">How does vectorization model execute?</a></li>
-</ul>
-</li>
-<li><a href="#access-methods">Access methods</a>
-<ul>
-<li><a href="#how-can-we-optimize-sequential-scan-with-data-skipping">How can we optimize sequential scan with data skipping?</a></li>
-<li><a href="#what-is-multi-index-scan">What is multi-index scan?</a></li>
-</ul>
-</li>
-<li><a href="#modification-queries">Modification queries</a>
-<ul>
-<li><a href="#how-should-we-execute-update-and-delete-queries">How should we execute update and delete queries?</a></li>
-<li><a href="#how-should-we-execute-insert-queries">How should we execute insert queries?</a></li>
-</ul>
-</li>
-<li><a href="#how-to-evaluate-expressions">How to evaluate expressions?</a></li>
-</ul>
-</li>
-<li><a href="#parallel-execution">Parallel execution</a>
-<ul>
-<li><a href="#parallel-and-distributed">Parallel and distributed</a>
-<ul>
-<li><a href="#why-care-about-parallel-execution">Why care about parallel execution?</a></li>
-<li><a href="#what-are-the-similarities-and-differences-between-parallel-and-distributed-dbms">What are the similarities and differences between parallel and distributed DBMS?</a></li>
-</ul>
-</li>
-<li><a href="#process-model">Process model</a>
-<ul>
-<li><a href="#what-does-process-model-of-parallel-dbmss-need-to-do">What does process model of parallel DBMSs need to do?</a></li>
-<li><a href="#what-is-process-per-worker-model">What is process per worker model?</a></li>
-<li><a href="#what-is-thread-per-worker-model">What is thread per worker model?</a></li>
-<li><a href="#what-is-considered-when-dbms-scheduling-threads">What is considered when DBMS scheduling threads?</a></li>
-<li><a href="#what-is-embedded-dbms-model">What is embedded DBMS model?</a></li>
-</ul>
-</li>
-<li><a href="#query-level-parallelism">Query-level parallelism</a>
-<ul>
-<li><a href="#what-are-the-query-level-parallelisms">What are the query-level parallelisms?</a></li>
-<li><a href="#how-can-we-achieve-intra-query-parallelism">How can we achieve intra-query parallelism?</a></li>
-</ul>
-</li>
-<li><a href="#io-paralleism">I/O paralleism</a>
-<ul>
-<li><a href="#what-is-the-problem-of-query-level-parallelism">What is the problem of query-level parallelism?</a></li>
-<li><a href="#how-can-we-parallel-ios-with-multi-disk">How can we parallel I/Os with multi-disk?</a></li>
-<li><a href="#how-can-we-partition-database">How can we partition database?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</p>
-<h1 id="sequential-execution"><a class="markdownIt-Anchor" href="#sequential-execution"></a> Sequential Execution</h1>
-<h2 id="processing-model"><a class="markdownIt-Anchor" href="#processing-model"></a> Processing model</h2>
-<h3 id="what-does-processing-model-do"><a class="markdownIt-Anchor" href="#what-does-processing-model-do"></a> What does processing model do?</h3>
-<ol>
-<li>Processing model defines how the system executes a query plan, i.e. how to traverse the query plan tree.</li>
-<li>There are two processing directions:
-<ul>
-<li>Top-to-Bottom: Start with the root and “pull” data up from its children. Tuples are always passed with function calls.</li>
-<li>Bottom-to-Top: Start with leaf nodes and push data to their parents. Allows for tighter control of caches/registers in pipelines.</li>
-</ul>
-</li>
-<li>There are three commonly used model: iterator model (volcano/pipeline model), materialization model and vectorized/batch model.</li>
-</ol>
-<h3 id="how-does-iterator-model-execute"><a class="markdownIt-Anchor" href="#how-does-iterator-model-execute"></a> How does iterator model execute?</h3>
-<ol>
-<li>
-<p>In iterator model, operators are executed top-to-down.</p>
-</li>
-<li>
-<p>Each query plan operator implements a <code>Next()</code> function. On each invocation, the operator returns either a single tuple or a <code>null</code> marker if there are no more tuples.</p>
-<ul>
-<li>
-<p>The operator implements a loop that calls <code>Next()</code> on its children to retrieve their tuples and then process them.</p>
-</li>
-<li>
-<p><code>Next()</code> is first called on the root operator and the nodes on the tree will call the <code>Next()</code> on their children recursively.</p>
-</li>
-</ul>
-</li>
-<li>
-<p>This model allows for uple pipelining. Although some operators must block until their children emit all their tuples.</p>
-<ul>
-<li>Joins must wait until all tuples in the leaf child are processed and built the hash table to further process tuples from right child. Hence, the tuples from leaft child need to block the pipeline while the tuples from right child can enable pipeline.</li>
-<li>Subqueries and ordering (<code>Order By</code>) clauses also need to block pipeline. These are called pipeline breaker.</li>
-</ul>
-</li>
-<li>
-<p>Output control works easily with this approach. We only need to add constraints on the root operator.</p>
-</li>
-</ol>
-<h3 id="how-does-materialization-model-execute"><a class="markdownIt-Anchor" href="#how-does-materialization-model-execute"></a> How does materialization model execute?</h3>
-<ol>
-<li>
-<p>In materialization model, operators are called bottom-to-up.</p>
-</li>
-<li>
-<p>Each query plan operator implements a <code>Output()</code> function.</p>
-<ul>
-<li>
-<p>On each invocation, the operator processes its input all at once and then emits its output all at once.</p>
-</li>
-<li>
-<p>The operator materializes its output as a single result.</p>
-</li>
-<li>
-<p>The operators can send either a materialized row or a single column.</p>
-</li>
-</ul>
-</li>
-<li>
-<p>The DBMS can push down hints (e.g., <code>LIMIT</code>) to avoid scanning too many tuples.</p>
-</li>
-<li>
-<p>The output can be either whole tuples (NSM) or subsets of columns (DSM).</p>
-</li>
-<li>
-<p>This model is better for OLTP workloads because queries only access a small number of tuples at a time which means lower execution and coordination overhead and fewer function calls.</p>
-<ul>
-<li>It is not good for OLAP queries with large intermediate results.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-does-vectorization-model-execute"><a class="markdownIt-Anchor" href="#how-does-vectorization-model-execute"></a> How does vectorization model execute?</h3>
-<ol>
-<li>The problem of iterator model is that it can only process one tuple at a time when we can take multiple tuples and vectorize them to process in parallel (SIMD).</li>
-<li>Vectorization model is similar with iterator model except that each operator emits a batch of tuples instead of a single tuple.</li>
-<li>This is ideal for OLAP queries because it greatly reduces the number of invocations per operator.
-<ul>
-<li>It allows for operators to more easily use vectorized (SIMD) instructions to process batches of tuples.</li>
-</ul>
-</li>
-</ol>
-<h2 id="access-methods"><a class="markdownIt-Anchor" href="#access-methods"></a> Access methods</h2>
-<h3 id="how-can-we-optimize-sequential-scan-with-data-skipping"><a class="markdownIt-Anchor" href="#how-can-we-optimize-sequential-scan-with-data-skipping"></a> How can we optimize sequential scan with data skipping?</h3>
-<ol>
-<li>
-<p>The first approach is approximate queries.</p>
-<ul>
-<li>
-<p>This method is lossy, which means that it may return incorrect results, but it is OK.</p>
-</li>
-<li>
-<p>Execute queries on a sampled subset of the entire table to produce approximate results.</p>
-</li>
-</ul>
-</li>
-<li>
-<p>The second approach is zone maps.</p>
-<ul>
-<li>This method is lossless.</li>
-<li>Pre-computed aggregates for the attribute values in a page. DBMS checks the zone map first to decide whether it wants to access the page.</li>
-<li>The trade-off is between page size and filter efficacy.</li>
-</ul>
-</li>
-</ol>
-<h3 id="what-is-multi-index-scan"><a class="markdownIt-Anchor" href="#what-is-multi-index-scan"></a> What is multi-index scan?</h3>
-<ol>
-<li>If there are multiple indexes that the DBMS can use for a query, one method for DBMS to execute is try to filter tuples with index that has least number of tuples matches and filter other indexes based on the filtered tuples of previous indexes.
-<ul>
-<li>This is ideal in the case that some indexes has little tuples that matches. Filtering those indexes first can significantly reduce the number of tuples to process in following indexes.</li>
-</ul>
-</li>
-<li>If all indexes has a lot of matching tuples, we can use another method:
-<ul>
-<li>Compute sets of Record IDs using each matching index. Combine these sets based on the query’s predicates (union or intersect). Retrieve the records and apply any remaining predicates.</li>
-<li>In this way, we can reduce a log of I/O and memory space by only fetching Record IDs in the first phase instead of fetching entire tuple.</li>
-</ul>
-</li>
-</ol>
-<h2 id="modification-queries"><a class="markdownIt-Anchor" href="#modification-queries"></a> Modification queries</h2>
-<h3 id="how-should-we-execute-update-and-delete-queries"><a class="markdownIt-Anchor" href="#how-should-we-execute-update-and-delete-queries"></a> How should we execute update and delete queries?</h3>
-<ol>
-<li>Operators that modify the database (<code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>) are responsible for modifying the target table and its indexes.
-<ul>
-<li>The output of these operators can either be Record Ids or tuple data (i.e., <code>RETURNING</code>).</li>
-</ul>
-</li>
-<li>For update or delete, child operators pass Record IDs for target tuples.
-<ul>
-<li>The operator should remove the corresponding item from index.</li>
-<li>Then the operator can modify tuple or remove tuple.</li>
-<li>Update should re-insert modified tuple into index again.</li>
-</ul>
-</li>
-<li>Updates have a possible Halloween problem:
-<ul>
-<li>When we re-inserted the modified tuple, its new place may be ahead of cursor, i.e. we will pass the new tuple again in the future.
-<ul>
-<li>E.g. when the index is sorted according to an attribute, and the modification increases that attribute.</li>
-</ul>
-</li>
-<li>An update operation changes the physical location of a tuple, which causes a scan operator to visit the tuple multiple times. It can occur on clustered tables or index scans.</li>
-<li>The solution is to keep track of previously seen tuples (e.g. through Record IDs).</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-should-we-execute-insert-queries"><a class="markdownIt-Anchor" href="#how-should-we-execute-insert-queries"></a> How should we execute insert queries?</h3>
-<ol>
-<li>The first choice is to materialize tuples inside of the operator.
-<ul>
-<li>The insert operator needs to implement its own method of how to materialize tuples.</li>
-</ul>
-</li>
-<li>The second choice is that operator inserts any tuple passed in from child operators.
-<ul>
-<li>The insert operator only need to accept tuples from its children instead of implementing itself.</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-to-evaluate-expressions"><a class="markdownIt-Anchor" href="#how-to-evaluate-expressions"></a> How to evaluate expressions?</h2>
-<ol>
-<li>The DBMS represents a <code>WHERE</code> clause as an expression tree.</li>
-<li>The nodes in the tree represent different expression types: Comparisons (<code>=, &lt;, &gt;, !=</code>), conjunction (<code>AND</code>), disjunction (<code>OR</code>), arithmetic operators (<code>+, -, *, /, %</code>), constant values, tuple attribute references.</li>
-<li>When evaluate the expression, DFS through the expression tree from the root.
-<ul>
-<li>The performance is poor due to that the DBMS traverses the tree and for each node that it visits it must figure out what the operator needs to do.</li>
-</ul>
-</li>
-<li>A better approach is to just evaluate the expression directly.
-<ul>
-<li>Compile a function of the express (e.g. JIT compilation). In evaluation, DBMS just execute the compiled function instead of traversing through the tree.</li>
-</ul>
-</li>
-</ol>
-<h1 id="parallel-execution"><a class="markdownIt-Anchor" href="#parallel-execution"></a> Parallel execution</h1>
-<h2 id="parallel-and-distributed"><a class="markdownIt-Anchor" href="#parallel-and-distributed"></a> Parallel and distributed</h2>
-<h3 id="why-care-about-parallel-execution"><a class="markdownIt-Anchor" href="#why-care-about-parallel-execution"></a> Why care about parallel execution?</h3>
-<ol>
-<li>It increased performance for potentially the same hardware resources, i.e. to gain higher throughput and lower latency.</li>
-<li>It increased the responsiveness of the system.</li>
-<li>It potentially lower total cost of ownership (TCO).
-<ul>
-<li>Fewer machines means less parts / physical footprint / energy consumption.</li>
-</ul>
-</li>
-</ol>
-<h3 id="what-are-the-similarities-and-differences-between-parallel-and-distributed-dbms"><a class="markdownIt-Anchor" href="#what-are-the-similarities-and-differences-between-parallel-and-distributed-dbms"></a> What are the similarities and differences between parallel and distributed DBMS?</h3>
-<ol>
-<li>Similarities:
-<ul>
-<li>Database is spread out across multiple resources to improve different aspects of the DBMS.</li>
-<li>They both need to make database  to appear as a single logical database instance to the application, regardless of physical organization.</li>
-<li>SQL query for a single-resource DBMS should generate same result on a parallel or distributed DBMS.</li>
-</ul>
-</li>
-<li>Differences:
-<ul>
-<li>For parallel DBMSs, resources are physically close to each other. Hence resources communicate over high-speed interconnect. And communication is assumed to be cheap and reliable.</li>
-<li>For distributed DBMSs, resources can be far from each other. Resources communicate using slow(er) interconnect. Therefore, communication cost and problems cannot be ignored. And communication is considered unreliable.</li>
-</ul>
-</li>
-</ol>
-<h2 id="process-model"><a class="markdownIt-Anchor" href="#process-model"></a> Process model</h2>
-<h3 id="what-does-process-model-of-parallel-dbmss-need-to-do"><a class="markdownIt-Anchor" href="#what-does-process-model-of-parallel-dbmss-need-to-do"></a> What does process model of parallel DBMSs need to do?</h3>
-<ol>
-<li>It defines how the system is architected to support concurrent requests from a multi-user application.</li>
-<li>A worker is the DBMS component that is responsible for executing tasks on behalf of the client and returning the results.</li>
-<li>There are three approaches: process per DBMS worker, thread per DBMS worker and embedded DBMS</li>
-</ol>
-<h3 id="what-is-process-per-worker-model"><a class="markdownIt-Anchor" href="#what-is-process-per-worker-model"></a> What is process per worker model?</h3>
-<ol>
-<li>Each worker is a separate OS process. Hence, this model relies on OS scheduler entirely.</li>
-<li>When an application connect with DBMS, it connect with a dispatcher process. The dispatcher picks on the processes for the application. Then the application communicate with the process directly.</li>
-<li>The processes can use shared-memory for global data structures.</li>
-<li>The advantage of this model is that a process crash does not take down entire system.</li>
-</ol>
-<h3 id="what-is-thread-per-worker-model"><a class="markdownIt-Anchor" href="#what-is-thread-per-worker-model"></a> What is thread per worker model?</h3>
-<ol>
-<li>In this model, the whole DBMS is a single process with multiple worker threads.</li>
-<li>DBMS (mostly) manages its own scheduling by controlling what each threads is doing.
-<ul>
-<li>This also means less overhead per context switch and that DBMS does not have to manage shared memory.</li>
-</ul>
-</li>
-<li>There may or may not have a dispatcher thread in the front.
-<ul>
-<li>Applications may connect to dispatcher, and dispatcher immediately forward request to another thread while application does not know about it.</li>
-<li>Or applications can use the same scheme as process per worker model.</li>
-</ul>
-</li>
-<li>In this model, thread crash may kill the entire system.</li>
-</ol>
-<h3 id="what-is-considered-when-dbms-scheduling-threads"><a class="markdownIt-Anchor" href="#what-is-considered-when-dbms-scheduling-threads"></a> What is considered when DBMS scheduling threads?</h3>
-<p>For each query plan, the DBMS decides where, when, and how to execute it.</p>
-<ol>
-<li>How many tasks should it use?</li>
-<li>How many CPU cores should it use?</li>
-<li>What CPU core should the tasks execute on?</li>
-<li>Where should a task store its output?</li>
-</ol>
-<h3 id="what-is-embedded-dbms-model"><a class="markdownIt-Anchor" href="#what-is-embedded-dbms-model"></a> What is embedded DBMS model?</h3>
-<ol>
-<li>In aforementioned systems and most common systems, applications are in separate machines. They are connected through TCP or socket. Even if the applications crashed, DBMS still remains running.</li>
-<li>In embedded DBMS, DBMS runs inside of the same address space as the application. Application is (mostly) responsible for threads and scheduling.</li>
-<li>The application may support outside connections.</li>
-</ol>
-<h2 id="query-level-parallelism"><a class="markdownIt-Anchor" href="#query-level-parallelism"></a> Query-level parallelism</h2>
-<h3 id="what-are-the-query-level-parallelisms"><a class="markdownIt-Anchor" href="#what-are-the-query-level-parallelisms"></a> What are the query-level parallelisms?</h3>
-<ol>
-<li>Inter-Query: Execute multiple disparate queries simultaneously.
-<ul>
-<li>This parallelism increases throughput and reduces latency. It improves overall performance by allowing multiple queries to execute simultaneously.</li>
-<li>If queries are read-only, then this requires almost no explicit coordination between queries. Buffer pool can handle most of the sharing if necessary.</li>
-<li>If multiple queries are updating the database at the same time, then this is hard to do correctly.</li>
-</ul>
-</li>
-<li>Intra-Query: Execute the operations of a single query in parallel.
-<ul>
-<li>This parallelism decreases latency for long-running queries, especially for OLAP queries. It improves the performance of a single query by executing its operators in parallel.</li>
-<li>Organize operators in terms of a producer/consumer paradigm.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-can-we-achieve-intra-query-parallelism"><a class="markdownIt-Anchor" href="#how-can-we-achieve-intra-query-parallelism"></a> How can we achieve intra-query parallelism?</h3>
-<ol>
-<li>The first approach is using intra-operator (horizontal) parallelism.
-<ul>
-<li>Decompose operators into independent fragments that perform the same function on different subsets of data.</li>
-<li>In the generated query plan, those decomposed operators are copied for each thread.</li>
-<li>The DBMS inserts an exchange operator into the query plan to coalesce/split results from multiple children/parent operators. The exchange operators are similar with barriers stating that data cannot be sent up to parent until received all results.</li>
-<li>There are three kinds of exchange operators:
-<ul>
-<li>Gather: Combine the results from multiple workers into a single output stream.</li>
-<li>Distribute: Split a single input stream into multiple output streams.</li>
-<li>Repartition: Shuffle multiple input streams across multiple output streams.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>The second approach is using inter-operator (vertical / pipeline) parallelism.
-<ul>
-<li>Operations are overlapped in order to pipeline data from one stage to the next without materialization.</li>
-<li>Each operator is a worker. Workers execute operators from different segments of a query plan at the same time.</li>
-</ul>
-</li>
-<li>We can also combine these two approaches, which is call bushy parallelism.</li>
-</ol>
-<h2 id="io-paralleism"><a class="markdownIt-Anchor" href="#io-paralleism"></a> I/O paralleism</h2>
-<h3 id="what-is-the-problem-of-query-level-parallelism"><a class="markdownIt-Anchor" href="#what-is-the-problem-of-query-level-parallelism"></a> What is the problem of query-level parallelism?</h3>
-<ol>
-<li>Using additional processes/threads to execute queries in parallel won’t help if the disk is always the main bottleneck.</li>
-<li>It can sometimes make the DBMS’s performance worse if worker is accessing different segments of the disk at the same time.</li>
-</ol>
-<h3 id="how-can-we-parallel-ios-with-multi-disk"><a class="markdownIt-Anchor" href="#how-can-we-parallel-ios-with-multi-disk"></a> How can we parallel I/Os with multi-disk?</h3>
-<ol>
-<li>
-<p>Split the DBMS across multiple storage devices to improve disk bandwidth latency.</p>
-<ul>
-<li>There are many options
-<ul>
-<li>Multiple disks per database, one database per disk, one relation per disk, split relation across multiple disks.</li>
-<li>The main trade-off is the number of disks and I/O parallelism.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p>Configure OS/hardware to store the DBMS’s files across multiple storage<br />
-devices, e.g. storage appliances, RAID configuration.</p>
-<ul>
-<li>
-<p>This is transparent to the DBMS.</p>
-</li>
-<li>
-<p>RAID 0 strips data into different disks. Each disk stores different data.</p>
-</li>
-<li>
-<p>RAID 1 mirrors data in different disks. Each disk stores the same data.</p>
-</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-can-we-partition-database"><a class="markdownIt-Anchor" href="#how-can-we-partition-database"></a> How can we partition database?</h3>
-<ol>
-<li>Some DBMSs allow you to specify the disk location of each individual database.
-<ul>
-<li>The buffer pool manager maps a page to a disk location.</li>
-<li>This is also easy to do at the filesystem level if the DBMS stores each database in a separate directory.</li>
-<li>The DBMS recovery log file might still be shared if transactions can update multiple databases.</li>
-</ul>
-</li>
-<li>Logical splitting is to split single logical table into disjoint physical segments that are stored/managed separately.
-<ul>
-<li>Partitioning should (ideally) be transparent to the application.</li>
-<li>The application should only access logical tables and not have to worry about how things are physically stored.</li>
-</ul>
-</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="Previous page" aria-label="Previous page" href="/page/2/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" title="Next page" aria-label="Next page" href="/page/4/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="Previous page" aria-label="Previous page" href="/page/2/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" title="Next page" aria-label="Next page" href="/page/4/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
