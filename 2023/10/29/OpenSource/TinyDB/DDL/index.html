@@ -20,23 +20,31 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta property="og:type" content="website">
-<meta property="og:title" content="LiyunZhang">
-<meta property="og:url" content="http://liyun-zhang.github.io/tags/Consistency-Level/index.html">
+    <meta name="description" content="How to store metadata? How are jobs executed?    How to store metadata?   Codes for metadata storage are in parser&#x2F;model.   In DBInfo, each database stores the pointers of TableInfo in a slice Table">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Data Define Language (DDL)">
+<meta property="og:url" content="http://liyun-zhang.github.io/2023/10/29/OpenSource/TinyDB/DDL/index.html">
 <meta property="og:site_name" content="LiyunZhang">
+<meta property="og:description" content="How to store metadata? How are jobs executed?    How to store metadata?   Codes for metadata storage are in parser&#x2F;model.   In DBInfo, each database stores the pointers of TableInfo in a slice Table">
 <meta property="og:locale">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/TiDB/ddl_job_exec.jpg">
+<meta property="article:published_time" content="2023-10-29T09:01:08.000Z">
+<meta property="article:modified_time" content="2023-10-30T08:17:45.333Z">
 <meta property="article:author" content="LiyunZhang">
+<meta property="article:tag" content="Database">
+<meta property="article:tag" content="Data Define Language">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://liyun-zhang.github.io/imgs/TiDB/ddl_job_exec.jpg">
 
 
-<link rel="canonical" href="http://liyun-zhang.github.io/tags/Consistency-Level/">
+<link rel="canonical" href="http://liyun-zhang.github.io/2023/10/29/OpenSource/TinyDB/DDL/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":false,"lang":"zh-Hans","comments":"","permalink":"","path":"tags/Consistency-Level/index.html","title":""}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-Hans","comments":true,"permalink":"http://liyun-zhang.github.io/2023/10/29/OpenSource/TinyDB/DDL/","path":"2023/10/29/OpenSource/TinyDB/DDL/","title":"Data Define Language (DDL)"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>Tag: Consistency Level | LiyunZhang</title>
+<title>Data Define Language (DDL) | LiyunZhang</title>
   
 
 
@@ -121,7 +129,7 @@
   
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-overview-active">
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           Table of Contents
@@ -134,6 +142,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#how-to-store-metadata"><span class="nav-number">1.</span> <span class="nav-text"> How to store metadata?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#how-are-jobs-executed"><span class="nav-number">2.</span> <span class="nav-text"> How are jobs executed?</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -173,50 +182,157 @@
 
     </div>
 
-    <div class="main-inner tag posts-collapse">
+    <div class="main-inner post posts-expand">
+
+  
+  
 
 
+<div class="post-block">
   
   
-  
-  <div class="post-block">
-    <div class="post-content">
-      <div class="collection-title">
-        <h1 class="collection-header">Consistency Level
-          <small>Tag</small>
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/10/29/OpenSource/TinyDB/DDL/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Data Define Language (DDL) | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Data Define Language (DDL)
         </h1>
-      </div>
 
-      
-    <div class="collection-year">
-      <span class="collection-header">2023</span>
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-10-29 17:01:08" itemprop="dateCreated datePublished" datetime="2023-10-29T17:01:08+08:00">2023-10-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-10-30 16:17:45" itemprop="dateModified" datetime="2023-10-30T16:17:45+08:00">2023-10-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/" itemprop="url" rel="index"><span itemprop="name">Open Source Code</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/TiDB/" itemprop="url" rel="index"><span itemprop="name">TiDB</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
+<li><a href="#how-to-store-metadata">How to store metadata?</a></li>
+<li><a href="#how-are-jobs-executed">How are jobs executed?</a></li>
+</ul>
+</p>
+<h1 id="how-to-store-metadata"><a class="markdownIt-Anchor" href="#how-to-store-metadata"></a> How to store metadata?</h1>
+<ol>
+<li>
+<p>Codes for metadata storage are in <code>parser/model</code>.</p>
+</li>
+<li>
+<p>In <code>DBInfo</code>, each database stores the pointers of <code>TableInfo</code> in a slice <code>Table []*TableInfo</code>.</p>
+<ul>
+<li>
+<p>In <code>TableInfo</code>, it contains all the information of the table including its columns <code>Columns []*ColumnInfo</code>, its indices <code>Indices []*IndexInfo</code>, its constraints <code>Constraints []*ConstraintInfo</code> and its foreign keys <code>ForeignKeys []*FKInfo</code>.</p>
+<ul>
+<li>The order of <code>Columns</code> is the same as the the order of logical order of columns.</li>
+</ul>
+</li>
+<li>
+<p>In <code>ColumnInfo</code>, it has an <code>Offset</code> to record its position in the table.</p>
+</li>
+<li>
+<p>Except <code>DBInfo</code>, other information structures all have a <code>State</code> attribute that will be used when dealing with distributed DDL problem.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><code>Job</code> is specific for the DDL tasks.</p>
+<ul>
+<li>The <code>State JobState</code> attribute tracks its own state and <code>SchemaState SchemaState</code> tracks the state of changed schema.</li>
+<li>The <code>CtxVars []interface&#123;&#125;</code> and <code>Args []interface&#123;&#125;</code> are variables attached to the job for internal usage. E.g. passing arguments between functions by one single <code>*Job</code> pointer.</li>
+</ul>
+</li>
+</ol>
+<h1 id="how-are-jobs-executed"><a class="markdownIt-Anchor" href="#how-are-jobs-executed"></a> How are jobs executed?</h1>
+<ol>
+<li>All TiDB nodes have a worker to process the DDL request from clients. However, only the worker in the owner can truely execute the DDL operation.
+<ul>
+<li>Client can send their request to any TiDB node. The received node will ask a <code>start job</code> module to create a <code>Job</code> object, push it in the <code>job queue</code>.</li>
+<li>The node will check whether it is the owner after pushed the job. If it is not, it just tracks the state of the job.</li>
+</ul>
+</li>
+<li>The owner would periodically check the job queue to find unexecuted jobs and execute them. After a job is finished, it will be moved into the <code>job history queue</code>.</li>
+<li>The <code>start job</code> can finish when it find the job it is tracking is in the <code>job history queue</code> and responses to  client.</li>
+</ol>
+<img src="/imgs/TiDB/ddl_job_exec.jpg" width="50%">
+
     </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2023-09-26T13:54:58+08:00"
-              content="2023-09-26">
-          09-26
-        </time>
-      </div>
+    
+    
+    
 
-      <div class="post-title">
-          <a class="post-title-link" href="/2023/09/26/Paper/Distributed/COPS/" itemprop="url">
-            <span itemprop="name">COPS</span>
-          </a>
-      </div>
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Database/" rel="tag"><i class="fa fa-tag"></i> Database</a>
+              <a href="/tags/Data-Define-Language/" rel="tag"><i class="fa fa-tag"></i> Data Define Language</a>
+          </div>
 
-      
-    </header>
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/10/23/OpenSource/TinyDB/Parser-goyacc-and-EBNF/" rel="prev" title="Parser, goyacc and EBNF">
+                  <i class="fa fa-chevron-left"></i> Parser, goyacc and EBNF
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
   </article>
+</div>
 
-    </div>
-  </div>
-  
-  
-  
+
+
+
+
 
 </div>
   </main>

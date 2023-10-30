@@ -4,6 +4,35 @@
   
     
     <entry>
+      <title>Data Define Language (DDL)</title>
+      <link href="/2023/10/29/OpenSource/TinyDB/DDL/"/>
+      <url>/2023/10/29/OpenSource/TinyDB/DDL/</url>
+      
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC"><li><a href="#how-to-store-metadata">How to store metadata?</a></li><li><a href="#how-are-jobs-executed">How are jobs executed?</a></li></ul></p><h1 id="how-to-store-metadata"><a class="markdownIt-Anchor" href="#how-to-store-metadata"></a> How to store metadata?</h1><ol><li><p>Codes for metadata storage are in <code>parser/model</code>.</p></li><li><p>In <code>DBInfo</code>, each database stores the pointers of <code>TableInfo</code> in a slice <code>Table []*TableInfo</code>.</p><ul><li><p>In <code>TableInfo</code>, it contains all the information of the table including its columns <code>Columns []*ColumnInfo</code>, its indices <code>Indices []*IndexInfo</code>, its constraints <code>Constraints []*ConstraintInfo</code> and its foreign keys <code>ForeignKeys []*FKInfo</code>.</p><ul><li>The order of <code>Columns</code> is the same as the the order of logical order of columns.</li></ul></li><li><p>In <code>ColumnInfo</code>, it has an <code>Offset</code> to record its position in the table.</p></li><li><p>Except <code>DBInfo</code>, other information structures all have a <code>State</code> attribute that will be used when dealing with distributed DDL problem.</p></li></ul></li><li><p><code>Job</code> is specific for the DDL tasks.</p><ul><li>The <code>State JobState</code> attribute tracks its own state and <code>SchemaState SchemaState</code> tracks the state of changed schema.</li><li>The <code>CtxVars []interface&#123;&#125;</code> and <code>Args []interface&#123;&#125;</code> are variables attached to the job for internal usage. E.g. passing arguments between functions by one single <code>*Job</code> pointer.</li></ul></li></ol><h1 id="how-are-jobs-executed"><a class="markdownIt-Anchor" href="#how-are-jobs-executed"></a> How are jobs executed?</h1><ol><li>All TiDB nodes have a worker to process the DDL request from clients. However, only the worker in the owner can truely execute the DDL operation.<ul><li>Client can send their request to any TiDB node. The received node will ask a <code>start job</code> module to create a <code>Job</code> object, push it in the <code>job queue</code>.</li><li>The node will check whether it is the owner after pushed the job. If it is not, it just tracks the state of the job.</li></ul></li><li>The owner would periodically check the job queue to find unexecuted jobs and execute them. After a job is finished, it will be moved into the <code>job history queue</code>.</li><li>The <code>start job</code> can finish when it find the job it is tracking is in the <code>job history queue</code> and responses to  client.</li></ol><img src="/imgs/TiDB/ddl_job_exec.jpg" width="50%">]]></content>
+      
+      
+      <categories>
+          
+          <category> Open Source Code </category>
+          
+          <category> TiDB </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Database </tag>
+            
+            <tag> Data Define Language </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Parser, goyacc and EBNF</title>
       <link href="/2023/10/23/OpenSource/TinyDB/Parser-goyacc-and-EBNF/"/>
       <url>/2023/10/23/OpenSource/TinyDB/Parser-goyacc-and-EBNF/</url>
@@ -33,11 +62,11 @@
     
     
     <entry>
-      <title>TiDB Overview</title>
+      <title>01 TiDB Overview</title>
       <link href="/2023/10/23/OpenSource/TinyDB/TiDB-Overview/"/>
       <url>/2023/10/23/OpenSource/TinyDB/TiDB-Overview/</url>
       
-        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC"><li><a href="#reference">Reference</a></li></ul></p><img src="/imgs/TiDB/overview.png"><h1 id="reference"><a class="markdownIt-Anchor" href="#reference"></a> Reference</h1><p><a href="https://cn.pingcap.com/blog/tidb-source-code-reading-2/">TiDB 源码阅读系列文章（二）初识 TiDB 源码</a></p><p><a href="https://cn.pingcap.com/blog/tidb-source-code-reading-3/">TiDB 源码阅读系列文章（三）SQL 的一生</a></p><p><a href="https://mp.weixin.qq.com/s?__biz=MjM5NzAyNTE0Ng==&amp;mid=207965954&amp;idx=1&amp;sn=783af058186bd609de2217f8e66e65c5&amp;scene=1&amp;srcid=0924EIXcHcSkVbxXKB6Is4Nh&amp;key=2877d24f51fa53844c7857f54ec17b391aff4e8307a08c149b7dc98bc700fc5c6f0de582d60b6ea2b3501309f90e3e86&amp;ascene=0&amp;uin=Mjk1NDA3MjkyMw%3D%3D&amp;devicetype=iMac+MacBookAir6%2C2+OSX+OSX+10.10.5+build%2814F27%29&amp;version=11020201&amp;pass_ticket=wonB1CX4A%2BSIp9Ze%2B3aqrOLrAQlXwspyhR1AlXxpsMAo5QnqYjvByd6Dgm5W%2FC1T">如何编写一个分布式数据库</a></p>]]></content>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC"><li><a href="#how-to-execute-a-sql-statement">How to execute a SQL statement?</a></li><li><a href="#how-to-run-a-distributed-database">How to run a distributed database?</a></li><li><a href="#reference">Reference</a></li></ul></p><h1 id="how-to-execute-a-sql-statement"><a class="markdownIt-Anchor" href="#how-to-execute-a-sql-statement"></a> How to execute a SQL statement?</h1><ol><li><p>Parser takes the string of statement and generates an abstract syntax tree (AST).</p><ul><li>Lexer takes the string and generate a stream of tokens for parser.</li><li>Parser reducts the stream of tokens based on pre-defined grammar.</li></ul></li><li><p>Then the plan tree is generated based on the AST and further optimizations are applied on the plan tree.</p></li><li><p>The executors are transformed from nodes of the plan tree to excute the plans.</p><ul><li>The executors are also in a tree-form. Each executor acquires their input data from children by calling <code>Next</code> of their children executors.</li></ul><img src="/imgs/TiDB/overview.png" width="50%"></li></ol><h1 id="how-to-run-a-distributed-database"><a class="markdownIt-Anchor" href="#how-to-run-a-distributed-database"></a> How to run a distributed database?</h1><ol><li><p>The distributed database follows the design of compute-storage decoupling.</p><ul><li>Several TiDB nodes only responsible for executing SQL statements. They are stateless and do not store the database.</li><li>Other TiKV nodes are the distributed storage system for the database that provides desired features, e.g. transaction, persistent, fault-tolerance.</li></ul></li><li><p>The TiDB nodes communicate with clients through protocol layers that support MySQL protocol or othre specific grammar protocol that determines the support grammar and API for the client to write programs.</p><ul><li>TiDB nodes hide the SQL execution from the clients.</li></ul></li><li><p>The TiKV provides KV API for the TiDB to read and write data.</p><ul><li>TiKV nodes hide the distributed storage from the TiDB nodes.</li><li>To map the data in a table into Key-Value format, the keys are <code>&quot;Table ID : Row ID : Column ID&quot;</code>. Each operation can correspond to a series of <code>Get</code> or <code>Set</code> operations.</li></ul><img src="/imgs/TiDB/arch.png" width="25%"></li></ol><h1 id="reference"><a class="markdownIt-Anchor" href="#reference"></a> Reference</h1><p><a href="https://cn.pingcap.com/blog/tidb-source-code-reading-2/">TiDB 源码阅读系列文章（二）初识 TiDB 源码</a></p><p><a href="https://cn.pingcap.com/blog/tidb-source-code-reading-3/">TiDB 源码阅读系列文章（三）SQL 的一生</a></p><p><a href="https://mp.weixin.qq.com/s?__biz=MjM5NzAyNTE0Ng==&amp;mid=207965954&amp;idx=1&amp;sn=783af058186bd609de2217f8e66e65c5&amp;scene=1&amp;srcid=0924EIXcHcSkVbxXKB6Is4Nh&amp;key=2877d24f51fa53844c7857f54ec17b391aff4e8307a08c149b7dc98bc700fc5c6f0de582d60b6ea2b3501309f90e3e86&amp;ascene=0&amp;uin=Mjk1NDA3MjkyMw%3D%3D&amp;devicetype=iMac+MacBookAir6%2C2+OSX+OSX+10.10.5+build%2814F27%29&amp;version=11020201&amp;pass_ticket=wonB1CX4A%2BSIp9Ze%2B3aqrOLrAQlXwspyhR1AlXxpsMAo5QnqYjvByd6Dgm5W%2FC1T">如何编写一个分布式数据库</a></p>]]></content>
       
       
       <categories>
