@@ -4,6 +4,33 @@
   
     
     <entry>
+      <title>BusTub Overview</title>
+      <link href="/2023/10/30/OpenSource/BusTub/BusTub-Overview/"/>
+      <url>/2023/10/30/OpenSource/BusTub/BusTub-Overview/</url>
+      
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC"><li><a href="#shell-execution">Shell execution</a></li></ul></p><h1 id="shell-execution"><a class="markdownIt-Anchor" href="#shell-execution"></a> Shell execution</h1><ol><li><p>The shell (in <a href="https://github.com/cmu-db/bustub/blob/master/tools/shell/shell.cpp">shell.cpp</a>) uses <code>linenoise</code> to read input lines until a line ending with <code>;</code> or beginning with <code>\</code>.</p><ul><li><code>;</code> means the end of a query while <code>\</code> leads an internal meta-command.</li><li>The backbone of the DBMS is <code>bustub::BustubInstance</code> (in <a href="https://github.com/cmu-db/bustub/blob/master/src/common/bustub_instance.cpp">bustub_instance.cpp</a>). It is initialized in the beginning of shell.</li><li>After reading the complete query, execute it with the <code>BustubInstance.ExecuteSql</code>. The result is writen in <code>bustub::FortTableWriter</code>.</li></ul></li><li><p>In <code>BustubInstance.ExecuteSqlTxn</code>:</p><ul><li>First determine whether this is an internal meta-command. If so, only executing the corresponding command and exit.</li><li>If this is a query, using <strong><code>bustub::Binder</code></strong> (in <a href="https://github.com/cmu-db/bustub/blob/master/src/binder/binder.cpp#L45">binder.cpp</a>) to parse the query into an AST. Handle the output format according to the statement type using <code>HandlexxxStatement</code>.</li><li>Then <strong><code>bustub::Planner</code></strong> will plan the query execution according to the generated AST. And <strong><code>bustub::Optimizer</code></strong> will optimize the plan tree with certain rules.</li><li>Then the plan will be executed by <strong><code>ExecutionEngine.Execute</code></strong> (in <a href="https://github.com/cmu-db/bustub/blob/master/src/include/execution/execution_engine.h#L54">execution_engine.h</a>).</li><li>Finally, the result will be written in the shell with writer.</li></ul></li><li><p>To provide easier format control, the <code>bustub::ResultWriter</code> provides interfaces for standard output.</p><ul><li><code>BeginHeader</code>, <code>EndHeader</code>, <code>BeginRow</code>, <code>EndRow</code> and <code>BeginTable</code>, <code>EndTable</code> to outputpre-defined message.</li><li><code>WriteCell</code> and <code>WriteHeaderCell</code> are used to output data and pre-defined separator.</li><li>Its sub-classes needs to override these methods to perform as they want.<ul><li><code>NoopWriter</code> simply does nothing in all these methods.</li><li><code>SimpleStreamWriter</code> will output simple plain text.</li><li><code>HtmlWriter</code> will output the results in HTML code that can be shown in browser.</li><li><code>FortTableWriter</code> uses <code>fort</code> to output table.</li></ul></li></ul></li></ol>]]></content>
+      
+      
+      <categories>
+          
+          <category> Open Source Code </category>
+          
+          <category> BusTub </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Database System </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Data Define Language (DDL)</title>
       <link href="/2023/10/29/OpenSource/TinyDB/DDL/"/>
       <url>/2023/10/29/OpenSource/TinyDB/DDL/</url>
@@ -821,9 +848,9 @@
             
             <tag> Database System </tag>
             
-            <tag> Concurrency Control </tag>
-            
             <tag> Transaction </tag>
+            
+            <tag> Concurrency Control </tag>
             
         </tags>
       
@@ -852,9 +879,9 @@
             
             <tag> Database System </tag>
             
-            <tag> Concurrency Control </tag>
-            
             <tag> Transaction </tag>
+            
+            <tag> Concurrency Control </tag>
             
         </tags>
       
@@ -883,9 +910,9 @@
             
             <tag> Database System </tag>
             
-            <tag> Concurrency Control </tag>
-            
             <tag> Transaction </tag>
+            
+            <tag> Concurrency Control </tag>
             
         </tags>
       
@@ -943,9 +970,9 @@
             
             <tag> Database System </tag>
             
-            <tag> Concurrency Control </tag>
-            
             <tag> Transaction </tag>
+            
+            <tag> Concurrency Control </tag>
             
         </tags>
       

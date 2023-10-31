@@ -146,7 +146,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">42</span>
+          <span class="site-state-item-count">43</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -174,6 +174,587 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/Fault-Tolerance-VM/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/09/26/Paper/Distributed/Fault-Tolerance-VM/" class="post-title-link" itemprop="url">Fault Tolerance VM</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-09-26 13:11:02" itemprop="dateCreated datePublished" datetime="2023-09-26T13:11:02+08:00">2023-09-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-10-04 16:28:34" itemprop="dateModified" datetime="2023-10-04T16:28:34+08:00">2023-10-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Paper-Notebook/" itemprop="url" rel="index"><span itemprop="name">Paper Notebook</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Paper-Notebook/Distributed-System/" itemprop="url" rel="index"><span itemprop="name">Distributed System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>Paper: <a target="_blank" rel="noopener" href="http://nil.csail.mit.edu/6.824/2020/papers/vm-ft.pdf">The Design of a Practical System for Fault-Tolerance Virtual Machines</a></p>
+<p><ul class="markdownIt-TOC">
+<li><a href="#purpose">Purpose</a></li>
+<li><a href="#model">Model</a>
+<ul>
+<li><a href="#ft-design">FT design</a>
+<ul>
+<li><a href="#primary-backup-structure">Primary-backup structure</a>
+<ul>
+<li><a href="#what-is-the-usual-way-to-implement-fault-tolerance-via-primarybackup-approach">What is the usual way to implement fault-tolerance via primary/backup approach?</a></li>
+<li><a href="#what-is-the-difference-between-physical-servers-and-vm-in-state-machine-level">What is the difference between physical servers and VM in state machine level?</a></li>
+<li><a href="#what-is-the-basic-structure-of-ft-vms">What is the basic structure of FT VMs?</a></li>
+</ul>
+</li>
+<li><a href="#ft-protocol">FT protocol</a>
+<ul>
+<li><a href="#how-does-vmware-backup-vm-replay">How does VMware backup VM replay?</a></li>
+<li><a href="#what-if-the-backup-vm-executes-in-a-way-different-from-the-primary-vm">What if the backup VM executes in a way different from the primary VM?</a></li>
+<li><a href="#will-the-output-rule-affect-vm-eg-stop-its-execution">Will the Output Rule affect VM, e.g. stop its execution?</a></li>
+<li><a href="#what-is-the-subtleties-of-executing-disk-reads-on-the-backup-vm">What is the subtleties of executing disk reads on the backup VM?</a></li>
+</ul>
+</li>
+<li><a href="#detecting-and-responding-to-failure">Detecting and responding to failure</a>
+<ul>
+<li><a href="#how-to-handle-duplicate-outputs">How to handle duplicate outputs?</a></li>
+<li><a href="#how-to-handle-backup-vm-failure">How to handle backup VM failure?</a></li>
+<li><a href="#how-to-handle-primary-vm-failure">How to handle primary VM failure?</a></li>
+<li><a href="#after-a-failover-how-will-the-new-primary-vm-communicate-with-external-world">After a failover, how will the new primary VM communicate with external world?</a></li>
+<li><a href="#how-to-detect-failure-of-primary-or-backup-vms">How to detect failure of primary or backup VMs?</a></li>
+<li><a href="#how-to-avoid-split-brain-problems">How to avoid split-brain problems?</a></li>
+</ul>
+</li>
+<li><a href="#alternative-non-shared-disk">Alternative: Non-shared disk</a>
+<ul>
+<li><a href="#what-is-the-difference-between-non-shared-disk-and-shared-disk">What is the difference between non-shared disk and shared disk?</a></li>
+<li><a href="#in-what-case-non-shared-disk-will-be-useful">In what case non-shared disk will be useful?</a></li>
+<li><a href="#what-is-the-disadvantage-of-non-shared-disk">What is the disadvantage of non-shared disk?</a></li>
+<li><a href="#how-to-solve-the-split-brain-situation">How to solve the split-brain situation?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#implementation">Implementation</a>
+<ul>
+<li><a href="#starting-and-restarting">Starting and restarting</a>
+<ul>
+<li><a href="#what-requirements-need-to-be-satisfied-by-the-startup-mechanism">What requirements need to be satisfied by the startup mechanism?</a></li>
+<li><a href="#how-to-implement-the-startup-mechanism">How to implement the startup mechanism?</a></li>
+<li><a href="#how-to-choose-a-server-on-which-to-run-the-backup-vm">How to choose a server on which to run the backup VM?</a></li>
+</ul>
+</li>
+<li><a href="#logging-channel">Logging channel</a>
+<ul>
+<li><a href="#how-to-control-primary-sending-log-entries-and-backup-receiving-entries">How to control primary sending log entries, and backup receiving entries?</a></li>
+<li><a href="#what-if-the-log-buffer-of-the-primary-is-full">What if the log buffer of the primary is full?</a></li>
+<li><a href="#what-is-the-main-cause-of-the-buffer-of-primary-being-full">What is the main cause of the buffer of primary being full?</a></li>
+<li><a href="#how-to-prevent-the-backup-vm-from-getting-too-far-behind-the-primary">How to prevent the backup VM from getting too far behind the primary?</a></li>
+</ul>
+</li>
+<li><a href="#special-operations">Special operations</a>
+<ul>
+<li><a href="#how-to-deal-with-control-operations">How to deal with control operations?</a></li>
+<li><a href="#how-to-implement-the-vmotion-for-primary-and-backup-vms">How to implement the VMotion for primary and backup VMs?</a></li>
+</ul>
+</li>
+<li><a href="#issues-for-disk-ios">Issues for disk IOs</a>
+<ul>
+<li><a href="#how-many-kind-of-races-may-occur">How many kind of races may occur?</a></li>
+<li><a href="#how-to-solve-the-non-determinism-caused-by-several-io-operations">How to solve the non-determinism caused by several IO operations?</a></li>
+<li><a href="#how-to-solve-the-non-determinism-caused-by-io-operations-and-applicationos">How to solve the non-determinism caused by IO operations and application/OS?</a></li>
+<li><a href="#how-the-newly-promoted-primary-vm-handle-those-outstanding-ios">How the newly-promoted primary VM handle those outstanding IOs?</a></li>
+</ul>
+</li>
+<li><a href="#issues-for-network-io">Issues for network IO</a>
+<ul>
+<li><a href="#how-to-solve-the-non-determinism-caused-by-asynchronous-updates">How to solve the non-determinism caused by asynchronous updates?</a></li>
+<li><a href="#how-can-we-optimize-the-network-performance-while-running-ft">How can we optimize the network performance while running FT?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#experiments-and-results">Experiments and results</a></li>
+</ul>
+</p>
+<h1 id="purpose"><a class="markdownIt-Anchor" href="#purpose"></a> Purpose</h1>
+<ol>
+<li>Contribution
+<ul>
+<li>This paper implemented a system providing fault tolerance virtual machine (VM) based on the approach of replicating the execution of a primary VM vis a backup VM on another server. The system automatically restores redundancy after faulure.</li>
+<li>It reduces performance of real applications by less than 10%. The data bandwidth needed to keep the primary and secondary VM executing in lockstep is less than 20 Mb/s for several real applications, which allows for the possibility of implementing fault tolerance over longer distance.</li>
+<li>The system automatically restores redundancy after a failure by starting a new backup viretual machine on any available server in the local cluster.</li>
+</ul>
+</li>
+<li>Limitation
+<ul>
+<li>Only support uni-processor VMs. Recording and replaying the execution of a multi-processor VM have significant performance issues because nearly every access to shared memory can be a non-deterministic operation.</li>
+<li>Only attempt to deal with fail-stop failure, which are server failures that can be detected before the failing server causes an incorrect externally visible action.</li>
+</ul>
+</li>
+<li>Challenges
+<ul>
+<li>Correctly capturing all the input and non-determinism necessary to ensure deterministic execution of a backup virtual machine.</li>
+<li>Correctly applying the inputs and non-determinism to the backup virtual machine.</li>
+<li>Doing so in a manner that doesn’t degrade performance.</li>
+</ul>
+</li>
+</ol>
+<h1 id="model"><a class="markdownIt-Anchor" href="#model"></a> Model</h1>
+<h2 id="ft-design"><a class="markdownIt-Anchor" href="#ft-design"></a> FT design</h2>
+<h3 id="primary-backup-structure"><a class="markdownIt-Anchor" href="#primary-backup-structure"></a> Primary-backup structure</h3>
+<h4 id="what-is-the-usual-way-to-implement-fault-tolerance-via-primarybackup-approach"><a class="markdownIt-Anchor" href="#what-is-the-usual-way-to-implement-fault-tolerance-via-primarybackup-approach"></a> What is the usual way to implement fault-tolerance via primary/backup approach?</h4>
+<ol>
+<li>
+<p>The backup server is always available to take over is the primary server fails.</p>
+<ul>
+<li>The problem is that the state of the backup server must be kept nearly identical to the primary server at all times. We say that the two VMs are in virtual lock-step.</li>
+</ul>
+</li>
+<li>
+<p>One way is to ship changes to all state of the primary. The bandwidth needed to send can be very large.</p>
+</li>
+<li>
+<p>Another method is the state-machine approach.</p>
+<ul>
+<li>
+<p>The idea is to model the servers as deterministic state machcines that are kept in sync by starting them from the same initial state and ensuring that they receive the same input requests in the same order.</p>
+</li>
+<li>
+<p>Some operations are not deterministic. Extra coordination must be used to ensure that they receive a primary and backup are kept in sync.</p>
+</li>
+<li>
+<p>The extra information is far less than the amount of state (mainly memory updates) that is changing in the primary.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h4 id="what-is-the-difference-between-physical-servers-and-vm-in-state-machine-level"><a class="markdownIt-Anchor" href="#what-is-the-difference-between-physical-servers-and-vm-in-state-machine-level"></a> What is the difference between physical servers and VM in state machine level?</h4>
+<ol>
+<li>
+<p>Implementing coordication to ensure deterministic execution of physical servers is difficult, particularly as processor frequencies increase.</p>
+</li>
+<li>
+<p>VM running on top of a hypervisor can be considered a well-defined state machine.</p>
+</li>
+<li>
+<p>VMs still have non-deterministic operations. Hypervisor is able to capture all the necessary information about non-deterministic operations on the primary VM and to replay these operations correctly on the backup VM.</p>
+</li>
+</ol>
+<h4 id="what-is-the-basic-structure-of-ft-vms"><a class="markdownIt-Anchor" href="#what-is-the-basic-structure-of-ft-vms"></a> What is the basic structure of FT VMs?</h4>
+<ol>
+<li>
+<p>The virtual disks for the VMs are on shared storage, and accessible to the primary and backup VM for input and output.</p>
+</li>
+<li>
+<p>Only the primary VM advertises its presence on the network, so all network inputs come to the primary VM. So does all other inputs.</p>
+</li>
+<li>
+<p>All inputs, including incoming network packets, disk reads, keyboard and mouse, only come to the primary VM. And  the primary VM sends all inputs it received to the backup VM via a network connection known as the logging channel.</p>
+<img src="/imgs/Distributed/FTVM/01.png" style="zoom:33%;" />
+</li>
+</ol>
+<h3 id="ft-protocol"><a class="markdownIt-Anchor" href="#ft-protocol"></a> FT protocol</h3>
+<h4 id="how-does-vmware-backup-vm-replay"><a class="markdownIt-Anchor" href="#how-does-vmware-backup-vm-replay"></a> How does VMware backup VM replay?</h4>
+<ol>
+<li>VMware deterministic replay records the inputs of a VM and all possible non-determinism associated with the VM execution in a stream of log entries written to a log file.</li>
+<li>For non-deterministic operations, sufficient infomation is logged to allow the operation to be reproduced with the same state change and output.</li>
+<li>For non-deterministic events such as timer or IO completion interrupts, the exact instruction at which the event occurred is also recorded. During replay, the event is delivered at the same point in the instruction stream.</li>
+<li>VMware deterministic replay has no need to use epochs where non-deterministic events are only delievered at the end. Each interrupt is recorded as it occurs and effciently delivered at the appropriate instruction while being replayed.</li>
+<li>Instead of writing the log entries to disk, we send them to the backup VM via the logging channel. The backup VM replays the entries in real time.</li>
+</ol>
+<h4 id="what-if-the-backup-vm-executes-in-a-way-different-from-the-primary-vm"><a class="markdownIt-Anchor" href="#what-if-the-backup-vm-executes-in-a-way-different-from-the-primary-vm"></a> What if the backup VM executes in a way different from the primary VM?</h4>
+<ol>
+<li>
+<p>The <em>Output Requirement</em>: if the backup VM ever takes over after a failure of the primary, the backup VM will continue executing in a way that is entirely consistent with all outputs that the primary VM has sent to the external world.</p>
+</li>
+<li>
+<p>The Output Requirement can be ensured by</p>
+<ul>
+<li>
+<p>delaying any external output (typically a network packet) until the backup VM has received all information that will allow it to replay execution at least to the point of that output operation.</p>
+</li>
+<li>
+<p>One necessary condition is that the backup VM must have received all log entries generated prior to the output operation.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>If we create a special log entry at each output operation. Then, the Output Requirement may be enforced by the Output Rule.</p>
+<ul>
+<li><em>Output Rule</em>: the primary VM may not send an output to the external world, until the backup VM has received and acknowledged the log entry associated with the operation producing the output.</li>
+</ul>
+</li>
+</ol>
+<h4 id="will-the-output-rule-affect-vm-eg-stop-its-execution"><a class="markdownIt-Anchor" href="#will-the-output-rule-affect-vm-eg-stop-its-execution"></a> Will the Output Rule affect VM, e.g. stop its execution?</h4>
+<ol>
+<li>It does not say anything about stopping the execution of the primary VM. We need only delay the sending of the output, but the VM itself can continue execution.</li>
+<li>Since operating systems do non-blocking network and disk outputs with asynchronous interrupts to indicate completion, the VM can easily continue execution and will not necessarily be immediately affected by the delay in the output.</li>
+</ol>
+<h4 id="what-is-the-subtleties-of-executing-disk-reads-on-the-backup-vm"><a class="markdownIt-Anchor" href="#what-is-the-subtleties-of-executing-disk-reads-on-the-backup-vm"></a> What is the subtleties of executing disk reads on the backup VM?</h4>
+<ol>
+<li>
+<p>By default, the primary VM will send the results of the disk read to the backup VM via the logging channel.</p>
+</li>
+<li>
+<p>Executing disk read on the backup VM can greatly reduce the traffic on the logging channel for workloads that do a lot of disk reads. It may also slow down the backup VM’s execution.</p>
+</li>
+<li>
+<p>Some extra work must be done to deal with failed disk read operations.</p>
+<ul>
+<li>
+<p>If the primary succeeds while the backup fails, the backup needs to keep retrying until succeess.</p>
+</li>
+<li>
+<p>If the backup succeeds while the primary fails, the contents of the target memory must be sent to the backup via the logging channel, since the contents of memory will be undetermined and not necessarily replicated by a successful disk read by the backup VM.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>If the primary VM does a read to a particular disk location followed fairly soon by a write to the same disk location, then the disk write must be delayed until the backup VM has executed the first disk read.</p>
+</li>
+</ol>
+<h3 id="detecting-and-responding-to-failure"><a class="markdownIt-Anchor" href="#detecting-and-responding-to-failure"></a> Detecting and responding to failure</h3>
+<h4 id="how-to-handle-duplicate-outputs"><a class="markdownIt-Anchor" href="#how-to-handle-duplicate-outputs"></a> How to handle duplicate outputs?</h4>
+<ol>
+<li>We cannot guarantee that all outputs are produced exactly once in a failover situation.</li>
+<li>The network infrastructure (e.g. TCP) is designed to deal with lost packets and duplicate packets.</li>
+</ol>
+<h4 id="how-to-handle-backup-vm-failure"><a class="markdownIt-Anchor" href="#how-to-handle-backup-vm-failure"></a> How to handle backup VM failure?</h4>
+<p>The primary VM will go live, i.e. leave recording mode, stop sending entries on the logging channel and start executing normally.</p>
+<h4 id="how-to-handle-primary-vm-failure"><a class="markdownIt-Anchor" href="#how-to-handle-primary-vm-failure"></a> How to handle primary VM failure?</h4>
+<ol>
+<li>The backup VM will continue replaying its execution from the log entries until it has consumed the last log entry.</li>
+<li>The backup VM will stop replaying mode and start executing as a normal VM. The backup VM has been promoted to the primary VM, and is now missing a backup VM.</li>
+</ol>
+<h4 id="after-a-failover-how-will-the-new-primary-vm-communicate-with-external-world"><a class="markdownIt-Anchor" href="#after-a-failover-how-will-the-new-primary-vm-communicate-with-external-world"></a> After a failover, how will the new primary VM communicate with external world?</h4>
+<ol>
+<li>VMware FT automatically advertises the MAC address of the new primary VM on the network, so that physical network switches will know  on what server that new primary VM is located.</li>
+<li>The newly promoted primary VM may need to reissue some disk IOs.</li>
+</ol>
+<h4 id="how-to-detect-failure-of-primary-or-backup-vms"><a class="markdownIt-Anchor" href="#how-to-detect-failure-of-primary-or-backup-vms"></a> How to detect failure of primary or backup VMs?</h4>
+<ol>
+<li>VMware FT uses UDP heartbeating between servers that are running fault-tolerant VMs to detect when a server may have crashed.</li>
+<li>In addition, VMware FT monitors the logging traffic that is sent from the primary to the backup VM and the acknowledgments sent from the backup VM to the primary VM. Because of regular timer interrupts, the logging traffic should be regular and never stop for a functioning guest OS.</li>
+</ol>
+<h4 id="how-to-avoid-split-brain-problems"><a class="markdownIt-Anchor" href="#how-to-avoid-split-brain-problems"></a> How to avoid split-brain problems?</h4>
+<ol>
+<li>When either a primary or backup VM wants to go live, it executes an atomic test-and-set operation on the shared virtual disk.</li>
+<li>If the operation succeeds, the VM is allowed to go live.</li>
+<li>If the operation fails, then the other VM must have already gone live, so the current VM actually halts itself (“commits suicide”).</li>
+</ol>
+<h3 id="alternative-non-shared-disk"><a class="markdownIt-Anchor" href="#alternative-non-shared-disk"></a> Alternative: Non-shared disk</h3>
+<h4 id="what-is-the-difference-between-non-shared-disk-and-shared-disk"><a class="markdownIt-Anchor" href="#what-is-the-difference-between-non-shared-disk-and-shared-disk"></a> What is the difference between non-shared disk and shared disk?</h4>
+<ol>
+<li>In shared disk, any write to the shared disk is considered a communication to external world. Writes to the shared disk must be delayed.</li>
+<li>In non-shared disk, the virtual disks are essentially considered part of the internal state of each VM. Disk writes of the primary do not have to be delayed according to the Output Rule.</li>
+</ol>
+<h4 id="in-what-case-non-shared-disk-will-be-useful"><a class="markdownIt-Anchor" href="#in-what-case-non-shared-disk-will-be-useful"></a> In what case non-shared disk will be useful?</h4>
+<ol>
+<li>Shared storage is not accessible to the primary and backup VMs.</li>
+<li>This may be the case because shared storage is unavailable or too expensive, or because the servers running the primary and backup VMs are far apart.</li>
+</ol>
+<h4 id="what-is-the-disadvantage-of-non-shared-disk"><a class="markdownIt-Anchor" href="#what-is-the-disadvantage-of-non-shared-disk"></a> What is the disadvantage of non-shared disk?</h4>
+<ol>
+<li>The two copies of the virtual disks must be explicitly synced up in some manner when fault tolerance is first enabled.</li>
+<li>The disks can get out of sync after a failure, so they must be explicitly resynced when the backup VM is restarted after a failure.</li>
+</ol>
+<h4 id="how-to-solve-the-split-brain-situation"><a class="markdownIt-Anchor" href="#how-to-solve-the-split-brain-situation"></a> How to solve the split-brain situation?</h4>
+<ol>
+<li>
+<p>There may be no shared storage to use for dealing with it. The system could use some other external tiebreaker.</p>
+<ul>
+<li>A third-party server that both servers can talk to.</li>
+</ul>
+</li>
+<li>
+<p>If the servers are part of a cluster with more than two nodes, the system could alternatively use a majority algorithm.</p>
+<ul>
+<li>A VM would only be allowed to go live if it is running on a server that is part of a communication sub-cluster that contains a majority of the original nodes.</li>
+</ul>
+</li>
+</ol>
+<h2 id="implementation"><a class="markdownIt-Anchor" href="#implementation"></a> Implementation</h2>
+<h3 id="starting-and-restarting"><a class="markdownIt-Anchor" href="#starting-and-restarting"></a> Starting and restarting</h3>
+<h4 id="what-requirements-need-to-be-satisfied-by-the-startup-mechanism"><a class="markdownIt-Anchor" href="#what-requirements-need-to-be-satisfied-by-the-startup-mechanism"></a> What requirements need to be satisfied by the startup mechanism?</h4>
+<ol>
+<li>We also want to use it to restart a backup VM after a failure. Hence, this mechanism must be usable for a running primary VM that is in an arbitrary state.</li>
+<li>We would prefer that the mechanism does not significantly disrupt that execution of the primary VM.</li>
+</ol>
+<h4 id="how-to-implement-the-startup-mechanism"><a class="markdownIt-Anchor" href="#how-to-implement-the-startup-mechanism"></a> How to implement the startup mechanism?</h4>
+<ol>
+<li>VMware FT adapted a modified VMware VMotion that allows the migration of a running VM from one server to another server with minimal disruption. However, after migration, the VMotion will destroy the local VM.</li>
+<li>The FT VMotion clones a VM to a remote host rather than migrating it without destroying the local VM.</li>
+<li>The FT VMotion also sets up a logging channel, and causes the source VM to enter logging mode as the primary, and the destination VM to enter replay mode as the new backup.</li>
+</ol>
+<h4 id="how-to-choose-a-server-on-which-to-run-the-backup-vm"><a class="markdownIt-Anchor" href="#how-to-choose-a-server-on-which-to-run-the-backup-vm"></a> How to choose a server on which to run the backup VM?</h4>
+<ol>
+<li>The primary Vm informs the clustering service that it needs a new backup.</li>
+<li>The clustering service determines the best server on which to run the backup VM based on resource usage and other constraints and invokes an FT VMotion to create the new backup VM.</li>
+<li>VMware FT typically can re-establish VM redundancy within minutes of a server failure, all without any noticeable interruption in the execution of a fault-tolerant VM.</li>
+</ol>
+<h3 id="logging-channel"><a class="markdownIt-Anchor" href="#logging-channel"></a> Logging channel</h3>
+<h4 id="how-to-control-primary-sending-log-entries-and-backup-receiving-entries"><a class="markdownIt-Anchor" href="#how-to-control-primary-sending-log-entries-and-backup-receiving-entries"></a> How to control primary sending log entries, and backup receiving entries?</h4>
+<ol>
+<li>The hypervisors maintain a large buffer for logging entries for the primary and backup VMs.</li>
+<li>The contents of the primary’s log buffer are flushed out to the logging channel as soon as possible, and log entries are read into the backup’s log buffer from the logging channel as soon as they arrive.</li>
+<li>The backup sends acknowledgments back to the primary each time that it reads some log entries from the network into its log buffer.</li>
+</ol>
+<h4 id="what-if-the-log-buffer-of-the-primary-is-full"><a class="markdownIt-Anchor" href="#what-if-the-log-buffer-of-the-primary-is-full"></a> What if the log buffer of the primary is full?</h4>
+<ol>
+<li>It must stop execution until log entries can be flushed out.</li>
+<li>This stop in execution is a natural flow-control mechanism that slows down the primary VM when it is producing log entries at too fast a rate.</li>
+<li>This pause can affect clients of the VM, and we must minimize the possibility that the primary log buffer fills up.</li>
+</ol>
+<h4 id="what-is-the-main-cause-of-the-buffer-of-primary-being-full"><a class="markdownIt-Anchor" href="#what-is-the-main-cause-of-the-buffer-of-primary-being-full"></a> What is the main cause of the buffer of primary being full?</h4>
+<ol>
+<li>One biggest reason is that the backup VM is executing too slowly and therefore sonsuming log entries too slowly.</li>
+<li>In general, the backup VM must be able to replay an execution at roughly the same speed as sthe primary VM is recording the execution.</li>
+<li>The overhead of recording and replaying in VMware deterministic replay is roughly the same.</li>
+<li>If the server hosting the backup VM is heavily loaded with other VMs (and hence overcommitted on resources), the backup VM may not be able to get enough CPU and memory resources to execute as fast as the primary VM.</li>
+</ol>
+<h4 id="how-to-prevent-the-backup-vm-from-getting-too-far-behind-the-primary"><a class="markdownIt-Anchor" href="#how-to-prevent-the-backup-vm-from-getting-too-far-behind-the-primary"></a> How to prevent the backup VM from getting too far behind the primary?</h4>
+<ol>
+<li>When sending acknowledgments, we also send additional information to determine the real-time execution lag between the primary and backup VMs.</li>
+<li>Typically the execution lag is less than 100 milliseconds.</li>
+<li>If the backup VM starts having a significant execution lag (e.g. more than 1 second), VMware FT starts slowing down the primary VM by informing the scheduler to give it a slightly smally amount of CPU.</li>
+<li>Such slowdowns are very rare, and typically happen only when the system is under extreme stress.</li>
+</ol>
+<h3 id="special-operations"><a class="markdownIt-Anchor" href="#special-operations"></a> Special operations</h3>
+<h4 id="how-to-deal-with-control-operations"><a class="markdownIt-Anchor" href="#how-to-deal-with-control-operations"></a> How to deal with control operations?</h4>
+<ol>
+<li>
+<p>Most control operations shouls be applied to both machines.</p>
+<ul>
+<li>
+<p>If the primary VM is explicitly powered off, the backup VM should be stopped as well, and not attempt to go live.</p>
+</li>
+<li>
+<p>Any resource management change on the primary should be applied to the backup.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>The only operation that can be done independently on the primary and backup VMs is VMotion.</p>
+<ul>
+<li>
+<p>The primary and backup VMs can be VMotioned independently to other hosts.</p>
+</li>
+<li>
+<p>VMware FT ensures that neither VM is moved to the server where the other VM is.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h4 id="how-to-implement-the-vmotion-for-primary-and-backup-vms"><a class="markdownIt-Anchor" href="#how-to-implement-the-vmotion-for-primary-and-backup-vms"></a> How to implement the VMotion for primary and backup VMs?</h4>
+<ol>
+<li>
+<p>For a normal VMotion, it requires that all outstanding disk IOs be quiesced just as the final switchover on the VMotion occurs.</p>
+</li>
+<li>
+<p>For a primary VM,</p>
+<ul>
+<li>
+<p>The quiescing is easily handled by waiting until the physical IOs completeand delivering these completions to the VM.</p>
+</li>
+<li>
+<p>The backup VM must disconnect from the source primary and re-connect to the destination primary at the appropriate time.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>For a backup VM,</p>
+<ul>
+<li>
+<p>There is no easy way to cause all IOs to be completed at any required point, since the backup VM must replay the primary VM’s execution and complete IOs at the same execution point.</p>
+</li>
+<li>
+<p>When a backup VM is at the final switchover point for a VMotion, it requests via the logging channel that the primary VM temporarily quiesce all its IOs.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="issues-for-disk-ios"><a class="markdownIt-Anchor" href="#issues-for-disk-ios"></a> Issues for disk IOs</h3>
+<h4 id="how-many-kind-of-races-may-occur"><a class="markdownIt-Anchor" href="#how-many-kind-of-races-may-occur"></a> How many kind of races may occur?</h4>
+<ol>
+<li>
+<p>The first kind is caused by several IO operations.</p>
+<ul>
+<li>
+<p>One reason is that disk operations are non-blocking and can execute in parallel. Simultaneous disk operations access the same disk location causing races.</p>
+</li>
+<li>
+<p>The other reason is that DMA directly to/from the memory of the VM. Simultaneous disk operations access the same memory pages.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>The second kind is caused by IO operations and non-IO operations.</p>
+<ul>
+<li>The disk operations directly access the memory of a VM via DMA. Hence a disk operation accesses the same memory pages as an aplication or OS in a VM causing races.</li>
+</ul>
+</li>
+</ol>
+<h4 id="how-to-solve-the-non-determinism-caused-by-several-io-operations"><a class="markdownIt-Anchor" href="#how-to-solve-the-non-determinism-caused-by-several-io-operations"></a> How to solve the non-determinism caused by several IO operations?</h4>
+<p>We should detect any such IO races, and force such racing disk operations to execute sequentially in the same way on the primary and backup.</p>
+<h4 id="how-to-solve-the-non-determinism-caused-by-io-operations-and-applicationos"><a class="markdownIt-Anchor" href="#how-to-solve-the-non-determinism-caused-by-io-operations-and-applicationos"></a> How to solve the non-determinism caused by IO operations and application/OS?</h4>
+<ol>
+<li>
+<p>We need to set up page protection termporarily on pages that are targets of disk operations.</p>
+</li>
+<li>
+<p>The page protections result in a trap if the VM happens to make an access to a page that is also the target of an outstanding disk operation, and the VM can be paused until the disk operation completes.</p>
+</li>
+<li>
+<p>Changing MMU protections on pages is expensive, we use bounce buffers.</p>
+<ul>
+<li>
+<p>A bounce buffer is a temporary buffer that has the same size as the memory being accessed by a disk operation.</p>
+</li>
+<li>
+<p>A disk read operation is modified to read the specified data to the bounce buffer, and the data is copied to guest memory only as the IO completion is delivered.</p>
+</li>
+<li>
+<p>For a disk write operation, the data to besent is first copied to the bounce buffer, and the disk write is modified to write data from the bounce buffer.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>The bounce buffer can slow down disk operations, but noticeable performance loss is not seen.</p>
+</li>
+</ol>
+<h4 id="how-the-newly-promoted-primary-vm-handle-those-outstanding-ios"><a class="markdownIt-Anchor" href="#how-the-newly-promoted-primary-vm-handle-those-outstanding-ios"></a> How the newly-promoted primary VM handle those outstanding IOs?</h4>
+<ol>
+<li>There is no way for the newly-promoted primary VM to be sure if the disk IOs were issued to the disk or completed  successfully.</li>
+<li>We could send an error completion that indicates that each IO failed, since it is acceptable to return an error even if the IO completed successfully. However, the guest OS might not respond well to errors from its local disk.</li>
+<li>We can re-issue the pending IOs during the go-live process of the backup VM. Because we have eliminated all races and all IOs specify derectly which memory and disk blocks are accessed, these disk operations can be re-issued even if they have already completed successfully.</li>
+</ol>
+<h3 id="issues-for-network-io"><a class="markdownIt-Anchor" href="#issues-for-network-io"></a> Issues for network IO</h3>
+<h4 id="how-to-solve-the-non-determinism-caused-by-asynchronous-updates"><a class="markdownIt-Anchor" href="#how-to-solve-the-non-determinism-caused-by-asynchronous-updates"></a> How to solve the non-determinism caused by asynchronous updates?</h4>
+<ol>
+<li>
+<p>In normal VM, the hypervisor asynchronously updating the state of the virtual machine’s network device.</p>
+</li>
+<li>
+<p>For FT</p>
+<ul>
+<li>
+<p>The code that asynchronously updates VM ring buffers with incoming packets has been modified to force the guest to trap to the hypervisor, where it can log the updates and then apply them to the VM.</p>
+</li>
+<li>
+<p>The code that normally pull packets out of transmit queues asynchronously is diabled, and instead transmits are done through a trap to the hypervisor.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h4 id="how-can-we-optimize-the-network-performance-while-running-ft"><a class="markdownIt-Anchor" href="#how-can-we-optimize-the-network-performance-while-running-ft"></a> How can we optimize the network performance while running FT?</h4>
+<ol>
+<li>
+<p>Reduce VM trapand interrupts with clustering optimizations.</p>
+<ul>
+<li>
+<p>When the VM is streaming data at a sufficient bit rate, the hypervisor can do one transmit trap per group of packets and, in the best case, zero traps, since it can transmit the packets as part of receiving new packets.</p>
+</li>
+<li>
+<p>The hypervisor can reduce the number of interrupts to the VM for incoming packets by only posting the interrupt for a group of packets.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Reduce the delay for transmitted packets.</p>
+<ul>
+<li>
+<p>The key is to reduce the time required to send a log message to the backup and get an acknowledgment.</p>
+</li>
+<li>
+<p>It is ensured that sending and receiving log entries and acknowledgments can all be done without any thread context switch.</p>
+</li>
+<li>
+<p>The VMware vSphere hypervisor allows functions to be registered with the TCP stack that will be called from a deferred-execution context (similar to a tasklet in Linux) whenever TCP data is received.</p>
+</li>
+<li>
+<p>When the primary VM enqueues a packet to be transmitted, we force an immediate log flush of the associated output log entry by scheduling a defferred-execution context to do the flush.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="experiments-and-results"><a class="markdownIt-Anchor" href="#experiments-and-results"></a> Experiments and results</h1>
+<p>One important banchmark is the performance ratio between non-FT and FT systems and logging bandwidth between primary and backup. The performance ratio can show how efficient the FT protocol is, and logging bandwidth is usually a bottleneck of the system. The author measured them all as the following table. We can see that FT protocol only decreases the performance by less than 10%</p>
+<img src="/imgs/Distributed/FTVM/02.png" style="zoom:30%;" />
+<p>The typical idle logging bandwidth is 0.5-1.5 Mbits/sec. The idle bandwidth is largely the result of recording the delivery of timer interrupts. For a VM with an active workload, the logging bandwidth is dominated by the network and disk inputs that must be sent to the backup - the network packets that are received and the disk blocks that are read from disk. Hence the logging bandwidth can be much higher than those measured in table for applications that have very high network receive or disk read bandwidth. For these kinds of applications, the bandwidth of the logging channel could be a bottleneck.</p>
+<p>The author also measured the bandwidth of logging channels with different capacities, as shown below. When FT is enabled for receive workloads, the loging bandwidth is very large, since all incomming network packets must be sent on the logging channel. When FT is enabled for transmit workloads, the logging bandwidth is much lower. Overall, FT can limit network bandwidths significantly at very high transmit and receive rates, but high absolute rates are still achievable.</p>
+<img src="/imgs/Distributed/FTVM/03.png" style="zoom:30%;" />
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -3275,272 +3856,6 @@ Paxos remains non-blocking if a majority participants are alive, provided there 
 <li><code>READ UNCOMMITTED</code>: Same as above but allows dirty reads (no S locks).</li>
 </ul>
 </li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/08/04/Courses/15445/10-Two-Phase-Locking/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/08/04/Courses/15445/10-Two-Phase-Locking/" class="post-title-link" itemprop="url">10 Two-Phase Locking</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2023-08-04 16:47:09" itemprop="dateCreated datePublished" datetime="2023-08-04T16:47:09+08:00">2023-08-04</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-09-26 14:00:50" itemprop="dateModified" datetime="2023-09-26T14:00:50+08:00">2023-09-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><ul class="markdownIt-TOC">
-<li><a href="#two-phase-locking">Two-phase Locking</a>
-<ul>
-<li><a href="#how-can-we-guarantee-serializable-without-knowing-the-entire-schedule-ahead-of-time">How can we guarantee serializable without knowing the entire schedule ahead of time?</a></li>
-<li><a href="#what-is-the-problem-of-releasing-locks-and-acquiring-it-later-again">What is the problem of releasing locks and acquiring it later again?</a></li>
-<li><a href="#what-is-the-problem-of-two-phase-locking">What is the problem of two-phase locking?</a></li>
-</ul>
-</li>
-<li><a href="#deadlock">Deadlock</a>
-<ul>
-<li><a href="#how-to-detect-and-resolve-deadlocks">How to detect and resolve deadlocks?</a></li>
-<li><a href="#how-to-prevent-deadlocks">How to prevent deadlocks?</a></li>
-</ul>
-</li>
-<li><a href="#lock-granularity">Lock granularity</a>
-<ul>
-<li><a href="#what-are-the-database-objects">What are the database objects?</a></li>
-<li><a href="#how-to-support-multiple-granularities">How to support multiple granularities?</a></li>
-<li><a href="#how-to-use-locks">How to use locks?</a></li>
-</ul>
-</li>
-</ul>
-</p>
-<h1 id="two-phase-locking"><a class="markdownIt-Anchor" href="#two-phase-locking"></a> Two-phase Locking</h1>
-<h2 id="how-can-we-guarantee-serializable-without-knowing-the-entire-schedule-ahead-of-time"><a class="markdownIt-Anchor" href="#how-can-we-guarantee-serializable-without-knowing-the-entire-schedule-ahead-of-time"></a> How can we guarantee serializable without knowing the entire schedule ahead of time?</h2>
-<ol>
-<li>We can use locks to protect database objects.
-<ul>
-<li>When a transaction wants to access some objects, it needs to acquire locks of that objects from a centralized lock manager.</li>
-<li>Locks are issued by applications and handled in lock manager while latches are issued and acquired locally. Hence acquiring locks are more expensive than acquiring latches even if locks are free.</li>
-</ul>
-</li>
-<li>There are <code>S-LOCK</code> and <code>X-LOCK</code>.
-<ul>
-<li><code>S-LOCKs</code> are shared locks for reads while <code>X-LOCKs</code> are exclusive locks for writes.</li>
-<li>Their compatibility matrix is as followed:<br />
-<img src="/imgs/15445/2pl/sx_comp_matrix.png" width="50%"></li>
-</ul>
-</li>
-<li>Lock manager keeps track of what transaction hold what locks and what transactions are waiting to acquire any locks.
-<ul>
-<li>When transactions request or upgrade locks, lock manager grants or blocks requests. When transactions release or downgrade locks, lock manager updates its internal lock-table.</li>
-<li>Lock manager is responsible for detecting deadlock and choosing some transactions to kill.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-is-the-problem-of-releasing-locks-and-acquiring-it-later-again"><a class="markdownIt-Anchor" href="#what-is-the-problem-of-releasing-locks-and-acquiring-it-later-again"></a> What is the problem of releasing locks and acquiring it later again?</h2>
-<ol>
-<li>This may cause in-consistent reads for a transaction when another transaction modified the object during lock is available.</li>
-<li>This problem can be solved by two-phase locking.
-<ul>
-<li>The first phase is growing:
-<ul>
-<li>Each transaction requests or upgrades the locks that it needs from the DBMS’s lock manager. The lock manager grants/denies lock requests.</li>
-</ul>
-</li>
-<li>The second phase is shrinking:
-<ul>
-<li>The transaction is allowed to only release or downgrade locks that it previously acquired. It cannot acquire new locks.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Two-phase locking on its own is sufficient to guarantee conflict serializability because it generates schedules whose precedence graph is acyclic.</li>
-</ol>
-<h2 id="what-is-the-problem-of-two-phase-locking"><a class="markdownIt-Anchor" href="#what-is-the-problem-of-two-phase-locking"></a> What is the problem of two-phase locking?</h2>
-<ol>
-<li>It is subject to cascading aborts caused by dirty reads.
-<ul>
-<li>When a transaction modified an object, and released the lock before it is aborted, the modified object is exposed to other transactions.</li>
-<li>When the modifier is aborted, all other transactions that have used the modified object needs to abort.</li>
-</ul>
-</li>
-<li>This can be solved by strong strict two-phase locking (rigorous two-phase locking).
-<ul>
-<li>The transaction is only allowed to release locks after it has ended, i.e., committed or aborted.</li>
-</ul>
-</li>
-<li>A schedule is strict if a value written by a transaction is not read or overwritten by other transactions until that transaction finishes.
-<ul>
-<li>Its advantages are that it does not incurcascading aborts, and aborted transactions can be undone by just restoring original values of modified tuples.</li>
-<li>However, it allows only conflict serializable schedules, but it is often stronger than needed for some apps. Most DBMSs prefer correctness before performance.</li>
-</ul>
-</li>
-</ol>
-<h1 id="deadlock"><a class="markdownIt-Anchor" href="#deadlock"></a> Deadlock</h1>
-<h2 id="how-to-detect-and-resolve-deadlocks"><a class="markdownIt-Anchor" href="#how-to-detect-and-resolve-deadlocks"></a> How to detect and resolve deadlocks?</h2>
-<ol>
-<li>The two-phase locking may lead to deadlocks.</li>
-<li>The DBMS creates a waits-for graph to keep track of what locks each transaction is waiting to acquire
-<ul>
-<li>Nodes are transactions. Edge from <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> if <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is waiting for <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> to release a lock.</li>
-<li>The system periodically checks for cycles in waits- for graph and then decides how to break it.</li>
-</ul>
-</li>
-<li>When the DBMS detects a deadlock, it will select a “victim” transaction to rollback to break the cycle.
-<ul>
-<li>The victim transaction will either restart or abort (more common) depending on how it was invoked.</li>
-<li>There is a trade-off between the frequency of checking for deadlocks and how long transactions wait before deadlocks are broken.</li>
-</ul>
-</li>
-<li>Selecting the proper victim depends on a lot of different variables
-<ul>
-<li>By age (lowest timestamp)</li>
-<li>By progress (least/most queries executed)</li>
-<li>By the number of items already locked</li>
-<li>By the number of transactions that we have to rollback with it</li>
-<li>We also should consider the # of times a transaction has been restarted in the past to prevent starvation.</li>
-</ul>
-</li>
-<li>After selecting a victim transaction to abort, the DBMS can also decide on how far to rollback the transaction’s changes.
-<ul>
-<li>The first approach is to rollback entire transaction and tell the application it was aborted.</li>
-<li>The second approach is rolling back a portion of a transaction to break deadlock and then attempts to re-execute the undone queries.</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-to-prevent-deadlocks"><a class="markdownIt-Anchor" href="#how-to-prevent-deadlocks"></a> How to prevent deadlocks?</h2>
-<ol>
-<li>When a transaction tries to acquire a lock that is held by another transaction, the DBMS kills one of them to prevent a deadlock.</li>
-<li>Assign priorities based on timestamps, e.g older timestamp means higher priority.</li>
-<li>The first kind of rule is Wait-Die (“Old Waits for Young”)
-<ul>
-<li>If requesting transaction has higher priority than holding transaction, then requesting transaction waits for holding transaction. Otherwise requesting transaction aborts.</li>
-</ul>
-</li>
-<li>The second kind of rule is Wound-Wait (“Young Waits for Old”)
-<ul>
-<li>If requesting transaction has higher priority than holding transaction, then holding transaction aborts and releases lock. Otherwise requesting transaction waits.</li>
-</ul>
-</li>
-<li>In this case, only one “type” of direction allowed when waiting for a lock.</li>
-<li>When a transaction restarts, its new priority is still its original timestamp to prevent it from getting starved for resources like an old man at a corrupt senior center.</li>
-</ol>
-<h1 id="lock-granularity"><a class="markdownIt-Anchor" href="#lock-granularity"></a> Lock granularity</h1>
-<h2 id="what-are-the-database-objects"><a class="markdownIt-Anchor" href="#what-are-the-database-objects"></a> What are the database objects?</h2>
-<ol>
-<li>It can be attributes, tuples, pages, tables depending on the lock granularity.</li>
-<li>The trade-off is between parallelism versus overhead of requesting and lock manager processing.</li>
-<li>In a hierachical lock scheme, the objects from top-layer to lower-layer are database, table, page, tuple, attribute.</li>
-</ol>
-<h2 id="how-to-support-multiple-granularities"><a class="markdownIt-Anchor" href="#how-to-support-multiple-granularities"></a> How to support multiple granularities?</h2>
-<ol>
-<li>With only <code>S-LOCK</code> and <code>X-LOCK</code>, we have to check the locks of all children when we try to lock a higher-level node.</li>
-<li>An intention lock allows a higher-level node to be locked in shared or exclusive mode without having to check all descendent nodes.</li>
-<li>If a node is locked in an intention mode, then some transaction is doing explicit locking at a lower level in the tree.
-<ul>
-<li>Intention-Shared (<code>IS</code>) indicates explicit locking at lower level with shared locks.</li>
-<li>Intention-Exclusive (<code>IX</code>) indicates explicit locking at lower level with exclusive locks.</li>
-<li>Shared+Intention-Exclusive (<code>SIX</code>) indicates that the subtree rooted by that node is locked explicitly in shared mode and explicit locking is being done at a lower level with exclusive-mode locks.</li>
-<li>Their compatibility matrix is as followed:<br />
-<img src="/imgs/15445/2pl/intention.png" width="50%"></li>
-</ul>
-</li>
-<li>Each transaction obtains appropriate lock at highest level of the database hierarchy.
-<ul>
-<li>To get <code>S</code> or <code>IS</code> lock on a node, the transaction must hold at least <code>IS</code> on parent node.</li>
-<li>To get <code>X</code>, <code>IX</code>, or <code>SIX</code> on a node, must hold at least <code>IX</code> on parent node.</li>
-</ul>
-</li>
-<li>Multiple lock granularities is shown in the <code>S</code>, <code>X</code>, <code>SIX</code> locks on higher-level objects.
-<ul>
-<li>Intention-Shared (<code>IS</code>): Intent to get <code>S</code> lock(s) at finer granularity.</li>
-<li>Intention-Exclusive (<code>IX</code>): Intent to get <code>X</code> lock(s) at finer granularity.</li>
-<li>Shared+Intention-Exclusive (<code>SIX</code>): Like <code>S</code> and <code>IX</code> at the same time.</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-to-use-locks"><a class="markdownIt-Anchor" href="#how-to-use-locks"></a> How to use locks?</h2>
-<ol>
-<li>Applications typically don’t acquire a transaction’s locks manually (i.e., explicit SQL commands).
-<ul>
-<li>Sometimes you need to provide the DBMS with hints to help it to improve concurrency.</li>
-<li>Explicit locks are also useful when doing major changes to the database.</li>
-</ul>
-</li>
-<li>Lock escalation: The DBMS can automatically switch to coarser- grained locks when a transaction acquires too many low-level locks. This reduces the number of requests that the lock manager must process.</li>
 </ol>
 
       

@@ -146,7 +146,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">42</span>
+          <span class="site-state-item-count">43</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -174,6 +174,134 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/10/30/OpenSource/BusTub/BusTub-Overview/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/10/30/OpenSource/BusTub/BusTub-Overview/" class="post-title-link" itemprop="url">BusTub Overview</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-10-30 20:04:58" itemprop="dateCreated datePublished" datetime="2023-10-30T20:04:58+08:00">2023-10-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-10-31 16:56:41" itemprop="dateModified" datetime="2023-10-31T16:56:41+08:00">2023-10-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/" itemprop="url" rel="index"><span itemprop="name">Open Source Code</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/BusTub/" itemprop="url" rel="index"><span itemprop="name">BusTub</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#shell-execution">Shell execution</a></li>
+</ul>
+</p>
+<h1 id="shell-execution"><a class="markdownIt-Anchor" href="#shell-execution"></a> Shell execution</h1>
+<ol>
+<li>
+<p>The shell (in <a target="_blank" rel="noopener" href="https://github.com/cmu-db/bustub/blob/master/tools/shell/shell.cpp">shell.cpp</a>) uses <code>linenoise</code> to read input lines until a line ending with <code>;</code> or beginning with <code>\</code>.</p>
+<ul>
+<li><code>;</code> means the end of a query while <code>\</code> leads an internal meta-command.</li>
+<li>The backbone of the DBMS is <code>bustub::BustubInstance</code> (in <a target="_blank" rel="noopener" href="https://github.com/cmu-db/bustub/blob/master/src/common/bustub_instance.cpp">bustub_instance.cpp</a>). It is initialized in the beginning of shell.</li>
+<li>After reading the complete query, execute it with the <code>BustubInstance.ExecuteSql</code>. The result is writen in <code>bustub::FortTableWriter</code>.</li>
+</ul>
+</li>
+<li>
+<p>In <code>BustubInstance.ExecuteSqlTxn</code>:</p>
+<ul>
+<li>First determine whether this is an internal meta-command. If so, only executing the corresponding command and exit.</li>
+<li>If this is a query, using <strong><code>bustub::Binder</code></strong> (in <a target="_blank" rel="noopener" href="https://github.com/cmu-db/bustub/blob/master/src/binder/binder.cpp#L45">binder.cpp</a>) to parse the query into an AST. Handle the output format according to the statement type using <code>HandlexxxStatement</code>.</li>
+<li>Then <strong><code>bustub::Planner</code></strong> will plan the query execution according to the generated AST. And <strong><code>bustub::Optimizer</code></strong> will optimize the plan tree with certain rules.</li>
+<li>Then the plan will be executed by <strong><code>ExecutionEngine.Execute</code></strong> (in <a target="_blank" rel="noopener" href="https://github.com/cmu-db/bustub/blob/master/src/include/execution/execution_engine.h#L54">execution_engine.h</a>).</li>
+<li>Finally, the result will be written in the shell with writer.</li>
+</ul>
+</li>
+<li>
+<p>To provide easier format control, the <code>bustub::ResultWriter</code> provides interfaces for standard output.</p>
+<ul>
+<li><code>BeginHeader</code>, <code>EndHeader</code>, <code>BeginRow</code>, <code>EndRow</code> and <code>BeginTable</code>, <code>EndTable</code> to outputpre-defined message.</li>
+<li><code>WriteCell</code> and <code>WriteHeaderCell</code> are used to output data and pre-defined separator.</li>
+<li>Its sub-classes needs to override these methods to perform as they want.
+<ul>
+<li><code>NoopWriter</code> simply does nothing in all these methods.</li>
+<li><code>SimpleStreamWriter</code> will output simple plain text.</li>
+<li><code>HtmlWriter</code> will output the results in HTML code that can be shown in browser.</li>
+<li><code>FortTableWriter</code> uses <code>fort</code> to output table.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -2366,431 +2494,6 @@
 </ul>
 </li>
 </ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/09/26/OpenSource/6.824/6-824-Labs/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/09/26/OpenSource/6.824/6-824-Labs/" class="post-title-link" itemprop="url">6.824 Labs</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-      
-
-      <time title="Created: 2023-09-26 13:57:11 / Modified: 13:59:06" itemprop="dateCreated datePublished" datetime="2023-09-26T13:57:11+08:00">2023-09-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Source-Code/" itemprop="url" rel="index"><span itemprop="name">Open Source Code</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Source-Code/6-824/" itemprop="url" rel="index"><span itemprop="name">6.824</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><ul class="markdownIt-TOC">
-<li><a href="#lab-2-raft">Lab 2: Raft</a>
-<ul>
-<li><a href="#2a-leader-election">2A: Leader election</a></li>
-<li><a href="#2b-log">2B: Log</a></li>
-<li><a href="#2c-persistence">2C: Persistence</a></li>
-<li><a href="#2d-log-compaction">2D: Log compaction</a></li>
-</ul>
-</li>
-<li><a href="#lab-3-fault-tolerant-keyvalue-service">Lab 3: Fault-tolerant Key/Value Service</a></li>
-<li><a href="#lab-4-shardkv">Lab 4: ShardKV</a></li>
-</ul>
-</p>
-<h1 id="lab-2-raft"><a class="markdownIt-Anchor" href="#lab-2-raft"></a> Lab 2: Raft</h1>
-<h2 id="2a-leader-election"><a class="markdownIt-Anchor" href="#2a-leader-election"></a> 2A: Leader election</h2>
-<ol>
-<li><strong>How to count the votes a candidate gotten?</strong>
-<ul>
-<li>The candidate begins a new goroutine to request vote from each server.</li>
-<li>Use a shared variable to track how many votes has the candidate gotten. Each goroutine monitor that after this vote, has the candidate gotten enough votes to become a leader independently.</li>
-<li>When each goroutine received reply from other peers, it needs to check whether the reply is still in the same term as the term where it is now and whether it is still a candidate.
-<ul>
-<li>Only check its state is insufficient. The check of term is to prevent delayed replies arrives in the future election initialed by this server.</li>
-</ul>
-</li>
-<li>My initial thought
-<ul>
-<li>The election goroutine will monitor the process of votes instead of the request goroutines.</li>
-<li>Then the check loop in election goroutine need to sleep after each time it failed. Or the election would be hard to converge.</li>
-<li>I GUESS that the reason is the for-loop never ends and takes too many resources, causing the CPU cannot schedule those RequestVote goroutine and later eletion goroutine in time.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><strong>How to does each server initial an election?</strong>
-<ul>
-<li>A timestamp is used to record the last time heard from leader or candidate. And <code>electionTimeout</code> is set randomly in startup and beginning of election.
-<ul>
-<li>Each time the server wants to change its state into follower, it needs to reset timestamp before switch state, or it may trigger a new election due to the stale timeStamp.</li>
-<li>When the replied term is larger than the term of sending <code>AppendEntries</code>, the leader should known that itself is out-of-date. But before any further settings, it should check that whether the replied term is larger than the term where it is now to prevent this is a stale reply processed with a stale term, causing <code>currectTerm</code> decreasing.</li>
-</ul>
-</li>
-<li><code>ticker()</code> will check whether the time since timestamp is larger than the <code>electionTimeout</code> periodically, and if so, an new election is initiated.
-<ul>
-<li>When the checking is failed, this goroutine should sleep for a short time. But it cannot simply sleep as long as <code>electionTimeout</code>, because the next sleep may be shorter then <code>electionTimeout</code>.</li>
-</ul>
-</li>
-<li>Another way is to set the <code>electionTimeout </code> when checking the condition instead of fixed <code>electionTimeout</code> between two elections.
-<ul>
-<li>But this will cause multiple peers initiate election in short gap. In addition to the unreliable network and the burden of scheduling goroutines, the <code>RequestVote()</code> may not be executed by others immediately and causing severe split brain and re-elections.</li>
-<li>The reason, I GUESS, is that it only need one short sleep time to kick off election. And with a new random sleep time every <code>CHECKTIMEOUT</code> ms, there is a greater probability that one sleep time is short and it actually shortened the <code>electionTimeout</code> I want.</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<h2 id="2b-log"><a class="markdownIt-Anchor" href="#2b-log"></a> 2B: Log</h2>
-<ol>
-<li>
-<p><strong>How does the leader sending log entries to followers?</strong></p>
-<ul>
-<li><code>nextIndex</code> is the lowest indices of entries missed by each peers known by leader.</li>
-<li>There are two situations of sending log entries: the first is when there are some un-replicated entries for some follower, and the second is the heartbeat message.
-<ul>
-<li><code>SyncLogWithFollower(x int)</code> is implemented to check whether server x has some missing entries.</li>
-<li><code>Heartbeat()</code> is implemented to send heartbeat message.</li>
-<li><code>SendEntriesOnceTo(x int)</code> is implemented to actually send log entries to server x.</li>
-<li>The <code>SyncLogWIthFollower()</code> goroutine for each server and the <code>Heartbeat()</code> goroutine is initiated when the server is elected to be leader.</li>
-</ul>
-</li>
-<li>The difference between <code>SyncLogWithFollower()</code> and <code>Heartbeat()</code>
-<ul>
-<li><code>SyncLogWithFollower()</code> sends entries only when there are missing entries in server x. But <code>Heartbeat()</code> always sends entries even when there is no missing entries in which case an empty log is sent.</li>
-<li>The check cycle in <code>SyncLogWithFollower()</code> is way more short than the sending cycle in <code>Heartbeat()</code> to ensure the missing entries can be replicated as soon as possible.</li>
-</ul>
-</li>
-<li>When <code>SyncLogWithFollower()</code> calls <code>SendEntriesOnceTo()</code>, it cannot create a goroutine.
-<ul>
-<li>Because the check cycle in <code>SyncLogWithFollower()</code> is quite short, if the <code>SyncLogWithFollower()</code> goroutine keeps being scheduled, the <code>SendEntriesOnceTo()</code> cannot send entries to follower. And thus <code>SyncLogWithFollower()</code> goroutine keeps creating too many <code>SendEntriesOnceTo()</code> goroutine.</li>
-</ul>
-</li>
-<li>My initial thought
-<ul>
-<li>Start a <code>SendEntriesOnceTo()</code> goroutine for every follower after <code>Start()</code> has added a new log entry to leader’s logs instead of using <code>SyncLogWithFollower()</code> goroutine.</li>
-<li>But when there are concurrent <code>Start()</code>, this may cause mulitple <code>SendEntriesOnceTo()</code> goroutine sending the same RPC to the same follower.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p><strong>How to optimize the consistency check protocol?</strong></p>
-<ul>
-<li>Additional AppenEntries RPC results for fast roll back:
-<ul>
-<li><code>Xterm</code>: the term of the conflicting entry.</li>
-<li><code>Xindex</code>: the first index that is in <code>Xterm</code>.</li>
-<li><code>Xlen</code>: the length of log</li>
-</ul>
-</li>
-<li>Fast roll back implementation:
-<ul>
-<li>If the leader doesn’t have <code>Xterm</code>, then every entries of <code>Xterm</code> in follower’s log will causing conflict. Hence the <code>nextIndex</code> can backup to <code>Xindex</code>.</li>
-<li>If the leader has <code>Xterm</code>, the matching entry in leader’s log must have a term no larger than <code>Xterm</code>. Hence, the <code>nextIndex</code> should backup to the next entry of the last <code>Xterm</code> in leader’s log.</li>
-<li>If the follower’s conflicting is due to empty in <code>prevLogTerm</code>, then <code>Xterm</code> is set to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>, and leader should backup to <code>Xlen</code>.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p><strong>How should a follower accept log entries after passing all consistency check?</strong></p>
-<ul>
-<li>The <code>nextIndex</code> and <code>logs</code> of the leader can be updated by different goroutines of <code>SendEntriesOnce()</code> and <code>Start()</code>. So it is possible that <code>args.Entries</code> are chosen through a stale <code>nextIndex</code> and an up-to-date <code>log</code>, or even a stale <code>nextIndex</code> and a stale <code>log</code>.</li>
-<li>If the <code>nextIndex</code> is stale while the <code>log</code> is up-to-date, i.e. there are some entries after the <code>nextIndex</code> is already replicated by follower.
-<ul>
-<li>Then we need to drop those replicated entries but not all the entries since there still could have some new entries.</li>
-<li>We need to drop those entries with the same index and the same term according to the Log Matching property and append only those different entries.</li>
-<li>I didn’t consider the case of <code>nextIndex</code> being larger than the follower’s replicated indices. Since in this case, transmission won’tsuccess and a fast backup will be triggered.</li>
-</ul>
-</li>
-<li>If both the <code>nextIndex</code> and <code>logs</code> are stale, it is similar to the former situation, since the only additional problem is that it cannot be brought up-to-date by one <code>AppendEntries</code>.</li>
-</ul>
-</li>
-<li>
-<p><strong>How will each server commit index?</strong></p>
-<ul>
-<li><code>commitIndex</code> is the highest index of entries that can commit now. This is included in the <code>AppendEntries</code> arguments from leader to followers.</li>
-<li><code>lastApplied</code> is the highest index of entries that is committed. If <code>lastApplied</code> no larger than <code>commitIndex</code>, then a server can commit the entry next to <code>lastApplied</code>.</li>
-<li>Followers cannot modify <code>commitIndex</code> before the logs are synchronized, since there may have some entries need to wipe out by the leader.</li>
-</ul>
-</li>
-<li>
-<p><strong>How do the leader check which entries can be committed?</strong></p>
-<ul>
-<li>
-<p>My solution</p>
-<ul>
-<li>
-<p><code>matchIndex</code> is used to track the highest indices of entries replicated by each peers.</p>
-</li>
-<li>
-<p>When a group of entries that ends with index <code>i</code> is accepted by one peer, the leader first set the corresponding <code>matchIndex</code> to <code>i</code>.</p>
-</li>
-<li>
-<p>Than check whether a majority of <code>matchIndex</code> is larger than <code>i</code>. If so, than the leader can commit at least until <code>i</code>. Or, it won’t commit any entry.</p>
-</li>
-</ul>
-</li>
-<li>
-<p>Improvement</p>
-<ul>
-<li>When a lagged peer replicated a lot of entries, it may be insufficient to commit the last entry it replicated. But it could be sufficient to commit some earlier entries.</li>
-<li>We only need to commit the k-th largest index in <code>matchIndex</code>.</li>
-</ul>
-</li>
-<li>
-<p>My initial thought</p>
-<ul>
-<li>Track the replication state of each entry instead each peer.</li>
-<li>But the entries are a lot more than peers causing higher time complexity to maintain when a lot of entries are by peers.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p><strong>What is the constraint of committing uncommitted entries of earlier terms?</strong></p>
-<ul>
-<li>A constraint on commit entries is that each leader can only commit entries added in its term. And by committing such entries, they also commit all entries before it. Hence the entries of earlier terms are committed indirectly.</li>
-<li>But there is a corner case that a leader doesn’t receive any entry at the beginning of its term. And those uncommitted entries of earlier terms cannot be committed until the leader received its first entry.</li>
-<li>My solution is that when a server becomes the leader, it will add an empty entry, and by this empty entry, those uncomitted entries can be committed.</li>
-<li>But the test system of 6.824 didn’t consider this case. This implementation will cause all tests failed.</li>
-</ul>
-</li>
-</ol>
-<h2 id="2c-persistence"><a class="markdownIt-Anchor" href="#2c-persistence"></a> 2C: Persistence</h2>
-<ol>
-<li><code>persist()</code> is called only when <code>rf.currentTerm</code>, <code>rf.votedFor</code> or <code>rf.logs</code> is changed. And when they’re changed, the <code>rf.mu</code> lock must be hold by the caller of <code>persist()</code>. In order to make the states stored as soon as possible, I won’t release the lock util <code>persist()</code> is finished.</li>
-<li><strong>When a server restarts, what information should it restore?</strong>
-<ul>
-<li>Naturally, it need to restore its <code>currentTerm</code>, <code>votedFor</code> and <code>logs</code> from the persisted state.</li>
-<li>Then it need to set its <code>lastLogIndex</code> and <code>lastLogTerm</code> appropriately.</li>
-<li>The <code>lastApplied</code>, <code>commitIndex</code> and <code>lastIncludedIndex</code> will be set to the index of the sentinel entry.
-<ul>
-<li>Because the current state is the same state executed until the sentinel entry.</li>
-<li>In the future, if the server finds that other peers have committed later entries, it need to re-execute those entries to achieve the same state.</li>
-</ul>
-</li>
-<li>It should update its <code>lastApplied</code> to the last committed entry according to the commit state in each log entry.</li>
-</ul>
-</li>
-<li>**How to invoke persist()? **
-<ul>
-<li><code>persist()</code> is called only when <code>rf.currentTerm</code>, <code>rf.votedFor</code> or <code>rf.logs</code> is changed.</li>
-<li>When they’re changed, the <code>rf.mu</code> lock must be hold by the caller of <code>persist()</code>. In order to make the states stored as soon as possible, I won’t release the lock util <code>persist()</code> is finished.</li>
-<li>If it is possible to modify the three variables several times before communicate with outside, or release the lock, we just use a variable to mark whether need to persist, instead of really call <code>persist()</code> each time. And only call the <code>persist()</code> at the end.</li>
-</ul>
-</li>
-</ol>
-<h2 id="2d-log-compaction"><a class="markdownIt-Anchor" href="#2d-log-compaction"></a> 2D: Log compaction</h2>
-<ol>
-<li><strong>How to deal with those deleted entries when a server restarts?</strong>
-<ul>
-<li>When a server restores its state from <code>readPersist()</code>, we want it to re-execute those persisted logs.</li>
-<li>But we don’t require to re-execute those deleted entries since we can get to the state of last deleted log by restore snapshot without execution.</li>
-<li>The effect is the same as we have committed those missing entries. So we also need to modify the <code>lastApplied</code> and <code>commitIndex</code> to the last deleted log index before re-executing.</li>
-</ul>
-</li>
-<li><strong>How to take a snapshot?</strong>
-<ul>
-<li>In this lab, the snapshot is naive. It simply stores all the log entries.</li>
-<li>Hence, the server just need to set <code>lastIncludedIndex</code> and <code>lastIncludedTerm</code> appropriately, and remove all the snapshotted entries.</li>
-<li>Also, if the log is empty after removal, we need to insert the sentinel entry back to the entry. Its command is still unimportant.</li>
-</ul>
-</li>
-<li><strong>How to install a snapshot?</strong>
-<ul>
-<li>The snapshot data only contain commands in log entries, so we need to recover the log entries with the snapshot.
-<ul>
-<li>Their indices and commands are easy to understand.</li>
-<li>We only know the <code>lastIncludedterm</code>. Also these entries are already committed in leader. Thus no matter what will happen in the future, these entries will not be overwriten and no <code>AppendEntry</code> will need to compare with these entries except for the last one. Hence for convenient, I set all their terms to the <code>LastIncludedTerm</code>.</li>
-<li>As aforementioned, these entries are already reflected in the snapshot. Thus, there is no need to re-commit them again.</li>
-</ul>
-</li>
-<li>Then we need to determine whether the snapshot contains new information.
-<ul>
-<li><code>FirstUncover</code> is to indicate the first entry in <code>logs</code> that is more up-to-date than the last entry in snapshot.
-<ul>
-<li>If the snapshot contains new information not already in the recipient’s log, then <code>firstUncover == len(rf.logs)</code>.</li>
-<li>If the snapshot describes a prefix of its log, then <code>firstUncover &lt; len(rf.logs)</code>, then we only need to delete the former entries.</li>
-</ul>
-</li>
-<li>I thought that maybe I just need to compare <code>lastLogIndex</code> in server and <code>LastIncludedIndex</code> of snapshot, but this is not sufficient.
-<ul>
-<li>Because some server need to discard the last few entries from ealier leaders, yet not in the logs of the current leader.</li>
-<li>We need to remove the entries whose term is smaller than the <code>LastIncludedTerm</code> of snapshot while whose index is larger than <code>LastIncludedIndex</code> of snapshot.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>If the snapshot contains new information
-<ul>
-<li>We will discard the whole log entries, and insert a new sentinel entry with index equals to <code>LastIncludedIndex</code> and term equals to <code>LastIncludedTerm</code>.</li>
-<li>Then <code>commitIndex</code> and <code>lastApplied</code> need to be updated to <code>LastIncludedIndex</code> since we won’t re-execute those new entries in snapshot.</li>
-<li>It need to be persisted.</li>
-</ul>
-</li>
-<li>If the snapshot describes only a prefix of logs, then discard the covered entries. But don’t discard those covered, yet uncommitted entries and need to leave one entry as sentinel.</li>
-</ul>
-</li>
-<li>If PrevLog is already trimmed, we should find the entry with the same index as the sentinel. And make it the new PrevLog, only accept the entries following it.</li>
-</ol>
-<h1 id="lab-3-fault-tolerant-keyvalue-service"><a class="markdownIt-Anchor" href="#lab-3-fault-tolerant-keyvalue-service"></a> Lab 3: Fault-tolerant Key/Value Service</h1>
-<ol>
-<li><strong>How does Key/Value server execute command from clerk?</strong>
-<ul>
-<li>It will call the <code>Start()</code> function of its associated Raft server. It can safely execute the command until the Raft server commits that command.</li>
-<li>Only the KV server associated with leader Raft server can successfully use <code>Start()</code> to append command to logs.</li>
-<li>But there could be a situation that the network is partitioned, and the clerk connects to a partition leader whose log entry can never be successfully committed. So we need to set a timeout for each command, if it cannot commit in time, the clerk should be informed to find another server.</li>
-</ul>
-</li>
-<li><strong>Can clerk read from follower?</strong>
-<ul>
-<li>In the design described above, clerks can only read or write through the leader, which can make leader the bottleneck of the whole system.</li>
-<li>With another design, read-only operation can be executed through followers, thus providing a speedup for the Get operation.
-<ul>
-<li>When a KV server received a Get operation request, it will request ReadIndex from the Raft leader server.</li>
-<li>Then the raft leader server need to broadcast heartbeat to all followers to confirm that it is still the rightful leader.</li>
-<li>When it heard from a majority followers, it can reply its last CommitIndex as the ReadIndex.</li>
-<li>Then the KV server can execute the Get operation after it has applied at least as up-to-date as the ReadIndex.</li>
-</ul>
-</li>
-<li>In the Raft protocol, a leader can only commit the entries appended in its term. Similarly, a leader can only grant ReadIndex pointing to an entry of its term. Or the result of read may become unlinearizable.
-<ul>
-<li>Consider the case that a leader committed index of <em>x</em>, and granted a ReadIndex of <em>x</em> to its associated KV server. So the KV server returned the result up to index <em>x</em>. But it crashed before sending commit message to other followers. Then a new leader is elected who received a request for ReadIndex. It does not know anything about committing entry <em>x</em>, thus granting a ReadIndex lower than <em>x</em>. Hence the read will return a result unseeing the execution result of entry of index <em>x</em>, which is violated with the linearizablility scheme.</li>
-<li>So the solution is to append an empty entry to the log if the leader hasn’t appended any entry in its term.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><strong>How can we prevent re-execution of an executed command?</strong>
-<ul>
-<li>Each clerk needs to maintain a monotonically increasing index to mark the command it issued.</li>
-<li>Each Key/Value server needs to track the highest index it has executed for each clerk.</li>
-<li>When a Key/Value server receives a new command, it compares the index of the new command with the highest executed index of that clerk. If the command’s index is lower, it can know that this is an executed command, and return the result directly.</li>
-</ul>
-</li>
-<li><strong>How many kind of error could occur when client issues a command?</strong>
-<ul>
-<li>For read-only operation, there could be a key error.</li>
-<li>Except for the read-only operation with follower read, the client may connect to a follower who cannot append a command.</li>
-<li>The client may connect to a server in a minority parition of servers.
-<ul>
-<li>The PutAppend command is appended to the log but cannot commit.</li>
-<li>For the read-only operation with follower read, it connects to its leader, but its leader cannot receive majority response. Hence it cannot acquire a ReadIndex.</li>
-</ul>
-</li>
-<li>For read-only operation with follower read,
-<ul>
-<li>The KV Server is associated with a leader, and its leader set a higher commit index when communicating with majority. But the Raft leader crashed before commit that entry, leaving the KV server keep waiting to apply as up-to-date as the ReadIndex.</li>
-<li>The client may connect to a partition without leader, hence cannot acquire ReadIndex.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><strong>What should be stored in a snapshot?</strong>
-<ul>
-<li>Of course, we need to store the state of all key-value pairs.</li>
-<li>We also need to store the last index executed for each client so far, in order to be able to recognize duplicated commands even after crashed.</li>
-<li>The index of last applied entry is also stored to prevent that the first command after recovery is a read-only operation.</li>
-</ul>
-</li>
-<li><strong>What need to do to recover the state after crashed?</strong>
-<ul>
-<li>First, we need to install the latest snapshot persisted.</li>
-<li>But that is not enough if only the KV server is crashed while the associated Raft server is still running since there might still have some committed entries which is not included in the snapshot, yet applied before crash. The KV server needs to acquire those committed entries to truely bring itself back to the state right before crash.</li>
-</ul>
-</li>
-<li>Execution speed of Get operation:
-<ul>
-<li>When running test without enabling snapshot:
-<ul>
-<li>The time spent for each operation of the un-optimzied implementation will become slower as the number of operation grows. This is because the log of each Raft server becomes larger and larger and becomes slower to persist.</li>
-<li>When executing the Get operation, the log of optimized implementation won’t increase. Hence it won’t slow down the execution.</li>
-<li>When executing <em>3000</em> Get operations, the un-optimized implementation needs about <em>50 ms/op</em>, while the optimized implementation only needs <em>1.7 ms/op</em>, which is about <em>29</em> times speedup.</li>
-</ul>
-</li>
-<li>When running test enabling snapshot:
-<ul>
-<li>The time spent for the un-optimized implementation becomes stable since the log size is now stable. However, when only executing the Get operation, the oprimized implementation does not need the benefit of trimming logs.</li>
-<li>When executing <em>3000</em> Get operations, the un-optimized imlementation need about <em>14.7 ms/op</em>, while the optimized imlementation is still <em>1.7 ms/op</em>, which is about <em>8.6</em> times speedup.</li>
-</ul>
-</li>
-<li>I think that the speedup of optimized read-only scheme comes from two parts: follower concurrency that increased the total bandwidth between clients and servers, and the persisting time saved by eliminating Get operation entries from logs.</li>
-</ul>
-</li>
-<li>Execution speed of PutAppend operation:
-<ul>
-<li>When executing <em>1000</em> Put operations without enabling snapshot, both implementations needs about <em>29.5 ms/op</em>. Executing Append operations needs about the same amount of time.</li>
-<li>When executing <em>1000</em> Put operations enabling snapshot, both implementations needs about <em>13.9 ms/op</em>. Executing Append operations needs about the same amount of time.</li>
-<li>Thus, with snapshot enabled, it can achieve about <em>2.1</em> times speedup. I think the speedup mainly comes from the persisting time saved by shrinking log.</li>
-</ul>
-</li>
-</ol>
-<h1 id="lab-4-shardkv"><a class="markdownIt-Anchor" href="#lab-4-shardkv"></a> Lab 4: ShardKV</h1>
 
       
     </div>
