@@ -2650,7 +2650,7 @@ header.header {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #f5043b;
+  background: #22dbc9;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -2720,4 +2720,11 @@ header.header {
   padding: 25px;
   -webkit-box-shadow: 0 0 5px rgba(202,203,203,0.5);
   -moz-box-shadow: 0 0 5px rgba(202,203,204,0.5);
+}
+code {
+  padding: 2px 4px;
+  overflow-wrap: break-word;
+  background: #f9f2f4;
+  border-radius: 3px;
+  font-size: 18px;
 }
