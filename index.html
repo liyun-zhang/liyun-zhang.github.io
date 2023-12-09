@@ -219,7 +219,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-12-03 12:08:59" itemprop="dateModified" datetime="2023-12-03T12:08:59+08:00">2023-12-03</time>
+      <time title="Modified: 2023-12-09 17:36:34" itemprop="dateModified" datetime="2023-12-09T17:36:34+08:00">2023-12-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -421,6 +421,22 @@
 <li><code>Append(entries []pb.Entry) error</code> append the new entries to storage, i.e. persist Raft entries when this storage is writing to disk.</li>
 </ol>
 <h2 id="project-2b-peerstorage"><a class="markdownIt-Anchor" href="#project-2b-peerstorage"></a> Project 2B: PeerStorage</h2>
+<ol>
+<li>A peer storage needs to maintain the persistence of both Key-Value pairs in this peer and its Raft logs.
+<ul>
+<li>The entries of Raft logs are stored with key <code>LocalPrefix_RegionRaftPrefix_regionID_RaftLogSuffix_entry index</code>.</li>
+</ul>
+</li>
+<li>After acquired a value from <code>*badger.DB</code>, it can be transferred to correct type with the <code>Unmarshal</code> provided by the <code>struct</code> generated from protobuf.</li>
+<li>The core of peer storage is <code>SaveReadyState</code> that will be used by <code>peerMsgHandler.HandleRaftReady</code> to persist according to <code>Ready</code>.
+<ul>
+<li>In <code>ApplySnapshot</code>, if a snapshot is provided, it needs to update <code>ps.raftState</code>, <code>ps.applyState</code>, delete stale data and ask <code>regionRunner</code> to apply the snapshot.</li>
+<li>In <code>Append</code>, if Raft entries are attached, it needs to append the given entries to the raft log and update <code>ps.raftState</code> also delete log entries that will never be committed.</li>
+<li>If <code>HardState</code> is changed, update it.</li>
+<li>Persist all changes.</li>
+</ul>
+</li>
+</ol>
 
       
     </div>
