@@ -4,6 +4,37 @@
   
     
     <entry>
+      <title>Single Raft</title>
+      <link href="/2023/12/09/OpenSource/TinyKV/Single-Raft/"/>
+      <url>/2023/12/09/OpenSource/TinyKV/Single-Raft/</url>
+      
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC"><li><a href="#execution-of-client-commands">Execution of client commands</a></li><li><a href="#tick-control">Tick control</a><ul><li><a href="#snapshot-generation-and-application">Snapshot generation and application</a></li></ul></li></ul></p><h1 id="execution-of-client-commands"><a class="markdownIt-Anchor" href="#execution-of-client-commands"></a> Execution of client commands</h1><img src="/imgs/TiKV/exec.png"><h1 id="tick-control"><a class="markdownIt-Anchor" href="#tick-control"></a> Tick control</h1><ol><li>When the <code>tickerDrive</code> of <code>RaftStore</code> sends a <code>MsgTypeTick</code> to <code>RaftWorker</code>, the <code>peerMsgHandler</code> would check several schedules.</li><li>When <code>PeerTickRaft</code> is up, the Raft node ticker is moved forward.</li><li>When <code>PeerTickRaftLogGC</code> is up and existing applied entries are more then the limit, it will propose a Raft command with administrator request to compact Raft log to the applied index when this request is made.<ul><li>The compaction is only executed when this request is committed.</li><li>The Raft node and peer storage modify their state according to the compact index and term. Then a garbage collection task is sent to the <code>raftLogGCWorker</code> which will remove compacted entries from <code>RaftDB</code>.</li></ul></li><li>When <code>PeerTickSchedulerHeartbeat</code> is up, a <code>SchedulerRegionHeartbeatTask</code> is sent to <code>schedulerWorker</code>.</li></ol><h2 id="snapshot-generation-and-application"><a class="markdownIt-Anchor" href="#snapshot-generation-and-application"></a> Snapshot generation and application</h2><img src="/imgs/TiKV/Snapshot.png">]]></content>
+      
+      
+      <categories>
+          
+          <category> Open Source Code </category>
+          
+          <category> TiKV/TinyKV </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Storage </tag>
+            
+            <tag> TinyKV </tag>
+            
+            <tag> Raft </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Storage: Write and Read</title>
       <link href="/2023/11/24/OpenSource/TinyKV/Storage-Write-and-Read/"/>
       <url>/2023/11/24/OpenSource/TinyKV/Storage-Write-and-Read/</url>

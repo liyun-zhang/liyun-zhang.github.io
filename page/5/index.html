@@ -146,7 +146,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-count">45</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -157,7 +157,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-count">31</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -174,6 +174,279 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/06/25/Courses/15445/05-Index-Concurrency/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/25/Courses/15445/05-Index-Concurrency/" class="post-title-link" itemprop="url">05 Index Concurrency</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-06-25 00:40:22" itemprop="dateCreated datePublished" datetime="2023-06-25T00:40:22+08:00">2023-06-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-09-26 14:00:32" itemprop="dateModified" datetime="2023-09-26T14:00:32+08:00">2023-09-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#concurrency-control">Concurrency control</a>
+<ul>
+<li><a href="#what-is-the-correctness-criteria-of-concurrency-control">What is the correctness criteria of concurrency control?</a></li>
+<li><a href="#what-is-more-specific-difference-between-locks-and-latches">What is more specific difference between locks and latches?</a></li>
+<li><a href="#what-are-the-two-latch-modes">What are the two latch modes?</a></li>
+<li><a href="#what-are-the-different-latch-implementations">What are the different latch implementations?</a></li>
+</ul>
+</li>
+<li><a href="#latching-scheme">Latching scheme</a>
+<ul>
+<li><a href="#hash-table-latching">Hash table latching</a>
+<ul>
+<li><a href="#why-are-deadlocks-not-possible-in-hash-table">Why are deadlocks not possible in hash table?</a></li>
+<li><a href="#how-can-we-design-hash-table-latching">How can we design hash table latching?</a></li>
+</ul>
+</li>
+<li><a href="#btree-latching">B+Tree latching</a>
+<ul>
+<li><a href="#what-should-we-use-latching-to-prevent">What should we use latching to prevent?</a></li>
+<li><a href="#how-should-we-achieve-physical-correctness">How should we achieve physical correctness?</a></li>
+<li><a href="#what-is-the-problem-of-aforementioned-strategy">What is the problem of aforementioned strategy?</a></li>
+<li><a href="#when-will-a-deadlock-occur">When will a deadlock occur?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="concurrency-control"><a class="markdownIt-Anchor" href="#concurrency-control"></a> Concurrency control</h1>
+<h2 id="what-is-the-correctness-criteria-of-concurrency-control"><a class="markdownIt-Anchor" href="#what-is-the-correctness-criteria-of-concurrency-control"></a> What is the correctness criteria of concurrency control?</h2>
+<ol>
+<li>Logical Correctness:
+<ul>
+<li>Can a thread see the data that it is supposed to see? For example, correctly control data race.</li>
+</ul>
+</li>
+<li>Physical Correctness:
+<ul>
+<li>Is the internal representation of the object sound? For example, when fetched a ptr, it will points to a correct address, and it won’t be freed between fetching and accessing.</li>
+</ul>
+</li>
+</ol>
+<h2 id="what-is-more-specific-difference-between-locks-and-latches"><a class="markdownIt-Anchor" href="#what-is-more-specific-difference-between-locks-and-latches"></a> What is more specific difference between locks and latches?</h2>
+<ol>
+<li>What are they used to separate? What are they protecting? How long will they be held?
+<ul>
+<li>Locks are used to separate user transactions accessing the same tuples in database contents. Locks are held in the entire transaction.</li>
+<li>Latches are used to separate threads accessing the same in-memory data structures. Latchs are held in the critical section.</li>
+</ul>
+</li>
+<li>How many modes do they have?
+<ul>
+<li>Locks have four modes: shared, excusive, update, intention.</li>
+<li>Latches only have two modes: read and write.</li>
+</ul>
+</li>
+<li>How do they solve deadlock?
+<ul>
+<li>Locks use detection and resolution by waits-for, timeout or abort.</li>
+<li>Latches can only avoid deadlock by code discipline.</li>
+</ul>
+</li>
+<li>Where are they kept?
+<ul>
+<li>Locks are kept in Lock Manager while latches are kept in protected data structure.</li>
+</ul>
+</li>
+</ol>
+<h2 id="what-are-the-two-latch-modes"><a class="markdownIt-Anchor" href="#what-are-the-two-latch-modes"></a> What are the two latch modes?</h2>
+<ol>
+<li>
+<p>Read mode means that Multiple threads can read the same object at the same time.</p>
+<ul>
+<li>A thread can acquire the read latch if another thread has it in read mode.</li>
+</ul>
+</li>
+<li>
+<p>Write mode onely allows one thread to access the object.</p>
+<ul>
+<li>A thread cannot acquire a write latch if another thread has it in any mode.</li>
+</ul>
+</li>
+<li>
+<p>In the compatibility matrix, only two read mode access is allowed.</p>
+</li>
+</ol>
+<h2 id="what-are-the-different-latch-implementations"><a class="markdownIt-Anchor" href="#what-are-the-different-latch-implementations"></a> What are the different latch implementations?</h2>
+<ol>
+<li>The first is blocking OS Mutex.
+<ul>
+<li>It is simple to use.</li>
+<li>It takes about <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>25</mn><mtext> </mtext><mi>n</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">25\ ns</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mord">5</span><span class="mspace"> </span><span class="mord mathnormal">n</span><span class="mord mathnormal">s</span></span></span></span> per lock/unlock invocation, which means that it is non-scalable.
+<ul>
+<li><code>std::mutex</code> is slower than <code>pthread_mutex</code> and <code>futex</code> is faster than both of them.</li>
+</ul>
+</li>
+<li><code>futex</code> stands for fast userspace mutex.
+<ul>
+<li>It has a userspace spinlock and a heavy-weight OS latch.</li>
+<li>Threads will first try to acquire the userspace lock. If success, then that is good.</li>
+<li>But if failed, the thread will fall back to the OS latch. And OS takes control of the thread with when to schedule it and DBMS can do nothing with the thread. Also <code>syscall</code> is expensive.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>The second approach is reader-writer latches.
+<ul>
+<li>It allows for concurrent readers. Must manage read/write queues to avoid starvation.</li>
+<li>It can be implemented on top of spinlock.</li>
+<li>Still <code>std::shared_mutex</code> is slower than <code>pthread_rwlock</code>.</li>
+</ul>
+</li>
+</ol>
+<h1 id="latching-scheme"><a class="markdownIt-Anchor" href="#latching-scheme"></a> Latching scheme</h1>
+<h2 id="hash-table-latching"><a class="markdownIt-Anchor" href="#hash-table-latching"></a> Hash table latching</h2>
+<h3 id="why-are-deadlocks-not-possible-in-hash-table"><a class="markdownIt-Anchor" href="#why-are-deadlocks-not-possible-in-hash-table"></a> Why are deadlocks not possible in hash table?</h3>
+<ol>
+<li>All threads move in the same direction and only access a single page/slot at a time.
+<ul>
+<li>Hence there are no loop waiting in this scenario.</li>
+</ul>
+</li>
+<li>To resize the table, take a global write latch on the entire table.</li>
+</ol>
+<h3 id="how-can-we-design-hash-table-latching"><a class="markdownIt-Anchor" href="#how-can-we-design-hash-table-latching"></a> How can we design hash table latching?</h3>
+<ol>
+<li>The coarser-grain approach is to use page latches.
+<ul>
+<li>Each page has its own reader-writer latch that protects its entire contents.</li>
+</ul>
+</li>
+<li>The finer-grain approach is to use slot latches.
+<ul>
+<li>Each slot has its own latch.</li>
+<li>It can use a single-mode latch to reduce meta-data and computational overhead.</li>
+</ul>
+</li>
+</ol>
+<h2 id="btree-latching"><a class="markdownIt-Anchor" href="#btree-latching"></a> B+Tree latching</h2>
+<h3 id="what-should-we-use-latching-to-prevent"><a class="markdownIt-Anchor" href="#what-should-we-use-latching-to-prevent"></a> What should we use latching to prevent?</h3>
+<ol>
+<li>Threads trying to modify the contents of a node at the same time. (This is logical correctness, i.e. data race)</li>
+<li>One thread traversing the tree while another thread splits/merges nodes.
+<ul>
+<li>This is physical correctness. Splitting/merging will causing free pointers, nodes or in-node entries.</li>
+<li>This will also cause a problem with logical correctness, i.e. false negative.
+<ul>
+<li>If a thread get the pointer of node which possess the key it want, then before it accesses the node, the key is borrowed by a sibling causing the thread thought the key does not exists.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>When introducing sibling pointers, we may have a deadlock situation.</li>
+</ol>
+<h3 id="how-should-we-achieve-physical-correctness"><a class="markdownIt-Anchor" href="#how-should-we-achieve-physical-correctness"></a> How should we achieve physical correctness?</h3>
+<ol>
+<li>The most naive method is to hold all locks until the entire process is done. But its performance is a disaster.
+<ul>
+<li>We must release some latches when we are sure it is safe.</li>
+<li>According to our goal, a node is safe when we know that it won’t be changed (split, merge or redistribute) when updated.</li>
+<li>We can know a child is safe when its child is not full on insertion or more than half-full on deletion, i.e. any later opereations can be isolated on or below its level.</li>
+</ul>
+</li>
+<li>For find operation, there won’t have any updates. Hence we can always unlatch parent when acquired a R latch on child.</li>
+<li>For insert or delete operation, we need to obtaining W latches as needed. Once child is latched, check if it is safe.
+<ul>
+<li>If the child is safe, we can release all latches on ancestors. The latches should be released from top to bottom to have a better performance.</li>
+</ul>
+</li>
+</ol>
+<h3 id="what-is-the-problem-of-aforementioned-strategy"><a class="markdownIt-Anchor" href="#what-is-the-problem-of-aforementioned-strategy"></a> What is the problem of aforementioned strategy?</h3>
+<ol>
+<li>Every insert/delete operation will take a write latch on the root, which makes the root a bottleneck with higher concurrency.</li>
+<li>We can make the assumption that most modifications to a B+Tree will not require a split or merge.</li>
+<li>Hence, instead of assuming that there will be a split/merge as aforementioned, optimistically traverse the tree using read latches. If the guess is wrong in the end, just repeat traversal with pessimistic algorithm.</li>
+<li>For insert/delete operations, set latches as if for search, get to leaf, and set W latch on leaf. If leaf is not safe, release all latches, and restart thread using previous insert/delete protocol with write latches.</li>
+</ol>
+<h3 id="when-will-a-deadlock-occur"><a class="markdownIt-Anchor" href="#when-will-a-deadlock-occur"></a> When will a deadlock occur?</h3>
+<ol>
+<li>With sibling pointers, we may move from one leaf node to another leaf node where deadlock could occur.</li>
+<li>Latches cannot detect deadlock, so the only solution is to kill one thread.</li>
+<li>The leaf node sibling latch acquisition protocol must support a “no-wait” mode. The DBMS’s data structures must cope with failed latch acquisitions.</li>
+<li>Though some scenario is not a deadlock, the waiting thread cannot know what the other thread is doing, which means it can only kill itself to avoid deadlock.</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 

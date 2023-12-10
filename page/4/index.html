@@ -146,7 +146,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-count">45</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -157,7 +157,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-count">31</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -174,6 +174,253 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/08/22/Courses/15445/12-Multi-Version-Concurrency-Control/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/08/22/Courses/15445/12-Multi-Version-Concurrency-Control/" class="post-title-link" itemprop="url">12 Multi-Version Concurrency Control</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-08-22 15:34:19" itemprop="dateCreated datePublished" datetime="2023-08-22T15:34:19+08:00">2023-08-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-09-26 14:01:00" itemprop="dateModified" datetime="2023-09-26T14:01:00+08:00">2023-09-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#multi-version-logic">Multi-version logic</a>
+<ul>
+<li><a href="#what-does-multi-version-mean">What does multi-version mean?</a></li>
+<li><a href="#how-to-maintain-multi-version-logically">How to maintain multi-version logically?</a></li>
+<li><a href="#what-isolation-can-mvcc-support">What isolation can MVCC support?</a></li>
+</ul>
+</li>
+<li><a href="#design-decisions">Design decisions</a>
+<ul>
+<li><a href="#what-concurrency-control-protocol-can-be-used">What concurrency control protocol can be used?</a></li>
+<li><a href="#how-are-versions-stored">How are versions stored?</a></li>
+<li><a href="#how-to-perform-garbage-collection">How to perform garbage collection?</a></li>
+<li><a href="#how-to-manage-indexes">How to manage indexes?</a></li>
+<li><a href="#how-to-delete-a-tuple">How to delete a tuple?</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="multi-version-logic"><a class="markdownIt-Anchor" href="#multi-version-logic"></a> Multi-version logic</h1>
+<h2 id="what-does-multi-version-mean"><a class="markdownIt-Anchor" href="#what-does-multi-version-mean"></a> What does multi-version mean?</h2>
+<ol>
+<li>
+<p>The DBMS maintains multiple physical versions of a single logical object in the database.</p>
+<ul>
+<li>
+<p>When a txn writes to an object, the DBMS creates a new version of that object.</p>
+</li>
+<li>
+<p>When a txn reads an object, it reads the newest version that existed when the txn started.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Writers do not block readers and readers do not block writers.</p>
+</li>
+<li>
+<p>Read-only txns can read a consistent snapshot without acquiring locks using timestamps to determine visibility.</p>
+</li>
+<li>
+<p>Multi-version can easily support time-travel queries on a snapshot version on database.</p>
+</li>
+</ol>
+<h2 id="how-to-maintain-multi-version-logically"><a class="markdownIt-Anchor" href="#how-to-maintain-multi-version-logically"></a> How to maintain multi-version logically?</h2>
+<ol>
+<li>Each version describes the current version number, the value for this version and the range of lifetime, i.e. the begin and end timestamps.</li>
+<li>End timestamp is marked infinity for the newest version.</li>
+<li>When a transaction writes an object:
+<ul>
+<li>First it creates a new entry with a new version number and setting its begin timestamp as its timestamp and end timestamp being infinity.</li>
+<li>Then it marks the end timestamp of last version as its timestamp.</li>
+<li>Physically this transaction should modifiy the last version to point to this new version. Hence it need to wait for the transaction creating last version to commit to begin its own commit phase.</li>
+</ul>
+</li>
+</ol>
+<h2 id="what-isolation-can-mvcc-support"><a class="markdownIt-Anchor" href="#what-isolation-can-mvcc-support"></a> What isolation can MVCC support?</h2>
+<ol>
+<li><code>SNAPSHOT ISOLATION</code> is another isolation supported by Oracle.
+<ul>
+<li>It guarantees that all reads made in a transaction see a consistent snapshot of the database that existed at the time the transaction started.</li>
+<li>A transaction will commit only if its writes do not conflict with any concurrent updates made since that snapshot.</li>
+</ul>
+</li>
+<li>It is susceptible to write skew anomaly.
+<ul>
+<li>Two concurrent transactions modify different objects resulting in race conditions.</li>
+<li>If a transaction wants to modify all values to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> while another transaction wants to modifiy all values to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>. The first transaction changes all <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>s and the second transaction changes all <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>s. When their result merges to the database, it would be the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>s and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>s are flipped instead of all being <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>s or <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>s.</li>
+</ul>
+</li>
+</ol>
+<h1 id="design-decisions"><a class="markdownIt-Anchor" href="#design-decisions"></a> Design decisions</h1>
+<h2 id="what-concurrency-control-protocol-can-be-used"><a class="markdownIt-Anchor" href="#what-concurrency-control-protocol-can-be-used"></a> What concurrency control protocol can be used?</h2>
+<ol>
+<li>All aforementioned protocols can be used in MVCC.</li>
+<li>Timestamp ordering assigns transactions timestamps to determine what they can see.</li>
+<li>Optimistic concurrency control uses private workspace for new versions.</li>
+<li>Two-phase locking requires transactions to acquire appropriate lock on physical version before they can read/write a logical tuple.</li>
+</ol>
+<h2 id="how-are-versions-stored"><a class="markdownIt-Anchor" href="#how-are-versions-stored"></a> How are versions stored?</h2>
+<ol>
+<li>The DBMS uses the tuples’ pointer field to create a version chain per logical tuple.
+<ul>
+<li>This allows the DBMS to find the version that is visible to a particular txn at runtime.</li>
+<li>Indexes always point to the “head” of the chain.</li>
+</ul>
+</li>
+<li>The first approach is append-only storage: New versions are appended to the same table space.
+<ul>
+<li>The versions of different logical tuples are inter-mixed.</li>
+<li>On every update, append a new version of the tuple into an empty space in the table.</li>
+<li>If the chain is from oldest-to-newest, the DBMS must traverse chain on look-ups. However, the update do not need to update index.</li>
+<li>Or, the chain can be from oldest-to-newest. The pros and cons are contrary with last scenario.</li>
+</ul>
+</li>
+<li>The second approach is time-travel storage: Old versions are copied to separate table space.
+<ul>
+<li>On every update, copy the current version to the time- travel table. Update pointers. Then Overwrite master version in the main table and update pointers.</li>
+</ul>
+</li>
+<li>The third approach is delta storage: The original values of the modified attributes are copied into a separate delta record space.
+<ul>
+<li>On every update, copy only the values that were modified to the delta storage and overwrite the master version.</li>
+<li>Txns can recreate old versions by applying the delta in reverse order.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-perform-garbage-collection"><a class="markdownIt-Anchor" href="#how-to-perform-garbage-collection"></a> How to perform garbage collection?</h2>
+<ol>
+<li>The DBMS needs to remove reclaimable physical versions from the database over time.
+<ul>
+<li>Reclaimable means that no active txn in the DBMS can see that version (SI), or the version was created by an aborted txn.</li>
+<li>To support time-travel queries, the DBMS can only reclaim versions created by an aborted txn.</li>
+</ul>
+</li>
+<li>To look for expired versions, the implementation has two choices.</li>
+<li>The first approach is tuple-level: Find old versions by examining tuples directly.
+<ul>
+<li>In background vacuuming manner, separate thread(s) periodically scan the table and look for reclaimable versions. This design works with any storage.</li>
+<li>In cooperative cleaning manner, worker threads identify reclaimable versions as they traverse version chain. It only works with oldest-to-newest.</li>
+</ul>
+</li>
+<li>The second approach is transaction-level: Txns keep track of their old versions on updates so the DBMS does not have to scan tuples to determine visibility.
+<ul>
+<li>Each txn keeps track of its read/write set. On commit/abort, the txn provides this information to a centralized vacuum worker.</li>
+<li>The DBMS periodically determines when all versions created by a finished txn are no longer visible.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-manage-indexes"><a class="markdownIt-Anchor" href="#how-to-manage-indexes"></a> How to manage indexes?</h2>
+<ol>
+<li>Primary key indexes point to version chain head.
+<ul>
+<li>How often the DBMS must update the primary key index depends on whether the system creates new versions when a tuple is updated.</li>
+<li>If a txn updates a tuple’s primary key attribute(s), then this is treated as a <code>DELETE</code> followed by an <code>INSERT</code>.</li>
+</ul>
+</li>
+<li>Secondary indexes may use the physical address to the version chain head the same way as primary key index.</li>
+<li>The secondary indexes may also use logical pointers.
+<ul>
+<li>It uses a fixed identifier per tuple that does not change, e.g. primary key or tuple ID.</li>
+<li>This would require an extra indirection layer.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-delete-a-tuple"><a class="markdownIt-Anchor" href="#how-to-delete-a-tuple"></a> How to delete a tuple?</h2>
+<ol>
+<li>The DBMS physically deletes a tuple from the database only when all versions of a logically deleted tuple are not visible.</li>
+<li>If a tuple is deleted, then there cannot be a new version of that tuple after the newest version.</li>
+<li>There are two ways to denote that tuple has been logically delete at some point in time.
+<ul>
+<li>The first deleted flag way is to maintain a flag to indicate that the logical tuple has been deleted after the newest physical version. The flag can either be in tuple header or a separate column.</li>
+<li>The second tombstone tuple way is to create an empty physical version to indicate that a logical tuple is deleted.
+<ul>
+<li>It uses a separate pool for tombstone tuples with only a special bit pattern in version chain pointer to reduce the storage overhead.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -3116,279 +3363,6 @@ M834 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">�
 <li>If a <code>Read/WritePageGuard</code> is acquired through <code>FetchPageRead</code> or <code>FetchPageWrite</code>, the latch is acquired inside these functions. However, if a <code>PageGuard</code> is acquired through it construction function, the latch won’t be acquired automatically.</li>
 <li>No matter how <code>Read/WritePageGuard</code> is acquired, the latch will always be released automatically when the <code>PageGuard</code> is deconstructed by deconstructor or move operation.</li>
 <li>In the move assignment, we need to first drop the original page, copy from right reference and finally deconstruct right reference.</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/06/25/Courses/15445/05-Index-Concurrency/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/25/Courses/15445/05-Index-Concurrency/" class="post-title-link" itemprop="url">05 Index Concurrency</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2023-06-25 00:40:22" itemprop="dateCreated datePublished" datetime="2023-06-25T00:40:22+08:00">2023-06-25</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-09-26 14:00:32" itemprop="dateModified" datetime="2023-09-26T14:00:32+08:00">2023-09-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><ul class="markdownIt-TOC">
-<li><a href="#concurrency-control">Concurrency control</a>
-<ul>
-<li><a href="#what-is-the-correctness-criteria-of-concurrency-control">What is the correctness criteria of concurrency control?</a></li>
-<li><a href="#what-is-more-specific-difference-between-locks-and-latches">What is more specific difference between locks and latches?</a></li>
-<li><a href="#what-are-the-two-latch-modes">What are the two latch modes?</a></li>
-<li><a href="#what-are-the-different-latch-implementations">What are the different latch implementations?</a></li>
-</ul>
-</li>
-<li><a href="#latching-scheme">Latching scheme</a>
-<ul>
-<li><a href="#hash-table-latching">Hash table latching</a>
-<ul>
-<li><a href="#why-are-deadlocks-not-possible-in-hash-table">Why are deadlocks not possible in hash table?</a></li>
-<li><a href="#how-can-we-design-hash-table-latching">How can we design hash table latching?</a></li>
-</ul>
-</li>
-<li><a href="#btree-latching">B+Tree latching</a>
-<ul>
-<li><a href="#what-should-we-use-latching-to-prevent">What should we use latching to prevent?</a></li>
-<li><a href="#how-should-we-achieve-physical-correctness">How should we achieve physical correctness?</a></li>
-<li><a href="#what-is-the-problem-of-aforementioned-strategy">What is the problem of aforementioned strategy?</a></li>
-<li><a href="#when-will-a-deadlock-occur">When will a deadlock occur?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</p>
-<h1 id="concurrency-control"><a class="markdownIt-Anchor" href="#concurrency-control"></a> Concurrency control</h1>
-<h2 id="what-is-the-correctness-criteria-of-concurrency-control"><a class="markdownIt-Anchor" href="#what-is-the-correctness-criteria-of-concurrency-control"></a> What is the correctness criteria of concurrency control?</h2>
-<ol>
-<li>Logical Correctness:
-<ul>
-<li>Can a thread see the data that it is supposed to see? For example, correctly control data race.</li>
-</ul>
-</li>
-<li>Physical Correctness:
-<ul>
-<li>Is the internal representation of the object sound? For example, when fetched a ptr, it will points to a correct address, and it won’t be freed between fetching and accessing.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-is-more-specific-difference-between-locks-and-latches"><a class="markdownIt-Anchor" href="#what-is-more-specific-difference-between-locks-and-latches"></a> What is more specific difference between locks and latches?</h2>
-<ol>
-<li>What are they used to separate? What are they protecting? How long will they be held?
-<ul>
-<li>Locks are used to separate user transactions accessing the same tuples in database contents. Locks are held in the entire transaction.</li>
-<li>Latches are used to separate threads accessing the same in-memory data structures. Latchs are held in the critical section.</li>
-</ul>
-</li>
-<li>How many modes do they have?
-<ul>
-<li>Locks have four modes: shared, excusive, update, intention.</li>
-<li>Latches only have two modes: read and write.</li>
-</ul>
-</li>
-<li>How do they solve deadlock?
-<ul>
-<li>Locks use detection and resolution by waits-for, timeout or abort.</li>
-<li>Latches can only avoid deadlock by code discipline.</li>
-</ul>
-</li>
-<li>Where are they kept?
-<ul>
-<li>Locks are kept in Lock Manager while latches are kept in protected data structure.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-are-the-two-latch-modes"><a class="markdownIt-Anchor" href="#what-are-the-two-latch-modes"></a> What are the two latch modes?</h2>
-<ol>
-<li>
-<p>Read mode means that Multiple threads can read the same object at the same time.</p>
-<ul>
-<li>A thread can acquire the read latch if another thread has it in read mode.</li>
-</ul>
-</li>
-<li>
-<p>Write mode onely allows one thread to access the object.</p>
-<ul>
-<li>A thread cannot acquire a write latch if another thread has it in any mode.</li>
-</ul>
-</li>
-<li>
-<p>In the compatibility matrix, only two read mode access is allowed.</p>
-</li>
-</ol>
-<h2 id="what-are-the-different-latch-implementations"><a class="markdownIt-Anchor" href="#what-are-the-different-latch-implementations"></a> What are the different latch implementations?</h2>
-<ol>
-<li>The first is blocking OS Mutex.
-<ul>
-<li>It is simple to use.</li>
-<li>It takes about <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>25</mn><mtext> </mtext><mi>n</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">25\ ns</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mord">5</span><span class="mspace"> </span><span class="mord mathnormal">n</span><span class="mord mathnormal">s</span></span></span></span> per lock/unlock invocation, which means that it is non-scalable.
-<ul>
-<li><code>std::mutex</code> is slower than <code>pthread_mutex</code> and <code>futex</code> is faster than both of them.</li>
-</ul>
-</li>
-<li><code>futex</code> stands for fast userspace mutex.
-<ul>
-<li>It has a userspace spinlock and a heavy-weight OS latch.</li>
-<li>Threads will first try to acquire the userspace lock. If success, then that is good.</li>
-<li>But if failed, the thread will fall back to the OS latch. And OS takes control of the thread with when to schedule it and DBMS can do nothing with the thread. Also <code>syscall</code> is expensive.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>The second approach is reader-writer latches.
-<ul>
-<li>It allows for concurrent readers. Must manage read/write queues to avoid starvation.</li>
-<li>It can be implemented on top of spinlock.</li>
-<li>Still <code>std::shared_mutex</code> is slower than <code>pthread_rwlock</code>.</li>
-</ul>
-</li>
-</ol>
-<h1 id="latching-scheme"><a class="markdownIt-Anchor" href="#latching-scheme"></a> Latching scheme</h1>
-<h2 id="hash-table-latching"><a class="markdownIt-Anchor" href="#hash-table-latching"></a> Hash table latching</h2>
-<h3 id="why-are-deadlocks-not-possible-in-hash-table"><a class="markdownIt-Anchor" href="#why-are-deadlocks-not-possible-in-hash-table"></a> Why are deadlocks not possible in hash table?</h3>
-<ol>
-<li>All threads move in the same direction and only access a single page/slot at a time.
-<ul>
-<li>Hence there are no loop waiting in this scenario.</li>
-</ul>
-</li>
-<li>To resize the table, take a global write latch on the entire table.</li>
-</ol>
-<h3 id="how-can-we-design-hash-table-latching"><a class="markdownIt-Anchor" href="#how-can-we-design-hash-table-latching"></a> How can we design hash table latching?</h3>
-<ol>
-<li>The coarser-grain approach is to use page latches.
-<ul>
-<li>Each page has its own reader-writer latch that protects its entire contents.</li>
-</ul>
-</li>
-<li>The finer-grain approach is to use slot latches.
-<ul>
-<li>Each slot has its own latch.</li>
-<li>It can use a single-mode latch to reduce meta-data and computational overhead.</li>
-</ul>
-</li>
-</ol>
-<h2 id="btree-latching"><a class="markdownIt-Anchor" href="#btree-latching"></a> B+Tree latching</h2>
-<h3 id="what-should-we-use-latching-to-prevent"><a class="markdownIt-Anchor" href="#what-should-we-use-latching-to-prevent"></a> What should we use latching to prevent?</h3>
-<ol>
-<li>Threads trying to modify the contents of a node at the same time. (This is logical correctness, i.e. data race)</li>
-<li>One thread traversing the tree while another thread splits/merges nodes.
-<ul>
-<li>This is physical correctness. Splitting/merging will causing free pointers, nodes or in-node entries.</li>
-<li>This will also cause a problem with logical correctness, i.e. false negative.
-<ul>
-<li>If a thread get the pointer of node which possess the key it want, then before it accesses the node, the key is borrowed by a sibling causing the thread thought the key does not exists.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>When introducing sibling pointers, we may have a deadlock situation.</li>
-</ol>
-<h3 id="how-should-we-achieve-physical-correctness"><a class="markdownIt-Anchor" href="#how-should-we-achieve-physical-correctness"></a> How should we achieve physical correctness?</h3>
-<ol>
-<li>The most naive method is to hold all locks until the entire process is done. But its performance is a disaster.
-<ul>
-<li>We must release some latches when we are sure it is safe.</li>
-<li>According to our goal, a node is safe when we know that it won’t be changed (split, merge or redistribute) when updated.</li>
-<li>We can know a child is safe when its child is not full on insertion or more than half-full on deletion, i.e. any later opereations can be isolated on or below its level.</li>
-</ul>
-</li>
-<li>For find operation, there won’t have any updates. Hence we can always unlatch parent when acquired a R latch on child.</li>
-<li>For insert or delete operation, we need to obtaining W latches as needed. Once child is latched, check if it is safe.
-<ul>
-<li>If the child is safe, we can release all latches on ancestors. The latches should be released from top to bottom to have a better performance.</li>
-</ul>
-</li>
-</ol>
-<h3 id="what-is-the-problem-of-aforementioned-strategy"><a class="markdownIt-Anchor" href="#what-is-the-problem-of-aforementioned-strategy"></a> What is the problem of aforementioned strategy?</h3>
-<ol>
-<li>Every insert/delete operation will take a write latch on the root, which makes the root a bottleneck with higher concurrency.</li>
-<li>We can make the assumption that most modifications to a B+Tree will not require a split or merge.</li>
-<li>Hence, instead of assuming that there will be a split/merge as aforementioned, optimistically traverse the tree using read latches. If the guess is wrong in the end, just repeat traversal with pessimistic algorithm.</li>
-<li>For insert/delete operations, set latches as if for search, get to leaf, and set W latch on leaf. If leaf is not safe, release all latches, and restart thread using previous insert/delete protocol with write latches.</li>
-</ol>
-<h3 id="when-will-a-deadlock-occur"><a class="markdownIt-Anchor" href="#when-will-a-deadlock-occur"></a> When will a deadlock occur?</h3>
-<ol>
-<li>With sibling pointers, we may move from one leaf node to another leaf node where deadlock could occur.</li>
-<li>Latches cannot detect deadlock, so the only solution is to kill one thread.</li>
-<li>The leaf node sibling latch acquisition protocol must support a “no-wait” mode. The DBMS’s data structures must cope with failed latch acquisitions.</li>
-<li>Though some scenario is not a deadlock, the waiting thread cannot know what the other thread is doing, which means it can only kill itself to avoid deadlock.</li>
 </ol>
 
       
