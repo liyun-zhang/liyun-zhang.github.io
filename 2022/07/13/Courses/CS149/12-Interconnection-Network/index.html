@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Interconnection  All parallel processors are connected and form an interconnection network. The interconnection network are used to connect processor cores with other cores, processors and memories,">
+<meta property="og:type" content="article">
+<meta property="og:title" content="12. Interconnection Network">
+<meta property="og:url" content="http://liyun-zhang.github.io/2022/07/13/Courses/CS149/12-Interconnection-Network/index.html">
+<meta property="og:site_name" content="LiyunZhang">
+<meta property="og:description" content="Interconnection  All parallel processors are connected and form an interconnection network. The interconnection network are used to connect processor cores with other cores, processors and memories,">
+<meta property="og:locale">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/CS149/12/1.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/CS149/12/2.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/CS149/12/3.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/CS149/12/4.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/CS149/12/5.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/CS149/12/6.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/CS149/12/7.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/CS149/12/8.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/CS149/12/9.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/CS149/12/10.png">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/CS149/12/11.png">
+<meta property="article:published_time" content="2022-07-13T02:50:56.000Z">
+<meta property="article:modified_time" content="2024-02-09T06:01:11.897Z">
+<meta property="article:author" content="LiyunZhang">
+<meta property="article:tag" content="Parallelism">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://liyun-zhang.github.io/imgs/CS149/12/1.png">
+
+
+<link rel="canonical" href="http://liyun-zhang.github.io/2022/07/13/Courses/CS149/12-Interconnection-Network/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-Hans","comments":true,"permalink":"http://liyun-zhang.github.io/2022/07/13/Courses/CS149/12-Interconnection-Network/","path":"2022/07/13/Courses/CS149/12-Interconnection-Network/","title":"12. Interconnection Network"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>12. Interconnection Network | LiyunZhang</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">LiyunZhang</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#interconnection"><span class="nav-number">1.</span> <span class="nav-text"> Interconnection</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#terminology"><span class="nav-number">1.1.</span> <span class="nav-text"> Terminology</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#design-issues"><span class="nav-number">1.2.</span> <span class="nav-text"> Design issues</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#properties-of-interconnect-topology"><span class="nav-number">1.3.</span> <span class="nav-text"> Properties of interconnect topology</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#interconnect-topologies"><span class="nav-number">2.</span> <span class="nav-text"> Interconnect topologies</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#bus"><span class="nav-number">2.1.</span> <span class="nav-text"> Bus</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#crossbar"><span class="nav-number">2.2.</span> <span class="nav-text"> Crossbar</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ring"><span class="nav-number">2.3.</span> <span class="nav-text"> Ring</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mesh"><span class="nav-number">2.4.</span> <span class="nav-text"> Mesh</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#torus"><span class="nav-number">2.5.</span> <span class="nav-text"> Torus</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#tree"><span class="nav-number">2.6.</span> <span class="nav-text"> Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hypercube"><span class="nav-number">2.7.</span> <span class="nav-text"> Hypercube</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#multi-stage-logarithmic"><span class="nav-number">2.8.</span> <span class="nav-text"> Multi-stage logarithmic</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#buffering-and-flow-control"><span class="nav-number">3.</span> <span class="nav-text"> Buffering and flow control</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#circuit-switched-routing"><span class="nav-number">3.1.</span> <span class="nav-text"> Circuit-switched routing</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#packet-based-flow-control"><span class="nav-number">3.2.</span> <span class="nav-text"> Packet-based flow control</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#wormhole-flow-contorl"><span class="nav-number">3.3.</span> <span class="nav-text"> Wormhole flow contorl</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">LiyunZhang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+  
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/07/13/Courses/CS149/12-Interconnection-Network/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="12. Interconnection Network | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          12. Interconnection Network
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-07-13 10:50:56" itemprop="dateCreated datePublished" datetime="2022-07-13T10:50:56+08:00">2022-07-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-02-09 14:01:11" itemprop="dateModified" datetime="2024-02-09T14:01:11+08:00">2024-02-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="interconnection"><a class="markdownIt-Anchor" href="#interconnection"></a> Interconnection</h1>
+<ol>
+<li>All parallel processors are connected and form an interconnection network.</li>
+<li>The interconnection network are used to connect processor cores with other cores, processors and memories, processor cores and caches, caches and caches, I/O devices.</li>
+<li>The design of the interconnection network has an important impact on system scalability (How large of a system can be built? How easy is it to add more nodes?), system performance and energy efficiency (How fast can cores, caches, memory communicate? How long is latency to memory? How much energy is spent on communication?)</li>
+</ol>
+<h2 id="terminology"><a class="markdownIt-Anchor" href="#terminology"></a> Terminology</h2>
+<ol>
+<li><strong>Network node</strong>: a network endpoint connected to a router/switch, like the processor, the cache controller, or the memory controller</li>
+<li><strong>Network interface</strong>: Connects nodes to the network</li>
+<li><strong>Switch/router</strong>: Connects a fixed number of input links to a fixed number of output links</li>
+<li><strong>Link</strong>: A bundle of wires carrying a signal<br />
+<img src="/imgs/CS149/12/1.png" width="40%"></li>
+</ol>
+<h2 id="design-issues"><a class="markdownIt-Anchor" href="#design-issues"></a> Design issues</h2>
+<ol>
+<li><strong>Topology</strong>: How switches are connected via links. Affects routing, throughput, latency, complexity/cost of implementation.</li>
+<li><strong>Routing</strong>: How a message gets from its source to its destination in the network. Can be static (messages take a predetermined path) or adaptive based on load.</li>
+<li><strong>Buffering and flow control</strong>: What data are stored in the network? packets, partial packets? etc. How does the network manage buffer space?</li>
+</ol>
+<h2 id="properties-of-interconnect-topology"><a class="markdownIt-Anchor" href="#properties-of-interconnect-topology"></a> Properties of interconnect topology</h2>
+<ol>
+<li><strong>Routing distance</strong>: Number of links (“hops”) along a route between two nodes</li>
+<li><strong>Diameter</strong>: the maximum routing distance</li>
+<li><strong>Average distance</strong>: average routing distance over all valid routes</li>
+<li><strong>Direct network</strong>: The switches and nodes are one in the same. The logic of the switch is built into the node itself.</li>
+<li><strong>Indirect network</strong>: The switches are distinct from the nodes that form a chain from one node to the other.</li>
+<li><strong>Blocking or non-blocking</strong>: If connecting any pairing of node simultaneously won’t cause conflict (using the same link or the same switch, assuming that one switch can only handle on message at one time), the network is non-blocking. Otherwise, it is blocking.</li>
+<li><strong>Bisection bandwidth</strong>: A measure of how much connectivity in the network. If we cut the network in half, it is the connection between those two halves, namely the sum bandwidth of all severed links.<br />
+The low bisection bandwidth will be the choke point of the network.</li>
+<li>Latency increases with load (throughput).<br />
+The topology, routing algorithm and flow control each has their own min latency. The zero load or idle latency is the sum of the three min latencies.<br />
+Also, the topology, routing algorithm and flow control each has their own throughput limit. The overall throughput limit is the min of the three limits.</li>
+</ol>
+<h1 id="interconnect-topologies"><a class="markdownIt-Anchor" href="#interconnect-topologies"></a> Interconnect topologies</h1>
+<h2 id="bus"><a class="markdownIt-Anchor" href="#bus"></a> Bus</h2>
+<ol>
+<li>
+<p>Physically, a bus is a wire. But from graph point of view, a bus is a switch.</p>
+</li>
+<li>
+<p>It is simple to design. It costs effective for a small number of nodes. It is easy to implement coherence via snooping</p>
+</li>
+<li>
+<p>Contention: all nodes contend for shared bus</p>
+</li>
+<li>
+<p>Limited bandwidth: all nodes communicate over same wires, and only one communication is allowed at a time.</p>
+</li>
+<li>
+<p>There has a scalibility problem. It is expensive to drive wires across the whole chips. There is quite a lot of power in driving signals on the bus.</p>
+<img src="/imgs/CS149/12/2.png" width="40%">
+</li>
+</ol>
+<h2 id="crossbar"><a class="markdownIt-Anchor" href="#crossbar"></a> Crossbar</h2>
+<ol>
+<li>
+<p>Every node is connected to every other node by a direct connection. The network is non-blocking and indirect (the network is indirect, but the nodes are connected directly).</p>
+</li>
+<li>
+<p>It has <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> latency and high bandwidth.</p>
+</li>
+<li>
+<p>It also has a scalability problem since <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> switches are required. Also it has high cost and is difficult to arbitrate at scale.</p>
+</li>
+<li>
+<p>Crossbars were used in recent multi-core processing from Oracle. In a multi-core chip, the crossbar (CCX) occupies about the same chip area as a core.</p>
+<img src="/imgs/CS149/12/3.png" width="40%">
+</li>
+</ol>
+<h2 id="ring"><a class="markdownIt-Anchor" href="#ring"></a> Ring</h2>
+<ol>
+<li>
+<p>It lets the message to circle around.</p>
+</li>
+<li>
+<p>It is simple enough and quite cheap with only <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span> cost.</p>
+</li>
+<li>
+<p>But the latency is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>, which is very high. And the bisection bandwidth remains constant as nodes are added, which will cause the scalibility problem.</p>
+</li>
+<li>
+<p>It is used in recent Intel architectures, Core i7, and in IBM CELL Broadband Engine. This is usually used on the scale of 4 or 8 elements on the ring.</p>
+</li>
+<li>
+<p>The Intel’s ring interconnect has four rings (request, snoop, ack, 32 bytes of data) and six interconnect nodes (four “slices” of L3 cache, system agent, graphics). Each bank of L3 connected to ring bus twice.</p>
+<img src="/imgs/CS149/12/4.png" width="40%">
+</li>
+</ol>
+<h2 id="mesh"><a class="markdownIt-Anchor" href="#mesh"></a> Mesh</h2>
+<ol>
+<li>
+<p>This is a direct network. It echoes locality in grid-based applications.</p>
+</li>
+<li>
+<p>The cost is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>, and the average latency is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msqrt><mi>N</mi></msqrt><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(\sqrt{N})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.176665em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9266650000000001em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span><span style="top:-2.886665em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg width='400em' height='1.08em' viewBox='0 0 400000 1080' preserveAspectRatio='xMinYMin slice'><path d='M95,702
+c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14
+c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54
+c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10
+s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429
+c69,-144,104.5,-217.7,106.5,-221
+l0 -0
+c5.3,-9.3,12,-14,20,-14
+H400000v40H845.2724
+s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
+c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
+M834 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.11333499999999996em;"><span></span></span></span></span></span><span class="mclose">)</span></span></span></span>.</p>
+</li>
+<li>
+<p>It is easy to lay out on chip since all links have a fixed-length.</p>
+</li>
+<li>
+<p>Path diversity: many ways for message to travel from one node to another</p>
+<img src="/imgs/CS149/12/5.png" width="40%">
+</li>
+</ol>
+<h2 id="torus"><a class="markdownIt-Anchor" href="#torus"></a> Torus</h2>
+<ol>
+<li>
+<p>Characteristics of node in mesh topology are different based on whether node is near edge or middle of network. Torus topology introduces new links to avoid this problem.</p>
+</li>
+<li>
+<p>In torus topology, each row or each column forms a ring by adding a new link to connect the two nodes on the edge.</p>
+</li>
+<li>
+<p>Its cost is still <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>, but higher than 2D mesh. It also has higher path diversity and bisection bandwidth than mesh.</p>
+</li>
+<li>
+<p>However, it has higher complexity and is difficult to layout on chip since its unequal link lengths.</p>
+</li>
+<li>
+<p>Folded torus interleaving rows and columns to eliminate need for long connections. All connections are doubled in length.</p>
+<img src="/imgs/CS149/12/6.png" width="40%">
+</li>
+</ol>
+<h2 id="tree"><a class="markdownIt-Anchor" href="#tree"></a> Tree</h2>
+<ol>
+<li>
+<p>This is a planar, hierarchical topology. Like mesh/torus, it performs good when traffic has locality.</p>
+</li>
+<li>
+<p>The latency is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>l</mi><mi>o</mi><mi>g</mi><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(logN)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span></p>
+</li>
+<li>
+<p>In tree routing, if the signal need to go upward, there is only one option. If the signal need to go downward, we can use <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> to mark go left while <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> to mark go right.<br />
+Everytime, the signal will go upward first until have a common ancestor, then it will go downward.<br />
+If the tree is a complete tree and we assign numbers to the nodes accroding to their inorder traversal starting from zero, then the way to each node from root node is the binary code of the number.</p>
+</li>
+<li>
+<p>Fat tree increases bandwidth between nodes as move upward. It can alleviate root bandwidth problem with higher bandwidth links near root.</p>
+</li>
+<li>
+<p>The number of wires is the same to the height of the subtree. So the bisection bandwidth of fat tree is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>.</p>
+</li>
+<li>
+<p>The fat tree routing is similar to tree routing, but randomly choose when multiple links possible.</p>
+</li>
+<li>
+<p>Constant-width fat tree (folded clos network): All nodes fixed degree, which makes the hardware design simpler. This is used in Infiniband networks.</p>
+<p><img src="/imgs/CS149/12/7.png" width="30%"><img src="/imgs/CS149/12/8.png" width="30%"><img src="/imgs/CS149/12/9.png" width="30%"></p>
+</li>
+</ol>
+<h2 id="hypercube"><a class="markdownIt-Anchor" href="#hypercube"></a> Hypercube</h2>
+<ol>
+<li>
+<p>It has a low latency of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>l</mi><mi>o</mi><mi>g</mi><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(logN)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>. Its number of links is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mi>l</mi><mi>o</mi><mi>g</mi><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(NlogN)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>.</p>
+</li>
+<li>
+<p>6D hypercube used in 64-core Cosmic Cube computer developed at Caltech in the 80s.</p>
+</li>
+<li>
+<p>If the address of two nodes only differs by one bit, then there is a link connecting them.<br />
+So is we want to go from address A to address B, we just do it one bit a time.</p>
+</li>
+<li>
+<p>The problem is that we cannot pack more dimensions to 3D that exists. To implement a higher dimension cube, we need to put enough wires in to make it work. But as we scale up more and more, the wires becomes so much that doesn’t layout well.</p>
+<img src="/imgs/CS149/12/10.png" width="40%">
+</li>
+</ol>
+<h2 id="multi-stage-logarithmic"><a class="markdownIt-Anchor" href="#multi-stage-logarithmic"></a> Multi-stage logarithmic</h2>
+<ol>
+<li>
+<p>It is an indirect network with multiple switches between terminals.</p>
+</li>
+<li>
+<p>The cost is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mi>l</mi><mi>o</mi><mi>g</mi><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(NlogN)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span> while the latency is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>l</mi><mi>o</mi><mi>g</mi><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(logN)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>.</p>
+</li>
+<li>
+<p>It has many variations: Omega, butterfly, Clos networks, etc.</p>
+</li>
+<li>
+<p>In the topology shown below, each switch has two output wires. In the routing, if 0 stands for up and 1 for down, we can also routing according to the binary code of the number of targeting node.<br />
+Here up means that we will take the upper wire, and down means that we will take the lower wire. They don’t always means going up or going down.</p>
+<img src="/imgs/CS149/12/11.png" width="40%">
+</li>
+</ol>
+<h1 id="buffering-and-flow-control"><a class="markdownIt-Anchor" href="#buffering-and-flow-control"></a> Buffering and flow control</h1>
+<ol>
+<li>Circuit switching sets up a full path (acquires all resources) between sender and receiver prior to sending a message. It has higher bandwidth transmission.<br />
+It has no per-packet link management overhead, but does incur overhead to set up/tear down path. And reserving links can result in low utilization.</li>
+<li>Packet switching makes routing decisions per packet. It has an opportunity to use link for a packet whenever link is idle.<br />
+It has overhead due to dynamic switching logic during transmission, but no setup/tear down overhead.</li>
+<li>The granularity of communication from larger to miner is message, packet and flit<br />
+Message is the unit of transfer between network clients, and can be transmitted using many packets.<br />
+Packet is the unit of transfer for network, and can be transmitted using multiple flits.<br />
+Flit (flow control digit) is a unit of flow control in the network. Packets broken into flits.</li>
+<li>A packet consists of header, payload/body and tail.<br />
+Header contains routing and control information, and is at start of packet to router can start forwarding early.<br />
+Payload/body contains the data to be sent.<br />
+Tail contains control information, like error code, and is generally located at end of packet so it can be generated “on the way out”.</li>
+<li>When two packets need to be routed onto the same outbound link at the same time, contention is occurred. There are three options buffer one packet and send it over link later, drop one packet, or reroute one packet (deflection).</li>
+</ol>
+<h2 id="circuit-switched-routing"><a class="markdownIt-Anchor" href="#circuit-switched-routing"></a> Circuit-switched routing</h2>
+<ol>
+<li>Main idea: pre-allocate all resources (links across multiple switches) along entire network path for a message (“setup a flow”)</li>
+<li>Costs:<br />
+Needs setup phase (“probe”) to set up the path (and to tear it down and release<br />
+the resources when message complete)<br />
+Lower link utilization. Transmission of two messages cannot share same link (even if some resources on a preallocated path are no longer utilized during a transmission)</li>
+<li>Benefits:<br />
+No contention during transmission due to preallocation, so no need for buffering<br />
+Arbitrary message sizes (once path is set up, send data until done)</li>
+</ol>
+<h2 id="packet-based-flow-control"><a class="markdownIt-Anchor" href="#packet-based-flow-control"></a> Packet-based flow control</h2>
+<ol>
+<li>Store-and-forward: Packet copied entirely into network switch before moving to next node, which requires buffering for entire packet in each router</li>
+<li>Flow control unit is an entire packet. Different packets from the same message can take different routes, but all data in a packet is transmitted over the same route</li>
+<li>Store-and-forward has high per-packet latency. Its latency <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo></mrow><annotation encoding="application/x-tex">=</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">=</span></span></span></span> packet transmission time on link <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>×</mo></mrow><annotation encoding="application/x-tex">\times</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord">×</span></span></span></span> network distance)</li>
+<li>Cut-through flow control: Switch starts forwarding data on next link as soon as packet header is received, since header determines how much link bandwidth packet requires and where to route.</li>
+<li>Cut-through flow control reduces transmission latency and reduces to store-and-forward under high contention.</li>
+<li>The latency of cut-through flow control is header transmission time <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>×</mo></mrow><annotation encoding="application/x-tex">\times</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord">×</span></span></span></span> network distance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>+</mo></mrow><annotation encoding="application/x-tex">+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord">+</span></span></span></span> rest packet transmission time on one link <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≃</mo></mrow><annotation encoding="application/x-tex">\simeq</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.46375em;vertical-align:0em;"></span><span class="mrel">≃</span></span></span></span> network distance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>+</mo></mrow><annotation encoding="application/x-tex">+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord">+</span></span></span></span> number of packets.</li>
+<li>The difference between store-and-forward and cut-through is whether we parallel the transmission of header and the rest of the packet.</li>
+<li>In cut-through flow control, if output link is blocked (cannot transmit head), transmission of tail can continue. So the switch need to store more data before it can transmit and delete them, which requires switches to have buffering for entire packet, just like store-and-forward.<br />
+The worst case is that entire message is absorbed into a buffer in a switch, namely cut-through flow control degenerates to store-and-forward in this case.</li>
+</ol>
+<h2 id="wormhole-flow-contorl"><a class="markdownIt-Anchor" href="#wormhole-flow-contorl"></a> Wormhole flow contorl</h2>
+<ol>
+<li>Routing information only in head flit, body flits follows head, and tail flit flows body. It looks like that all flits moves to their next switch simultaneously. If head flit blocks, rest of packet stops.</li>
+<li>Its latency <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo></mrow><annotation encoding="application/x-tex">=</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">=</span></span></span></span> header transmission time <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>×</mo></mrow><annotation encoding="application/x-tex">\times</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord">×</span></span></span></span></li>
+<li>Head-of-line blocking problem: The route of the head flit of one packet is free, but blocked behind flit of another packet in buffer while that packet is blocked waiting for a busy link.</li>
+<li>Virtual channel flow control: Multiplex multiple operations over single physical channel, and divide switch’s input buffer into multiple buffers sharing a single physical channel.</li>
+<li>Virtual channel reduces head-of-line blocking.<br />
+It can break cyclic dependency of resources by ensuring requests and responses use different virtual channels to avoid deadlock.<br />
+Also, it provided quality-of-service guarantees. Some virtual channels have higher priority than others</li>
+<li>“Escape” virtual channels: retain at least one virtual channel that uses deadlock-free routing</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Parallelism/" rel="tag"><i class="fa fa-tag"></i> Parallelism</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/07/10/Courses/CS149/11-Memory-Consistency/" rel="prev" title="11. Memory Consistency">
+                  <i class="fa fa-chevron-left"></i> 11. Memory Consistency
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/07/16/Courses/CS149/13-Implementing-Synchronization/" rel="next" title="13. Implementing Synchronization">
+                  13. Implementing Synchronization <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">LiyunZhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css" integrity="sha256-hLTCMFlKxdNgPXyWlSSxYN0ykJmxxq9Yt3MNfdRGWeA=" crossorigin="anonymous">
+
+
+
+</body>
+</html>

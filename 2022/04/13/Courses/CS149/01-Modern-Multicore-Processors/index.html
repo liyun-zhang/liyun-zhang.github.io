@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Speedup  Speedup (using P processors) &#x3D; execution time (using 1 processor) &#x2F; execution time (using P processors) When using P processors, we can only get a speedup less than P times. One reason is th">
+<meta property="og:type" content="article">
+<meta property="og:title" content="01. Modern Multicore Processors">
+<meta property="og:url" content="http://liyun-zhang.github.io/2022/04/13/Courses/CS149/01-Modern-Multicore-Processors/index.html">
+<meta property="og:site_name" content="LiyunZhang">
+<meta property="og:description" content="Speedup  Speedup (using P processors) &#x3D; execution time (using 1 processor) &#x2F; execution time (using P processors) When using P processors, we can only get a speedup less than P times. One reason is th">
+<meta property="og:locale">
+<meta property="article:published_time" content="2022-04-13T07:48:23.000Z">
+<meta property="article:modified_time" content="2024-02-09T04:55:18.665Z">
+<meta property="article:author" content="LiyunZhang">
+<meta property="article:tag" content="Parallelism">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://liyun-zhang.github.io/2022/04/13/Courses/CS149/01-Modern-Multicore-Processors/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-Hans","comments":true,"permalink":"http://liyun-zhang.github.io/2022/04/13/Courses/CS149/01-Modern-Multicore-Processors/","path":"2022/04/13/Courses/CS149/01-Modern-Multicore-Processors/","title":"01. Modern Multicore Processors"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>01. Modern Multicore Processors | LiyunZhang</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">LiyunZhang</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#speedup"><span class="nav-number">1.</span> <span class="nav-text"> Speedup</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#parallelism"><span class="nav-number">2.</span> <span class="nav-text"> Parallelism</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ilp"><span class="nav-number">2.1.</span> <span class="nav-text"> ILP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#multi-core"><span class="nav-number">2.2.</span> <span class="nav-text"> Multi-Core</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#simpler-cores"><span class="nav-number">2.2.1.</span> <span class="nav-text"> Simpler cores</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#simd-processing"><span class="nav-number">2.2.2.</span> <span class="nav-text"> SIMD processing</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#simd-on-modern-cpus"><span class="nav-number">2.2.2.1.</span> <span class="nav-text"> SIMD on modern CPUs</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#simd-on-modern-gpus"><span class="nav-number">2.2.2.2.</span> <span class="nav-text"> SIMD on modern GPUs</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#access-memory"><span class="nav-number">3.</span> <span class="nav-text"> Access Memory</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#multi-threading"><span class="nav-number">3.1.</span> <span class="nav-text"> Multi-threading</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cpus-and-gpus"><span class="nav-number">3.2.</span> <span class="nav-text"> CPUs and GPUs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bandwidth"><span class="nav-number">3.3.</span> <span class="nav-text"> Bandwidth</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">LiyunZhang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+  
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/04/13/Courses/CS149/01-Modern-Multicore-Processors/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="01. Modern Multicore Processors | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          01. Modern Multicore Processors
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-04-13 15:48:23" itemprop="dateCreated datePublished" datetime="2022-04-13T15:48:23+08:00">2022-04-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-02-09 12:55:18" itemprop="dateModified" datetime="2024-02-09T12:55:18+08:00">2024-02-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="speedup"><a class="markdownIt-Anchor" href="#speedup"></a> Speedup</h1>
+<ol>
+<li>Speedup (using P processors) = execution time (using 1 processor) / execution time (using P processors)</li>
+<li>When using P processors, we can only get a speedup less than P times.<br />
+One reason is that although cores are in the same chip, when they want to communicate with each other, they have to transmit information through wires, which takes some time.<br />
+Another reason is that the imbalance in work assignment, which caused that one core has too heavy assignment while other cores has nothing to do but wait.<br />
+Communication costs can dominate a parallel computation, severely limiting speedup. Especially when you assign tasks to too many cores, each core gets little computation.</li>
+</ol>
+<h1 id="parallelism"><a class="markdownIt-Anchor" href="#parallelism"></a> Parallelism</h1>
+<p>Why parallelism?<br />
+Before 2004, the performance of single-processor grew exponentially. However, in 2004, Intel hit the Power Density Wall. If you get more than 100 watts in a chip, it goes to hot and will melt. And the battery won’t hold long.</p>
+<h2 id="ilp"><a class="markdownIt-Anchor" href="#ilp"></a> ILP</h2>
+<ol>
+<li>Instruction-Level Parallelism. Extract several instructions from the same instruction stream, and multiple ALU performs multiple operations parallel (within a core). This has to be done in a semantics of program.</li>
+<li>Superscalar processor: exploit ILP within an instruction stream. Parallelism automatically and dynamically discovered by the hardware during execution (not programmer visible)</li>
+<li>Example: Pentium 4<br />
+Its inctruction decoder will yank a whole bunch of instructions out of instruction stream, and map them to a new kind of computation called data flow computation that will track which value is generated and feed which instruction there<br />
+Decoders map them to independent processing units that can each performs a subset of the whole operations.<br />
+Control logics try to predict what’s going on and deal with it when it predicts incorrectly. The Branch Target Buffer keeps a record of all the control flow instructions to predict where they will go again. If it predicts wrong, it will back out and doesn’t commit to those results generated, flushes them away<br />
+Meltdown inspector: This logic leaks informations about what other processors are doing.</li>
+<li>Most available ILP is exploited by a processor capable of issuing four instructions per clock, and only little performance benefit from building a processor that can issue more.</li>
+</ol>
+<h2 id="multi-core"><a class="markdownIt-Anchor" href="#multi-core"></a> Multi-Core</h2>
+<p>Before multi-core era, Majority of chip transistors used to perform operations that help a single instruction stream run fast.<br />
+More transistors mean larger cache, smarter out-of-order logic, smarter branch predictor, etc. Also, more transistors get smaller transistors, and thus higher clock frequencies</p>
+<h3 id="simpler-cores"><a class="markdownIt-Anchor" href="#simpler-cores"></a> Simpler cores</h3>
+<ol>
+<li>It uses increasing transistor count to add more cores to the processor, rather than use transistors to increase sophistication of processor logic that accelerates a single instruction stream (e.g., out-of-order and speculative operations)</li>
+<li>Each core is slower at running a single instruction stream than our original large core, but the sum performance is faster. With a smaller core, the communication cost inside of a chip will be cheaper.</li>
+<li>However, the original programs express no parallelism and run as one thread on one of the processor cores.</li>
+<li>One way to express paralllelism is by using pthreads. It will create threads to deal with tasks we assigned.</li>
+<li>Another way is called data-parallele expression. The programmer declare loop iterations to be independent, and a compiler might automatically generate parallel threaded code</li>
+</ol>
+<h3 id="simd-processing"><a class="markdownIt-Anchor" href="#simd-processing"></a> SIMD processing</h3>
+<ol>
+<li>Amortize cost/complexity of managing an instruction stream across many ALUs. Same instruction broadcast to all ALUs, executed in parallel on all ALUs</li>
+<li>Each core has  an independent vector register set different from the regular register set. And Each core has multiple ALUs to execute the same instruction to different data.</li>
+<li>Only a very structual, carefully written code can do an automatical vectorization by compliers.</li>
+<li>When conditional executions are occurred, it will run the condition first, and create a mask according to the result, which is used to disable the ALUs that should not execute current instructions. Those active ALUs will execute the instructions, and a new mask is created. This procession will continue until all ALUs have execute all conditional instructions they should execute, and then they can execute remaining unconditional codes together again.<br />
+When a core can handle n elements at the same time, the performance in the worst case is 1 / n of the peak performance.</li>
+<li>Instruction stream coherence (“coherent execution”): Same instruction sequence applies to all elements operated upon simultaneously.<br />
+“Divergent” execution: A lack of instruction stream coherence</li>
+<li>Coherent execution is necessary for efficient use of SIMD processing resources. However, coherent execution is not necessary for efficient parallelization across cores, since each core has the capability to fetch/decode a different instruction stream</li>
+</ol>
+<h4 id="simd-on-modern-cpus"><a class="markdownIt-Anchor" href="#simd-on-modern-cpus"></a> SIMD on modern CPUs</h4>
+<ol>
+<li>SSE instructions: 128-bit operations: 4x32 bits or 2x64 bits (4-wide float vectors)<br />
+AVX instructions: 256 bit operations: 8x32 bits or 4x64 bits (8-wide float vectors)<br />
+AVX512 instructions: 512 bit operations: 16x32 bits or 8x64 bits (8-wide float vectors)</li>
+<li>Instructions are generated by the complier. Parallelism is explicitly requested by programmer using intrinsics, and conveyed using parallel language semantics. Finally, it is inferred by dependency analysis of loops by “auto-vectorizing” compiler.</li>
+<li>Explicit SIMD: SIMD parallelization is performed at compile time. We can inspect program binary and see SIMD instructions.</li>
+</ol>
+<h4 id="simd-on-modern-gpus"><a class="markdownIt-Anchor" href="#simd-on-modern-gpus"></a> SIMD on modern GPUs</h4>
+<ol>
+<li>In GPUs, it usually is SPMD (Single Program Multiple Data), and uses SIMD to implement much of the logic.</li>
+<li>Implicit SIMD: Compiler generates a scalar binary (scalar instructions). But N instances of the program are <em>always run</em> together on the processor. In other words, the interface to the hardware itself is data-parallel.</li>
+<li>Hardware (not compiler) is responsible for simultaneously executing the same instruction from multiple instances on different data on SIMD ALUs</li>
+<li>SIMD width of most modern GPUs ranges from 8 to 32</li>
+</ol>
+<h1 id="access-memory"><a class="markdownIt-Anchor" href="#access-memory"></a> Access Memory</h1>
+<ol>
+<li>Memory latency: The amount of time for a memory request (e.g., load, store) from a processor to be serviced by the memory system. Memory “access time” is a measure of latency.</li>
+<li>Memory bandwidth: The rate at which the memory system can provide data to a processor</li>
+<li>Stall: A processor “stalls” when it cannot run the next instruction in an instruction stream because of a dependency on a previous instruction. Accessing memory is a major source of stalls</li>
+<li>One way to reduce stall is reducing latency.<br />
+One stratege is cache, which also provides high bandwidth data transfer to CPU.</li>
+<li>Another way is hiding latency, namely the latency of the memory operation is not changed, it just no longer causes reduced processor utilization.<br />
+One common strategy is the prefetch. All modern CPUs have logic for prefetching data into caches. Prefetching can also reduce performance if the guess is wrong (hogs bandwidth, pollutes caches)<br />
+The other is using multi-threading. The idea is to interleave processing of multiple threads on the same core to hide stalls.</li>
+</ol>
+<h2 id="multi-threading"><a class="markdownIt-Anchor" href="#multi-threading"></a> Multi-threading</h2>
+<ol>
+<li>Key idea of throughput-oriented systems is that potentially increase time to complete work by any one thread, in order to increase overall system throughput when running multiple threads.<br />
+There exists some time when one thread is runnable, but it is not being executed by the processor, since the core is running some other thread.</li>
+<li>With more storing executiong contexts in the cache, the working set per thread is smaller, and the latency hiding ability is higher.<br />
+And since the cache space per thread is less, may go to memory more often. Thus relies heavily on memory bandwidth.<br />
+When the thread is much enough to achieve 100% utilization of the core, additional threads yield no benefit.</li>
+<li>The instruction decoder will choose instructions from multiple threads, and fire them to the execution units the threads shared. And the memory interface unit will detect dependencies automatically.</li>
+<li>Interleaved multi-threading (a.k.a. temporal multi-threading): Each clock, the core chooses a thread, and runs an instruction from the thread on the ALUs</li>
+<li>Simultaneous multi-threading (SMT): Each clock, core chooses instructions from multiple threads to run on ALUs. It is an extension of superscalar CPU design</li>
+<li>The operating system is responsible for mapping your pthreads to the processor’s thread execution contexts</li>
+</ol>
+<h2 id="cpus-and-gpus"><a class="markdownIt-Anchor" href="#cpus-and-gpus"></a> CPUs and GPUs</h2>
+<ol>
+<li>CPU has big caches, few threads, modest memory BW, and rely mainly on caches and prefetching.<br />
+GPU has small caches, many threads, huge memory BW, and rely mainly on multi-threading.</li>
+<li>The bandwidth of GPUs is a lot faster than CPUs.</li>
+<li>In GPUs, ALUs run at twice the clock rate of rest of chip. So each decoded instruction runs on 32 pieces of data on the 16 ALUs over two ALU clocks. (but to the programmer, it behaves like a 32-wide SIMD operation)<br />
+Warp: An instruction operating on a whole vector of data at a time.<br />
+SM: Streaming Multi-processor. Each SM has multiple warp selector. Each selector has multiple ALUs with different functions. The selectors in the same SM have shared momery and L1 cache. And all selectors can run parallel.</li>
+<li>A core can have multiple scalar ALUs and multiple vector ALUs. Each vector ALU can perform either both MUL and ADD or ADD only.<br />
+And the maximum number of threads activated in a core is determined by the number of the execution contexts.</li>
+</ol>
+<h2 id="bandwidth"><a class="markdownIt-Anchor" href="#bandwidth"></a> Bandwidth</h2>
+<ol>
+<li>If processors request data at too high a rate, the memory system cannot keep up. No amount of latency hiding helps this.</li>
+<li>Organize computation to fetch data from memory less often.<br />
+Reuse data previously loaded by the same thread (traditional intra-thread temporal locality optimizations). <br />
+Share data across threads (inter-thread cooperation)</li>
+<li>Request data less often (instead, do more arithmetic: it’s “free”).<br />
+Arithmetic intensity: Ratio of math operations to data access operations in an instruction stream.<br />
+The main point is that programs must have high arithmetic intensity to utilize modern processors efficiently.<br />
+If a data needed can be recalculated in ALUs, than don’t access memory, do the calculation.</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Parallelism/" rel="tag"><i class="fa fa-tag"></i> Parallelism</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/04/18/Courses/CS149/02-Parallel-programming-models/" rel="next" title="02. Parallel programming models">
+                  02. Parallel programming models <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">LiyunZhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css" integrity="sha256-hLTCMFlKxdNgPXyWlSSxYN0ykJmxxq9Yt3MNfdRGWeA=" crossorigin="anonymous">
+
+
+
+</body>
+</html>

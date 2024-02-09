@@ -146,18 +146,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">45</span>
+          <span class="site-state-item-count">61</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-count">33</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -2285,8 +2285,952 @@ to 1. If yes, set to zero. If no, then evict.</li>
 
 
 
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/07/24/Courses/CS149/16-Heterogeneous-Parallelism-and-Hardware-Specialization/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/07/24/Courses/CS149/16-Heterogeneous-Parallelism-and-Hardware-Specialization/" class="post-title-link" itemprop="url">16. Heterogeneous Parallelism and Hardware Specialization</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-07-24 15:20:29" itemprop="dateCreated datePublished" datetime="2022-07-24T15:20:29+08:00">2022-07-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-02-09 12:58:16" itemprop="dateModified" datetime="2024-02-09T12:58:16+08:00">2024-02-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <ol>
+<li>Amdahl’s law in terms of resource limits: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>p</mi><mi>e</mi><mi>e</mi><mi>d</mi><mi>u</mi><mi>p</mi><mo stretchy="false">(</mo><mi>f</mi><mo separator="true">,</mo><mi>n</mi><mo separator="true">,</mo><mi>r</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mrow><mfrac><mrow><mn>1</mn><mo>−</mo><mi>f</mi></mrow><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo></mrow></mfrac><mo>+</mo><mfrac><mi>f</mi><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo><mo>⋅</mo><mfrac><mi>n</mi><mi>r</mi></mfrac></mrow></mfrac></mrow></mfrac></mrow><annotation encoding="application/x-tex">speedup(f, n, r)=\frac{1}{\frac{1-f}{perf(r)}+\frac{f}{perf(r)\cdot\frac{n}{r}}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">s</span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal">e</span><span class="mord mathnormal">d</span><span class="mord mathnormal">u</span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">n</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.877228em;vertical-align:-1.03212em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.51911em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size3 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9584142857142857em;"><span style="top:-2.640785714285714em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.4623857142857144em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mbin mtight">−</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5377857142857143em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size3 size6"></span></span><span class="mbin mtight">+</span><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size3 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9584142857142857em;"><span style="top:-2.5925285714285713em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span><span class="mbin mtight">⋅</span><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size1 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8175600000000001em;"><span style="top:-2.468em;"><span class="pstrut" style="height:3em;"></span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.387em;"><span class="pstrut" style="height:3em;"></span><span class="mord mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.532em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size1 size6"></span></span></span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.4623857142857144em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7874714285714286em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size3 size6"></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.03212em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span>. Here, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>=</mo></mrow><annotation encoding="application/x-tex">f =</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span></span></span></span> fraction of program that is parallelizable, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo></mrow><annotation encoding="application/x-tex">n =</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span></span></span></span> total processing resources, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo></mrow><annotation encoding="application/x-tex">r =</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span></span></span></span> resources dedicated to each processing core, each of the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mi>n</mi><mi>r</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{n}{r}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.040392em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.695392em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span> cores has sequential performance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">perf(r)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mclose">)</span></span></span></span>.</li>
+<li>If a processor has one <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">perf(r)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mclose">)</span></span></span></span> core and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>−</mo><mi>r</mi></mrow><annotation encoding="application/x-tex">n-r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">perf(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> cores, its <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>p</mi><mi>e</mi><mi>e</mi><mi>d</mi><mi>u</mi><mi>p</mi><mo stretchy="false">(</mo><mi>f</mi><mo separator="true">,</mo><mi>n</mi><mo separator="true">,</mo><mi>r</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mrow><mfrac><mrow><mn>1</mn><mo>−</mo><mi>f</mi></mrow><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo></mrow></mfrac><mo>+</mo><mfrac><mi>f</mi><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><mi>n</mi><mo>−</mo><mi>r</mi><mo stretchy="false">)</mo><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></mfrac></mrow></mfrac></mrow><annotation encoding="application/x-tex">speedup(f, n, r)=\frac{1}{\frac{1-f}{perf(r)}+\frac{f}{perf(r)+(n-r)perf(1)}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">s</span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal">e</span><span class="mord mathnormal">d</span><span class="mord mathnormal">u</span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">n</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.702448em;vertical-align:-0.8573399999999999em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.5191100000000004em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size3 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9584142857142857em;"><span style="top:-2.640785714285714em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.4623857142857144em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mbin mtight">−</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5377857142857143em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size3 size6"></span></span><span class="mbin mtight">+</span><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size3 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9584142857142857em;"><span style="top:-2.640785714285714em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span><span class="mbin mtight">+</span><span class="mopen mtight">(</span><span class="mord mathnormal mtight">n</span><span class="mbin mtight">−</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mopen mtight">(</span><span class="mord mtight">1</span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.4623857142857144em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5377857142857143em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size3 size6"></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8573399999999999em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span>.</li>
+<li>Most “real world” applications have complex workload characteristics. The most efficient processor is a heterogeneous mixture of resources, namely use the most efficient tool for the job.</li>
+<li>Supercomputers are energy constrained due to shear scale and overall cost to operate (power for machine and for cooling)<br />
+Datacenters are energy constrained to reduce cost of cooling and reduce physical space requirements.<br />
+Mobile devices are energy constrained due to limited battery life and heat dissipation.</li>
+<li>Challenge of heterogeneous for system designer: what is the right mixture of resources to meet performance, cost, and energy goals?<br />
+Too few throughput oriented resources would lower peak throughput for parallel workloads. Too few sequential processing resources make the overall system limited by sequential part of workload. How much chip area should be dedicated to a specific function. (these resources are taken away from general-purpose processing) Work balance must be anticipated at chip design time</li>
+<li>Challenge to software developer: how to map programs onto a heterogeneous collection of resources?<br />
+Wish to design algorithms that decompose well into components that each map well to different processing components of the machine. The scheduling problem is more complex on a heterogeneous system. Available mixture of resources can dictate choice of algorithm. Software portability and maintenance nightmare.</li>
+<li>Reducing energy consumption should use specialized processing and move less data.</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/07/21/Courses/CS149/15-Transactional-Memory/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/07/21/Courses/CS149/15-Transactional-Memory/" class="post-title-link" itemprop="url">15. Transactional Memory</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-07-21 22:53:19" itemprop="dateCreated datePublished" datetime="2022-07-21T22:53:19+08:00">2022-07-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-02-09 12:58:11" itemprop="dateModified" datetime="2024-02-09T12:58:11+08:00">2024-02-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="transactional-memory"><a class="markdownIt-Anchor" href="#transactional-memory"></a> Transactional memory</h1>
+<ol>
+<li>The declarative programming is that programmer states what to do, not how to do it. System implements synchronization as necessary to ensure atomicity.</li>
+<li>In transaction memory, atomic construct is declarative, which means that programmer states what to do, not how to do it. System implements synchronization as necessary to ensure atomicity.<br />
+System could implement <code>atomic&#123;&#125;</code> using a lock. But programmer has no explicit use or management of locks.<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Traditional method</span></span><br><span class="line"><span class="built_in">lock</span>(mutex);</span><br><span class="line"><span class="comment">//critical code</span></span><br><span class="line"><span class="built_in">unlock</span>(mutex);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Transaction memory</span></span><br><span class="line">atomic &#123;</span><br><span class="line">  <span class="comment">// critical code</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>Memory transaction is an atomic and isolated sequence of memory accesses inspired by database transactions.<br />
+Atomicity requires that upon transaction commit, all memory writes in transaction take effect at once, and on transaction abort, none of the writes appear to take effect as if transaction never happened.<br />
+Isolation means that no other processor can observe writes before transaction commits.<br />
+Serializability is that transactions appear to commit in a single serial order, but the exact order of commits is not guaranteed by semantics of transaction.</li>
+<li>Load-linked, store conditional (LL/SC) is a light version of transactional memory. It has a pair of corresponding instructions (not a single atomic instruction)<br />
+<code>load_linked(x)</code>: load value from address<br />
+<code>store_conditional(x, value)</code>: store value to x, if x hasn’t been written to since<br />
+corresponding LL</li>
+<li>Two read operations won’t cause true contention. In TM, we can allow the parallelism between two read operations. But serialization must be ensured when at least one write operation occurs.</li>
+<li>Transactional memory system is also responsible for processing exceptions decreasing the complexity of programmers from using <code>try-catch</code> statement to manually catching exceptions.<br />
+When an exception inside the atomic block is occurred, transaction is aborted and memory updates are undone.</li>
+<li>Transactional memory system needs composible locks.<br />
+Composing lock-based code can be tricky, which requires system-wide policies to get correct and system-wide policies can break software modularity.<br />
+The following code can end up in a deadlock. TM system should be able to compose the two synchronizations together to avoid the possible deadlock. Programmer can use an <code>atomic&#123;&#125;</code> to correctly represent the two <code>synchronizaed&#123;&#125;</code> structure.<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">function</span><span class="params">(A, B)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">synchronized</span>(A)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">synchronized</span>(B)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="comment">// critical code</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 0</span></span><br><span class="line"><span class="built_in">function</span>(x, y);</span><br><span class="line"></span><br><span class="line"><span class="comment">//thread 1</span></span><br><span class="line"><span class="built_in">function</span>(y, x);</span><br></pre></td></tr></table></figure>
+</li>
+<li><code>Atomic&#123;&#125;</code> is not the same as <code>lock()/unlock()</code>. Atomic is a high-level declaration of atomicity, which does not specify implementation of atomicity. Lock is a low-level blocking primitive that does not provide atomicity or isolation on its own.<br />
+Locks can be used to implement anatomicblock. Also, locks can be used for purposes beyond atomicity, namely we cannot replace all uses of locks with atomic regions.<br />
+Atomic eliminates many data races, but programming with atomic blocks can still suffer from atomicity violations.</li>
+<li>Atomicity violation due to programmer error: Logically atomic code sequence is erroneously separated into two atomic blocks.</li>
+</ol>
+<h1 id="implementing-transactional-memory"><a class="markdownIt-Anchor" href="#implementing-transactional-memory"></a> Implementing transactional memory</h1>
+<h2 id="data-versioning"><a class="markdownIt-Anchor" href="#data-versioning"></a> Data versioning</h2>
+<ol>
+<li>Data versioning manages uncommitted (new) and previously committed (old) versions of data for concurrent transactions. This is used to allow transaction abort.</li>
+<li>Eager versioning updates memory immediately, maintains “undo log” in case of abort.<br />
+When a write happens, the old value is pushed into the undo log and write the new value to memory.<br />
+When a transaction is aborted, we can search the undo log to recover the corresponding state.<br />
+When the transaction is committed, we can discard the undo log of those committed contents.</li>
+<li>Lazy versioning is a deferred update, namely it logs memory updates in transaction write buffer, flushes buffer on commit.<br />
+When a write happens, the new value is pushed into the write buffer and we don’t write the new value to memory.<br />
+When a transaction is aborted, we simply discard the write buffer, and there is no need to modify the memory since we haven’t written anything to it yet.<br />
+When a transaction is committed, we write the data in write buffer to memory and discard the write buffer.</li>
+<li>Eager versioning is faster in commit, since data is already in memory. But it is slower in aborts and has fault tolerance issues (crash in middle of transaction). It write to memory immediately, hoping transaction won’t abort, but deal with aborts when you have to.</li>
+<li>Lazy versioning is faster in abort, which just clears log, has no fault tolerance issues. But it is slower in commits. It only write to memory when you have to.</li>
+</ol>
+<h2 id="conflict-detection-and-resolution"><a class="markdownIt-Anchor" href="#conflict-detection-and-resolution"></a> Conflict detection and resolution</h2>
+<ol>
+<li>This is to decide when to abort. It must detect and handle conflicts, read-write conflict and write-write conflict, between transactions. System must track a transaction’s read set and write set.</li>
+<li>Pessimistic detection checks for conflicts during loads or stores. A hardware implementation will check for conflicts through coherence actions.<br />
+The philosophy is that “I suspect conflicts might happen, so let’s always check to see if one has occurred after each memory operation… if I’m going to have to roll back, might as well do it now to avoid wasted work.”</li>
+<li>Contention manager decides to stall or abort transaction when a conflict is detected. When a conflict is detected before executing (early detection), it can be stalled. When a conflict is detected after executed, then it can only restart.<br />
+When the conflict is caused by two writes, it may raise a livelock, if both threads restart before the other one has finished.</li>
+<li>Optimistic detection detects conflicts when a transaction attempts to commit. Hardware validates write set using coherence actions and gets exclusive access for cache lines in write set.<br />
+The intuition is that “Let’s hope for the best and sort out all the conflicts only when the transaction tries to commit”<br />
+On a conflict, it gives priority to committing transaction. Other transactions may abort later on. On conflicts between committing transactions, use contention manager to decide priority. Optimistic detection won’t cause livelock.</li>
+<li>We can use optimistic and pessimistic schemes together. Several STM systems use optimistic for reads and pessimistic for writes.</li>
+<li>Pessimistic conflict detection (“eager”) can detect conflicts early, and thus undo less work, turn some aborts to stalls. It has no forward progress guarantees, more aborts in some cases. Also, it requires fine-grained communication to check on each load/store.<br />
+Bad: detection on critical path</li>
+<li>Optimistic conflict detection (“lazy” or “commit”) has forward progress guarantees. It requires bulk communication and conflict detection. It detects conflicts late, can still have fairness problems.</li>
+<li>Conflict detection granularity<br />
+Object granularity is software-based techniques. It reduces overhead of time and space, and is close to programmer’s reasoning. But there might have false sharing on large objects.<br />
+Machine word granularity can minimize false sharing, but increases overhead of time and space.<br />
+Cache-line granularity is a compromise between object and word.</li>
+</ol>
+<h2 id="hardware-transactional-memory"><a class="markdownIt-Anchor" href="#hardware-transactional-memory"></a> Hardware transactional memory</h2>
+<ol>
+<li>Data versioning is implemented in caches. Cache the write buffer or the undo log. And add new cache line metadata to track transaction read set and write set.<br />
+Conflict detection is implemented through cache coherence protocol. Coherence lookups detect conflicts between transactions. It works with snooping and directory coherence.</li>
+<li>Register checkpoint must also be taken at transaction begin to restore execution context state on abort.</li>
+<li>Cache lines needs extra bits to track read set and write set.<br />
+<strong>R bit</strong> indicates data read by transaction and is set on loads, while <strong>W bit</strong> indicates data written by transaction and is set on stores. R/W bits gang-cleared on transaction commit or abort.<br />
+R/W bits can be at word or cache-line granularity.<br />
+For eager versioning, need a 2nd cache write for undo log.</li>
+<li>Coherence requests check R/W bits to detect conflicts.<br />
+Observing shared request to W-word is a read-write conflict.<br />
+Observing exclusive (intent to write) request to R-word is a write-read conflict.<br />
+Observing exclusive (intent to write) request to W-word is a write-write conflict.</li>
+<li>Fast two-phase commit<br />
+Validate: request RdX access to write set lines (if needed)<br />
+Commit: gang-reset R and W bits, turns write set data to valid (dirty) data.</li>
+<li>Fast conflict detection and abort<br />
+Check: lookup exclusive requests in the read set and write set<br />
+Abort: invalidate write set, gang-reset R and W bits, restore to register checkpoint</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/07/17/Courses/CS149/14-Fine-grained-Synchronization-and-Lock-free-Programming/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/07/17/Courses/CS149/14-Fine-grained-Synchronization-and-Lock-free-Programming/" class="post-title-link" itemprop="url">14. Fine-grained Synchronization and Lock-free Programming</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-07-17 11:22:54" itemprop="dateCreated datePublished" datetime="2022-07-17T11:22:54+08:00">2022-07-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-02-09 12:58:04" itemprop="dateModified" datetime="2024-02-09T12:58:04+08:00">2024-02-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="fine-grained-synchronization-and-fine-grained-lock"><a class="markdownIt-Anchor" href="#fine-grained-synchronization-and-fine-grained-lock"></a> Fine-grained synchronization and fine-grained lock</h1>
+<ol>
+<li>Data structures are often larger than a single memory location. One solution is to protect the structure with a single lock.<br />
+It is relatively simple to implement correct mutual exclusion for data structure operations. But the operations on the data structure are serialized, which may limit parallel application performance.</li>
+<li>Another solution is “hand-over-hand” locking. We set a lock for each elements in the data structure. Each threads only keeps as less as lock they need, and every time a thread move forward, it unlock the locks they don’t need any more and lock the locks they need now.</li>
+<li>The goal of fine-grained lock is to enable parallelism in data structure operations by Reducing contention for global data structure lock.<br />
+It is tricky to ensure correctness (how to determine when mutual exclusion is required, how to avoid deadlock or livelock).</li>
+<li>It has an overhead of taking a lock each traversal step. There are extra instructions and traversal now involves memory writes. Also, it has extra storage cost, namely a lock per node.</li>
+<li>C++11 has an <code>atomic&lt;T&gt;</code>. It provides atomic read, write, read-modify-write of entire objects. Atomicity may be implemented by mutex or efficiently by processor-supported atomic instructions if <code>T</code> is a basic type.<br />
+It also provides memory ordering semantics for operations before and after atomic operations.</li>
+</ol>
+<h1 id="lock-free-programming"><a class="markdownIt-Anchor" href="#lock-free-programming"></a> Lock-free programming</h1>
+<ol>
+<li>
+<p>Single reader, single writer bounded queue: Only two threads (one producer, one consumer) accessing queue at the same time</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Queue</span> &#123;</span><br><span class="line">  <span class="type">int</span> data[N];</span><br><span class="line">  <span class="type">unsigned</span> head; <span class="comment">// head of queue</span></span><br><span class="line">  <span class="type">unsigned</span> tail; <span class="comment">// next free element</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(Queue* q)</span> </span>&#123;</span><br><span class="line">  q-&gt;head = q-&gt;tail = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// return false if queue is full</span></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">push</span><span class="params">(Queue* q, <span class="type">int</span> value)</span> </span>&#123;</span><br><span class="line">  <span class="comment">// queue is full if tail is element before head</span></span><br><span class="line">  <span class="keyword">if</span> (q-&gt;tail == <span class="built_in">MOD_N</span>(q-&gt;head - <span class="number">1</span>))</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">  q.data[q-&gt;tail] = value;</span><br><span class="line">  q-&gt;tail = <span class="built_in">MOD_N</span>(q-&gt;tail + <span class="number">1</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// returns false if queue is empty</span></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">pop</span><span class="params">(Queue* q, <span class="type">int</span>* value)</span> </span>&#123;</span><br><span class="line">  <span class="comment">// if not empty</span></span><br><span class="line">  <span class="keyword">if</span> (q-&gt;head != q-&gt;tail) &#123;</span><br><span class="line">    *value = q-&gt;data[q-&gt;head];</span><br><span class="line">    q-&gt;head = <span class="built_in">MOD_N</span>(q-&gt;head + <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>Single reader, single writer unbounded queue: Only push modifies <code>tail</code> and <code>reclaim</code>; only pop modifies <code>head</code>.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Node</span> &#123;</span><br><span class="line">  Node* next;</span><br><span class="line">  <span class="type">int</span> value;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Queue</span> &#123;</span><br><span class="line">  Node* head;    <span class="comment">// the element before head of queue</span></span><br><span class="line">  Node* tail;    <span class="comment">// the last element added</span></span><br><span class="line">  Node* reclaim; <span class="comment">// the head of undeleted nodes</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(Queue* q)</span> </span>&#123;</span><br><span class="line">  q-&gt;head = q-&gt;tail = q-&gt;reclaim = <span class="keyword">new</span> Node;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">push</span><span class="params">(Queue* q, <span class="type">int</span> value)</span> </span>&#123;</span><br><span class="line">  Node* n = <span class="keyword">new</span> Node;</span><br><span class="line">  n-&gt;next = <span class="literal">NULL</span>;</span><br><span class="line">  n-&gt;value = value;</span><br><span class="line">  q-&gt;tail-&gt;next = n;</span><br><span class="line">  q-&gt;tail = q-&gt;tail-&gt;next;</span><br><span class="line">  <span class="comment">// delete all nodes between reclaim and head</span></span><br><span class="line">  <span class="keyword">while</span> (q-&gt;reclaim != q-&gt;head) &#123;</span><br><span class="line">    Node* tmp = q-&gt;reclaim;</span><br><span class="line">    q-&gt;reclaim = q-&gt;reclaim-&gt;next;</span><br><span class="line">    <span class="keyword">delete</span> tmp;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// returns false if queue is empty</span></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">pop</span><span class="params">(Queue* q, <span class="type">int</span>* value)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (q-&gt;head != q-&gt;tail) &#123;</span><br><span class="line">    *value = q-&gt;head-&gt;next-&gt;value;</span><br><span class="line">    q-&gt;head = q-&gt;head-&gt;next;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>Lock-free stack: the main idea is that as long as no other thread has modified the stack, a thread’s modification can proceed. The <code>compare_and_swap</code> operation is atomic, but doesn’t need to hold any other lock on data structure.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Node</span> &#123;</span><br><span class="line">  Node* next;</span><br><span class="line">  <span class="type">int</span> value;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Stack</span> &#123;</span><br><span class="line">  Node* top;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(Stack* s)</span> </span>&#123;</span><br><span class="line">  s-&gt;top = <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">push</span><span class="params">(Stack* s, Node* n)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    Node* old_top = s-&gt;top;</span><br><span class="line">    n-&gt;next = old_top;</span><br><span class="line">    <span class="comment">// Check whether the current top is the old top, </span></span><br><span class="line">    <span class="comment">// if true, set the current top to n; or get a new top</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">compare_and_swap</span>(&amp;s-&gt;top, old_top, n) == old_top)</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Node* <span class="title">pop</span><span class="params">(Stack* s)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    Node* old_top = s-&gt;top;</span><br><span class="line">    <span class="keyword">if</span> (old_top == <span class="literal">NULL</span>)</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    Node* new_top = old_top-&gt;next;</span><br><span class="line">    <span class="comment">// if the top is still the old top, return old top and set to new top</span></span><br><span class="line">    <span class="comment">// or get a new top</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">compare_and_swap</span>(&amp;s-&gt;top, old_top, new_top) == old_top)</span><br><span class="line">      <span class="keyword">return</span> old_top;  <span class="comment">// Assume that consumer then recycles old_top</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>The above push operation is fine, but the pop operation may have some error.<br />
+After thread0 stored the <code>old_top</code>, if thread1 pops the <code>old_top</code> out, modifies the stack, and pushes the <code>old_top</code> into stack again, then the <code>compare_and_swap</code> operation of thread0 will pass. Namely, thread0 cannot realize that the stack has already been modified.</p>
+</li>
+<li>
+<p>One solution is adding a <code>pop_counter</code> to check whether other pop operations happened.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Node</span> &#123;</span><br><span class="line">  Node* next;</span><br><span class="line">  <span class="type">int</span> value;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Stack</span> &#123;</span><br><span class="line">  Node* top;</span><br><span class="line">  <span class="type">int</span> pop_count;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(Stack* s)</span> </span>&#123;</span><br><span class="line">  s-&gt;top = <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">push</span><span class="params">(Stack* s, Node* n)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    Node* old_top = s-&gt;top;</span><br><span class="line">    n-&gt;next = old_top;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">compare_and_swap</span>(&amp;s-&gt;top, old_top, n) == old_top)</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Node* <span class="title">pop</span><span class="params">(Stack* s)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="type">int</span> pop_count = s-&gt;pop_count;</span><br><span class="line">    Node* top = s-&gt;top;</span><br><span class="line">    <span class="keyword">if</span> (top == <span class="literal">NULL</span>)</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    Node* new_top = top-&gt;next;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">double_compare_and_swap</span>(&amp;s-&gt;top, top, new_top,</span><br><span class="line">                                &amp;s-&gt;pop_count, pop_count, pop_count+<span class="number">1</span>))</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">return</span> top;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>Another solution of ABA problem is hazard pointers. The ABA problem is caused by the reuse of the <code>old_top</code>. We can use the hazard pointers to track all <code>old_top</code>s, and ode cannot be recycled or reused if matches any hazard pointer.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Node</span> &#123;</span><br><span class="line">  Node* next;</span><br><span class="line">  <span class="type">int</span> value;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Stack</span> &#123;</span><br><span class="line">  Node* top;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">Node *hazard[NUM_THREADS];</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(Stack* s)</span> </span>&#123;</span><br><span class="line">  s-&gt;top = <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">push</span><span class="params">(Stack* s, Node* n)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    Node* old_top = s-&gt;top;</span><br><span class="line">    n-&gt;next = old_top;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">compare_and_swap</span>(&amp;s-&gt;top, old_top, n) == old_top)</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Node* <span class="title">pop</span><span class="params">(Stack* s)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    hazard[t] = s-&gt;top;</span><br><span class="line">    Node* top = hazard[t];</span><br><span class="line">    <span class="keyword">if</span> (top == <span class="literal">NULL</span>)</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    Node* new_top = top-&gt;next;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">compare_and_swap</span>(&amp;s-&gt;top, top, new_top))</span><br><span class="line">      <span class="keyword">return</span> top;  <span class="comment">// Caller must clear hazard[t] when it’s done with top</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>Lock-free linked list insertion: assumes the only operation on the list is insert. Supporting lock-free deletion significantly complicates data-structure.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Node</span> &#123;</span><br><span class="line">  <span class="type">int</span> value;</span><br><span class="line">  Node* next;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">List</span> &#123;</span><br><span class="line">  Node* head;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// insert new node after specified node</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">insert_after</span><span class="params">(List* list, Node* after, <span class="type">int</span> value)</span> </span>&#123;</span><br><span class="line">  Node* n = <span class="keyword">new</span> Node;</span><br><span class="line">  n-&gt;value = value;</span><br><span class="line">  <span class="comment">// assume case of insert into empty list handled</span></span><br><span class="line">  <span class="comment">// here (keep code on slide simple for class discussion)</span></span><br><span class="line">  Node* prev = list-&gt;head;</span><br><span class="line">  <span class="keyword">while</span> (prev-&gt;next) &#123;</span><br><span class="line">    <span class="keyword">if</span> (prev == after) &#123;</span><br><span class="line">      <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">        Node* old_next = prev-&gt;next;</span><br><span class="line">        n-&gt;next = old_next;</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">compare_and_swap</span>(&amp;prev-&gt;next, old_next, n) == old_next)</span><br><span class="line">          <span class="keyword">return</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    prev = prev-&gt;next;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>If only your program is using the machine, well written code with locks can be as fast (or faster) than lock-free code.<br />
+But there are situations where code with locks can suffer from tricky performance problems. Like multi-programmed situations where page faults, pre-emption, etc. can occur while thread is in a critical section</p>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/07/16/Courses/CS149/13-Implementing-Synchronization/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/07/16/Courses/CS149/13-Implementing-Synchronization/" class="post-title-link" itemprop="url">13. Implementing Synchronization</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-07-16 11:05:13" itemprop="dateCreated datePublished" datetime="2022-07-16T11:05:13+08:00">2022-07-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-02-09 12:58:00" itemprop="dateModified" datetime="2024-02-09T12:58:00+08:00">2024-02-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="implementing-locks"><a class="markdownIt-Anchor" href="#implementing-locks"></a> Implementing locks</h1>
+<ol>
+<li>Three phases of a synchronization event：<br />
+Acquire method: How a thread attempts to gain access to protected resource?<br />
+Waiting algorithm: How a thread waits for access to be granted to shared resource?<br />
+Release method: How thread enables other threads to gain resource when its work in the synchronized region is complete?</li>
+<li>Busy waiting (spinning): <code>while (condition X not true) ;</code></li>
+<li>Blocking synchronization: <code>if (condition X not true) block until true;</code><br />
+If progress cannot be made because a resource cannot be acquired, it is desirable to free up execution resources for another thread and preempt the running thread.</li>
+<li>Busy-waiting can be preferable to blocking if scheduling overhead is larger than expected wait time or processor’s resources are not needed for other tasks.<br />
+The later situation is often the case in a parallel program since we usually don’t oversubscribe a system when running a performance-critical parallel app</li>
+<li>Desirable lock performance characteristics:<br />
+<strong>Low latency</strong>: If lock is free and no other processors are trying to acquire it, a processor should be able to acquire the lock quickly<br />
+<strong>Low interconnect traffic</strong>: If all processors are trying to acquire lock at once, they should acquire the lock in succession with as little traffic as possible<br />
+<strong>Scalability</strong>: Latency / traffic should scale reasonably with number of processors<br />
+<strong>Low storage cost</strong><br />
+<strong>Fairness</strong>: Avoid starvation or substantial unfairness. One ideal is that processors should acquire lock in the order they request access to it</li>
+</ol>
+<h2 id="test-and-set-lock"><a class="markdownIt-Anchor" href="#test-and-set-lock"></a> Test-and-set lock</h2>
+<h3 id="simple-test-and-set-lock"><a class="markdownIt-Anchor" href="#simple-test-and-set-lock"></a> Simple test-and-set lock</h3>
+<ol>
+<li>The following spin lock has data race because LOAD-TEST-STORE is not atomic.<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">// Lock</span><br><span class="line">ld   R0, mem[addr]  // load word into R0</span><br><span class="line">cmp  R0, #0          // compare R0 to 0</span><br><span class="line">bnz  lock            // if nonzero jump to top</span><br><span class="line">st   mem[addr], #1  // set lock to 1</span><br><span class="line"></span><br><span class="line">// Unlock</span><br><span class="line">st   mem[addr], #0  // set lock to 0</span><br></pre></td></tr></table></figure>
+</li>
+<li>So we need an atomic test-and-set instruction<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ts R0, mem[addr]  // load mem[addr] into R0</span><br><span class="line">                  // if mem[addr] is 0, set mem[addr] to 1</span><br><span class="line">                  </span><br><span class="line">// Lock</span><br><span class="line">ts   R0, mem[addr]  // load word into R0</span><br><span class="line">bnz  R0, lock        // if nonzero jump to top</span><br><span class="line"></span><br><span class="line">// Unlock</span><br><span class="line">st   mem[addr], #0  // store 0 to address</span><br></pre></td></tr></table></figure>
+</li>
+<li>Everytime a processor execute the <code>ts</code> instruction will send a BusRdX signal and invalidate the lock in all other processor’s cache. When there are many processors trying to execute on the same lock, the coherence traffic may be heavy.<br />
+This lock generates one invalidation per waiting processor per test.</li>
+<li>Bus contention increases amount of time to transfer lock since lock holder must wait to acquire bus to release. Bus contention also slows down execution of critical section.</li>
+<li>In x86, we can do the atomic compare and exchange by <code>lock cmpxchg src, dst</code> instruction. The <code>lock</code> prefix makes the operation atomic. The logic of the instruction is as followed:<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (dst == %eax)  <span class="comment">// eax is the x86 accumulator register</span></span><br><span class="line">  ZF = <span class="number">1</span>          <span class="comment">// ZF is a flag registor</span></span><br><span class="line">dst = src <span class="keyword">else</span></span><br><span class="line">  ZF = <span class="number">0</span></span><br><span class="line">  %eax = dst</span><br></pre></td></tr></table></figure>
+</li>
+<li>Simple test-and-set lock has low latency (under low contention), high traffic, poor scaling, low storage cost (one int), no provisions for fairness.</li>
+</ol>
+<h3 id="test-and-set-lock-with-back-off"><a class="markdownIt-Anchor" href="#test-and-set-lock-with-back-off"></a> Test-and-set lock with back off</h3>
+<ol>
+<li>
+<p>Upon failure to acquire lock, delay for awhile before retrying.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">Lock</span><span class="params">(<span class="keyword">volatile</span> <span class="type">int</span>* lock)</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> amount = <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">test_and_set</span>(lock) == <span class="number">0</span>)</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    <span class="built_in">delay</span>(amount);</span><br><span class="line">    amount *= <span class="number">2</span>;</span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>It has the same uncontended latency as test-and-set, but potentially higher latency under contention due to that the waiting processor may be still in delaying even when the lock is available.</p>
+</li>
+<li>
+<p>It Generates less traffic than test-and-set since it is not continually attempting to acquire lock. It improves scalability due to less traffic.</p>
+</li>
+<li>
+<p>Storage cost unchanged (still one int for lock)</p>
+</li>
+<li>
+<p>Exponential back-off can cause severe unfairness. Newer requesters back off for shorter intervals</p>
+</li>
+</ol>
+<h3 id="test-and-test-and-set-lock"><a class="markdownIt-Anchor" href="#test-and-test-and-set-lock"></a> Test-and-test-and-set lock</h3>
+<ol>
+<li>
+<p>To prevent the coherence traffic problem, we can test first and do the test-and-set only if the earlier test has passed.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">Lock</span><span class="params">(<span class="keyword">volatile</span> <span class="type">int</span>* lock)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">while</span> (*lock != <span class="number">0</span>) ;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">test_and_set</span>(lock) == <span class="number">0</span>)</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Unlock</span><span class="params">(<span class="keyword">volatile</span> <span class="type">int</span>* lock)</span> </span>&#123;</span><br><span class="line">  *lock = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>This lock has slightly higher latency than test-and-set in uncontended case, but generates much less interconnect traffic. Only One invalidation is generated per waiting processor per lock release.<br />
+Namely, only <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>P</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(P)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mclose">)</span></span></span></span> invalidation and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>P</mi><mn>2</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(P^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> interconnect traffic.</p>
+</li>
+<li>
+<p>It is more scalable due to less traffic, storage cost unchanged (still one int), and still no provisions for fairness.</p>
+</li>
+</ol>
+<h2 id="ticket-lock"><a class="markdownIt-Anchor" href="#ticket-lock"></a> Ticket lock</h2>
+<ol>
+<li>The test-and-set style locks cannot provide for fairness because all waiting processors attempt to acquire lock using test-and-set upon release.</li>
+<li>We can assign each thread a number when they try to acquire the lock. And everytime, we give the lock to the waiting thread with smallest number.<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">lock</span> &#123;</span><br><span class="line">  <span class="keyword">volatile</span> <span class="type">int</span> next_ticket;</span><br><span class="line">  <span class="keyword">volatile</span> <span class="type">int</span> now_serving;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Lock</span><span class="params">(lock* lock)</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> my_ticket = <span class="built_in">atomic_increment</span>(&amp;lock-&gt;next_ticket);  <span class="comment">// take a “ticket”</span></span><br><span class="line">  <span class="keyword">while</span> (my_ticket != lock-&gt;now_serving);                <span class="comment">//wait for number</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">unlock</span><span class="params">(lock* lock)</span> </span>&#123;</span><br><span class="line">  lock-&gt;now_serving++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>There is no atomic operation needed to acquire the lock. Only a read is needed when acquiring the lock, and write only happens when the lock is released. So only one invalidation is generated per lock release, namely <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>P</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(P)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mclose">)</span></span></span></span> interconnect traffic.</li>
+</ol>
+<h2 id="array-based-lock"><a class="markdownIt-Anchor" href="#array-based-lock"></a> Array-based lock</h2>
+<ol>
+<li>
+<p>Each processor spins on a different memory address. And utilizes atomic operation to assign address on attempt to acquire.<br />
+If there are two barriers, after some threads passed the first barrier, they might set the <code>flag</code> to 0 even if some other threads haven’t passed the first barrier yet causing those slower threads waiting.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">lock</span> &#123;</span><br><span class="line">  <span class="keyword">volatile</span> padded_int status[P];  <span class="comment">// padded to keep off same cache line</span></span><br><span class="line">  <span class="keyword">volatile</span> <span class="type">int</span> head;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> my_element;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Lock</span><span class="params">(lock* lock)</span> </span>&#123;</span><br><span class="line">  my_element = <span class="built_in">atomic_circ_increment</span>(&amp;lock-&gt;head);  <span class="comment">// assume modular increment </span></span><br><span class="line">  <span class="keyword">while</span> (lock-&gt;status[my_element] == <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">unlock</span><span class="params">(lock* lock)</span> </span>&#123;</span><br><span class="line">  lock-&gt;status[my_element] = <span class="number">1</span>;</span><br><span class="line">  lock-&gt;status[<span class="built_in">circ_next</span>(my_element)] = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>The lock only requires <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> interconnect traffic per release, but requires space linear in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>P</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(P)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mclose">)</span></span></span></span>.</p>
+</li>
+<li>
+<p>The atomic circular increment is a more complex operation. So the lock has a higher overhead.</p>
+</li>
+<li>
+<p>Queue-based Lock (MCS lock): Create a queue of waiters. Each thread allocates a local space on which to wait.</p>
+</li>
+</ol>
+<h1 id="implementing-barrier"><a class="markdownIt-Anchor" href="#implementing-barrier"></a> Implementing barrier</h1>
+<ol>
+<li>The following code uses <code>counter</code> to count how many threads have hit the barrier. The last thread hit the barrier wil release all of them.<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Barrier_t</span> &#123;</span><br><span class="line">   LOCK lock;</span><br><span class="line">  <span class="type">int</span> counter;  <span class="comment">// initialize to 0</span></span><br><span class="line">  <span class="type">int</span> flag;      <span class="comment">// the flag field should probably be padded to </span></span><br><span class="line">                <span class="comment">// sit on its own cache line. </span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// barrier for p processors</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Barrier</span><span class="params">(Barrier_t* b, <span class="type">int</span> p)</span> </span>&#123;</span><br><span class="line">  <span class="built_in">lock</span>(b-&gt;lock);</span><br><span class="line">  <span class="keyword">if</span> (b-&gt;counter == <span class="number">0</span>) &#123;</span><br><span class="line">    b-&gt;flag = <span class="number">0</span>; <span class="comment">// first thread arriving at barrier clears flag </span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="type">int</span> num_arrived = ++(b-&gt;counter);</span><br><span class="line">  <span class="built_in">unlock</span>(b-&gt;lock);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (num_arrived == p) &#123; <span class="comment">// last arriver sets flag b-&gt;counter = 0;</span></span><br><span class="line">    b-&gt;flag = <span class="number">1</span>;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">while</span> (b-&gt;flag == <span class="number">0</span>); <span class="comment">// wait for flag</span></span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>To solve the problem, we should wait for all processes to leave first barrier, before clearing flag for entry into the second<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Centralized barrier</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Barrier_t</span> &#123;</span><br><span class="line">  LOCK lock;</span><br><span class="line">  <span class="type">int</span> arrive_counter;  <span class="comment">// initialize to 0 (number of threads that have arrived)</span></span><br><span class="line">  <span class="type">int</span> leave_counter;  <span class="comment">// initialize to P (number of threads that have left barrier)</span></span><br><span class="line">  <span class="type">int</span> flag;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// barrier for p processors</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Barrier</span><span class="params">(Barrier_t* b, <span class="type">int</span> p)</span> </span>&#123;</span><br><span class="line">  <span class="built_in">lock</span>(b-&gt;lock);</span><br><span class="line">  <span class="keyword">if</span> (b-&gt;arrive_counter == <span class="number">0</span>) &#123;   <span class="comment">// if first to arrive...</span></span><br><span class="line">    <span class="keyword">if</span> (b-&gt;leave_counter == P) &#123;  <span class="comment">// check to make sure no other threads “still in barrier”</span></span><br><span class="line">      b-&gt;flag = <span class="number">0</span>;               <span class="comment">// first arriving thread clears flag</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="built_in">unlock</span>(lock);</span><br><span class="line">      <span class="keyword">while</span> (b-&gt;leave_counter != P);  <span class="comment">// wait for all threads to leave before clearing</span></span><br><span class="line">      <span class="built_in">lock</span>(lock);</span><br><span class="line">      b-&gt;flag = <span class="number">0</span>;                <span class="comment">// first arriving thread clears flag</span></span><br><span class="line">    &#125; </span><br><span class="line">  &#125;</span><br><span class="line">  <span class="type">int</span> num_arrived = ++(b-&gt;arrive_counter);</span><br><span class="line">  <span class="built_in">unlock</span>(b-&gt;lock);</span><br><span class="line">  <span class="keyword">if</span> (num_arrived == p) &#123;  <span class="comment">// last arriver sets flag</span></span><br><span class="line">    b-&gt;arrive_counter = <span class="number">0</span>;</span><br><span class="line">    b-&gt;leave_counter = <span class="number">1</span>;</span><br><span class="line">    b-&gt;flag = <span class="number">1</span>;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">while</span> (b-&gt;flag == <span class="number">0</span>);  <span class="comment">// wait for flag</span></span><br><span class="line">    <span class="built_in">lock</span>(b-&gt;lock);</span><br><span class="line">    b-&gt;leave_counter++;</span><br><span class="line">    <span class="built_in">unlock</span>(b-&gt;lock);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>We can save one variable by sense reversal. Processors wait for flag to be equal to local sense.<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Barrier_t</span> &#123;</span><br><span class="line">  LOCK lock;</span><br><span class="line">  <span class="type">int</span> counter; <span class="comment">// initialize to 0</span></span><br><span class="line">  <span class="type">int</span> flag; <span class="comment">// initialize to 0</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> local_sense = <span class="number">0</span>;  <span class="comment">// private per processor</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// barrier for p processors</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Barrier</span><span class="params">(Barrier_t* b, <span class="type">int</span> p)</span> </span>&#123;</span><br><span class="line">  local_sense = (local_sense == <span class="number">0</span>) ? <span class="number">1</span> : <span class="number">0</span>; <span class="built_in">lock</span>(b-&gt;lock);</span><br><span class="line">  <span class="type">int</span> num_arrived = ++(b-&gt;counter);</span><br><span class="line">  <span class="keyword">if</span> (b-&gt;counter == p) &#123; <span class="comment">// last arriver sets flag</span></span><br><span class="line">    <span class="built_in">unlock</span>(b-&gt;lock);</span><br><span class="line">    b-&gt;counter = <span class="number">0</span>;</span><br><span class="line">    b-&gt;flag = local_sense;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">unlock</span>(b-&gt;lock);</span><br><span class="line">    <span class="keyword">while</span> (b-&gt;flag != local_sense); <span class="comment">// wait for flag</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>There are <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>P</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(P)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mclose">)</span></span></span></span> traffic on interconnect per barrier.<br />
+All threads have <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>P</mi></mrow><annotation encoding="application/x-tex">2P</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span> write transactions to obtain barrier lock and update counter. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>P</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(P)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mclose">)</span></span></span></span> traffic assuming lock acquisition is implemented in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> manner<br />
+Last thread has <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn></mrow><annotation encoding="application/x-tex">2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span></span></span></span> write transactions to write to the flag and reset the counter. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>P</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(P)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mclose">)</span></span></span></span> traffic since there are many sharers of the flag<br />
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">P-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> transactions to read updated flag</li>
+<li>In centralized barrier, all threads share single barrier lock and counter, which causes high contention.</li>
+<li>Combining trees make better use of parallelism in interconnect topologies, which has <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>l</mi><mi>o</mi><mi>g</mi><mi>P</mi></mrow><annotation encoding="application/x-tex">logP</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span> span (latency). This strategy makes less sense on a bus where all traffic still serialized on single shared bus.<br />
+Barrier acquire: when processor arrives at barrier, performs increment of parent counter. Process recurses to root.<br />
+Barrier release: beginning from root, notify children of release</li>
+</ol>
+<h1 id="locks-in-cuda-assignment-3"><a class="markdownIt-Anchor" href="#locks-in-cuda-assignment-3"></a> Locks in CUDA (Assignment 3)</h1>
+<ol>
+<li>
+<p>CUDA has provided <code>atomicCAS</code> and <code>atomicExch</code>. But if we use the following code to implement the mutex, threads will end up in a dead loop.<br />
+The reason is all warps in a block need to execute the same instructions. But only one thread can have the lock, namely at most one thread in a block can leave the loop, and hence the whole block, including the one with lock, will keep executing the <code>atomicCAS</code>. Obviously the thread with loop cannot execute anything in critical area and the unlock the lock, which causes all threads end up in the dead loop of <code>lock</code>.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">__share__ <span class="type">int</span> mutex;</span><br><span class="line"></span><br><span class="line"><span class="function">__device__ <span class="type">void</span> <span class="title">lock</span><span class="params">(<span class="type">int</span>* mutex)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">while</span>(<span class="built_in">atomicCAS</span>(mutex, <span class="number">0</span>, <span class="number">1</span>)) ;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">__device__ <span class="type">void</span> <span class="title">unlock</span><span class="params">(<span class="type">int</span>* mutex)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">atomicExch</span>(mutex, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">__global__ <span class="type">void</span> <span class="title">kernel</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">lock</span>(&amp;mutex);</span><br><span class="line">  <span class="comment">// critical code</span></span><br><span class="line">  <span class="built_in">unlock</span>(&amp;mutex);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>The method to solve the problem also need to consider the special execution mode of condition instruction in CUDA. A loop is necessary, but we want to execute the instruction inside a condition body so that when one thread grabs the lock, it can execute and unlock the lock before the next iteration.<br />
+So we can have an <code>if</code> condition inside the loop as the following code.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">__share__ <span class="type">int</span> mutex;</span><br><span class="line"></span><br><span class="line"><span class="function">__kernel__ <span class="type">void</span> <span class="title">kernel</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="type">bool</span> leaveLoop = <span class="literal">false</span>;</span><br><span class="line">  <span class="keyword">while</span> (!leaveLoop)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">atomicExch</span>(&amp;mutex, <span class="number">1</span>))</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="comment">// critical cade</span></span><br><span class="line">      leaveLoop = <span class="literal">true</span>;      <span class="comment">// this thread can leave the loop, but it need to </span></span><br><span class="line">                             <span class="comment">// wait for other threads in its block</span></span><br><span class="line">      <span class="built_in">atomicExch</span>(&amp;mutex, <span class="number">0</span>); <span class="comment">// unlock the lock, so that in next iteration, </span></span><br><span class="line">                             <span class="comment">// some other threads can have the lock and finish</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/07/13/Courses/CS149/12-Interconnection-Network/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/07/13/Courses/CS149/12-Interconnection-Network/" class="post-title-link" itemprop="url">12. Interconnection Network</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-07-13 10:50:56" itemprop="dateCreated datePublished" datetime="2022-07-13T10:50:56+08:00">2022-07-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-02-09 14:01:11" itemprop="dateModified" datetime="2024-02-09T14:01:11+08:00">2024-02-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="interconnection"><a class="markdownIt-Anchor" href="#interconnection"></a> Interconnection</h1>
+<ol>
+<li>All parallel processors are connected and form an interconnection network.</li>
+<li>The interconnection network are used to connect processor cores with other cores, processors and memories, processor cores and caches, caches and caches, I/O devices.</li>
+<li>The design of the interconnection network has an important impact on system scalability (How large of a system can be built? How easy is it to add more nodes?), system performance and energy efficiency (How fast can cores, caches, memory communicate? How long is latency to memory? How much energy is spent on communication?)</li>
+</ol>
+<h2 id="terminology"><a class="markdownIt-Anchor" href="#terminology"></a> Terminology</h2>
+<ol>
+<li><strong>Network node</strong>: a network endpoint connected to a router/switch, like the processor, the cache controller, or the memory controller</li>
+<li><strong>Network interface</strong>: Connects nodes to the network</li>
+<li><strong>Switch/router</strong>: Connects a fixed number of input links to a fixed number of output links</li>
+<li><strong>Link</strong>: A bundle of wires carrying a signal<br />
+<img src="/imgs/CS149/12/1.png" width="40%"></li>
+</ol>
+<h2 id="design-issues"><a class="markdownIt-Anchor" href="#design-issues"></a> Design issues</h2>
+<ol>
+<li><strong>Topology</strong>: How switches are connected via links. Affects routing, throughput, latency, complexity/cost of implementation.</li>
+<li><strong>Routing</strong>: How a message gets from its source to its destination in the network. Can be static (messages take a predetermined path) or adaptive based on load.</li>
+<li><strong>Buffering and flow control</strong>: What data are stored in the network? packets, partial packets? etc. How does the network manage buffer space?</li>
+</ol>
+<h2 id="properties-of-interconnect-topology"><a class="markdownIt-Anchor" href="#properties-of-interconnect-topology"></a> Properties of interconnect topology</h2>
+<ol>
+<li><strong>Routing distance</strong>: Number of links (“hops”) along a route between two nodes</li>
+<li><strong>Diameter</strong>: the maximum routing distance</li>
+<li><strong>Average distance</strong>: average routing distance over all valid routes</li>
+<li><strong>Direct network</strong>: The switches and nodes are one in the same. The logic of the switch is built into the node itself.</li>
+<li><strong>Indirect network</strong>: The switches are distinct from the nodes that form a chain from one node to the other.</li>
+<li><strong>Blocking or non-blocking</strong>: If connecting any pairing of node simultaneously won’t cause conflict (using the same link or the same switch, assuming that one switch can only handle on message at one time), the network is non-blocking. Otherwise, it is blocking.</li>
+<li><strong>Bisection bandwidth</strong>: A measure of how much connectivity in the network. If we cut the network in half, it is the connection between those two halves, namely the sum bandwidth of all severed links.<br />
+The low bisection bandwidth will be the choke point of the network.</li>
+<li>Latency increases with load (throughput).<br />
+The topology, routing algorithm and flow control each has their own min latency. The zero load or idle latency is the sum of the three min latencies.<br />
+Also, the topology, routing algorithm and flow control each has their own throughput limit. The overall throughput limit is the min of the three limits.</li>
+</ol>
+<h1 id="interconnect-topologies"><a class="markdownIt-Anchor" href="#interconnect-topologies"></a> Interconnect topologies</h1>
+<h2 id="bus"><a class="markdownIt-Anchor" href="#bus"></a> Bus</h2>
+<ol>
+<li>
+<p>Physically, a bus is a wire. But from graph point of view, a bus is a switch.</p>
+</li>
+<li>
+<p>It is simple to design. It costs effective for a small number of nodes. It is easy to implement coherence via snooping</p>
+</li>
+<li>
+<p>Contention: all nodes contend for shared bus</p>
+</li>
+<li>
+<p>Limited bandwidth: all nodes communicate over same wires, and only one communication is allowed at a time.</p>
+</li>
+<li>
+<p>There has a scalibility problem. It is expensive to drive wires across the whole chips. There is quite a lot of power in driving signals on the bus.</p>
+<img src="/imgs/CS149/12/2.png" width="40%">
+</li>
+</ol>
+<h2 id="crossbar"><a class="markdownIt-Anchor" href="#crossbar"></a> Crossbar</h2>
+<ol>
+<li>
+<p>Every node is connected to every other node by a direct connection. The network is non-blocking and indirect (the network is indirect, but the nodes are connected directly).</p>
+</li>
+<li>
+<p>It has <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> latency and high bandwidth.</p>
+</li>
+<li>
+<p>It also has a scalability problem since <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> switches are required. Also it has high cost and is difficult to arbitrate at scale.</p>
+</li>
+<li>
+<p>Crossbars were used in recent multi-core processing from Oracle. In a multi-core chip, the crossbar (CCX) occupies about the same chip area as a core.</p>
+<img src="/imgs/CS149/12/3.png" width="40%">
+</li>
+</ol>
+<h2 id="ring"><a class="markdownIt-Anchor" href="#ring"></a> Ring</h2>
+<ol>
+<li>
+<p>It lets the message to circle around.</p>
+</li>
+<li>
+<p>It is simple enough and quite cheap with only <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span> cost.</p>
+</li>
+<li>
+<p>But the latency is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>, which is very high. And the bisection bandwidth remains constant as nodes are added, which will cause the scalibility problem.</p>
+</li>
+<li>
+<p>It is used in recent Intel architectures, Core i7, and in IBM CELL Broadband Engine. This is usually used on the scale of 4 or 8 elements on the ring.</p>
+</li>
+<li>
+<p>The Intel’s ring interconnect has four rings (request, snoop, ack, 32 bytes of data) and six interconnect nodes (four “slices” of L3 cache, system agent, graphics). Each bank of L3 connected to ring bus twice.</p>
+<img src="/imgs/CS149/12/4.png" width="40%">
+</li>
+</ol>
+<h2 id="mesh"><a class="markdownIt-Anchor" href="#mesh"></a> Mesh</h2>
+<ol>
+<li>
+<p>This is a direct network. It echoes locality in grid-based applications.</p>
+</li>
+<li>
+<p>The cost is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>, and the average latency is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msqrt><mi>N</mi></msqrt><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(\sqrt{N})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.176665em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9266650000000001em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span><span style="top:-2.886665em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg width='400em' height='1.08em' viewBox='0 0 400000 1080' preserveAspectRatio='xMinYMin slice'><path d='M95,702
+c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14
+c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54
+c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10
+s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429
+c69,-144,104.5,-217.7,106.5,-221
+l0 -0
+c5.3,-9.3,12,-14,20,-14
+H400000v40H845.2724
+s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
+c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
+M834 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.11333499999999996em;"><span></span></span></span></span></span><span class="mclose">)</span></span></span></span>.</p>
+</li>
+<li>
+<p>It is easy to lay out on chip since all links have a fixed-length.</p>
+</li>
+<li>
+<p>Path diversity: many ways for message to travel from one node to another</p>
+<img src="/imgs/CS149/12/5.png" width="40%">
+</li>
+</ol>
+<h2 id="torus"><a class="markdownIt-Anchor" href="#torus"></a> Torus</h2>
+<ol>
+<li>
+<p>Characteristics of node in mesh topology are different based on whether node is near edge or middle of network. Torus topology introduces new links to avoid this problem.</p>
+</li>
+<li>
+<p>In torus topology, each row or each column forms a ring by adding a new link to connect the two nodes on the edge.</p>
+</li>
+<li>
+<p>Its cost is still <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>, but higher than 2D mesh. It also has higher path diversity and bisection bandwidth than mesh.</p>
+</li>
+<li>
+<p>However, it has higher complexity and is difficult to layout on chip since its unequal link lengths.</p>
+</li>
+<li>
+<p>Folded torus interleaving rows and columns to eliminate need for long connections. All connections are doubled in length.</p>
+<img src="/imgs/CS149/12/6.png" width="40%">
+</li>
+</ol>
+<h2 id="tree"><a class="markdownIt-Anchor" href="#tree"></a> Tree</h2>
+<ol>
+<li>
+<p>This is a planar, hierarchical topology. Like mesh/torus, it performs good when traffic has locality.</p>
+</li>
+<li>
+<p>The latency is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>l</mi><mi>o</mi><mi>g</mi><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(logN)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span></p>
+</li>
+<li>
+<p>In tree routing, if the signal need to go upward, there is only one option. If the signal need to go downward, we can use <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> to mark go left while <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> to mark go right.<br />
+Everytime, the signal will go upward first until have a common ancestor, then it will go downward.<br />
+If the tree is a complete tree and we assign numbers to the nodes accroding to their inorder traversal starting from zero, then the way to each node from root node is the binary code of the number.</p>
+</li>
+<li>
+<p>Fat tree increases bandwidth between nodes as move upward. It can alleviate root bandwidth problem with higher bandwidth links near root.</p>
+</li>
+<li>
+<p>The number of wires is the same to the height of the subtree. So the bisection bandwidth of fat tree is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>.</p>
+</li>
+<li>
+<p>The fat tree routing is similar to tree routing, but randomly choose when multiple links possible.</p>
+</li>
+<li>
+<p>Constant-width fat tree (folded clos network): All nodes fixed degree, which makes the hardware design simpler. This is used in Infiniband networks.</p>
+<p><img src="/imgs/CS149/12/7.png" width="30%"><img src="/imgs/CS149/12/8.png" width="30%"><img src="/imgs/CS149/12/9.png" width="30%"></p>
+</li>
+</ol>
+<h2 id="hypercube"><a class="markdownIt-Anchor" href="#hypercube"></a> Hypercube</h2>
+<ol>
+<li>
+<p>It has a low latency of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>l</mi><mi>o</mi><mi>g</mi><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(logN)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>. Its number of links is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mi>l</mi><mi>o</mi><mi>g</mi><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(NlogN)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>.</p>
+</li>
+<li>
+<p>6D hypercube used in 64-core Cosmic Cube computer developed at Caltech in the 80s.</p>
+</li>
+<li>
+<p>If the address of two nodes only differs by one bit, then there is a link connecting them.<br />
+So is we want to go from address A to address B, we just do it one bit a time.</p>
+</li>
+<li>
+<p>The problem is that we cannot pack more dimensions to 3D that exists. To implement a higher dimension cube, we need to put enough wires in to make it work. But as we scale up more and more, the wires becomes so much that doesn’t layout well.</p>
+<img src="/imgs/CS149/12/10.png" width="40%">
+</li>
+</ol>
+<h2 id="multi-stage-logarithmic"><a class="markdownIt-Anchor" href="#multi-stage-logarithmic"></a> Multi-stage logarithmic</h2>
+<ol>
+<li>
+<p>It is an indirect network with multiple switches between terminals.</p>
+</li>
+<li>
+<p>The cost is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mi>l</mi><mi>o</mi><mi>g</mi><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(NlogN)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span> while the latency is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>l</mi><mi>o</mi><mi>g</mi><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(logN)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>.</p>
+</li>
+<li>
+<p>It has many variations: Omega, butterfly, Clos networks, etc.</p>
+</li>
+<li>
+<p>In the topology shown below, each switch has two output wires. In the routing, if 0 stands for up and 1 for down, we can also routing according to the binary code of the number of targeting node.<br />
+Here up means that we will take the upper wire, and down means that we will take the lower wire. They don’t always means going up or going down.</p>
+<img src="/imgs/CS149/12/11.png" width="40%">
+</li>
+</ol>
+<h1 id="buffering-and-flow-control"><a class="markdownIt-Anchor" href="#buffering-and-flow-control"></a> Buffering and flow control</h1>
+<ol>
+<li>Circuit switching sets up a full path (acquires all resources) between sender and receiver prior to sending a message. It has higher bandwidth transmission.<br />
+It has no per-packet link management overhead, but does incur overhead to set up/tear down path. And reserving links can result in low utilization.</li>
+<li>Packet switching makes routing decisions per packet. It has an opportunity to use link for a packet whenever link is idle.<br />
+It has overhead due to dynamic switching logic during transmission, but no setup/tear down overhead.</li>
+<li>The granularity of communication from larger to miner is message, packet and flit<br />
+Message is the unit of transfer between network clients, and can be transmitted using many packets.<br />
+Packet is the unit of transfer for network, and can be transmitted using multiple flits.<br />
+Flit (flow control digit) is a unit of flow control in the network. Packets broken into flits.</li>
+<li>A packet consists of header, payload/body and tail.<br />
+Header contains routing and control information, and is at start of packet to router can start forwarding early.<br />
+Payload/body contains the data to be sent.<br />
+Tail contains control information, like error code, and is generally located at end of packet so it can be generated “on the way out”.</li>
+<li>When two packets need to be routed onto the same outbound link at the same time, contention is occurred. There are three options buffer one packet and send it over link later, drop one packet, or reroute one packet (deflection).</li>
+</ol>
+<h2 id="circuit-switched-routing"><a class="markdownIt-Anchor" href="#circuit-switched-routing"></a> Circuit-switched routing</h2>
+<ol>
+<li>Main idea: pre-allocate all resources (links across multiple switches) along entire network path for a message (“setup a flow”)</li>
+<li>Costs:<br />
+Needs setup phase (“probe”) to set up the path (and to tear it down and release<br />
+the resources when message complete)<br />
+Lower link utilization. Transmission of two messages cannot share same link (even if some resources on a preallocated path are no longer utilized during a transmission)</li>
+<li>Benefits:<br />
+No contention during transmission due to preallocation, so no need for buffering<br />
+Arbitrary message sizes (once path is set up, send data until done)</li>
+</ol>
+<h2 id="packet-based-flow-control"><a class="markdownIt-Anchor" href="#packet-based-flow-control"></a> Packet-based flow control</h2>
+<ol>
+<li>Store-and-forward: Packet copied entirely into network switch before moving to next node, which requires buffering for entire packet in each router</li>
+<li>Flow control unit is an entire packet. Different packets from the same message can take different routes, but all data in a packet is transmitted over the same route</li>
+<li>Store-and-forward has high per-packet latency. Its latency <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo></mrow><annotation encoding="application/x-tex">=</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">=</span></span></span></span> packet transmission time on link <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>×</mo></mrow><annotation encoding="application/x-tex">\times</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord">×</span></span></span></span> network distance)</li>
+<li>Cut-through flow control: Switch starts forwarding data on next link as soon as packet header is received, since header determines how much link bandwidth packet requires and where to route.</li>
+<li>Cut-through flow control reduces transmission latency and reduces to store-and-forward under high contention.</li>
+<li>The latency of cut-through flow control is header transmission time <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>×</mo></mrow><annotation encoding="application/x-tex">\times</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord">×</span></span></span></span> network distance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>+</mo></mrow><annotation encoding="application/x-tex">+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord">+</span></span></span></span> rest packet transmission time on one link <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≃</mo></mrow><annotation encoding="application/x-tex">\simeq</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.46375em;vertical-align:0em;"></span><span class="mrel">≃</span></span></span></span> network distance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>+</mo></mrow><annotation encoding="application/x-tex">+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord">+</span></span></span></span> number of packets.</li>
+<li>The difference between store-and-forward and cut-through is whether we parallel the transmission of header and the rest of the packet.</li>
+<li>In cut-through flow control, if output link is blocked (cannot transmit head), transmission of tail can continue. So the switch need to store more data before it can transmit and delete them, which requires switches to have buffering for entire packet, just like store-and-forward.<br />
+The worst case is that entire message is absorbed into a buffer in a switch, namely cut-through flow control degenerates to store-and-forward in this case.</li>
+</ol>
+<h2 id="wormhole-flow-contorl"><a class="markdownIt-Anchor" href="#wormhole-flow-contorl"></a> Wormhole flow contorl</h2>
+<ol>
+<li>Routing information only in head flit, body flits follows head, and tail flit flows body. It looks like that all flits moves to their next switch simultaneously. If head flit blocks, rest of packet stops.</li>
+<li>Its latency <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo></mrow><annotation encoding="application/x-tex">=</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">=</span></span></span></span> header transmission time <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>×</mo></mrow><annotation encoding="application/x-tex">\times</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord">×</span></span></span></span></li>
+<li>Head-of-line blocking problem: The route of the head flit of one packet is free, but blocked behind flit of another packet in buffer while that packet is blocked waiting for a busy link.</li>
+<li>Virtual channel flow control: Multiplex multiple operations over single physical channel, and divide switch’s input buffer into multiple buffers sharing a single physical channel.</li>
+<li>Virtual channel reduces head-of-line blocking.<br />
+It can break cyclic dependency of resources by ensuring requests and responses use different virtual channels to avoid deadlock.<br />
+Also, it provided quality-of-service guarantees. Some virtual channels have higher priority than others</li>
+<li>“Escape” virtual channels: retain at least one virtual channel that uses deadlock-free routing</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="Previous page" aria-label="Previous page" href="/page/4/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span>
+    <a class="extend prev" rel="prev" title="Previous page" aria-label="Previous page" href="/page/4/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" title="Next page" aria-label="Next page" href="/page/6/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
@@ -2298,7 +3242,7 @@ to 1. If yes, set to zero. If no, then evict.</li>
 
 <div class="copyright">
   &copy; 
-  <span itemprop="copyrightYear">2023</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

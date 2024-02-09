@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Balancing the workload Always implement the simplest solution first, then measure performance to determine if you need to do better.  Static assignment  The assignment of work to threads is pre-deter">
+<meta property="og:type" content="article">
+<meta property="og:title" content="04. Work Distribution and Scheduling">
+<meta property="og:url" content="http://liyun-zhang.github.io/2022/05/17/Courses/CS149/04-Work-Distribution-and-Scheduling/index.html">
+<meta property="og:site_name" content="LiyunZhang">
+<meta property="og:description" content="Balancing the workload Always implement the simplest solution first, then measure performance to determine if you need to do better.  Static assignment  The assignment of work to threads is pre-deter">
+<meta property="og:locale">
+<meta property="article:published_time" content="2022-05-17T07:35:33.000Z">
+<meta property="article:modified_time" content="2024-02-09T04:57:21.219Z">
+<meta property="article:author" content="LiyunZhang">
+<meta property="article:tag" content="Parallelism">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://liyun-zhang.github.io/2022/05/17/Courses/CS149/04-Work-Distribution-and-Scheduling/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-Hans","comments":true,"permalink":"http://liyun-zhang.github.io/2022/05/17/Courses/CS149/04-Work-Distribution-and-Scheduling/","path":"2022/05/17/Courses/CS149/04-Work-Distribution-and-Scheduling/","title":"04. Work Distribution and Scheduling"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>04. Work Distribution and Scheduling | LiyunZhang</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">LiyunZhang</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#balancing-the-workload"><span class="nav-number">1.</span> <span class="nav-text"> Balancing the workload</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#static-assignment"><span class="nav-number">1.1.</span> <span class="nav-text"> Static assignment</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#dynamic-assignment"><span class="nav-number">1.2.</span> <span class="nav-text"> Dynamic assignment</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#with-one-queue"><span class="nav-number">1.2.1.</span> <span class="nav-text"> With one queue</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#with-a-set-of-queues"><span class="nav-number">1.2.2.</span> <span class="nav-text"> With a set of queues</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#scheduling"><span class="nav-number">2.</span> <span class="nav-text"> Scheduling</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#cilk_spawn"><span class="nav-number">2.1.</span> <span class="nav-text"> cilk_spawn</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cilk_sync"><span class="nav-number">2.2.</span> <span class="nav-text"> cilk_sync</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">LiyunZhang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+  
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/05/17/Courses/CS149/04-Work-Distribution-and-Scheduling/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="04. Work Distribution and Scheduling | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          04. Work Distribution and Scheduling
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-05-17 15:35:33" itemprop="dateCreated datePublished" datetime="2022-05-17T15:35:33+08:00">2022-05-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-02-09 12:57:21" itemprop="dateModified" datetime="2024-02-09T12:57:21+08:00">2024-02-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="balancing-the-workload"><a class="markdownIt-Anchor" href="#balancing-the-workload"></a> Balancing the workload</h1>
+<p>Always implement the simplest solution first, then measure performance to determine if you need to do better.</p>
+<h2 id="static-assignment"><a class="markdownIt-Anchor" href="#static-assignment"></a> Static assignment</h2>
+<ol>
+<li>The assignment of work to threads is pre-determined. But not necessarily determined at compile-time, may depend on runtime parameters.</li>
+<li>Benefit: simple, essentially zero runtime overhead</li>
+<li>Applicable situation: When the cost (execution time) of work and the amount of work is predictable. The followings are some most common situations:<br />
+When it is known up front that all work has the same cost<br />
+When work is predictable, but not all jobs have same cost<br />
+When statistics about execution time are known</li>
+<li>Semi-static assignment: When the cost of work is predictable for near-term future, we can periodically profile itself and re-adjust assignment.<br />
+Assignment is “static” for the interval between re-adjustments</li>
+</ol>
+<h2 id="dynamic-assignment"><a class="markdownIt-Anchor" href="#dynamic-assignment"></a> Dynamic assignment</h2>
+<ol>
+<li>
+<p>Program determines assignment dynamically at runtime to ensure a well distributed load. Often used when the execution time of tasks, or the total number of tasks, is unpredictable.</p>
+</li>
+<li>
+<p>The ISPC task is implemented dynamically.</p>
+</li>
+</ol>
+<h3 id="with-one-queue"><a class="markdownIt-Anchor" href="#with-one-queue"></a> With one queue</h3>
+<ol>
+<li>
+<p>The programmers divide the whole problem into sub-problems (or “tasks”, “work”). A queue shared by all threads is a collection of work to do. Whenever a thread finished its task, it will grab another task from the queue.</p>
+</li>
+<li>
+<p>Fine granularity partitioning: each task is small.<br />
+This is likely to have a good workload balance, but potential for high synchronization cost.</p>
+</li>
+<li>
+<p>Coarse granularity partitioning: each task is larger.<br />
+This will decrease synchronization cost and the overhead, but may have a worse workload balance.</p>
+</li>
+<li>
+<p>Long tasks should be scheduled first. Thread performing long task performs fewer overall tasks, but approximately the same amount of work as the other threads. This requires some knowledge of workload.</p>
+</li>
+</ol>
+<h3 id="with-a-set-of-queues"><a class="markdownIt-Anchor" href="#with-a-set-of-queues"></a> With a set of queues</h3>
+<ol>
+<li>
+<p>When assign with one queue, all threads have to communicate with each other about the queue.</p>
+</li>
+<li>
+<p>Each thread has their own queue, and they only execute tasks in their queue. So there is no need to communication with other threads.</p>
+</li>
+<li>
+<p>At the beginning, the programmer push tasks into queues arbitarily (a bit like static assignment).<br />
+The dynamic is that when a queue is empty, that thread can steal from other threads that is  still working.<br />
+It will steal from a random thread. Every time, it will steal a proportion of the tasks in the target queue, not all of them, and usually more than one task.<br />
+A thread is terminated when there is no thread for it to steal, namely when a steal is failed, it will try to steal from other threads, util it have tried all of them.</p>
+</li>
+<li>
+<p>Stealing involves communication, but in a lower frequency then one queue method. And in this way, the local queue access is fast.</p>
+</li>
+<li>
+<p>Sometimes it is hard to have fully independent task, but work in task queues need not be independent.<br />
+A task is not removed from queue and assigned to worker thread until all task dependencies are satisfied. Workers can submit new tasks (with optional explicit dependencies) to task system</p>
+</li>
+</ol>
+<h1 id="scheduling"><a class="markdownIt-Anchor" href="#scheduling"></a> Scheduling</h1>
+<p>In a divide-and-conquer algorithm, there is both dependencies and independencies. Like in quick-sort, both the divide is dependent on the partition, and those two divide is independent.<br />
+With Cilk Plus, we can express divide-and-conquer easier.</p>
+<h2 id="cilk_spawn"><a class="markdownIt-Anchor" href="#cilk_spawn"></a> cilk_spawn</h2>
+<ol>
+<li>
+<p><code>cilk_spawn</code> is labelled before a function call, so that the called function can run with the code after the call concurrently.<br />
+The call labelled <code>cilk_spawn</code> is the spawned child, and the rest of the code is the continuation.</p>
+</li>
+<li>
+<p>In divide-and-conquer, there is always a time, when the problem size is small enough that overhead of spawn trumps benefits of<br />
+potential parallelization. And then we will solve those problems sequentially.</p>
+</li>
+<li>
+<p>The main idea is to expose independent work (potential parallelism) to the system using <code>cilk_spawn</code>.</p>
+</li>
+<li>
+<p><code>cilk_spawn</code> is a bit like <code>pthread_create</code>, and <code>cilk_sync</code> is similar to <code>pthread_join</code>. But <code>pthread</code> has some problems when too many threads are spawned.<br />
+The first is the heavyweight spawn operation. And many more concurrently running threads than cores, which will cause context switching overhead and larger working set than necessary, less cache locality.</p>
+</li>
+<li>
+<p>The Cilk Plus runtime maintains pool of worker threads. All threads created at application launch.  There are exactly as many worker threads as execution contexts in the machine.<br />
+If we labelled everything <code>cilk_spawn</code>, the main thread has nothing to do.</p>
+</li>
+<li>
+<p>Each thread in the pool will maintain a work queue to store what word needs to be done.<br />
+When a thread goes idle, it will look in busy thread’s queue for work, and moves work from busy thread’s queue to its own queue.</p>
+</li>
+<li>
+<p>If caller thread runs the continuation first, the queue should record the child for later execution, and child is made available for stealing by other threads.<br />
+In this method, caller thread will spawn as many child as it could, like BFS. If no stealing, execution order is very different than<br />
+that of program withcilk_spawnremoved.</p>
+</li>
+<li>
+<p>If caller thread runs the child first, the queue should record continuation for later execution, and continuation is made available for stealing by other threads.<br />
+In this method, caller thread will only create one item to steal.<br />
+If no stealing occurs, thread continually pops continuation from work queue, enqueues new continuation (like DFS). The order of execution is the same as for program with spawn removed.<br />
+If continuation is stolen, stealing thread spawns next child.</p>
+</li>
+<li>
+<p>If the continuation is run first, there will be more items to steal, and thus makes a better advantage of multi-thread.<br />
+But if the continuation is run first, the work queue storage for system with T threads is no more than T times that of stack storage for single threaded execution, and thus saves more space.</p>
+</li>
+<li>
+<p>Work queue is implemented as a dequeue (double ended queue).<br />
+Local thread pushes/pops from the “tail” (bottom), while remote threads steal from “head” (top).<br />
+Reduces contention with local thread: local thread is not accessing same part of dequeue that stealing threads do.<br />
+Do larger work first: in divide-and-conquer, the top of the queue is usually at the beginning of call tree, and is a larger piece of work.<br />
+Maximizes locality: in conjunction with run-child-first policy, local thread works on local part of call tree</p>
+</li>
+</ol>
+<h2 id="cilk_sync"><a class="markdownIt-Anchor" href="#cilk_sync"></a> cilk_sync</h2>
+<ol>
+<li>
+<p><code>cilk_sync</code> is used after those <code>cilk_spawn</code> call code. It will return when all calls spawned by current function have completed.</p>
+</li>
+<li>
+<p>There is an implicitcilk_syncat the end of every function that contains a cilk_spawn, so when a Cilk function returns, all work associated with that function is complete.</p>
+</li>
+<li>
+<p>If no work has been stolen by other threads, then there’s nothing to do at the sync point, <code>cilk_sync</code> is a no-op. But this is not a common situation.</p>
+</li>
+<li>
+<p>One way to implement sync is with stalling joint.<br />
+Thread that initiates the fork must perform the sync. Therefore it waits for all spawned work to be complete.<br />
+descriptor for block A created<br />
+When a stealing from the initial thread happens, a descriptor for that stolen work is created to track the number of outstanding spawns for the block, and the number of those spawns that have completed.<br />
+When all the child spowned for the block is done, this block is considered done, and the descriptor is free. When all the blocks are done, sync is fullfilled.</p>
+</li>
+<li>
+<p>Another way to implement sync is the greedy policy.<br />
+When thread that initiates the fork goes idle, it can look to steal new work.  Last thread to reach the join point continues execution after sync. This will also create a decriptor for those stolen work.<br />
+Worker thread that initiated spawn may not be thread that executes logic after <code>cilk_sync</code>.</p>
+</li>
+<li>
+<p>In greedy policy, All threads always attempt to steal if there is nothing to do, and thread only goes idle if no work to steal is present in system. But in stalling policy, the initial thread doesn’t steal, and only waits when its work is done.</p>
+</li>
+<li>
+<p>Overhead of bookkeeping steals and managing sync points only occurs when steals occur. If large pieces of work are stolen, this should occur infrequently. Most of the time, threads are pushing/popping local work from their local dequeue.</p>
+</li>
+<li>
+<p>Cilk uses greedy join scheduling.</p>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Parallelism/" rel="tag"><i class="fa fa-tag"></i> Parallelism</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/04/20/Courses/CS149/03-Parallel-Programming-Basics/" rel="prev" title="03. Parallel Programming Basics">
+                  <i class="fa fa-chevron-left"></i> 03. Parallel Programming Basics
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/05/19/Courses/CS149/05-Graphic-processing-units-and-CUDA/" rel="next" title="05. Graphic processing units and CUDA">
+                  05. Graphic processing units and CUDA <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">LiyunZhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css" integrity="sha256-hLTCMFlKxdNgPXyWlSSxYN0ykJmxxq9Yt3MNfdRGWeA=" crossorigin="anonymous">
+
+
+
+</body>
+</html>

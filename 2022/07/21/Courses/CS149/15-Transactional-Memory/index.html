@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Transactional memory  The declarative programming is that programmer states what to do, not how to do it. System implements synchronization as necessary to ensure atomicity. In transaction memory, at">
+<meta property="og:type" content="article">
+<meta property="og:title" content="15. Transactional Memory">
+<meta property="og:url" content="http://liyun-zhang.github.io/2022/07/21/Courses/CS149/15-Transactional-Memory/index.html">
+<meta property="og:site_name" content="LiyunZhang">
+<meta property="og:description" content="Transactional memory  The declarative programming is that programmer states what to do, not how to do it. System implements synchronization as necessary to ensure atomicity. In transaction memory, at">
+<meta property="og:locale">
+<meta property="article:published_time" content="2022-07-21T14:53:19.000Z">
+<meta property="article:modified_time" content="2024-02-09T04:58:11.873Z">
+<meta property="article:author" content="LiyunZhang">
+<meta property="article:tag" content="Parallelism">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://liyun-zhang.github.io/2022/07/21/Courses/CS149/15-Transactional-Memory/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-Hans","comments":true,"permalink":"http://liyun-zhang.github.io/2022/07/21/Courses/CS149/15-Transactional-Memory/","path":"2022/07/21/Courses/CS149/15-Transactional-Memory/","title":"15. Transactional Memory"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>15. Transactional Memory | LiyunZhang</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">LiyunZhang</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#transactional-memory"><span class="nav-number">1.</span> <span class="nav-text"> Transactional memory</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#implementing-transactional-memory"><span class="nav-number">2.</span> <span class="nav-text"> Implementing transactional memory</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#data-versioning"><span class="nav-number">2.1.</span> <span class="nav-text"> Data versioning</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#conflict-detection-and-resolution"><span class="nav-number">2.2.</span> <span class="nav-text"> Conflict detection and resolution</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hardware-transactional-memory"><span class="nav-number">2.3.</span> <span class="nav-text"> Hardware transactional memory</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">LiyunZhang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+  
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/07/21/Courses/CS149/15-Transactional-Memory/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="15. Transactional Memory | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          15. Transactional Memory
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-07-21 22:53:19" itemprop="dateCreated datePublished" datetime="2022-07-21T22:53:19+08:00">2022-07-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-02-09 12:58:11" itemprop="dateModified" datetime="2024-02-09T12:58:11+08:00">2024-02-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="transactional-memory"><a class="markdownIt-Anchor" href="#transactional-memory"></a> Transactional memory</h1>
+<ol>
+<li>The declarative programming is that programmer states what to do, not how to do it. System implements synchronization as necessary to ensure atomicity.</li>
+<li>In transaction memory, atomic construct is declarative, which means that programmer states what to do, not how to do it. System implements synchronization as necessary to ensure atomicity.<br />
+System could implement <code>atomic&#123;&#125;</code> using a lock. But programmer has no explicit use or management of locks.<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Traditional method</span></span><br><span class="line"><span class="built_in">lock</span>(mutex);</span><br><span class="line"><span class="comment">//critical code</span></span><br><span class="line"><span class="built_in">unlock</span>(mutex);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Transaction memory</span></span><br><span class="line">atomic &#123;</span><br><span class="line">  <span class="comment">// critical code</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>Memory transaction is an atomic and isolated sequence of memory accesses inspired by database transactions.<br />
+Atomicity requires that upon transaction commit, all memory writes in transaction take effect at once, and on transaction abort, none of the writes appear to take effect as if transaction never happened.<br />
+Isolation means that no other processor can observe writes before transaction commits.<br />
+Serializability is that transactions appear to commit in a single serial order, but the exact order of commits is not guaranteed by semantics of transaction.</li>
+<li>Load-linked, store conditional (LL/SC) is a light version of transactional memory. It has a pair of corresponding instructions (not a single atomic instruction)<br />
+<code>load_linked(x)</code>: load value from address<br />
+<code>store_conditional(x, value)</code>: store value to x, if x hasn’t been written to since<br />
+corresponding LL</li>
+<li>Two read operations won’t cause true contention. In TM, we can allow the parallelism between two read operations. But serialization must be ensured when at least one write operation occurs.</li>
+<li>Transactional memory system is also responsible for processing exceptions decreasing the complexity of programmers from using <code>try-catch</code> statement to manually catching exceptions.<br />
+When an exception inside the atomic block is occurred, transaction is aborted and memory updates are undone.</li>
+<li>Transactional memory system needs composible locks.<br />
+Composing lock-based code can be tricky, which requires system-wide policies to get correct and system-wide policies can break software modularity.<br />
+The following code can end up in a deadlock. TM system should be able to compose the two synchronizations together to avoid the possible deadlock. Programmer can use an <code>atomic&#123;&#125;</code> to correctly represent the two <code>synchronizaed&#123;&#125;</code> structure.<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">function</span><span class="params">(A, B)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">synchronized</span>(A)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">synchronized</span>(B)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="comment">// critical code</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 0</span></span><br><span class="line"><span class="built_in">function</span>(x, y);</span><br><span class="line"></span><br><span class="line"><span class="comment">//thread 1</span></span><br><span class="line"><span class="built_in">function</span>(y, x);</span><br></pre></td></tr></table></figure>
+</li>
+<li><code>Atomic&#123;&#125;</code> is not the same as <code>lock()/unlock()</code>. Atomic is a high-level declaration of atomicity, which does not specify implementation of atomicity. Lock is a low-level blocking primitive that does not provide atomicity or isolation on its own.<br />
+Locks can be used to implement anatomicblock. Also, locks can be used for purposes beyond atomicity, namely we cannot replace all uses of locks with atomic regions.<br />
+Atomic eliminates many data races, but programming with atomic blocks can still suffer from atomicity violations.</li>
+<li>Atomicity violation due to programmer error: Logically atomic code sequence is erroneously separated into two atomic blocks.</li>
+</ol>
+<h1 id="implementing-transactional-memory"><a class="markdownIt-Anchor" href="#implementing-transactional-memory"></a> Implementing transactional memory</h1>
+<h2 id="data-versioning"><a class="markdownIt-Anchor" href="#data-versioning"></a> Data versioning</h2>
+<ol>
+<li>Data versioning manages uncommitted (new) and previously committed (old) versions of data for concurrent transactions. This is used to allow transaction abort.</li>
+<li>Eager versioning updates memory immediately, maintains “undo log” in case of abort.<br />
+When a write happens, the old value is pushed into the undo log and write the new value to memory.<br />
+When a transaction is aborted, we can search the undo log to recover the corresponding state.<br />
+When the transaction is committed, we can discard the undo log of those committed contents.</li>
+<li>Lazy versioning is a deferred update, namely it logs memory updates in transaction write buffer, flushes buffer on commit.<br />
+When a write happens, the new value is pushed into the write buffer and we don’t write the new value to memory.<br />
+When a transaction is aborted, we simply discard the write buffer, and there is no need to modify the memory since we haven’t written anything to it yet.<br />
+When a transaction is committed, we write the data in write buffer to memory and discard the write buffer.</li>
+<li>Eager versioning is faster in commit, since data is already in memory. But it is slower in aborts and has fault tolerance issues (crash in middle of transaction). It write to memory immediately, hoping transaction won’t abort, but deal with aborts when you have to.</li>
+<li>Lazy versioning is faster in abort, which just clears log, has no fault tolerance issues. But it is slower in commits. It only write to memory when you have to.</li>
+</ol>
+<h2 id="conflict-detection-and-resolution"><a class="markdownIt-Anchor" href="#conflict-detection-and-resolution"></a> Conflict detection and resolution</h2>
+<ol>
+<li>This is to decide when to abort. It must detect and handle conflicts, read-write conflict and write-write conflict, between transactions. System must track a transaction’s read set and write set.</li>
+<li>Pessimistic detection checks for conflicts during loads or stores. A hardware implementation will check for conflicts through coherence actions.<br />
+The philosophy is that “I suspect conflicts might happen, so let’s always check to see if one has occurred after each memory operation… if I’m going to have to roll back, might as well do it now to avoid wasted work.”</li>
+<li>Contention manager decides to stall or abort transaction when a conflict is detected. When a conflict is detected before executing (early detection), it can be stalled. When a conflict is detected after executed, then it can only restart.<br />
+When the conflict is caused by two writes, it may raise a livelock, if both threads restart before the other one has finished.</li>
+<li>Optimistic detection detects conflicts when a transaction attempts to commit. Hardware validates write set using coherence actions and gets exclusive access for cache lines in write set.<br />
+The intuition is that “Let’s hope for the best and sort out all the conflicts only when the transaction tries to commit”<br />
+On a conflict, it gives priority to committing transaction. Other transactions may abort later on. On conflicts between committing transactions, use contention manager to decide priority. Optimistic detection won’t cause livelock.</li>
+<li>We can use optimistic and pessimistic schemes together. Several STM systems use optimistic for reads and pessimistic for writes.</li>
+<li>Pessimistic conflict detection (“eager”) can detect conflicts early, and thus undo less work, turn some aborts to stalls. It has no forward progress guarantees, more aborts in some cases. Also, it requires fine-grained communication to check on each load/store.<br />
+Bad: detection on critical path</li>
+<li>Optimistic conflict detection (“lazy” or “commit”) has forward progress guarantees. It requires bulk communication and conflict detection. It detects conflicts late, can still have fairness problems.</li>
+<li>Conflict detection granularity<br />
+Object granularity is software-based techniques. It reduces overhead of time and space, and is close to programmer’s reasoning. But there might have false sharing on large objects.<br />
+Machine word granularity can minimize false sharing, but increases overhead of time and space.<br />
+Cache-line granularity is a compromise between object and word.</li>
+</ol>
+<h2 id="hardware-transactional-memory"><a class="markdownIt-Anchor" href="#hardware-transactional-memory"></a> Hardware transactional memory</h2>
+<ol>
+<li>Data versioning is implemented in caches. Cache the write buffer or the undo log. And add new cache line metadata to track transaction read set and write set.<br />
+Conflict detection is implemented through cache coherence protocol. Coherence lookups detect conflicts between transactions. It works with snooping and directory coherence.</li>
+<li>Register checkpoint must also be taken at transaction begin to restore execution context state on abort.</li>
+<li>Cache lines needs extra bits to track read set and write set.<br />
+<strong>R bit</strong> indicates data read by transaction and is set on loads, while <strong>W bit</strong> indicates data written by transaction and is set on stores. R/W bits gang-cleared on transaction commit or abort.<br />
+R/W bits can be at word or cache-line granularity.<br />
+For eager versioning, need a 2nd cache write for undo log.</li>
+<li>Coherence requests check R/W bits to detect conflicts.<br />
+Observing shared request to W-word is a read-write conflict.<br />
+Observing exclusive (intent to write) request to R-word is a write-read conflict.<br />
+Observing exclusive (intent to write) request to W-word is a write-write conflict.</li>
+<li>Fast two-phase commit<br />
+Validate: request RdX access to write set lines (if needed)<br />
+Commit: gang-reset R and W bits, turns write set data to valid (dirty) data.</li>
+<li>Fast conflict detection and abort<br />
+Check: lookup exclusive requests in the read set and write set<br />
+Abort: invalidate write set, gang-reset R and W bits, restore to register checkpoint</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Parallelism/" rel="tag"><i class="fa fa-tag"></i> Parallelism</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/07/17/Courses/CS149/14-Fine-grained-Synchronization-and-Lock-free-Programming/" rel="prev" title="14. Fine-grained Synchronization and Lock-free Programming">
+                  <i class="fa fa-chevron-left"></i> 14. Fine-grained Synchronization and Lock-free Programming
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/07/24/Courses/CS149/16-Heterogeneous-Parallelism-and-Hardware-Specialization/" rel="next" title="16. Heterogeneous Parallelism and Hardware Specialization">
+                  16. Heterogeneous Parallelism and Hardware Specialization <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">LiyunZhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css" integrity="sha256-hLTCMFlKxdNgPXyWlSSxYN0ykJmxxq9Yt3MNfdRGWeA=" crossorigin="anonymous">
+
+
+
+</body>
+</html>
