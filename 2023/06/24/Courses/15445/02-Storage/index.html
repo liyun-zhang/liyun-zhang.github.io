@@ -32,7 +32,7 @@
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/15445/Storage/denorm_declare.png">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/15445/Storage/denorm_diagram.png">
 <meta property="article:published_time" content="2023-06-24T09:10:07.000Z">
-<meta property="article:modified_time" content="2023-09-26T06:00:19.759Z">
+<meta property="article:modified_time" content="2024-02-22T16:05:25.538Z">
 <meta property="article:author" content="LiyunZhang">
 <meta property="article:tag" content="Database System">
 <meta property="article:tag" content="Storage">
@@ -158,7 +158,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-count">62</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -169,7 +169,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-count">34</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -232,7 +232,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-09-26 14:00:19" itemprop="dateModified" datetime="2023-09-26T14:00:19+08:00">2023-09-26</time>
+      <time title="Modified: 2024-02-23 00:05:25" itemprop="dateModified" datetime="2024-02-23T00:05:25+08:00">2024-02-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -322,14 +322,12 @@
 <h1 id="disk-based-architecture"><a class="markdownIt-Anchor" href="#disk-based-architecture"></a> Disk-based architecture</h1>
 <h2 id="what-are-the-storage-devices"><a class="markdownIt-Anchor" href="#what-are-the-storage-devices"></a> What are the storage devices?</h2>
 <ol>
-<li>
-<p>The first type is the volatile memory: CPU registers, CPU caches and DRAM</p>
+<li>The first type is the volatile memory: CPU registers, CPU caches and DRAM
 <ul>
 <li>They provide random access and they are byte-addressable.</li>
 </ul>
 </li>
-<li>
-<p>The second type is the non-volatile disks: SSD, HDD and network storage.</p>
+<li>The second type is the non-volatile disks: SSD, HDD and network storage.
 <ul>
 <li>They only provide sequential access.
 <ul>
@@ -340,10 +338,8 @@
 <li>They are block-addressable.</li>
 </ul>
 </li>
-<li>
-<p>The access times of each storage is as followed:</p>
-<img src="/imgs/15445/Storage/access_times.png" width="50%">
-</li>
+<li>The access times of each storage is as followed:<br />
+<img src="/imgs/15445/Storage/access_times.png" width="50%"></li>
 </ol>
 <h2 id="what-is-disk-oriented-dmbs"><a class="markdownIt-Anchor" href="#what-is-disk-oriented-dmbs"></a> What is disk-oriented DMBS?</h2>
 <ol>
@@ -424,8 +420,7 @@
 </ol>
 <h3 id="how-to-organize-tuple-oriented-data"><a class="markdownIt-Anchor" href="#how-to-organize-tuple-oriented-data"></a> How to organize tuple-oriented data?</h3>
 <ol>
-<li>
-<p>A naive strategy is to store the number of tuples in the header, and just append a new tuple to the end.</p>
+<li>A naive strategy is to store the number of tuples in the header, and just append a new tuple to the end.
 <ul>
 <li>What if we delete a tuple?
 <ul>
@@ -440,21 +435,12 @@
 </li>
 </ul>
 </li>
-<li>
-<p>In the slotted pages scheme, we store a <strong>slot array</strong> at the header.</p>
+<li>In the slotted pages scheme, we store a <strong>slot array</strong> at the header.
 <ul>
-<li>
-<p>The slot array maps “slots” to the tuples’ starting position offsets.</p>
-</li>
-<li>
-<p>The header keeps track of the number of used slots and the offset of the starting location of the</p>
-<p>last slot used.</p>
-</li>
-<li>
-<p>The space used to store tuples grows from tail to head, while the slot array grows from head to tail.</p>
-</li>
-<li>
-<p>When a tuple is deleted, we need to invalidate its value in slot array where we can know available space.</p>
+<li>The slot array maps “slots” to the tuples’ starting position offsets.</li>
+<li>The header keeps track of the number of used slots and the offset of the starting location of the last slot used.</li>
+<li>The space used to store tuples grows from tail to head, while the slot array grows from head to tail.</li>
+<li>When a tuple is deleted, we need to invalidate its value in slot array where we can know available space.
 <ul>
 <li>As for its following tuples, we can either leave them as be, or compact the space.</li>
 <li>As modification goes in memory, and deleting is usually holding a lock, compact the space can be fast and there is no need to inform rest of the system.</li>
@@ -484,7 +470,7 @@
 </ol>
 <h3 id="what-is-denormalized-data"><a class="markdownIt-Anchor" href="#what-is-denormalized-data"></a> What is denormalized data?</h3>
 <ol>
-<li>DBMS can physically denormalize (pre join) related tuples and store them together in the same page.
+<li>DBMS can physically denormalize (pre-join) related tuples and store them together in the same page.
 <ul>
 <li>For two tables, one table has an attribute referenced to another table, DBMS can store the tuples and thier referenced tuples in the same slot.</li>
 <li>
@@ -524,33 +510,24 @@
 </ol>
 <h2 id="how-to-solve-that-the-log-will-become-larger-and-larger"><a class="markdownIt-Anchor" href="#how-to-solve-that-the-log-will-become-larger-and-larger"></a> How to solve that the log will become larger and larger?</h2>
 <ol>
-<li>
-<p>The DBMS can periodically compact pages to reduce wasted space.</p>
+<li>The DBMS can periodically compact pages to reduce wasted space.
 <ul>
 <li>It can take two continuous pages and scan from newest to oldest leaving one newest log for each tuple.</li>
 </ul>
 </li>
-<li>
-<p>The DBMS can sort the page based on id order to improve efficiency of future look-ups.</p>
+<li>The DBMS can sort the page based on id order to improve efficiency of future look-ups.
 <ul>
-<li>
-<p>This sorted table is called <strong>Sorted String Tables</strong>, <strong>SSTables</strong>.</p>
-</li>
-<li>
-<p>After a page is compacted, the DBMS does need to maintain temporal ordering of records within the page since each tuple id is guaranteed to appear at most once in the page.</p>
-</li>
+<li>This sorted table is called <strong>Sorted String Tables</strong>, <strong>SSTables</strong>.</li>
+<li>After a page is compacted, the DBMS does need to maintain temporal ordering of records within the page since each tuple id is guaranteed to appear at most once in the page.</li>
 </ul>
 </li>
-<li>
-<p>There are two strategy to choose which pages to compact:</p>
+<li>There are two strategy to choose which pages to compact:
 <ul>
 <li>The Universal compaction chooses any two continuous pages.</li>
 <li>The level compaction chooses two continuous pages in the same level, and compacts them into next level.</li>
 </ul>
 </li>
-<li>
-<p>The downsides of compaction is write-amplification caused by duplicate writing to the newest record of a tuple, and also compacting itself is expensive.</p>
-</li>
+<li>The downsides of compaction is write-amplification caused by duplicate writing to the newest record of a tuple, and also compacting itself is expensive.</li>
 </ol>
 <h1 id="tuple-storage"><a class="markdownIt-Anchor" href="#tuple-storage"></a> Tuple storage</h1>
 <h2 id="how-to-store-data-in-a-tuple"><a class="markdownIt-Anchor" href="#how-to-store-data-in-a-tuple"></a> How to store data in a tuple?</h2>

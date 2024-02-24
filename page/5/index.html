@@ -146,7 +146,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-count">62</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -157,7 +157,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-count">34</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -174,6 +174,210 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/06/27/OpenSource/BusTub/Project-1-Buffer-Pool/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/27/OpenSource/BusTub/Project-1-Buffer-Pool/" class="post-title-link" itemprop="url">Project #1: Buffer Pool</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-06-27 15:29:31" itemprop="dateCreated datePublished" datetime="2023-06-27T15:29:31+08:00">2023-06-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-09-26 13:58:38" itemprop="dateModified" datetime="2023-09-26T13:58:38+08:00">2023-09-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/" itemprop="url" rel="index"><span itemprop="name">Open Source Code</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/BusTub/" itemprop="url" rel="index"><span itemprop="name">BusTub</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#task-1-lru-k-replacement-policy">Task #1 - LRU-K Replacement Policy</a></li>
+<li><a href="#task-2-buffer-pool-manager">Task #2 - Buffer Pool Manager</a>
+<ul>
+<li><a href="#basic">Basic</a></li>
+<li><a href="#leaderboard-optimization">Leaderboard optimization</a></li>
+</ul>
+</li>
+<li><a href="#task-3-readwrite-page-guards">Task #3 - Read/Write Page Guards</a></li>
+</ul>
+</p>
+<h1 id="task-1-lru-k-replacement-policy"><a class="markdownIt-Anchor" href="#task-1-lru-k-replacement-policy"></a> Task #1 - LRU-K Replacement Policy</h1>
+<ol>
+<li>
+<p>Evict rule:</p>
+<ul>
+<li>When all evictable frames have more than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi></mrow><annotation encoding="application/x-tex">K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span></span></span></span> access records, evict the one whose backward k-distance is maximum.</li>
+<li>When some frames only have less than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi></mrow><annotation encoding="application/x-tex">K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span></span></span></span> access records, evict the one with earliest first access record among those less than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi></mrow><annotation encoding="application/x-tex">K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span></span></span></span> frames.</li>
+</ul>
+</li>
+<li>
+<p>Comparison:</p>
+<ul>
+<li>When each frame is created or stored with a new page, push an access record of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> to its history to represent <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>+</mo><mi>inf</mi><mo>⁡</mo></mrow><annotation encoding="application/x-tex">+\inf</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.77777em;vertical-align:-0.08333em;"></span><span class="mord">+</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">in<span style="margin-right:0.07778em;">f</span></span></span></span></span>.</li>
+<li>Each comparison use the first two records in the list. If the first record (the earliest backward most k-distance) is the same, it must be <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> causing comparing second record where represent true first access of that frame.</li>
+<li>Remember to update second comparison timestamp when the first time find <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> in first timestamp.</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">size_t</span> k_timestamp = frame.second.<span class="built_in">GetKTimestamp</span>();</span><br><span class="line"><span class="type">size_t</span> sec_timestamp = frame.second.<span class="built_in">GetSecondTimestamp</span>();</span><br><span class="line"><span class="keyword">if</span> (k_timestamp &lt; cmp_k_timestamp) &#123;</span><br><span class="line">	victim = frame.first;</span><br><span class="line">	cmp_k_timestamp = k_timestamp;</span><br><span class="line">	<span class="keyword">if</span> (k_timestamp == <span class="number">0</span>) &#123;</span><br><span class="line">		cmp_sec_timestamp = sec_timestamp;</span><br><span class="line">	&#125;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (k_timestamp == cmp_k_timestamp &amp;&amp; sec_timestamp &lt; cmp_sec_timestamp) &#123;</span><br><span class="line">	victim = frame.first;</span><br><span class="line">	cmp_sec_timestamp = sec_timestamp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>After successfully choosing a victim, we need to clear its history (leaving the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> as sentinel), set it to non-evictable, and recude the current size of replacer.</p>
+</li>
+</ol>
+<h1 id="task-2-buffer-pool-manager"><a class="markdownIt-Anchor" href="#task-2-buffer-pool-manager"></a> Task #2 - Buffer Pool Manager</h1>
+<h2 id="basic"><a class="markdownIt-Anchor" href="#basic"></a> Basic</h2>
+<ol>
+<li>
+<p>When the page that is asked to fetch is already in the buffer pool, we still need to do several things:</p>
+<ul>
+<li>Set it to non-evictable.</li>
+<li>Record its access in replacer.</li>
+<li>Increase its pin count.</li>
+</ul>
+</li>
+<li>
+<p>When the page is not in buffer pool, or creating a new page:</p>
+<ul>
+<li>First, we need to acquire a free frame.
+<ul>
+<li>Erase it from page table when we are evicting one.</li>
+<li>Write the content to disk when the old page is dirty.</li>
+</ul>
+</li>
+<li>Then, similar to the other situation, we need to:
+<ul>
+<li>Set it to non-evictable</li>
+<li>Record its access in replacer</li>
+<li>Put it in page table</li>
+<li>Set its pin count to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span></li>
+<li>Set <code>is_dirty_</code> to <code>false</code></li>
+<li>Set its page ID to frame.</li>
+</ul>
+</li>
+<li>Even in <code>NewPage</code>, the <code>is_dirty_</code> is false due to it can directly “write” empty to file by increasing offset which is done when larger page ID is written. There is no need to actually write empty content.</li>
+</ul>
+</li>
+<li>
+<p>When setting <code>is_dirty_</code> in <code>Unpin</code>, if the page is already dirty, we should not set it to clean no matter what we are told to.</p>
+</li>
+</ol>
+<h2 id="leaderboard-optimization"><a class="markdownIt-Anchor" href="#leaderboard-optimization"></a> Leaderboard optimization</h2>
+<ol>
+<li>Fine-grain lock
+<ul>
+<li>A coarse-grain lock is easier to program while sacrificing performance.</li>
+<li>In fine-grain lock, a <code>core_latch_</code> is used to protect the core data of buffer pool manager, i.e. <code>page_table_</code>, <code>free_list_</code>, <code>next_page_id_</code>). Each frame has its own latch to protect its data, i.e. <code>pin_count_</code>, <code>is_dirty_</code>, <code>page_id_</code>.</li>
+<li>In each function thread, it will at most grab the <code>core_latch_</code> and one of frame latches.</li>
+<li>To avoid deadlock, each procedule is designed that a thread will try to acquire a page latch only if it already has a core_latch, or it won’t want a core_latech later.</li>
+<li>To obtain atomic when switching from <code>core_latch_</code> to a page latch, we need to acquire the page latch before release the <code>core_latch_</code>.
+<ul>
+<li>If release <code>core_latch_</code> first, some other thread may change the frame we want to use (e.g. evict the frame, modify its metadata) before we can acquire the frame latch.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Delay write out:
+<ul>
+<li>Disk I/Os consume a large amount of time. So we need to avoid holding a lock while communicate with disk.</li>
+<li>When we need to write data into disk, instead of immediately call the <code>disk_manager_-&gt;WritePage</code>, we create a temporary buffer in memory, and copy data into the buffer. After all locks are released, we actually write those content in buffer into disk.</li>
+<li>A similar thought is to delay read data until all locks are released. However, <code>ReadData</code> are call in <code>FetchPage</code> where  we can only release the frame latch after the whole frame is ready for others to visit. Still, we can <code>ReadData</code> after <code>core_latch_</code> is released since the <code>core_latch_</code> could be the bottleneck of the manager.</li>
+<li>However, there is a problem:
+<ul>
+<li>When a page is evicted, and only a short time later, that exact page is fetched again. Since all latches are release before write dirty data to disk, there is a chance that <code>FetchPage</code> read stale data from disk before the up-to-date data is written to disk.</li>
+<li>Then my another thought is to maintain a list of page IDs in the writing buffer. If the page ID of <code>FetchPage</code> is in the list, it just copy data from the writing buffer and erase that page from writing buffer.</li>
+<li>The problem here is that we need to guarantee the atomic between getting the writing content and writing them to disk. Otherwise, tricky concurrent operations may cause the written content to be wrong.</li>
+<li>Hence we cannot unlock the latches until we are sure the content is written, which also makes fine-grained latches meaningless given that disk I/O is the key problem of performance.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Pre-fetch
+<ul>
+<li>To better suit the scan case, when we accessing three consecutive page IDs in a row, the buffer pool manager is allowed to pre-fetch several following pages.</li>
+<li>Different from fetching pages through <code>FetchPage</code>, pre-fetched frames need to set <code>pin_count_</code> to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> and evictable.</li>
+<li>Pre-fetch should not stall <code>FetchPage</code> from returning, so it must be run in a separate thread.</li>
+<li>The problem is that pre-fetch must be an independent background thread. It won’t know whether the buffer pool manager is destroyed, which will cause heap-use-after-free error.</li>
+</ul>
+</li>
+</ol>
+<h1 id="task-3-readwrite-page-guards"><a class="markdownIt-Anchor" href="#task-3-readwrite-page-guards"></a> Task #3 - Read/Write Page Guards</h1>
+<ol>
+<li>Any <code>PageGuard</code> will automatically unpin itself when it is deconstructed. But they don’t need to pin themselves since they are pinned before <code>PageGuard</code> is created when fetching or creating page.</li>
+<li>If a <code>Read/WritePageGuard</code> is acquired through <code>FetchPageRead</code> or <code>FetchPageWrite</code>, the latch is acquired inside these functions. However, if a <code>PageGuard</code> is acquired through it construction function, the latch won’t be acquired automatically.</li>
+<li>No matter how <code>Read/WritePageGuard</code> is acquired, the latch will always be released automatically when the <code>PageGuard</code> is deconstructed by deconstructor or move operation.</li>
+<li>In the move assignment, we need to first drop the original page, copy from right reference and finally deconstruct right reference.</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1316,7 +1520,7 @@ to 1. If yes, set to zero. If no, then evict.</li>
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-09-26 14:00:19" itemprop="dateModified" datetime="2023-09-26T14:00:19+08:00">2023-09-26</time>
+      <time title="Modified: 2024-02-23 00:05:25" itemprop="dateModified" datetime="2024-02-23T00:05:25+08:00">2024-02-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1407,14 +1611,12 @@ to 1. If yes, set to zero. If no, then evict.</li>
 <h1 id="disk-based-architecture"><a class="markdownIt-Anchor" href="#disk-based-architecture"></a> Disk-based architecture</h1>
 <h2 id="what-are-the-storage-devices"><a class="markdownIt-Anchor" href="#what-are-the-storage-devices"></a> What are the storage devices?</h2>
 <ol>
-<li>
-<p>The first type is the volatile memory: CPU registers, CPU caches and DRAM</p>
+<li>The first type is the volatile memory: CPU registers, CPU caches and DRAM
 <ul>
 <li>They provide random access and they are byte-addressable.</li>
 </ul>
 </li>
-<li>
-<p>The second type is the non-volatile disks: SSD, HDD and network storage.</p>
+<li>The second type is the non-volatile disks: SSD, HDD and network storage.
 <ul>
 <li>They only provide sequential access.
 <ul>
@@ -1425,10 +1627,8 @@ to 1. If yes, set to zero. If no, then evict.</li>
 <li>They are block-addressable.</li>
 </ul>
 </li>
-<li>
-<p>The access times of each storage is as followed:</p>
-<img src="/imgs/15445/Storage/access_times.png" width="50%">
-</li>
+<li>The access times of each storage is as followed:<br />
+<img src="/imgs/15445/Storage/access_times.png" width="50%"></li>
 </ol>
 <h2 id="what-is-disk-oriented-dmbs"><a class="markdownIt-Anchor" href="#what-is-disk-oriented-dmbs"></a> What is disk-oriented DMBS?</h2>
 <ol>
@@ -1509,8 +1709,7 @@ to 1. If yes, set to zero. If no, then evict.</li>
 </ol>
 <h3 id="how-to-organize-tuple-oriented-data"><a class="markdownIt-Anchor" href="#how-to-organize-tuple-oriented-data"></a> How to organize tuple-oriented data?</h3>
 <ol>
-<li>
-<p>A naive strategy is to store the number of tuples in the header, and just append a new tuple to the end.</p>
+<li>A naive strategy is to store the number of tuples in the header, and just append a new tuple to the end.
 <ul>
 <li>What if we delete a tuple?
 <ul>
@@ -1525,21 +1724,12 @@ to 1. If yes, set to zero. If no, then evict.</li>
 </li>
 </ul>
 </li>
-<li>
-<p>In the slotted pages scheme, we store a <strong>slot array</strong> at the header.</p>
+<li>In the slotted pages scheme, we store a <strong>slot array</strong> at the header.
 <ul>
-<li>
-<p>The slot array maps “slots” to the tuples’ starting position offsets.</p>
-</li>
-<li>
-<p>The header keeps track of the number of used slots and the offset of the starting location of the</p>
-<p>last slot used.</p>
-</li>
-<li>
-<p>The space used to store tuples grows from tail to head, while the slot array grows from head to tail.</p>
-</li>
-<li>
-<p>When a tuple is deleted, we need to invalidate its value in slot array where we can know available space.</p>
+<li>The slot array maps “slots” to the tuples’ starting position offsets.</li>
+<li>The header keeps track of the number of used slots and the offset of the starting location of the last slot used.</li>
+<li>The space used to store tuples grows from tail to head, while the slot array grows from head to tail.</li>
+<li>When a tuple is deleted, we need to invalidate its value in slot array where we can know available space.
 <ul>
 <li>As for its following tuples, we can either leave them as be, or compact the space.</li>
 <li>As modification goes in memory, and deleting is usually holding a lock, compact the space can be fast and there is no need to inform rest of the system.</li>
@@ -1569,7 +1759,7 @@ to 1. If yes, set to zero. If no, then evict.</li>
 </ol>
 <h3 id="what-is-denormalized-data"><a class="markdownIt-Anchor" href="#what-is-denormalized-data"></a> What is denormalized data?</h3>
 <ol>
-<li>DBMS can physically denormalize (pre join) related tuples and store them together in the same page.
+<li>DBMS can physically denormalize (pre-join) related tuples and store them together in the same page.
 <ul>
 <li>For two tables, one table has an attribute referenced to another table, DBMS can store the tuples and thier referenced tuples in the same slot.</li>
 <li>
@@ -1609,33 +1799,24 @@ to 1. If yes, set to zero. If no, then evict.</li>
 </ol>
 <h2 id="how-to-solve-that-the-log-will-become-larger-and-larger"><a class="markdownIt-Anchor" href="#how-to-solve-that-the-log-will-become-larger-and-larger"></a> How to solve that the log will become larger and larger?</h2>
 <ol>
-<li>
-<p>The DBMS can periodically compact pages to reduce wasted space.</p>
+<li>The DBMS can periodically compact pages to reduce wasted space.
 <ul>
 <li>It can take two continuous pages and scan from newest to oldest leaving one newest log for each tuple.</li>
 </ul>
 </li>
-<li>
-<p>The DBMS can sort the page based on id order to improve efficiency of future look-ups.</p>
+<li>The DBMS can sort the page based on id order to improve efficiency of future look-ups.
 <ul>
-<li>
-<p>This sorted table is called <strong>Sorted String Tables</strong>, <strong>SSTables</strong>.</p>
-</li>
-<li>
-<p>After a page is compacted, the DBMS does need to maintain temporal ordering of records within the page since each tuple id is guaranteed to appear at most once in the page.</p>
-</li>
+<li>This sorted table is called <strong>Sorted String Tables</strong>, <strong>SSTables</strong>.</li>
+<li>After a page is compacted, the DBMS does need to maintain temporal ordering of records within the page since each tuple id is guaranteed to appear at most once in the page.</li>
 </ul>
 </li>
-<li>
-<p>There are two strategy to choose which pages to compact:</p>
+<li>There are two strategy to choose which pages to compact:
 <ul>
 <li>The Universal compaction chooses any two continuous pages.</li>
 <li>The level compaction chooses two continuous pages in the same level, and compacts them into next level.</li>
 </ul>
 </li>
-<li>
-<p>The downsides of compaction is write-amplification caused by duplicate writing to the newest record of a tuple, and also compacting itself is expensive.</p>
-</li>
+<li>The downsides of compaction is write-amplification caused by duplicate writing to the newest record of a tuple, and also compacting itself is expensive.</li>
 </ol>
 <h1 id="tuple-storage"><a class="markdownIt-Anchor" href="#tuple-storage"></a> Tuple storage</h1>
 <h2 id="how-to-store-data-in-a-tuple"><a class="markdownIt-Anchor" href="#how-to-store-data-in-a-tuple"></a> How to store data in a tuple?</h2>
@@ -1860,7 +2041,7 @@ to 1. If yes, set to zero. If no, then evict.</li>
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-09-26 14:00:15" itemprop="dateModified" datetime="2023-09-26T14:00:15+08:00">2023-09-26</time>
+      <time title="Modified: 2024-02-22 19:06:48" itemprop="dateModified" datetime="2024-02-22T19:06:48+08:00">2024-02-22</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1950,19 +2131,13 @@ to 1. If yes, set to zero. If no, then evict.</li>
 </ol>
 <h2 id="what-does-dbms-and-data-models-do"><a class="markdownIt-Anchor" href="#what-does-dbms-and-data-models-do"></a> What does DBMS and data models do?</h2>
 <ol>
-<li>
-<p>DBMS supports the definition, creation, querying, update, and administration of databases in accordance with some data model.</p>
+<li>DBMS supports the definition, creation, querying, update, and administration of databases in accordance with some data model.
 <ul>
-<li>
-<p>The physical storage is left up to the DBMS implementation.</p>
-</li>
-<li>
-<p>Programmers access data through high-level language, DBMS figures out best execution strategy.</p>
-</li>
+<li>The physical storage is left up to the DBMS implementation.</li>
+<li>Programmers access data through high-level language, DBMS figures out best execution strategy.</li>
 </ul>
 </li>
-<li>
-<p>A data model is a collection of concepts for describing the data in a database.</p>
+<li>A data model is a collection of concepts for describing the data in a database.
 <ul>
 <li>A schema is a description of a particular collection of data using a given data model.</li>
 </ul>
@@ -2023,83 +2198,53 @@ to 1. If yes, set to zero. If no, then evict.</li>
 </ol>
 <h2 id="what-is-supported-in-relational-algebra"><a class="markdownIt-Anchor" href="#what-is-supported-in-relational-algebra"></a> What is supported in relational algebra?</h2>
 <ol>
-<li>
-<p>Select: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sigma_{predicate}(R)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mclose">)</span></span></span></span></p>
+<li>Select: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sigma_{predicate}(R)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mclose">)</span></span></span></span>
 <ul>
-<li>
-<p>Choose a subset of the tuples from a relation that satisfies the selection predicate.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R</span><br><span class="line"> <span class="keyword">WHERE</span> predicate;</span><br></pre></td></tr></table></figure>
+<li>Choose a subset of the tuples from a relation that satisfies the selection predicate.<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R</span><br><span class="line"> <span class="keyword">WHERE</span> predicate;</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
-<li>
-<p>Projection: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Π</mi><mrow><msub><mi>A</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>A</mi><mn>2</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>A</mi><mi>n</mi></msub></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\Pi_{A_1,A_2,\dots,A_n}(R)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord">Π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.328331em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31731428571428577em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31731428571428577em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="minner mtight">…</span><span class="mpunct mtight">,</span><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.16454285714285719em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mclose">)</span></span></span></span></p>
+<li>Projection: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Π</mi><mrow><msub><mi>A</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>A</mi><mn>2</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>A</mi><mi>n</mi></msub></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\Pi_{A_1,A_2,\dots,A_n}(R)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord">Π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.328331em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31731428571428577em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31731428571428577em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="minner mtight">…</span><span class="mpunct mtight">,</span><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.16454285714285719em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mclose">)</span></span></span></span>
 <ul>
-<li>
-<p>Generate a relation with tuples that contains only the specified attributes</p>
-</li>
-<li>
-<p>It can be used to rearrange attributes’ ordering and manipulate the values.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> A1, A2, ..., An <span class="keyword">FROM</span> R;</span><br></pre></td></tr></table></figure>
+<li>Generate a relation with tuples that contains only the specified attributes</li>
+<li>It can be used to rearrange attributes’ ordering and manipulate the values.<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> A1, A2, ..., An <span class="keyword">FROM</span> R;</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
-<li>
-<p>Union: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>∪</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\cup S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∪</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></p>
+<li>Union: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>∪</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\cup S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∪</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span>
 <ul>
-<li>
-<p>Two relations must have same attributes.</p>
-</li>
-<li>
-<p>The result may be duplicated if some tuples appeared in bother relations.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">UNION</span> <span class="keyword">ALL</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
+<li>Two relations must have same attributes.</li>
+<li>The result may be duplicated if some tuples appeared in both relations.<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">UNION</span> <span class="keyword">ALL</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
-<li>
-<p>Intersection: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>∩</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\cap S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∩</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></p>
+<li>Intersection: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>∩</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\cap S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∩</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span>
 <ul>
-<li>
-<p>Two relations must have same attributes.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">INTERSECT</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
+<li>Two relations must have same attributes.<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">INTERSECT</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
-<li>
-<p>Difference: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>−</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R-S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></p>
+<li>Difference: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>−</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R-S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span>
 <ul>
-<li>
-<p>Two relations must have same attributes.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">EXCEPT</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
+<li>Two relations must have same attributes.<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">EXCEPT</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
-<li>
-<p>Product: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>×</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\times S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></p>
+<li>Product: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>×</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\times S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span>
 <ul>
-<li>
-<p>Generate a relation that contains all possible combinations of tuple from the input relations, i.e. Cartesian product.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">CROSS</span> <span class="keyword">JOIN</span> S;</span><br><span class="line"># <span class="keyword">Or</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R, S;</span><br></pre></td></tr></table></figure>
+<li>Generate a relation that contains all possible combinations of tuple from the input relations, i.e. Cartesian product.<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">CROSS</span> <span class="keyword">JOIN</span> S;</span><br><span class="line"># <span class="keyword">Or</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R, S;</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
-<li>
-<p>Join: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>⋈</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\bowtie S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68833em;vertical-align:-0.005em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⋈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></p>
+<li>Join: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>⋈</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\bowtie S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68833em;vertical-align:-0.005em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⋈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span>
 <ul>
-<li>
-<p>The difference between join and intersection is that join can match attributes’ name automatically, while intersetion requires that two relations have the same attribute order.</p>
+<li>The difference between join and intersection is that join can match attributes’ name automatically, while intersetion requires that two relations have the same attribute order.</li>
+<li>It does product first, then compare attributes.<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">NATURAL</span> <span class="keyword">JOIN</span> S;</span><br><span class="line"># <span class="keyword">Or</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">JOIN</span> S <span class="keyword">USING</span> (A1, A2, ..., An);</span><br></pre></td></tr></table></figure>
 </li>
-<li>
-<p>It does product first, then compare attributes.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">NATURAL</span> <span class="keyword">JOIN</span> S;</span><br><span class="line"># <span class="keyword">Or</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">JOIN</span> S <span class="keyword">USING</span> (A1, A2, ..., An);</span><br></pre></td></tr></table></figure>
-</li>
-<li>
-<p>In the broad sense, join can have predicate <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><msub><mo>⋈</mo><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mi>S</mi></mrow><annotation encoding="application/x-tex">R\bowtie_{predicate}S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel"><span class="mrel">⋈</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span> which is the same as <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo>×</mo><mi>S</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sigma_{predicate}(R\times S)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mclose">)</span></span></span></span>.</p>
-</li>
+<li>In the broad sense, join can have predicate <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><msub><mo>⋈</mo><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mi>S</mi></mrow><annotation encoding="application/x-tex">R\bowtie_{predicate}S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel"><span class="mrel">⋈</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span> which is the same as <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo>×</mo><mi>S</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sigma_{predicate}(R\times S)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mclose">)</span></span></span></span>.</li>
 </ul>
 </li>
-<li>
-<p>It is obvious that different order of steps can have the same result with different amout of computation.</p>
+<li>It is obvious that different order of steps can have the same result with different amout of computation.
 <ul>
 <li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>⋈</mo><mo stretchy="false">(</mo><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R\bowtie(\sigma_{predicate}(S))</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68833em;vertical-align:-0.005em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⋈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mclose">)</span><span class="mclose">)</span></span></span></span> is much efficient than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo>⋈</mo><mi>S</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sigma_{predicate}(R\bowtie S)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⋈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mclose">)</span></span></span></span>.</li>
 </ul>
@@ -2119,7 +2264,7 @@ to 1. If yes, set to zero. If no, then evict.</li>
 <li>They are functions that return a single value from a bag of tuples.</li>
 <li><code>AVG(col)</code>, <code>MIN(col)</code>, <code>MAX(col)</code>, <code>SUM(col)</code>, <code>COUNT(col)</code>
 <ul>
-<li>For <code>COUNT</code>, the passed argument actual does mater since it only returns the number of rows.</li>
+<li>For <code>COUNT</code>, the passed argument actual does not mater since it only returns the number of rows.</li>
 </ul>
 </li>
 <li>Aggregate functions can almost only be used in the <code>SELECT</code> output list.</li>
@@ -2155,14 +2300,10 @@ to 1. If yes, set to zero. If no, then evict.</li>
 </ol>
 <h2 id="what-string-operations-are-supported"><a class="markdownIt-Anchor" href="#what-string-operations-are-supported"></a> What string operations are supported?</h2>
 <ol>
-<li>
-<p>Predicate of string matching can be done with <code>=</code></p>
+<li>Predicate of string matching can be done with <code>=</code>
 <ul>
-<li>
-<p>Some DBMSs are case sensitive while others are not.</p>
-</li>
-<li>
-<p>We can also use <code>LIKE</code> to match with string-match operators.</p>
+<li>Some DBMSs are case sensitive while others are not.</li>
+<li>We can also use <code>LIKE</code> to match with string-match operators.
 <ul>
 <li><code>%</code> matches any substring (including empty strings)</li>
 <li><code>_</code> match any one character.</li>
@@ -2170,16 +2311,13 @@ to 1. If yes, set to zero. If no, then evict.</li>
 </li>
 </ul>
 </li>
-<li>
-<p>Other string functions are provided:</p>
+<li>Other string functions are provided:
 <ul>
 <li><code>UPPER</code> and <code>LOWER</code></li>
 <li><code>SUBSTRING(str, start_index, end_index)</code></li>
 </ul>
 </li>
-<li>
-<p>Different language has different ways to concatenate strings: <code>str1 || str2</code>, <code>str1 + str2</code> or <code>CONCAT(str1, str2)</code>.</p>
-</li>
+<li>Different language has different ways to concatenate strings: <code>str1 || str2</code>, <code>str1 + str2</code> or <code>CONCAT(str1, str2)</code>.</li>
 </ol>
 <h2 id="output"><a class="markdownIt-Anchor" href="#output"></a> Output</h2>
 <h3 id="where-can-we-redirect-outputs"><a class="markdownIt-Anchor" href="#where-can-we-redirect-outputs"></a> Where can we redirect outputs?</h3>
@@ -2208,36 +2346,21 @@ to 1. If yes, set to zero. If no, then evict.</li>
 </ol>
 <h2 id="what-if-we-need-temporary-relation-in-a-query"><a class="markdownIt-Anchor" href="#what-if-we-need-temporary-relation-in-a-query"></a> What if we need temporary relation in a query?</h2>
 <ol>
-<li>
-<p>The first solution is nested queries.</p>
+<li>The first solution is nested queries.
 <ul>
-<li>
-<p>Inner queries can appear almost anywhere in query.</p>
-</li>
-<li>
-<p>In <code>WHERE</code> clause, we can perform predicate between the tuples from current relation and result of subqueries.</p>
+<li>Inner queries can appear almost anywhere in query.</li>
+<li>In <code>WHERE</code> clause, we can perform predicate between the tuples from current relation and result of subqueries.
 <ul>
-<li>
-<p><code>ALL</code> must satisfy expression for all rows in the subquery.</p>
-</li>
-<li>
-<p><code>ANY</code> must satisfy expression for at least one row in the subquery.</p>
-</li>
-<li>
-<p><code>IN</code> is equivalent to <code>=ANY()</code>.</p>
-</li>
-<li>
-<p><code>EXISTS</code> returns true if the relation is not empty.</p>
-</li>
-<li>
-<p><code>NOT</code></p>
-</li>
+<li><code>ALL</code> must satisfy expression for all rows in the subquery.</li>
+<li><code>ANY</code> must satisfy expression for at least one row in the subquery.</li>
+<li><code>IN</code> is equivalent to <code>=ANY()</code>.</li>
+<li><code>EXISTS</code> returns true if the relation is not empty.</li>
+<li><code>NOT</code></li>
 </ul>
 </li>
 </ul>
 </li>
-<li>
-<p>Another choice is common table expression using <code>WITH cteName AS (query)</code>.</p>
+<li>Another choice is common table expression using <code>WITH cteName AS (query)</code>.
 <ul>
 <li>It also supports bind/alias output columns to names <code>WITH cteName (col1, ..., coln) AS (query)</code></li>
 <li>In the next one query, we can reference this temporary relation with <code>cteName</code>.</li>
@@ -2876,340 +2999,6 @@ The reason is all warps in a block need to execute the same instructions. But on
 So we can have an <code>if</code> condition inside the loop as the following code.</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">__share__ <span class="type">int</span> mutex;</span><br><span class="line"></span><br><span class="line"><span class="function">__kernel__ <span class="type">void</span> <span class="title">kernel</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="type">bool</span> leaveLoop = <span class="literal">false</span>;</span><br><span class="line">  <span class="keyword">while</span> (!leaveLoop)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">atomicExch</span>(&amp;mutex, <span class="number">1</span>))</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="comment">// critical cade</span></span><br><span class="line">      leaveLoop = <span class="literal">true</span>;      <span class="comment">// this thread can leave the loop, but it need to </span></span><br><span class="line">                             <span class="comment">// wait for other threads in its block</span></span><br><span class="line">      <span class="built_in">atomicExch</span>(&amp;mutex, <span class="number">0</span>); <span class="comment">// unlock the lock, so that in next iteration, </span></span><br><span class="line">                             <span class="comment">// some other threads can have the lock and finish</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/07/13/Courses/CS149/12-Interconnection-Network/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2022/07/13/Courses/CS149/12-Interconnection-Network/" class="post-title-link" itemprop="url">12. Interconnection Network</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2022-07-13 10:50:56" itemprop="dateCreated datePublished" datetime="2022-07-13T10:50:56+08:00">2022-07-13</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-02-09 14:01:11" itemprop="dateModified" datetime="2024-02-09T14:01:11+08:00">2024-02-09</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="interconnection"><a class="markdownIt-Anchor" href="#interconnection"></a> Interconnection</h1>
-<ol>
-<li>All parallel processors are connected and form an interconnection network.</li>
-<li>The interconnection network are used to connect processor cores with other cores, processors and memories, processor cores and caches, caches and caches, I/O devices.</li>
-<li>The design of the interconnection network has an important impact on system scalability (How large of a system can be built? How easy is it to add more nodes?), system performance and energy efficiency (How fast can cores, caches, memory communicate? How long is latency to memory? How much energy is spent on communication?)</li>
-</ol>
-<h2 id="terminology"><a class="markdownIt-Anchor" href="#terminology"></a> Terminology</h2>
-<ol>
-<li><strong>Network node</strong>: a network endpoint connected to a router/switch, like the processor, the cache controller, or the memory controller</li>
-<li><strong>Network interface</strong>: Connects nodes to the network</li>
-<li><strong>Switch/router</strong>: Connects a fixed number of input links to a fixed number of output links</li>
-<li><strong>Link</strong>: A bundle of wires carrying a signal<br />
-<img src="/imgs/CS149/12/1.png" width="40%"></li>
-</ol>
-<h2 id="design-issues"><a class="markdownIt-Anchor" href="#design-issues"></a> Design issues</h2>
-<ol>
-<li><strong>Topology</strong>: How switches are connected via links. Affects routing, throughput, latency, complexity/cost of implementation.</li>
-<li><strong>Routing</strong>: How a message gets from its source to its destination in the network. Can be static (messages take a predetermined path) or adaptive based on load.</li>
-<li><strong>Buffering and flow control</strong>: What data are stored in the network? packets, partial packets? etc. How does the network manage buffer space?</li>
-</ol>
-<h2 id="properties-of-interconnect-topology"><a class="markdownIt-Anchor" href="#properties-of-interconnect-topology"></a> Properties of interconnect topology</h2>
-<ol>
-<li><strong>Routing distance</strong>: Number of links (“hops”) along a route between two nodes</li>
-<li><strong>Diameter</strong>: the maximum routing distance</li>
-<li><strong>Average distance</strong>: average routing distance over all valid routes</li>
-<li><strong>Direct network</strong>: The switches and nodes are one in the same. The logic of the switch is built into the node itself.</li>
-<li><strong>Indirect network</strong>: The switches are distinct from the nodes that form a chain from one node to the other.</li>
-<li><strong>Blocking or non-blocking</strong>: If connecting any pairing of node simultaneously won’t cause conflict (using the same link or the same switch, assuming that one switch can only handle on message at one time), the network is non-blocking. Otherwise, it is blocking.</li>
-<li><strong>Bisection bandwidth</strong>: A measure of how much connectivity in the network. If we cut the network in half, it is the connection between those two halves, namely the sum bandwidth of all severed links.<br />
-The low bisection bandwidth will be the choke point of the network.</li>
-<li>Latency increases with load (throughput).<br />
-The topology, routing algorithm and flow control each has their own min latency. The zero load or idle latency is the sum of the three min latencies.<br />
-Also, the topology, routing algorithm and flow control each has their own throughput limit. The overall throughput limit is the min of the three limits.</li>
-</ol>
-<h1 id="interconnect-topologies"><a class="markdownIt-Anchor" href="#interconnect-topologies"></a> Interconnect topologies</h1>
-<h2 id="bus"><a class="markdownIt-Anchor" href="#bus"></a> Bus</h2>
-<ol>
-<li>
-<p>Physically, a bus is a wire. But from graph point of view, a bus is a switch.</p>
-</li>
-<li>
-<p>It is simple to design. It costs effective for a small number of nodes. It is easy to implement coherence via snooping</p>
-</li>
-<li>
-<p>Contention: all nodes contend for shared bus</p>
-</li>
-<li>
-<p>Limited bandwidth: all nodes communicate over same wires, and only one communication is allowed at a time.</p>
-</li>
-<li>
-<p>There has a scalibility problem. It is expensive to drive wires across the whole chips. There is quite a lot of power in driving signals on the bus.</p>
-<img src="/imgs/CS149/12/2.png" width="40%">
-</li>
-</ol>
-<h2 id="crossbar"><a class="markdownIt-Anchor" href="#crossbar"></a> Crossbar</h2>
-<ol>
-<li>
-<p>Every node is connected to every other node by a direct connection. The network is non-blocking and indirect (the network is indirect, but the nodes are connected directly).</p>
-</li>
-<li>
-<p>It has <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> latency and high bandwidth.</p>
-</li>
-<li>
-<p>It also has a scalability problem since <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> switches are required. Also it has high cost and is difficult to arbitrate at scale.</p>
-</li>
-<li>
-<p>Crossbars were used in recent multi-core processing from Oracle. In a multi-core chip, the crossbar (CCX) occupies about the same chip area as a core.</p>
-<img src="/imgs/CS149/12/3.png" width="40%">
-</li>
-</ol>
-<h2 id="ring"><a class="markdownIt-Anchor" href="#ring"></a> Ring</h2>
-<ol>
-<li>
-<p>It lets the message to circle around.</p>
-</li>
-<li>
-<p>It is simple enough and quite cheap with only <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span> cost.</p>
-</li>
-<li>
-<p>But the latency is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>, which is very high. And the bisection bandwidth remains constant as nodes are added, which will cause the scalibility problem.</p>
-</li>
-<li>
-<p>It is used in recent Intel architectures, Core i7, and in IBM CELL Broadband Engine. This is usually used on the scale of 4 or 8 elements on the ring.</p>
-</li>
-<li>
-<p>The Intel’s ring interconnect has four rings (request, snoop, ack, 32 bytes of data) and six interconnect nodes (four “slices” of L3 cache, system agent, graphics). Each bank of L3 connected to ring bus twice.</p>
-<img src="/imgs/CS149/12/4.png" width="40%">
-</li>
-</ol>
-<h2 id="mesh"><a class="markdownIt-Anchor" href="#mesh"></a> Mesh</h2>
-<ol>
-<li>
-<p>This is a direct network. It echoes locality in grid-based applications.</p>
-</li>
-<li>
-<p>The cost is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>, and the average latency is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msqrt><mi>N</mi></msqrt><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(\sqrt{N})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.176665em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9266650000000001em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span><span style="top:-2.886665em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg width='400em' height='1.08em' viewBox='0 0 400000 1080' preserveAspectRatio='xMinYMin slice'><path d='M95,702
-c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14
-c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54
-c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10
-s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429
-c69,-144,104.5,-217.7,106.5,-221
-l0 -0
-c5.3,-9.3,12,-14,20,-14
-H400000v40H845.2724
-s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
-c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
-M834 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.11333499999999996em;"><span></span></span></span></span></span><span class="mclose">)</span></span></span></span>.</p>
-</li>
-<li>
-<p>It is easy to lay out on chip since all links have a fixed-length.</p>
-</li>
-<li>
-<p>Path diversity: many ways for message to travel from one node to another</p>
-<img src="/imgs/CS149/12/5.png" width="40%">
-</li>
-</ol>
-<h2 id="torus"><a class="markdownIt-Anchor" href="#torus"></a> Torus</h2>
-<ol>
-<li>
-<p>Characteristics of node in mesh topology are different based on whether node is near edge or middle of network. Torus topology introduces new links to avoid this problem.</p>
-</li>
-<li>
-<p>In torus topology, each row or each column forms a ring by adding a new link to connect the two nodes on the edge.</p>
-</li>
-<li>
-<p>Its cost is still <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>, but higher than 2D mesh. It also has higher path diversity and bisection bandwidth than mesh.</p>
-</li>
-<li>
-<p>However, it has higher complexity and is difficult to layout on chip since its unequal link lengths.</p>
-</li>
-<li>
-<p>Folded torus interleaving rows and columns to eliminate need for long connections. All connections are doubled in length.</p>
-<img src="/imgs/CS149/12/6.png" width="40%">
-</li>
-</ol>
-<h2 id="tree"><a class="markdownIt-Anchor" href="#tree"></a> Tree</h2>
-<ol>
-<li>
-<p>This is a planar, hierarchical topology. Like mesh/torus, it performs good when traffic has locality.</p>
-</li>
-<li>
-<p>The latency is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>l</mi><mi>o</mi><mi>g</mi><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(logN)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span></p>
-</li>
-<li>
-<p>In tree routing, if the signal need to go upward, there is only one option. If the signal need to go downward, we can use <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> to mark go left while <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> to mark go right.<br />
-Everytime, the signal will go upward first until have a common ancestor, then it will go downward.<br />
-If the tree is a complete tree and we assign numbers to the nodes accroding to their inorder traversal starting from zero, then the way to each node from root node is the binary code of the number.</p>
-</li>
-<li>
-<p>Fat tree increases bandwidth between nodes as move upward. It can alleviate root bandwidth problem with higher bandwidth links near root.</p>
-</li>
-<li>
-<p>The number of wires is the same to the height of the subtree. So the bisection bandwidth of fat tree is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>.</p>
-</li>
-<li>
-<p>The fat tree routing is similar to tree routing, but randomly choose when multiple links possible.</p>
-</li>
-<li>
-<p>Constant-width fat tree (folded clos network): All nodes fixed degree, which makes the hardware design simpler. This is used in Infiniband networks.</p>
-<p><img src="/imgs/CS149/12/7.png" width="30%"><img src="/imgs/CS149/12/8.png" width="30%"><img src="/imgs/CS149/12/9.png" width="30%"></p>
-</li>
-</ol>
-<h2 id="hypercube"><a class="markdownIt-Anchor" href="#hypercube"></a> Hypercube</h2>
-<ol>
-<li>
-<p>It has a low latency of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>l</mi><mi>o</mi><mi>g</mi><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(logN)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>. Its number of links is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mi>l</mi><mi>o</mi><mi>g</mi><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(NlogN)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>.</p>
-</li>
-<li>
-<p>6D hypercube used in 64-core Cosmic Cube computer developed at Caltech in the 80s.</p>
-</li>
-<li>
-<p>If the address of two nodes only differs by one bit, then there is a link connecting them.<br />
-So is we want to go from address A to address B, we just do it one bit a time.</p>
-</li>
-<li>
-<p>The problem is that we cannot pack more dimensions to 3D that exists. To implement a higher dimension cube, we need to put enough wires in to make it work. But as we scale up more and more, the wires becomes so much that doesn’t layout well.</p>
-<img src="/imgs/CS149/12/10.png" width="40%">
-</li>
-</ol>
-<h2 id="multi-stage-logarithmic"><a class="markdownIt-Anchor" href="#multi-stage-logarithmic"></a> Multi-stage logarithmic</h2>
-<ol>
-<li>
-<p>It is an indirect network with multiple switches between terminals.</p>
-</li>
-<li>
-<p>The cost is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mi>l</mi><mi>o</mi><mi>g</mi><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(NlogN)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span> while the latency is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>l</mi><mi>o</mi><mi>g</mi><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(logN)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>.</p>
-</li>
-<li>
-<p>It has many variations: Omega, butterfly, Clos networks, etc.</p>
-</li>
-<li>
-<p>In the topology shown below, each switch has two output wires. In the routing, if 0 stands for up and 1 for down, we can also routing according to the binary code of the number of targeting node.<br />
-Here up means that we will take the upper wire, and down means that we will take the lower wire. They don’t always means going up or going down.</p>
-<img src="/imgs/CS149/12/11.png" width="40%">
-</li>
-</ol>
-<h1 id="buffering-and-flow-control"><a class="markdownIt-Anchor" href="#buffering-and-flow-control"></a> Buffering and flow control</h1>
-<ol>
-<li>Circuit switching sets up a full path (acquires all resources) between sender and receiver prior to sending a message. It has higher bandwidth transmission.<br />
-It has no per-packet link management overhead, but does incur overhead to set up/tear down path. And reserving links can result in low utilization.</li>
-<li>Packet switching makes routing decisions per packet. It has an opportunity to use link for a packet whenever link is idle.<br />
-It has overhead due to dynamic switching logic during transmission, but no setup/tear down overhead.</li>
-<li>The granularity of communication from larger to miner is message, packet and flit<br />
-Message is the unit of transfer between network clients, and can be transmitted using many packets.<br />
-Packet is the unit of transfer for network, and can be transmitted using multiple flits.<br />
-Flit (flow control digit) is a unit of flow control in the network. Packets broken into flits.</li>
-<li>A packet consists of header, payload/body and tail.<br />
-Header contains routing and control information, and is at start of packet to router can start forwarding early.<br />
-Payload/body contains the data to be sent.<br />
-Tail contains control information, like error code, and is generally located at end of packet so it can be generated “on the way out”.</li>
-<li>When two packets need to be routed onto the same outbound link at the same time, contention is occurred. There are three options buffer one packet and send it over link later, drop one packet, or reroute one packet (deflection).</li>
-</ol>
-<h2 id="circuit-switched-routing"><a class="markdownIt-Anchor" href="#circuit-switched-routing"></a> Circuit-switched routing</h2>
-<ol>
-<li>Main idea: pre-allocate all resources (links across multiple switches) along entire network path for a message (“setup a flow”)</li>
-<li>Costs:<br />
-Needs setup phase (“probe”) to set up the path (and to tear it down and release<br />
-the resources when message complete)<br />
-Lower link utilization. Transmission of two messages cannot share same link (even if some resources on a preallocated path are no longer utilized during a transmission)</li>
-<li>Benefits:<br />
-No contention during transmission due to preallocation, so no need for buffering<br />
-Arbitrary message sizes (once path is set up, send data until done)</li>
-</ol>
-<h2 id="packet-based-flow-control"><a class="markdownIt-Anchor" href="#packet-based-flow-control"></a> Packet-based flow control</h2>
-<ol>
-<li>Store-and-forward: Packet copied entirely into network switch before moving to next node, which requires buffering for entire packet in each router</li>
-<li>Flow control unit is an entire packet. Different packets from the same message can take different routes, but all data in a packet is transmitted over the same route</li>
-<li>Store-and-forward has high per-packet latency. Its latency <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo></mrow><annotation encoding="application/x-tex">=</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">=</span></span></span></span> packet transmission time on link <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>×</mo></mrow><annotation encoding="application/x-tex">\times</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord">×</span></span></span></span> network distance)</li>
-<li>Cut-through flow control: Switch starts forwarding data on next link as soon as packet header is received, since header determines how much link bandwidth packet requires and where to route.</li>
-<li>Cut-through flow control reduces transmission latency and reduces to store-and-forward under high contention.</li>
-<li>The latency of cut-through flow control is header transmission time <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>×</mo></mrow><annotation encoding="application/x-tex">\times</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord">×</span></span></span></span> network distance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>+</mo></mrow><annotation encoding="application/x-tex">+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord">+</span></span></span></span> rest packet transmission time on one link <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≃</mo></mrow><annotation encoding="application/x-tex">\simeq</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.46375em;vertical-align:0em;"></span><span class="mrel">≃</span></span></span></span> network distance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>+</mo></mrow><annotation encoding="application/x-tex">+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord">+</span></span></span></span> number of packets.</li>
-<li>The difference between store-and-forward and cut-through is whether we parallel the transmission of header and the rest of the packet.</li>
-<li>In cut-through flow control, if output link is blocked (cannot transmit head), transmission of tail can continue. So the switch need to store more data before it can transmit and delete them, which requires switches to have buffering for entire packet, just like store-and-forward.<br />
-The worst case is that entire message is absorbed into a buffer in a switch, namely cut-through flow control degenerates to store-and-forward in this case.</li>
-</ol>
-<h2 id="wormhole-flow-contorl"><a class="markdownIt-Anchor" href="#wormhole-flow-contorl"></a> Wormhole flow contorl</h2>
-<ol>
-<li>Routing information only in head flit, body flits follows head, and tail flit flows body. It looks like that all flits moves to their next switch simultaneously. If head flit blocks, rest of packet stops.</li>
-<li>Its latency <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo></mrow><annotation encoding="application/x-tex">=</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">=</span></span></span></span> header transmission time <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>×</mo></mrow><annotation encoding="application/x-tex">\times</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord">×</span></span></span></span></li>
-<li>Head-of-line blocking problem: The route of the head flit of one packet is free, but blocked behind flit of another packet in buffer while that packet is blocked waiting for a busy link.</li>
-<li>Virtual channel flow control: Multiplex multiple operations over single physical channel, and divide switch’s input buffer into multiple buffers sharing a single physical channel.</li>
-<li>Virtual channel reduces head-of-line blocking.<br />
-It can break cyclic dependency of resources by ensuring requests and responses use different virtual channels to avoid deadlock.<br />
-Also, it provided quality-of-service guarantees. Some virtual channels have higher priority than others</li>
-<li>“Escape” virtual channels: retain at least one virtual channel that uses deadlock-free routing</li>
 </ol>
 
       
