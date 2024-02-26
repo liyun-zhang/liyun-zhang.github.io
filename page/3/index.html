@@ -1138,7 +1138,7 @@ Otherwise, the client sends heartbeat messages during periods of low activity.</
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-10-04 16:29:01" itemprop="dateModified" datetime="2023-10-04T16:29:01+08:00">2023-10-04</time>
+      <time title="Modified: 2024-02-27 01:06:59" itemprop="dateModified" datetime="2024-02-27T01:06:59+08:00">2024-02-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1166,6 +1166,7 @@ Otherwise, the client sends heartbeat messages during periods of low activity.</
     <div class="post-body" itemprop="articleBody">
           <p>Paper: <a target="_blank" rel="noopener" href="http://nil.csail.mit.edu/6.824/2020/papers/raft-extended.pdf">In Search of an Understandable Consensus Algorithm</a></p>
 <p><ul class="markdownIt-TOC">
+<li><a href="#abstract">Abstract</a></li>
 <li><a href="#purpose">Purpose</a></li>
 <li><a href="#model">Model</a>
 <ul>
@@ -1193,7 +1194,7 @@ Otherwise, the client sends heartbeat messages during periods of low activity.</
 </li>
 <li><a href="#log-replication">Log replication</a>
 <ul>
-<li><a href="#how-is-clients-request-handled">How is clients request handled?</a></li>
+<li><a href="#how-are-client-requests-handled">How are client requests handled?</a></li>
 <li><a href="#what-is-stored-in-a-log-entry">What is stored in a log entry?</a></li>
 <li><a href="#how-to-apply-a-log-entry-to-the-state-machines">How to apply a log entry to the state machines?</a></li>
 <li><a href="#how-to-determine-the-consistency-between-logs">How to determine the consistency between logs?</a></li>
@@ -1208,8 +1209,7 @@ Otherwise, the client sends heartbeat messages during periods of low activity.</
 <li><a href="#log-compaction">Log compaction</a>
 <ul>
 <li><a href="#how-does-raft-compact-logs">How does Raft compact logs?</a></li>
-<li><a href="#how-to-handle-the-first-appendentries-following-the-snapshot">How to handle the first AppendEntries following the snapshot?</a></li>
-<li><a href="#when-will-leader-send-its-snapshot-to-followers">When will leader send its snapshot to followers?</a></li>
+<li><a href="#how-to-handle-the-appendentries-that-requires-compated-entries">How to handle the AppendEntries that requires compated entries?</a></li>
 <li><a href="#how-to-install-the-snapshot-from-leader">How to install the snapshot from leader?</a></li>
 <li><a href="#when-should-a-server-to-snapshot">When should a server to snapshot?</a></li>
 <li><a href="#how-to-reduce-the-delays-of-normal-operations-caused-by-a-snapshot">How to reduce the delays of normal operations caused by a snapshot?</a></li>
@@ -1229,6 +1229,13 @@ Otherwise, the client sends heartbeat messages during periods of low activity.</
 <li><a href="#reproduce-and-unmentioned-parts">Reproduce and unmentioned parts</a></li>
 </ul>
 </p>
+<h1 id="abstract"><a class="markdownIt-Anchor" href="#abstract"></a> Abstract</h1>
+<ol>
+<li><strong>Main idea</strong>: Understandability also matters for an algorithm to be implemented and deployed. Separate leader election and log replication parts in consensus to increase understandability. Linearizability are provided by restricting entries accepted by followers and client commands are executed only once.</li>
+<li><strong>Key findings</strong>: The key of the correctness of the system is that committed entries are durable in all nodes. Based on Log Matching property and Leader Append-Only property, we can easily induct it. Another corner case to be noticed is that leaders commit entries of previous terms only by committing entries from its own term.</li>
+<li><strong>The system</strong>: The elected leaders are restricted to be at least as up-to-date as majority nodes, and only leaders can append entries from clients.</li>
+<li><strong>Evaluation</strong>: The authors evaluated the understandability againsted Paxos and the performance of electing leaders are measured.</li>
+</ol>
 <h1 id="purpose"><a class="markdownIt-Anchor" href="#purpose"></a> Purpose</h1>
 <ol>
 <li>Enhance the understandability of Paxos
@@ -1251,15 +1258,9 @@ Otherwise, the client sends heartbeat messages during periods of low activity.</
 <h2 id="basics"><a class="markdownIt-Anchor" href="#basics"></a> Basics</h2>
 <h3 id="how-does-raft-implements-consensus-overall"><a class="markdownIt-Anchor" href="#how-does-raft-implements-consensus-overall"></a> How does Raft implements consensus overall?</h3>
 <ol>
-<li>
-<p>First electing a distinguished leader, then giving the leader complete responsibility for managing the replicated log.</p>
-</li>
-<li>
-<p>The leader accepts log entries from clients, replicates them on other servers, and tells servers when it is safe to apply log entries to their state machines.</p>
-</li>
-<li>
-<p>A leader can fail or become disconnected from the other servers, in which case a new leader is elected.</p>
-</li>
+<li>First electing a distinguished leader, then giving the leader complete responsibility for managing the replicated log.</li>
+<li>The leader accepts log entries from clients, replicates them on other servers, and tells servers when it is safe to apply log entries to their state machines.</li>
+<li>A leader can fail or become disconnected from the other servers, in which case a new leader is elected.</li>
 </ol>
 <h3 id="what-are-the-states-of-each-server"><a class="markdownIt-Anchor" href="#what-are-the-states-of-each-server"></a> What are the states of each server?</h3>
 <ol>
@@ -1284,32 +1285,25 @@ Otherwise, the client sends heartbeat messages during periods of low activity.</
 </ol>
 <h3 id="how-does-raft-handle-follower-and-candidate-crashes"><a class="markdownIt-Anchor" href="#how-does-raft-handle-follower-and-candidate-crashes"></a> How does Raft handle follower and candidate crashes?</h3>
 <ol>
-<li>
-<p>If a follower or candidate crashes, then future RequestVote and AppendEntries RPCs sent to it will fail. Raft handles these failures by retrying indefinitely.</p>
-</li>
-<li>
-<p>If a server crashes after completing an RPC but before responding, then it will receive the same RPC again after it restarts. Raft RPCs are idempotent, i.e. servers will ignore the RPCs that is already handled, so this causes no harm.</p>
-</li>
+<li>If a follower or candidate crashes, then future <code>RequestVote</code> and <code>AppendEntries</code> RPCs sent to it will fail. Raft handles these failures by retrying indefinitely.</li>
+<li>If a server crashes after completing an RPC but before responding, then it will receive the same RPC again after it restarts. Raft RPCs are idempotent, i.e. servers will ignore the RPCs that is already handled, so this causes no harm.</li>
 </ol>
 <h3 id="states-stored-on-servers"><a class="markdownIt-Anchor" href="#states-stored-on-servers"></a> States stored on servers</h3>
 <ol>
-<li>
-<p>Persistent state on all servers: These states need to be updated on stable storage before responding to RPCs, i.e. communicating with outside.</p>
+<li>Persistent state on all servers: These states need to be updated on stable storage before responding to RPCs, i.e. communicating with outside.
 <ul>
 <li><code>currentTerm</code>: latest term server has seen (initialized to 0 on first boot, increases monotonically)</li>
 <li><code>votedFor</code>: candidateId that received vote in current term (or <code>null</code> if none)</li>
 <li><code>log[]</code>: log entries</li>
 </ul>
 </li>
-<li>
-<p>Volatile state on all servers:</p>
+<li>Volatile state on all servers:
 <ul>
 <li><code>commitIndex</code>: index of highest log entry known to be committed (initialized to 0, increases monotonically)</li>
 <li><code>lastApplied</code>: index of highest log entry applied to state machine (initialized to 0, increases monotonically)</li>
 </ul>
 </li>
-<li>
-<p>Volatile state on leaders: These states need to be reinitialized after election</p>
+<li>Volatile state on leaders: These states need to be reinitialized after election
 <ul>
 <li><code>nextIndex[]</code>: for each server, index of the next log entry to send to that server (initialized to leader last log index + 1)</li>
 <li><code>matchIndex[]</code>: for each server, index of highest log entry known to be replicated on server (initialized to 0, increases monotonically)</li>
@@ -1319,40 +1313,21 @@ Otherwise, the client sends heartbeat messages during periods of low activity.</
 <h2 id="leader-election"><a class="markdownIt-Anchor" href="#leader-election"></a> Leader election</h2>
 <h3 id="how-does-the-servers-states-transit"><a class="markdownIt-Anchor" href="#how-does-the-servers-states-transit"></a> How does the servers states transit?</h3>
 <ol>
-<li>
-<p>When servers start up, they begin as followers. A server remains in follower state as long as it receives valid RPCs from a leader or candidate.</p>
-</li>
-<li>
-<p>Leaders send periodic heartbeats (AppendEntries RPCs that carry no log entries) to all followers in order to maintain their authority.</p>
-</li>
-<li>
-<p>If a follower receives no communication over a period of time called the election timeout, then it assumes there is no viable leader and become a candidate to initiate a new election.</p>
-</li>
-<li>
-<p>A candidate that receives votes from a majority of the full cluster becomes the new leader.</p>
-<p><img src="/imgs/Distributed/Raft/01.png" alt="" /></p>
-</li>
+<li>When servers start up, they begin as followers. A server remains in follower state as long as it receives valid RPCs from a leader or candidate.</li>
+<li>Leaders send periodic heartbeats (<code>AppendEntries</code> RPCs that carry no log entries) to all followers in order to maintain their authority.</li>
+<li>If a follower receives no communication over a period of time called the election timeout, then it assumes there is no viable leader and become a candidate to initiate a new election.</li>
+<li>A candidate that receives votes from a majority of the full cluster becomes the new leader.<br />
+<img src="/imgs/Distributed/Raft/01.png" alt="" /></li>
 </ol>
 <h3 id="how-to-elect-a-leader"><a class="markdownIt-Anchor" href="#how-to-elect-a-leader"></a> How to elect a leader?</h3>
 <ol>
-<li>
-<p>To begin an election, a follower increments its current term and transitions to candidate state.</p>
-</li>
-<li>
-<p>It then votes for itself and issues RequestVote RPCs in parallel to each of the other servers in the cluster.</p>
-</li>
-<li>
-<p>Candidate continues in this state until one of three things happens</p>
+<li>To begin an election, a follower increments its current term and transitions to candidate state.</li>
+<li>It then votes for itself and issues <code>RequestVote</code> RPCs in parallel to each of the other servers in the cluster.</li>
+<li>Candidate continues in this state until one of three things happens
 <ul>
-<li>
-<p>It wins the election</p>
-</li>
-<li>
-<p>Another server establishes itself as leader</p>
-</li>
-<li>
-<p>A period of time goes by with no winner.</p>
-</li>
+<li>It wins the election</li>
+<li>Another server establishes itself as leader</li>
+<li>A period of time goes by with no winner.</li>
 </ul>
 </li>
 </ol>
@@ -1364,50 +1339,30 @@ Otherwise, the client sends heartbeat messages during periods of low activity.</
 </ol>
 <h3 id="how-to-determine-that-a-server-loses-the-election"><a class="markdownIt-Anchor" href="#how-to-determine-that-a-server-loses-the-election"></a> How to determine that a server loses the election?</h3>
 <ol>
-<li>A candidate may receive an AppendEntries RPC from another server claiming to be leader.</li>
+<li>A candidate may receive an <code>AppendEntries</code> RPC from another server claiming to be leader.</li>
 <li>If the leader’s term is at least as large as the candidate’s current term, then the candidate recognizes the leader as legitimate and returns to follower state.</li>
 <li>If the term in the RPC is smaller than the candidate’s current term, then the candidate rejects the RPC and continues in candidate state.</li>
 </ol>
 <h3 id="how-to-handle-a-split-vote"><a class="markdownIt-Anchor" href="#how-to-handle-a-split-vote"></a> How to handle a split vote?</h3>
 <ol>
-<li>
-<p>If many followers become candidates at the same time, votes could be split so that no candidate obtains a majority.</p>
-</li>
-<li>
-<p>Each candidate will time out and start a new election by incrementing its term and initiating another round of RequestVote RPCs.</p>
-</li>
-<li>
-<p>Raft uses randomized election timeouts to ensure that split votes are rare and that they are resolved quickly.</p>
+<li>If many followers become candidates at the same time, votes could be split so that no candidate obtains a majority.</li>
+<li>Each candidate will time out and start a new election by incrementing its term and initiating another round of RequestVote RPCs.</li>
+<li>Raft uses randomized election timeouts to ensure that split votes are rare and that they are resolved quickly.
 <ul>
-<li>
-<p>Election timeouts are chosen randomly from a fixed interval at the start of an election, and it waits for that timeout to elapse before starting the next election.</p>
-</li>
-<li>
-<p>In most cases only a single server will time out; it wins the election and sends heartbeats before any other servers time out.</p>
-</li>
+<li>Election timeouts are chosen randomly from a fixed interval at the start of an election, and it waits for that timeout to elapse before starting the next election.</li>
+<li>In most cases only a single server will time out; it wins the election and sends heartbeats before any other servers time out.</li>
 </ul>
 </li>
 </ol>
 <h3 id="how-to-ensure-that-the-leader-of-any-given-term-contains-all-of-the-entries-committed-in-previous-terms"><a class="markdownIt-Anchor" href="#how-to-ensure-that-the-leader-of-any-given-term-contains-all-of-the-entries-committed-in-previous-terms"></a> How to ensure that the leader of any given term contains all of the entries committed in previous terms?</h3>
 <ol>
-<li>
-<p>A candidate must contact a majority of the cluster in order to be elected, which means that every committed entry must be present in at least one of those servers.</p>
-</li>
-<li>
-<p>If the candidate’s log is at least as up-to-date as any other log in that majority， then it will hold all the committed entries.</p>
-</li>
-<li>
-<p>In the RequestVote RPC, the voter denies its vote if its own log is more up-to-date than that of the candidate.</p>
-</li>
-<li>
-<p>Raft determines which of two logs is more up-to-date by comparing the index and term of the last entries in the logs.</p>
+<li>A candidate must contact a majority of the cluster in order to be elected, which means that every committed entry must be present in at least one of those servers.</li>
+<li>If the candidate’s log is at least as up-to-date as any other log in that majority, then it will hold all the committed entries.</li>
+<li>In the <code>RequestVote</code> RPC, the voter denies its vote if its own log is more up-to-date than that of the candidate.</li>
+<li>Raft determines which of two logs is more up-to-date by comparing the index and term of the last entries in the logs.
 <ul>
-<li>
-<p>If the logs have last entries with different terms, then the log with the later term is more up-to-date.</p>
-</li>
-<li>
-<p>If the logs end with the same term, then whichever log is longer is more up-to-date.</p>
-</li>
+<li>If the logs have last entries with different terms, then the log with the later term is more up-to-date.</li>
+<li>If the logs end with the same term, then whichever log is longer is more up-to-date.</li>
 </ul>
 </li>
 </ol>
@@ -1443,12 +1398,12 @@ Otherwise, the client sends heartbeat messages during periods of low activity.</
 </li>
 </ol>
 <h2 id="log-replication"><a class="markdownIt-Anchor" href="#log-replication"></a> Log replication</h2>
-<h3 id="how-is-clients-request-handled"><a class="markdownIt-Anchor" href="#how-is-clients-request-handled"></a> How is clients request handled?</h3>
+<h3 id="how-are-client-requests-handled"><a class="markdownIt-Anchor" href="#how-are-client-requests-handled"></a> How are client requests handled?</h3>
 <ol>
 <li>Each client request contains a command to be executed by the replicated state machines.</li>
-<li>The leader appends the command to its log as a new entry, then issues AppendEntries RPCs in parallel to each of the other servers to replicate the entry.</li>
+<li>The leader appends the command to its log as a new entry, then issues <code>AppendEntries</code> RPCs in parallel to each of the other servers to replicate the entry.</li>
 <li>When the entry has been safely replicated, the leader applies the entry to its state machine and returns the result of that execution to the client.</li>
-<li>If followers crash or run slowly, or if network packets are lost, the leader retries AppendEntries RPCs indefinitely (even after it has responded to the client) until all followers eventually store all log entries.</li>
+<li>If followers crash or run slowly, or if network packets are lost, the leader retries <code>AppendEntries</code> RPCs indefinitely (even after it has responded to the client) until all followers eventually store all log entries.</li>
 </ol>
 <h3 id="what-is-stored-in-a-log-entry"><a class="markdownIt-Anchor" href="#what-is-stored-in-a-log-entry"></a> What is stored in a log entry?</h3>
 <ol>
@@ -1458,50 +1413,30 @@ Otherwise, the client sends heartbeat messages during periods of low activity.</
 </ol>
 <h3 id="how-to-apply-a-log-entry-to-the-state-machines"><a class="markdownIt-Anchor" href="#how-to-apply-a-log-entry-to-the-state-machines"></a> How to apply a log entry to the state machines?</h3>
 <ol>
-<li>
-<p>The leader decides when it is safe to apply a log entry to the state machines.</p>
+<li>The leader decides when it is safe to apply a log entry to the state machines.
 <ul>
-<li>
-<p>Such an entry is called <code>committed</code>.</p>
-</li>
-<li>
-<p>Raft guarantees that committed entries are durable and will eventually be executed by all of the available state machines.</p>
-</li>
+<li>Such an entry is called <code>committed</code>.</li>
+<li>Raft guarantees that committed entries are durable and will eventually be executed by all of the available state machines.</li>
 </ul>
 </li>
-<li>
-<p>A log entry is committed once the leader that created the entry has replicated it on a majority of the servers.</p>
-</li>
-<li>
-<p>It also commits all preceding entries in the leader’s log, including entries created by previous leaders.</p>
-</li>
-<li>
-<p>The leader keeps track of the highest index it knows to be committed, and it includes that index in future AppendEntries RPCs, including heartbeats, so that the other servers eventually find out that they should commit some new entries.</p>
-</li>
-<li>
-<p>Once a follower learns that a log entry is committed, it applies the entry to its local state machine in log order.</p>
-</li>
+<li>A log entry is committed once the leader that created the entry has replicated it on a majority of the servers.</li>
+<li>It also commits all preceding entries in the leader’s log, including entries created by previous leaders.</li>
+<li>The leader keeps track of the highest index it knows to be committed, and it includes that index in future <code>AppendEntries</code> RPCs, including heartbeats, so that the other servers eventually find out that they should commit some new entries.</li>
+<li>Once a follower learns that a log entry is committed, it applies the entry to its local state machine in log order.</li>
 </ol>
 <h3 id="how-to-determine-the-consistency-between-logs"><a class="markdownIt-Anchor" href="#how-to-determine-the-consistency-between-logs"></a> How to determine the consistency between logs?</h3>
 <ol>
-<li>
-<p><strong>Log Matching property</strong>: If two logs contain an entry with the same index and term, then the logs are identical in all entries up through the given index.</p>
-</li>
-<li>
-<p>The Log Matching property is maintained through the following properties:</p>
+<li><strong>Log Matching property</strong>: If two logs contain an entry with the same index and term, then the logs are identical in all entries up through the given index.</li>
+<li>The Log Matching property is maintained through the following properties:
 <ul>
-<li>
-<p>If two entries in different logs have the same index and term, then they store the same command.</p>
-</li>
-<li>
-<p>If two entries in different logs have the same index and term, then the logs are identical in all preceding entries.</p>
-</li>
+<li>If two entries in different logs have the same index and term, then they store the same command.</li>
+<li>If two entries in different logs have the same index and term, then the logs are identical in all preceding entries.</li>
 </ul>
 </li>
 </ol>
 <h3 id="how-to-check-the-consistency-in-appendentries-rpcs"><a class="markdownIt-Anchor" href="#how-to-check-the-consistency-in-appendentries-rpcs"></a> How to check the consistency in AppendEntries RPCs?</h3>
 <ol>
-<li>When sending an AppendEntries RPC, the leader includes the index and term of the entry in its log that immediately precedes the new entries.</li>
+<li>When sending an <code>AppendEntries</code> RPC, the leader includes the index and term of the entry in its log that immediately precedes the new entries.</li>
 <li>If the follower does not find an entry in its log with the same index and term, then it refuses the new entries.</li>
 </ol>
 <h3 id="what-kinds-of-inconsistency-may-incur"><a class="markdownIt-Anchor" href="#what-kinds-of-inconsistency-may-incur"></a> What kinds of inconsistency may incur?</h3>
@@ -1520,10 +1455,10 @@ Otherwise, the client sends heartbeat messages during periods of low activity.</
 <h3 id="how-does-appendentries-rpc-perform-consistency-check"><a class="markdownIt-Anchor" href="#how-does-appendentries-rpc-perform-consistency-check"></a> How does AppendEntries RPC perform consistency check?</h3>
 <ol>
 <li>The leader maintains a nextIndex for each follower. When a leader first comes to power, it initializes all nextIndex values to the index just after the last one in its log, i.e. assuming all followers are as up-to-date as itself.</li>
-<li>If a follower’s log is inconsistent with the leader’s, the AppendEntries consistency check will fail in the next AppendEntries RPC.</li>
-<li>After a rejection, the leader decrements nextIndex and retries the AppendEntries RPC.</li>
-<li>Eventually nextIndex will reach a point where the leader and follower logs match. When this happens, AppendEntries will succeed, which removes any conflicting entries in the follower’s log and appends entries from the leader’s log (if any).</li>
-<li>Once AppendEntries succeeds, the follower’s log is consistent with the leader’s, and it will remain that way for the rest of the term.</li>
+<li>If a follower’s log is inconsistent with the leader’s, the consistency check will fail in the next <code>AppendEntries</code> RPC.</li>
+<li>After a rejection, the leader decrements nextIndex and retries the <code>AppendEntries</code> RPC.</li>
+<li>Eventually <code>nextIndex</code> will reach a point where the leader and follower logs match. When this happens, <code>AppendEntries</code> will succeed, which removes any conflicting entries in the follower’s log and appends entries from the leader’s log (if any).</li>
+<li>Once <code>AppendEntries</code> succeeds, the follower’s log is consistent with the leader’s, and it will remain that way for the rest of the term.</li>
 </ol>
 <h3 id="how-to-handle-uncommited-entries-from-previous-leaders"><a class="markdownIt-Anchor" href="#how-to-handle-uncommited-entries-from-previous-leaders"></a> How to handle uncommited entries from previous leaders?</h3>
 <ol>
@@ -1574,46 +1509,31 @@ Otherwise, the client sends heartbeat messages during periods of low activity.</
 <li>Each server takes snapshots independently, covering just the committed entries in its log.</li>
 <li>Data still only flows from leaders to followers, just followers can now reorganize their data.</li>
 </ol>
-<h3 id="how-to-handle-the-first-appendentries-following-the-snapshot"><a class="markdownIt-Anchor" href="#how-to-handle-the-first-appendentries-following-the-snapshot"></a> How to handle the first AppendEntries following the snapshot?</h3>
+<h3 id="how-to-handle-the-appendentries-that-requires-compated-entries"><a class="markdownIt-Anchor" href="#how-to-handle-the-appendentries-that-requires-compated-entries"></a> How to handle the AppendEntries that requires compated entries?</h3>
 <ol>
-<li>Raft also includes a small amount of metadata in the snapshot.</li>
+<li>Raft also includes a small amount of metadata in the snapshot.
+<ul>
 <li>The <code>last included index</code> is the index of the last entry in the log that the snapshot replaces (the last entry the state machine had applied).</li>
 <li>The <code>last included term</code> is the term of this entry.</li>
-</ol>
-<h3 id="when-will-leader-send-its-snapshot-to-followers"><a class="markdownIt-Anchor" href="#when-will-leader-send-its-snapshot-to-followers"></a> When will leader send its snapshot to followers?</h3>
-<ol>
+</ul>
+</li>
 <li>When the leader has already discarded the next log entry that it needs to send to a follower.</li>
-<li>This situation is unlikely in normal operation: a follower that has kept up with the leader would already have this entry.</li>
-<li>However, an exceptionally slow follower or a new server joining the cluster would not.</li>
+<li>This situation is unlikely in normal operation: a follower that has kept up with the leader would already have this entry. However, an exceptionally slow follower or a new server joining the cluster would not.</li>
 </ol>
 <h3 id="how-to-install-the-snapshot-from-leader"><a class="markdownIt-Anchor" href="#how-to-install-the-snapshot-from-leader"></a> How to install the snapshot from leader?</h3>
 <ol>
-<li>
-<p>The leader uses a new RPC called InstallSnapshot to send snapshots to followers that are too far behind.</p>
-</li>
-<li>
-<p>When a follower receives a snapshot with this RPC, it must decide what to do with its existing log entries.</p>
-</li>
-<li>
-<p>If the snapshot contains new information not already in the recipient’s log</p>
+<li>The leader uses a new RPC called <code>InstallSnapshot</code> to send snapshots to followers that are too far behind.</li>
+<li>When a follower receives a snapshot with this RPC, it must decide what to do with its existing log entries.</li>
+<li>If the snapshot contains new information not already in the recipient’s log
 <ul>
-<li>
-<p>The follower discards its entire log</p>
-</li>
-<li>
-<p>It is all superseded by the snapshot and may possibly have uncommitted entries that conflict with the snapshot.</p>
-</li>
+<li>The follower discards its entire log</li>
+<li>It is all superseded by the snapshot and may possibly have uncommitted entries that conflict with the snapshot.</li>
 </ul>
 </li>
-<li>
-<p>If instead the follower receives a snapshot that describes a prefix of its log</p>
+<li>If instead the follower receives a snapshot that describes a prefix of its log
 <ul>
-<li>
-<p>This could be due to retransmission or by mistake.</p>
-</li>
-<li>
-<p>Log entries covered by the snapshot are deleted but entries following the snapshot are still valid and must be retained.</p>
-</li>
+<li>This could be due to retransmission or by mistake.</li>
+<li>Log entries covered by the snapshot are deleted but entries following the snapshot are still valid and must be retained.</li>
 </ul>
 </li>
 </ol>
@@ -1667,75 +1587,44 @@ Otherwise, the client sends heartbeat messages during periods of low activity.</
 <h2 id="client-interaction"><a class="markdownIt-Anchor" href="#client-interaction"></a> Client interaction</h2>
 <h3 id="how-does-client-find-cluster-leader"><a class="markdownIt-Anchor" href="#how-does-client-find-cluster-leader"></a> How does client find cluster leader?</h3>
 <ol>
-<li>
-<p>When a client first starts up</p>
+<li>When a client first starts up
 <ul>
-<li>
-<p>It connects to a randomlychosen server.</p>
-</li>
-<li>
-<p>If the client’s first choice is not the leader, that server will reject the client’s request and supply information about the most recent leader it has heard from.</p>
-</li>
+<li>It connects to a randomly-chosen server.</li>
+<li>If the client’s first choice is not the leader, that server will reject the client’s request and supply information about the most recent leader it has heard from.</li>
 </ul>
 </li>
-<li>
-<p>If the leader crashes</p>
+<li>If the leader crashes
 <ul>
-<li>
-<p>Client requests will time out.</p>
-</li>
-<li>
-<p>Clients then try again with randomly-chosen servers.</p>
-</li>
+<li>Client requests will time out.</li>
+<li>Clients then try again with randomly-chosen servers.</li>
 </ul>
 </li>
 </ol>
 <h3 id="how-to-prevent-raft-execute-a-command-multiple-times"><a class="markdownIt-Anchor" href="#how-to-prevent-raft-execute-a-command-multiple-times"></a> How to prevent Raft execute a command multiple times?</h3>
 <ol>
-<li>
-<p>Our goal for Raft is to implement linearizable semantics, i.e. each operation appears to execute instantaneously, exactly once, at some point between its invocation and its response.</p>
+<li>Our goal for Raft is to implement linearizable semantics, i.e. each operation appears to execute instantaneously, exactly once, at some point between its invocation and its response.
 <ul>
 <li>One case of executing a command multiple times is that if the leader crashes after committing the log entry but before responding to the client, the client will retry the command with a new leader, causing it to be executed a second time.</li>
 </ul>
 </li>
-<li>
-<p>The solution is for clients to assign unique serial numbers to every command.</p>
-</li>
-<li>
-<p>Then, the state machine tracks the latest serial number processed for each client, along with the associated response.</p>
-</li>
-<li>
-<p>If it receives a command whose serial number has already been executed, it responds immediately without re-executing the request.</p>
-</li>
+<li>The solution is for clients to assign unique serial numbers to every command.</li>
+<li>Then, the state machine tracks the latest serial number processed for each client, along with the associated response.</li>
+<li>If it receives a command whose serial number has already been executed, it responds immediately without re-executing the request.</li>
 </ol>
 <h3 id="how-to-prevent-returning-stale-date-to-a-read-only-operation"><a class="markdownIt-Anchor" href="#how-to-prevent-returning-stale-date-to-a-read-only-operation"></a> How to prevent returning stale date to a read-only operation?</h3>
 <ol>
-<li>
-<p>The reason for stale reading is that the leader responding to the request might have been superseded by a newer leader of which it is unaware.</p>
-</li>
-<li>
-<p>A leader must have the latest information on which entries are committed.</p>
+<li>The reason for stale reading is that the leader responding to the request might have been superseded by a newer leader of which it is unaware.</li>
+<li>A leader must have the latest information on which entries are committed.
 <ul>
-<li>
-<p>The Leader Completeness Property guarantees that a leader has all committed entries, but at the start of its term, it may not know which those are.</p>
-</li>
-<li>
-<p>To find out, it needs to commit an entry from its term.</p>
-</li>
-<li>
-<p>Raft handles this by having each leader commit a blank <em>no-op</em> entry into the log at the start of its term.</p>
-</li>
+<li>The Leader Completeness Property guarantees that a leader has all committed entries, but at the start of its term, it may not know which those are.</li>
+<li>To find out, it needs to commit an entry from its term.</li>
+<li>Raft handles this by having each leader commit a blank <em>no-op</em> entry into the log at the start of its term.</li>
 </ul>
 </li>
-<li>
-<p>A leader must check whether it has been deposed before processing a read-only request, since its information may be stale if a more recent leader has been elected).</p>
+<li>A leader must check whether it has been deposed before processing a read-only request, since its information may be stale if a more recent leader has been elected).
 <ul>
-<li>
-<p>Raft handles this by having the leader exchange heartbeat messages with a majority of the cluster before responding to read-only requests.</p>
-</li>
-<li>
-<p>Alternatively, the leader could rely on the heartbeat mechanism to provide a form of lease, but this would rely on timing for safety (it assumes bounded clock skew).</p>
-</li>
+<li>Raft handles this by having the leader exchange heartbeat messages with a majority of the cluster before responding to read-only requests.</li>
+<li>Alternatively, the leader could rely on the heartbeat mechanism to provide a form of lease, but this would rely on timing for safety (it assumes bounded clock skew).</li>
 </ul>
 </li>
 </ol>
@@ -3257,7 +3146,7 @@ Otherwise, the client sends heartbeat messages during periods of low activity.</
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-02-25 00:26:20" itemprop="dateModified" datetime="2024-02-25T00:26:20+08:00">2024-02-25</time>
+      <time title="Modified: 2024-02-25 20:06:38" itemprop="dateModified" datetime="2024-02-25T20:06:38+08:00">2024-02-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -3298,6 +3187,7 @@ Otherwise, the client sends heartbeat messages during periods of low activity.</
 <li><a href="#how-to-handle-worker-failure">How to handle worker failure?</a></li>
 <li><a href="#how-to-handle-master-failure">How to handle master failure?</a></li>
 <li><a href="#how-to-partition-reduce-tasks">How to partition reduce tasks?</a></li>
+<li><a href="#how-do-we-ensure-that-nobody-observes-partially-written-files-in-the-presence-of-crashes">How do we ensure that nobody observes partially written files in the presence of crashes?</a></li>
 <li><a href="#how-to-handle-straggler-problem">How to handle straggler problem?</a></li>
 </ul>
 </li>
@@ -3372,6 +3262,8 @@ Otherwise, the client sends heartbeat messages during periods of low activity.</
 </ol>
 <h3 id="how-to-partition-reduce-tasks"><a class="markdownIt-Anchor" href="#how-to-partition-reduce-tasks"></a> How to partition reduce tasks?</h3>
 <p>The number of reduce tasks/output files (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span>) is specified by the users. The default partitioning uses hashing, namely partition according to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mi>a</mi><mi>s</mi><mi>h</mi><mo stretchy="false">(</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo stretchy="false">)</mo><mtext> </mtext><mi>m</mi><mi>o</mi><mi>d</mi><mtext> </mtext><mi>R</mi></mrow><annotation encoding="application/x-tex">hash(key)\ mod\ R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">h</span><span class="mord mathnormal">a</span><span class="mord mathnormal">s</span><span class="mord mathnormal">h</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span><span class="mspace"> </span><span class="mord mathnormal">m</span><span class="mord mathnormal">o</span><span class="mord mathnormal">d</span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span>.</p>
+<h3 id="how-do-we-ensure-that-nobody-observes-partially-written-files-in-the-presence-of-crashes"><a class="markdownIt-Anchor" href="#how-do-we-ensure-that-nobody-observes-partially-written-files-in-the-presence-of-crashes"></a> How do we ensure that nobody observes partially written files in the presence of crashes?</h3>
+<p>Each worker first write their results to a temporary file. Then rename it once all writtens are completed.</p>
 <h3 id="how-to-handle-straggler-problem"><a class="markdownIt-Anchor" href="#how-to-handle-straggler-problem"></a> How to handle straggler problem?</h3>
 <ol>
 <li>Straggler: a machine that takes an unusually long time to complete on of the last few map or reduce tasks. This may be caused by a bad disk, its scheduling system scheduling it a different other tasks.</li>
