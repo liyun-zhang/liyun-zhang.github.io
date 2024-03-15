@@ -20,19 +20,21 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Key-Value Storage (storage.Storage)  Interface Simple example: Project1 StandaloneKV RaftStorage   Raft storage (raft.Storage)  Interface Simple example: MemStorage Project 2B: PeerStorage      Key-V">
+    <meta name="description" content="Key-Value Storage (storage.Storage)  Interface Simple example: Project1 StandaloneKV RaftStorage   Raft storage (raft.Storage)  Interface Simple example: MemStorage Project 2B: PeerStorage  Basic dut">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Storage: Write and Read">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/11/24/OpenSource/TinyKV/Storage-Write-and-Read/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="Key-Value Storage (storage.Storage)  Interface Simple example: Project1 StandaloneKV RaftStorage   Raft storage (raft.Storage)  Interface Simple example: MemStorage Project 2B: PeerStorage      Key-V">
+<meta property="og:description" content="Key-Value Storage (storage.Storage)  Interface Simple example: Project1 StandaloneKV RaftStorage   Raft storage (raft.Storage)  Interface Simple example: MemStorage Project 2B: PeerStorage  Basic dut">
 <meta property="og:locale">
+<meta property="og:image" content="http://liyun-zhang.github.io/imgs/TiKV/Snapshot.png">
 <meta property="article:published_time" content="2023-11-24T03:18:35.000Z">
-<meta property="article:modified_time" content="2023-12-09T09:36:34.341Z">
+<meta property="article:modified_time" content="2024-03-13T14:41:22.802Z">
 <meta property="article:author" content="LiyunZhang">
 <meta property="article:tag" content="Storage">
 <meta property="article:tag" content="TinyKV">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://liyun-zhang.github.io/imgs/TiKV/Snapshot.png">
 
 
 <link rel="canonical" href="http://liyun-zhang.github.io/2023/11/24/OpenSource/TinyKV/Storage-Write-and-Read/">
@@ -90,7 +92,7 @@
 
 
 <nav class="site-nav">
-  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
       <li class="menu-item menu-item-search">
         <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
         </a>
@@ -140,7 +142,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#key-value-storage-storagestorage"><span class="nav-number">1.</span> <span class="nav-text"> Key-Value Storage (storage.Storage)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#interface"><span class="nav-number">1.1.</span> <span class="nav-text"> Interface</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#simple-example-project1-standalonekv"><span class="nav-number">1.2.</span> <span class="nav-text"> Simple example: Project1 StandaloneKV</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#raftstorage"><span class="nav-number">1.3.</span> <span class="nav-text"> RaftStorage</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#raft-storage-raftstorage"><span class="nav-number">2.</span> <span class="nav-text"> Raft storage (raft.Storage)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#interface-2"><span class="nav-number">2.1.</span> <span class="nav-text"> Interface</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#simple-example-memstorage"><span class="nav-number">2.2.</span> <span class="nav-text"> Simple example: MemStorage</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#project-2b-peerstorage"><span class="nav-number">2.3.</span> <span class="nav-text"> Project 2B: PeerStorage</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#key-value-storage-storagestorage"><span class="nav-number">1.</span> <span class="nav-text"> Key-Value Storage (storage.Storage)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#interface"><span class="nav-number">1.1.</span> <span class="nav-text"> Interface</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#simple-example-project1-standalonekv"><span class="nav-number">1.2.</span> <span class="nav-text"> Simple example: Project1 StandaloneKV</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#raftstorage"><span class="nav-number">1.3.</span> <span class="nav-text"> RaftStorage</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#raft-storage-raftstorage"><span class="nav-number">2.</span> <span class="nav-text"> Raft storage (raft.Storage)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#interface-2"><span class="nav-number">2.1.</span> <span class="nav-text"> Interface</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#simple-example-memstorage"><span class="nav-number">2.2.</span> <span class="nav-text"> Simple example: MemStorage</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#project-2b-peerstorage"><span class="nav-number">2.3.</span> <span class="nav-text"> Project 2B: PeerStorage</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#basic-duties"><span class="nav-number">2.3.1.</span> <span class="nav-text"> Basic duties</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#snapshot-generation-and-application"><span class="nav-number">2.3.2.</span> <span class="nav-text"> Snapshot generation and application</span></a></li></ol></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -153,18 +155,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-count">63</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -227,7 +229,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-12-09 17:36:34" itemprop="dateModified" datetime="2023-12-09T17:36:34+08:00">2023-12-09</time>
+      <time title="Modified: 2024-03-13 22:41:22" itemprop="dateModified" datetime="2024-03-13T22:41:22+08:00">2024-03-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -264,7 +266,12 @@
 <ul>
 <li><a href="#interface-2">Interface</a></li>
 <li><a href="#simple-example-memstorage">Simple example: MemStorage</a></li>
-<li><a href="#project-2b-peerstorage">Project 2B: PeerStorage</a></li>
+<li><a href="#project-2b-peerstorage">Project 2B: PeerStorage</a>
+<ul>
+<li><a href="#basic-duties">Basic duties</a></li>
+<li><a href="#snapshot-generation-and-application">Snapshot generation and application</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -428,6 +435,7 @@
 <li><code>Append(entries []pb.Entry) error</code> append the new entries to storage, i.e. persist Raft entries when this storage is writing to disk.</li>
 </ol>
 <h2 id="project-2b-peerstorage"><a class="markdownIt-Anchor" href="#project-2b-peerstorage"></a> Project 2B: PeerStorage</h2>
+<h3 id="basic-duties"><a class="markdownIt-Anchor" href="#basic-duties"></a> Basic duties</h3>
 <ol>
 <li>A peer storage needs to maintain the persistence of both Key-Value pairs in this peer and its Raft logs.
 <ul>
@@ -435,15 +443,31 @@
 </ul>
 </li>
 <li>After acquired a value from <code>*badger.DB</code>, it can be transferred to correct type with the <code>Unmarshal</code> provided by the <code>struct</code> generated from protobuf.</li>
-<li>The core of peer storage is <code>SaveReadyState</code> that will be used by <code>peerMsgHandler.HandleRaftReady</code> to persist according to <code>Ready</code>.
+<li><code>SaveReadyState</code> will be used by <code>peerMsgHandler.HandleRaftReady</code> to persist according to <code>Ready</code>. It need to install snapshot and update persisted new Raft log entries including deleting the entries that were removed by new leader.</li>
+<li>The Raft commands that manipulate key-value storages are executed through the engines provided by <code>PeerStorage</code>.</li>
+</ol>
+<h3 id="snapshot-generation-and-application"><a class="markdownIt-Anchor" href="#snapshot-generation-and-application"></a> Snapshot generation and application</h3>
+<ol>
+<li>
+<p>The snapshot generation is an asynchronous process.</p>
 <ul>
-<li>In <code>ApplySnapshot</code>, if a snapshot is provided, it needs to update <code>ps.raftState</code>, <code>ps.applyState</code>, delete stale data and ask <code>regionRunner</code> to apply the snapshot.</li>
-<li>In <code>Append</code>, if Raft entries are attached, it needs to append the given entries to the raft log and update <code>ps.raftState</code> also delete log entries that will never be committed.</li>
-<li>If <code>HardState</code> is changed, update it.</li>
-<li>Persist all changes.</li>
+<li>
+<p>When Raft node request for a snapshot, <code>PeerStorage</code> would send a message of <code>RegionTaskGen</code> to <code>regionWorker</code> and set its <code>snapState</code> to <code>SnapState_Generating</code> and the channel to receive snapshot.</p>
+</li>
+<li>
+<p>The snapshots are sent by a <code>snapRunner</code> different from the oridinary entries. The snapshot will be sliced into chunks of size <code>snapChunkLen</code> and sent to the same <code>grpc.ClientStream</code>.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>The receiver will collect all data from the <code>grpc.ClientStream</code> and write them into the same snapshot file.</p>
+<ul>
+<li>The snapshot is first sent to Raft to check its validation. If valid, the <code>PeerStorage</code> will apply it in the <code>HandleRaftReady</code> of the <code>peerMsgHandler</code>.</li>
+<li>The <code>PeerStorage</code> sends a <code>RegionTaskApply</code> to <code>regionWorker</code>. The worker will clean up the range of this region and directly ingest the content of the snapshot file into the DB with <code>IngestExternalFiles</code>.</li>
 </ul>
 </li>
 </ol>
+<img src="/imgs/TiKV/Snapshot.png">
 
     </div>
 
@@ -466,8 +490,8 @@
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2023/12/09/OpenSource/TinyKV/Single-Raft/" rel="next" title="Single Raft">
-                  Single Raft <i class="fa fa-chevron-right"></i>
+                <a href="/2023/12/09/OpenSource/TinyKV/TinyKV-vs-Spanner/" rel="next" title="TinyKV v.s. Spanner">
+                  TinyKV v.s. Spanner <i class="fa fa-chevron-right"></i>
                 </a>
             </div>
           </div>

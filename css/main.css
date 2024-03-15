@@ -18,10 +18,10 @@
   --btn-default-hover-bg: transparent;
   --btn-default-hover-color: var(--link-hover-color);
   --btn-default-hover-border-color: var(--link-hover-color);
-  --highlight-background: #dadada;
+  --highlight-background: #f1f1f1;
   --highlight-foreground: #24292e;
-  --highlight-gutter-background: #c7c8c8;
-  --highlight-gutter-foreground: #363a3f;
+  --highlight-gutter-background: #dcdddd;
+  --highlight-gutter-foreground: #383c41;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -222,7 +222,7 @@ body {
   box-sizing: border-box;
   color: var(--text-color);
   font-family: Lato, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  font-size: 1em;
+  font-size: 14px;
   line-height: 2;
   min-height: 100%;
   position: relative;
@@ -1464,7 +1464,7 @@ pre code {
   flex-direction: column;
   justify-content: center;
   margin: 0 auto;
-  width: 1000px;
+  width: 800px;
 }
 @media (max-width: 767px) {
   .footer-inner {
@@ -1473,12 +1473,12 @@ pre code {
 }
 @media (min-width: 1200px) {
   .footer-inner {
-    width: 1200px;
+    width: 1000px;
   }
 }
 @media (min-width: 1600px) {
   .footer-inner {
-    width: 1400px;
+    width: 1200px;
   }
 }
 .use-motion .footer {
@@ -2554,7 +2554,7 @@ header.header {
 }
 header.header {
   margin: 0 auto;
-  width: 1000px;
+  width: 800px;
 }
 @media (max-width: 767px) {
   header.header {
@@ -2563,17 +2563,17 @@ header.header {
 }
 @media (min-width: 1200px) {
   header.header {
-    width: 1200px;
+    width: 1000px;
   }
 }
 @media (min-width: 1600px) {
   header.header {
-    width: 1400px;
+    width: 1200px;
   }
 }
 .main-inner {
   margin: 0 auto;
-  width: 1000px;
+  width: 800px;
   padding-bottom: 80px;
 }
 @media (max-width: 767px) {
@@ -2583,12 +2583,12 @@ header.header {
 }
 @media (min-width: 1200px) {
   .main-inner {
-    width: 1200px;
+    width: 1000px;
   }
 }
 @media (min-width: 1600px) {
   .main-inner {
-    width: 1400px;
+    width: 1200px;
   }
 }
 @media (max-width: 767px) {
@@ -2650,7 +2650,7 @@ header.header {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #415cff;
+  background: #f7089c;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);

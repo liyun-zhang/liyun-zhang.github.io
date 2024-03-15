@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="How does Key&#x2F;Value server execute command from clerk? Can clerk read from follower? How can we prevent re-execution of an executed command? How many kind of error could occur when client issues a com">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Lab 3: Fault-tolerant Key&#x2F;Value Service">
+<meta property="og:url" content="http://liyun-zhang.github.io/2023/03/27/OpenSource/6.824/Lab-3-Fault-tolerant-Key-Value-Service/index.html">
+<meta property="og:site_name" content="LiyunZhang">
+<meta property="og:description" content="How does Key&#x2F;Value server execute command from clerk? Can clerk read from follower? How can we prevent re-execution of an executed command? How many kind of error could occur when client issues a com">
+<meta property="og:locale">
+<meta property="article:published_time" content="2023-03-27T06:35:11.000Z">
+<meta property="article:modified_time" content="2024-03-15T06:38:20.923Z">
+<meta property="article:author" content="LiyunZhang">
+<meta property="article:tag" content="Distributed System">
+<meta property="article:tag" content="Distributed Storage">
+<meta property="article:tag" content="Consensus Algorithm">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://liyun-zhang.github.io/2023/03/27/OpenSource/6.824/Lab-3-Fault-tolerant-Key-Value-Service/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-Hans","comments":true,"permalink":"http://liyun-zhang.github.io/2023/03/27/OpenSource/6.824/Lab-3-Fault-tolerant-Key-Value-Service/","path":"2023/03/27/OpenSource/6.824/Lab-3-Fault-tolerant-Key-Value-Service/","title":"Lab 3: Fault-tolerant Key/Value Service"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Lab 3: Fault-tolerant Key/Value Service | LiyunZhang</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">LiyunZhang</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#how-does-keyvalue-server-execute-command-from-clerk"><span class="nav-number">1.</span> <span class="nav-text"> How does Key&#x2F;Value server execute command from clerk?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#can-clerk-read-from-follower"><span class="nav-number">2.</span> <span class="nav-text"> Can clerk read from follower?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#how-can-we-prevent-re-execution-of-an-executed-command"><span class="nav-number">3.</span> <span class="nav-text"> How can we prevent re-execution of an executed command?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#how-many-kind-of-error-could-occur-when-client-issues-a-command"><span class="nav-number">4.</span> <span class="nav-text"> How many kind of error could occur when client issues a command?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#what-should-be-stored-in-a-snapshot"><span class="nav-number">5.</span> <span class="nav-text"> What should be stored in a snapshot?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#what-need-to-do-to-recover-the-state-after-crashed"><span class="nav-number">6.</span> <span class="nav-text"> What need to do to recover the state after crashed?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#execution-speed-of-get-operation"><span class="nav-number">7.</span> <span class="nav-text"> Execution speed of Get operation:</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#execution-speed-of-putappend-operation"><span class="nav-number">8.</span> <span class="nav-text"> Execution speed of PutAppend operation:</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">LiyunZhang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+  
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/03/27/OpenSource/6.824/Lab-3-Fault-tolerant-Key-Value-Service/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Lab 3: Fault-tolerant Key/Value Service | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Lab 3: Fault-tolerant Key/Value Service
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-03-27 14:35:11" itemprop="dateCreated datePublished" datetime="2023-03-27T14:35:11+08:00">2023-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-03-15 14:38:20" itemprop="dateModified" datetime="2024-03-15T14:38:20+08:00">2024-03-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/" itemprop="url" rel="index"><span itemprop="name">Open Source Code</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/6-824/" itemprop="url" rel="index"><span itemprop="name">6.824</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
+<li><a href="#how-does-keyvalue-server-execute-command-from-clerk">How does Key/Value server execute command from clerk?</a></li>
+<li><a href="#can-clerk-read-from-follower">Can clerk read from follower?</a></li>
+<li><a href="#how-can-we-prevent-re-execution-of-an-executed-command">How can we prevent re-execution of an executed command?</a></li>
+<li><a href="#how-many-kind-of-error-could-occur-when-client-issues-a-command">How many kind of error could occur when client issues a command?</a></li>
+<li><a href="#what-should-be-stored-in-a-snapshot">What should be stored in a snapshot?</a></li>
+<li><a href="#what-need-to-do-to-recover-the-state-after-crashed">What need to do to recover the state after crashed?</a></li>
+<li><a href="#execution-speed-of-get-operation">Execution speed of Get operation:</a></li>
+<li><a href="#execution-speed-of-putappend-operation">Execution speed of PutAppend operation:</a></li>
+</ul>
+</p>
+<h1 id="how-does-keyvalue-server-execute-command-from-clerk"><a class="markdownIt-Anchor" href="#how-does-keyvalue-server-execute-command-from-clerk"></a> How does Key/Value server execute command from clerk?</h1>
+<ol>
+<li>It will call the <code>Start()</code> function of its associated Raft server. It can safely execute the command until the Raft server commits that command.</li>
+<li>Only the KV server associated with leader Raft server can successfully use <code>Start()</code> to append command to logs.</li>
+<li>But there could be a situation that the network is partitioned, and the clerk connects to a partition leader whose log entry can never be successfully committed. So we need to set a timeout for each command, if it cannot commit in time, the clerk should be informed to find another server.</li>
+</ol>
+<h1 id="can-clerk-read-from-follower"><a class="markdownIt-Anchor" href="#can-clerk-read-from-follower"></a> Can clerk read from follower?</h1>
+<ol>
+<li>In the design described above, clerks can only read or write through the leader, which can make leader the bottleneck of the whole system.</li>
+<li>With another design, read-only operation can be executed through followers, thus providing a speedup for the Get operation.
+<ul>
+<li>When a KV server received a Get operation request, it will request ReadIndex from the Raft leader server.</li>
+<li>Then the raft leader server need to broadcast heartbeat to all followers to confirm that it is still the rightful leader.</li>
+<li>When it heard from a majority followers, it can reply its last CommitIndex as the ReadIndex.</li>
+<li>Then the KV server can execute the Get operation after it has applied at least as up-to-date as the ReadIndex.</li>
+</ul>
+</li>
+<li>In the Raft protocol, a leader can only commit the entries appended in its term. Similarly, a leader can only grant ReadIndex pointing to an entry of its term. Or the result of read may become unlinearizable.
+<ul>
+<li>Consider the case that a leader committed index of <em>x</em>, and granted a ReadIndex of <em>x</em> to its associated KV server. So the KV server returned the result up to index <em>x</em>. But it crashed before sending commit message to other followers. Then a new leader is elected who received a request for ReadIndex. It does not know anything about committing entry <em>x</em>, thus granting a ReadIndex lower than <em>x</em>. Hence the read will return a result unseeing the execution result of entry of index <em>x</em>, which is violated with the linearizablility scheme.</li>
+<li>So the solution is to append an empty entry to the log if the leader hasn’t appended any entry in its term.</li>
+</ul>
+</li>
+</ol>
+<h1 id="how-can-we-prevent-re-execution-of-an-executed-command"><a class="markdownIt-Anchor" href="#how-can-we-prevent-re-execution-of-an-executed-command"></a> How can we prevent re-execution of an executed command?</h1>
+<ol>
+<li>Each clerk needs to maintain a monotonically increasing index to mark the command it issued.</li>
+<li>Each Key/Value server needs to track the highest index it has executed for each clerk.</li>
+<li>When a Key/Value server receives a new command, it compares the index of the new command with the highest executed index of that clerk. If the command’s index is lower, it can know that this is an executed command, and return the result directly.</li>
+</ol>
+<h1 id="how-many-kind-of-error-could-occur-when-client-issues-a-command"><a class="markdownIt-Anchor" href="#how-many-kind-of-error-could-occur-when-client-issues-a-command"></a> How many kind of error could occur when client issues a command?</h1>
+<ol>
+<li>For read-only operation, there could be a key error.</li>
+<li>Except for the read-only operation with follower read, the client may connect to a follower who cannot append a command.</li>
+<li>The client may connect to a server in a minority parition of servers.
+<ul>
+<li>The PutAppend command is appended to the log but cannot commit.</li>
+<li>For the read-only operation with follower read, it connects to its leader, but its leader cannot receive majority response. Hence it cannot acquire a ReadIndex.</li>
+</ul>
+</li>
+<li>For read-only operation with follower read,
+<ul>
+<li>The KV Server is associated with a leader, and its leader set a higher commit index when communicating with majority. But the Raft leader crashed before commit that entry, leaving the KV server keep waiting to apply as up-to-date as the ReadIndex.</li>
+<li>The client may connect to a partition without leader, hence cannot acquire ReadIndex.</li>
+</ul>
+</li>
+</ol>
+<h1 id="what-should-be-stored-in-a-snapshot"><a class="markdownIt-Anchor" href="#what-should-be-stored-in-a-snapshot"></a> What should be stored in a snapshot?</h1>
+<ol>
+<li>Of course, we need to store the state of all key-value pairs.</li>
+<li>We also need to store the last index executed for each client so far, in order to be able to recognize duplicated commands even after crashed.</li>
+<li>The index of last applied entry is also stored to prevent that the first command after recovery is a read-only operation.</li>
+</ol>
+<h1 id="what-need-to-do-to-recover-the-state-after-crashed"><a class="markdownIt-Anchor" href="#what-need-to-do-to-recover-the-state-after-crashed"></a> What need to do to recover the state after crashed?</h1>
+<ol>
+<li>First, we need to install the latest snapshot persisted.</li>
+<li>But that is not enough if only the KV server is crashed while the associated Raft server is still running since there might still have some committed entries which is not included in the snapshot, yet applied before crash. The KV server needs to acquire those committed entries to truely bring itself back to the state right before crash.</li>
+</ol>
+<h1 id="execution-speed-of-get-operation"><a class="markdownIt-Anchor" href="#execution-speed-of-get-operation"></a> Execution speed of Get operation:</h1>
+<ol>
+<li>When running test without enabling snapshot:
+<ul>
+<li>The time spent for each operation of the un-optimzied implementation will become slower as the number of operation grows. This is because the log of each Raft server becomes larger and larger and becomes slower to persist.</li>
+<li>When executing the Get operation, the log of optimized implementation won’t increase. Hence it won’t slow down the execution.</li>
+<li>When executing <em>3000</em> Get operations, the un-optimized implementation needs about <em>50 ms/op</em>, while the optimized implementation only needs <em>1.7 ms/op</em>, which is about <em>29</em> times speedup.</li>
+</ul>
+</li>
+<li>When running test enabling snapshot:
+<ul>
+<li>The time spent for the un-optimized implementation becomes stable since the log size is now stable. However, when only executing the Get operation, the oprimized implementation does not need the benefit of trimming logs.</li>
+<li>When executing <em>3000</em> Get operations, the un-optimized imlementation need about <em>14.7 ms/op</em>, while the optimized imlementation is still <em>1.7 ms/op</em>, which is about <em>8.6</em> times speedup.</li>
+<li>I think that the speedup of optimized read-only scheme comes from two parts: follower concurrency that increased the total bandwidth between clients and servers, and the persisting time saved by eliminating Get operation entries from logs.</li>
+</ul>
+</li>
+</ol>
+<h1 id="execution-speed-of-putappend-operation"><a class="markdownIt-Anchor" href="#execution-speed-of-putappend-operation"></a> Execution speed of PutAppend operation:</h1>
+<ol>
+<li>When executing <em>1000</em> Put operations without enabling snapshot, both implementations needs about <em>29.5 ms/op</em>. Executing Append operations needs about the same amount of time.</li>
+<li>When executing <em>1000</em> Put operations enabling snapshot, both implementations needs about <em>13.9 ms/op</em>. Executing Append operations needs about the same amount of time.</li>
+<li>Thus, with snapshot enabled, it can achieve about <em>2.1</em> times speedup. I think the speedup mainly comes from the persisting time saved by shrinking log.</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Distributed-System/" rel="tag"><i class="fa fa-tag"></i> Distributed System</a>
+              <a href="/tags/Distributed-Storage/" rel="tag"><i class="fa fa-tag"></i> Distributed Storage</a>
+              <a href="/tags/Consensus-Algorithm/" rel="tag"><i class="fa fa-tag"></i> Consensus Algorithm</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/03/26/OpenSource/6.824/Lab-2-Raft/" rel="prev" title="Lab 2: Raft">
+                  <i class="fa fa-chevron-left"></i> Lab 2: Raft
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/03/27/OpenSource/6.824/Lab-4-ShardKV/" rel="next" title="Lab 4: ShardKV">
+                  Lab 4: ShardKV <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">LiyunZhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css" integrity="sha256-hLTCMFlKxdNgPXyWlSSxYN0ykJmxxq9Yt3MNfdRGWeA=" crossorigin="anonymous">
+
+
+
+</body>
+</html>
