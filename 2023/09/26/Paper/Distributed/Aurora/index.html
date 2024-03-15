@@ -31,7 +31,7 @@
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/Aurora/NetworkIO.png">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/Aurora/StorageNode.png">
 <meta property="article:published_time" content="2023-09-26T05:28:51.000Z">
-<meta property="article:modified_time" content="2023-10-04T08:30:48.233Z">
+<meta property="article:modified_time" content="2024-03-15T09:08:34.424Z">
 <meta property="article:author" content="LiyunZhang">
 <meta property="article:tag" content="Distributed System">
 <meta property="article:tag" content="Communication">
@@ -144,7 +144,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#purpose"><span class="nav-number">1.</span> <span class="nav-text"> Purpose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#model"><span class="nav-number">2.</span> <span class="nav-text"> Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#background-conceptions-of-aws"><span class="nav-number">2.1.</span> <span class="nav-text"> Background conceptions of AWS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#durability-at-scale"><span class="nav-number">2.2.</span> <span class="nav-text"> Durability at scale</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-aurora-tolerate-failures"><span class="nav-number">2.2.1.</span> <span class="nav-text"> How does Aurora tolerate failures?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-aurora-shrink-the-window-of-vulnerability"><span class="nav-number">2.2.2.</span> <span class="nav-text"> How does Aurora shrink the window of vulnerability?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-are-the-problems-of-io-volume-of-mirrored-mysql"><span class="nav-number">2.2.3.</span> <span class="nav-text"> What are the problems of I&#x2F;O volume of mirrored MySQL?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-aurora-reduce-network-traffic"><span class="nav-number">2.2.4.</span> <span class="nav-text"> How does Aurora reduce network traffic?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#logs"><span class="nav-number">2.2.5.</span> <span class="nav-text"> Logs</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-aurora-decide-what-is-completed-and-what-is-durable"><span class="nav-number">2.2.6.</span> <span class="nav-text"> How does Aurora decide what is completed and what is durable?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-database-and-storage-interact"><span class="nav-number">2.2.7.</span> <span class="nav-text"> How does the database and storage interact?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-database-write-data"><span class="nav-number">2.2.8.</span> <span class="nav-text"> How does the database write data?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-database-commit-transactions"><span class="nav-number">2.2.9.</span> <span class="nav-text"> How does the database commit transactions?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#where-does-the-database-read"><span class="nav-number">2.2.10.</span> <span class="nav-text"> Where does the database read?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-database-read"><span class="nav-number">2.2.11.</span> <span class="nav-text"> How does the database read?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-database-replicate"><span class="nav-number">2.2.12.</span> <span class="nav-text"> How does the database replicate?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-database-perform-undo-and-redo"><span class="nav-number">2.2.13.</span> <span class="nav-text"> How does the database perform undo and redo?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-database-reestablish-runtime-state"><span class="nav-number">2.2.14.</span> <span class="nav-text"> How does the database reestablish runtime state?</span></a></li></ol></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#purpose"><span class="nav-number">1.</span> <span class="nav-text"> Purpose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#model"><span class="nav-number">2.</span> <span class="nav-text"> Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#background-conceptions-of-aws"><span class="nav-number">2.1.</span> <span class="nav-text"> Background conceptions of AWS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#durability-at-scale"><span class="nav-number">2.2.</span> <span class="nav-text"> Durability at scale</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-aurora-tolerate-failures"><span class="nav-number">2.2.1.</span> <span class="nav-text"> How does Aurora tolerate failures?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-aurora-shrink-the-window-of-vulnerability"><span class="nav-number">2.2.2.</span> <span class="nav-text"> How does Aurora shrink the window of vulnerability?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-are-the-problems-of-the-io-volume-of-mirrored-mysql"><span class="nav-number">2.2.3.</span> <span class="nav-text"> What are the problems of the I&#x2F;O volume of mirrored MySQL?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-aurora-reduce-network-traffic"><span class="nav-number">2.2.4.</span> <span class="nav-text"> How does Aurora reduce network traffic?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#logs"><span class="nav-number">2.2.5.</span> <span class="nav-text"> Logs</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-aurora-decide-what-is-completed-and-what-is-durable"><span class="nav-number">2.2.6.</span> <span class="nav-text"> How does Aurora decide what is completed and what is durable?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-database-and-storage-interact"><span class="nav-number">2.2.7.</span> <span class="nav-text"> How does the database and storage interact?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-database-write-data"><span class="nav-number">2.2.8.</span> <span class="nav-text"> How does the database write data?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-database-commit-transactions"><span class="nav-number">2.2.9.</span> <span class="nav-text"> How does the database commit transactions?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#where-does-the-database-read"><span class="nav-number">2.2.10.</span> <span class="nav-text"> Where does the database read?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-database-read"><span class="nav-number">2.2.11.</span> <span class="nav-text"> How does the database read?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-database-replicate"><span class="nav-number">2.2.12.</span> <span class="nav-text"> How does the database replicate?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-database-perform-undo-and-redo"><span class="nav-number">2.2.13.</span> <span class="nav-text"> How does the database perform undo and redo?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-database-reestablish-the-runtime-state"><span class="nav-number">2.2.14.</span> <span class="nav-text"> How does the database reestablish the runtime state?</span></a></li></ol></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -231,7 +231,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-10-04 16:30:48" itemprop="dateModified" datetime="2023-10-04T16:30:48+08:00">2023-10-04</time>
+      <time title="Modified: 2024-03-15 17:08:34" itemprop="dateModified" datetime="2024-03-15T17:08:34+08:00">2024-03-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -266,7 +266,7 @@
 <ul>
 <li><a href="#how-does-aurora-tolerate-failures">How does Aurora tolerate failures?</a></li>
 <li><a href="#how-does-aurora-shrink-the-window-of-vulnerability">How does Aurora shrink the window of vulnerability?</a></li>
-<li><a href="#what-are-the-problems-of-io-volume-of-mirrored-mysql">What are the problems of I/O volume of mirrored MySQL?</a></li>
+<li><a href="#what-are-the-problems-of-the-io-volume-of-mirrored-mysql">What are the problems of the I/O volume of mirrored MySQL?</a></li>
 <li><a href="#how-does-aurora-reduce-network-traffic">How does Aurora reduce network traffic?</a></li>
 <li><a href="#logs">Logs</a></li>
 <li><a href="#how-does-aurora-decide-what-is-completed-and-what-is-durable">How does Aurora decide what is completed and what is durable?</a></li>
@@ -277,7 +277,7 @@
 <li><a href="#how-does-the-database-read">How does the database read?</a></li>
 <li><a href="#how-does-the-database-replicate">How does the database replicate?</a></li>
 <li><a href="#how-does-the-database-perform-undo-and-redo">How does the database perform undo and redo?</a></li>
-<li><a href="#how-does-the-database-reestablish-runtime-state">How does the database reestablish runtime state?</a></li>
+<li><a href="#how-does-the-database-reestablish-the-runtime-state">How does the database reestablish the runtime state?</a></li>
 </ul>
 </li>
 </ul>
@@ -289,29 +289,29 @@
 <li>Aurora is a relational database service for OLTP workloads.</li>
 <li>Issue:
 <ul>
-<li>In modern distributed cloud services, resilience and scalability are increasingly achieved by decoupling compute from storage and by replicating storage across multiple nodes.</li>
-<li>The central constraint in high throughput data processing has moved from compute and storage to the network.</li>
+<li>In modern distributed cloud services, resilience and scalability are increasingly achieved by decoupling computing from storage and replicating storage across multiple nodes.</li>
+<li>The central constraint in high throughput data processing has moved from computing and storage to the network.</li>
 </ul>
 </li>
 <li>Contribution:
 <ul>
-<li>Build storage as an independent fault-tolerant and self-healing service across multiple data-centers.
+<li>Build storage as an independent fault-tolerant and self-healing service across multiple datacenters.
 <ul>
 <li>Protect the database from performance variance and transient or permanent failures at either the networking or storage tiers.</li>
 </ul>
 </li>
-<li>Only write redo log records to storage
+<li>Only write redo log records to storage.
 <ul>
 <li>Reduce network IOPS by an order of magnitude.</li>
-<li>When bottleneck removed, the scalability of the system is greatly improved. And they can aggressively optimize numerous other points of contention.</li>
+<li>When the bottleneck is removed, the system’s scalability is greatly improved. And they can aggressively optimize numerous other points of contention.</li>
 </ul>
 </li>
 <li>Move some of the most complex and critical functions (backup and redo recovery) from one-time expensive operations in the database engine to continuous asynchronous operations amortized across a large distributed fleet.
 <ul>
-<li>This yields near-instant crash recovery without checkpointing as well as inexpensive backups that do not interfere with foreground processing.</li>
+<li>This yields near-instant crash recovery without checkpointing and inexpensive backups that do not interfere with foreground processing.</li>
 </ul>
 </li>
-<li>Also, it achieves consensus on durable state across numerous storage nodes using an efficient asynchronous scheme, avoiding expensive and chatty recovery protocols.</li>
+<li>Also, it achieves consensus on a durable state across numerous storage nodes using an efficient asynchronous scheme, avoiding expensive and chatty recovery protocols.</li>
 </ul>
 </li>
 </ol>
@@ -320,9 +320,9 @@
 <h2 id="durability-at-scale"><a class="markdownIt-Anchor" href="#durability-at-scale"></a> Durability at scale</h2>
 <h3 id="how-does-aurora-tolerate-failures"><a class="markdownIt-Anchor" href="#how-does-aurora-tolerate-failures"></a> How does Aurora tolerate failures?</h3>
 <ol>
-<li>It uses a quorum-based voting protocol. The oridinary quorum voting protocol is as followed:
+<li>It uses a quorum-based voting protocol. The ordinary quorum voting protocol is as follows:
 <ul>
-<li>If each of the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span></span></span></span> copies of a replicated data item is assigned a vote, a read must obtain quorum of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">V_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> votes while a write must obtain quorum of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>w</mi></msub></mrow><annotation encoding="application/x-tex">V_w</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> votes.</li>
+<li>If each of the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span></span></span></span> copies of a replicated data item are assigned a vote; a read must obtain a quorum of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">V_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> votes, while a writer must obtain a quorum of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>w</mi></msub></mrow><annotation encoding="application/x-tex">V_w</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> votes.</li>
 <li>Each read must be aware of the most recent write, formulated as <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>r</mi></msub><mo>+</mo><msub><mi>V</mi><mi>w</mi></msub><mo>&gt;</mo><mi>V</mi></mrow><annotation encoding="application/x-tex">V_r + V_w &gt; V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span></span></span></span>.</li>
 <li>Each write must be aware of the most recent write to avoid conflicting writes, formulated as <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>w</mi></msub><mo>&gt;</mo><mi>V</mi><mi mathvariant="normal">/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">V_w &gt; V/2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="mord">/</span><span class="mord">2</span></span></span></span>.</li>
 </ul>
@@ -330,7 +330,7 @@
 <li>The failure of each Availability Zone (AZ) is independent.
 <ul>
 <li>For a common setting <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>=</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">V=3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>r</mi></msub><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">V_r=2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>w</mi></msub><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">V_w=2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span></span></span></span>, we can set <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn></mrow><annotation encoding="application/x-tex">3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span></span></span></span> replicas in different AZs to be tolerant to large-scale events in addition to the smaller individual failures.</li>
-<li>However, the failure of an AZ will break quorum for any of the replicas that concurrently have failures in another AZ.</li>
+<li>However, the failure of an AZ will break the quorum for any of the replicas that concurrently have failures in another AZ.</li>
 <li>While the individual failures of replicas in each of the AZs are uncorrelated, the failure of an AZ is a correlated failure of all disks and nodes in that AZ.</li>
 </ul>
 </li>
@@ -338,7 +338,7 @@
 <ul>
 <li>Replicate each data item <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>6</mn></mrow><annotation encoding="application/x-tex">6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">6</span></span></span></span> ways across <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn></mrow><annotation encoding="application/x-tex">3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span></span></span></span> AZs with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn></mrow><annotation encoding="application/x-tex">2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span></span></span></span> copies of each item in each AZ.</li>
 <li>Use a quorum model with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>6</mn></mrow><annotation encoding="application/x-tex">6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">6</span></span></span></span> votes (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>=</mo><mn>6</mn></mrow><annotation encoding="application/x-tex">V = 6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">6</span></span></span></span>), a write quorum of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4</mn><mi mathvariant="normal">/</mi><mn>6</mn></mrow><annotation encoding="application/x-tex">4/6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">4</span><span class="mord">/</span><span class="mord">6</span></span></span></span> (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>w</mi></msub><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">V_w = 4</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">4</span></span></span></span>), and a read quorum of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn><mi mathvariant="normal">/</mi><mn>6</mn></mrow><annotation encoding="application/x-tex">3/6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">3</span><span class="mord">/</span><span class="mord">6</span></span></span></span> (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>r</mi></msub><mo>=</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">V_r = 3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span></span></span></span>).</li>
-<li>It can lose a single AZ and one additional node (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mi>Z</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">AZ+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.07153em;">Z</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>) without losing read availability, and lose any two nodes, including a single AZ failure and maintain write availability.</li>
+<li>It can lose a single AZ and one additional node (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mi>Z</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">AZ+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.07153em;">Z</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>) without losing read availability, and lose any two nodes, including a single AZ failure, and maintain write availability.</li>
 </ul>
 </li>
 </ol>
@@ -346,41 +346,41 @@
 <ol>
 <li>To provide sufficient durability in this model, one must ensure the probability of a double fault on uncorrelated failures, represented by Mean Time to Failure (MTTF), is sufficiently low over the time it takes to repair one of these failures, Mean Time to Repair (MTTR).</li>
 <li>It is difficult, past a point, to reduce the probability of MTTF on independent failures.</li>
-<li>Focus on reducing MTTR
+<li>Focus on reducing MTTR.
 <ul>
-<li>Partition the database volume into small fixed size segments, currently <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>10</mn></mrow><annotation encoding="application/x-tex">10</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">0</span></span></span></span>GB in size.
+<li>Partition the database volume into small fixed-size segments, currently <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>10</mn></mrow><annotation encoding="application/x-tex">10</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">0</span></span></span></span>GB in size.
 <ul>
-<li>These are each replicated <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>6</mn></mrow><annotation encoding="application/x-tex">6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">6</span></span></span></span> ways into Protection Groups (PGs) so that each PG consists of six  segments, organized across <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn></mrow><annotation encoding="application/x-tex">3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span></span></span></span> AZs, with two segments in each AZ.</li>
+<li>These are each replicated <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>6</mn></mrow><annotation encoding="application/x-tex">6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">6</span></span></span></span> ways into Protection Groups (PGs) so that each PG consists of six  segments organized across <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn></mrow><annotation encoding="application/x-tex">3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span></span></span></span> AZs, with two segments in each AZ.</li>
 <li>A storage volume is a concatenated set of PGs, physically implemented using a large fleet of storage nodes that are provisioned as virtual hosts with attached SSDs using Amazon Elastic Compute Cloud (EC2).</li>
 <li>The PGs that constitute a volume are allocated as the volume grows.</li>
 </ul>
 </li>
-<li>Segments are now unit of independent background noise failure and repair. The system monitor and automatically repair faults as part of service.</li>
+<li>Segments are now units of independent background noise failure and repair. The system monitors and automatically repairs faults as part of service.</li>
 </ul>
 </li>
 </ol>
-<h3 id="what-are-the-problems-of-io-volume-of-mirrored-mysql"><a class="markdownIt-Anchor" href="#what-are-the-problems-of-io-volume-of-mirrored-mysql"></a> What are the problems of I/O volume of mirrored MySQL?</h3>
+<h3 id="what-are-the-problems-of-the-io-volume-of-mirrored-mysql"><a class="markdownIt-Anchor" href="#what-are-the-problems-of-the-io-volume-of-mirrored-mysql"></a> What are the problems of the I/O volume of mirrored MySQL?</h3>
 <img src="/imgs/Distributed/Aurora/MySQL.png" width="50%">
 <ol>
 <li>The engine needs to write various types of data:
 <ul>
-<li>The redo log, the binary (statement) log that is archived to Amazon Simple Storage Service (S3) in order to support point-in-time restores</li>
-<li>The modified data pages, a second temporary write of the data page (double-write) to prevent torn pages, and finally the metadata (FRM) files.</li>
+<li>The redo log, the binary (statement) log that is archived to Amazon Simple Storage Service (S3) to support point-in-time restores</li>
+<li>The modified data pages, a second temporary write of the data page (double-write) to prevent torn pages, and finally, the metadata (FRM) files.</li>
 </ul>
 </li>
 <li>Steps 1, 3, and 5 are sequential and synchronous.
 <ul>
 <li>Latency is additive because many writes are sequential.</li>
 <li>Even on asynchronous writes, one must wait for the slowest operation, leaving the system at the mercy of outliers.</li>
-<li>From a distributed system perspective, this model can be viewed as having a 4/4 write quorum, and is vulnerable to failures and outlier performance.</li>
+<li>From a distributed system perspective, this model has a 4/4 write quorum and is vulnerable to failures and outlier performance.</li>
 </ul>
 </li>
-<li>User operations that are a result of OLTP applications cause many different types of writes often representing the same information in multiple ways.</li>
+<li>User operations resulting from OLTP applications cause many different types of writes often representing the same information in multiple ways.</li>
 </ol>
 <h3 id="how-does-aurora-reduce-network-traffic"><a class="markdownIt-Anchor" href="#how-does-aurora-reduce-network-traffic"></a> How does Aurora reduce network traffic?</h3>
 <ol>
 <li>
-<p>The only writes that cross the network are redo log records. The log applicator is pushed to the storage tier where it can be used to generate database pages in background or on demand.</p>
+<p>The only writes that cross the network are redo log records. The log applicator is pushed to the storage tier, where it can generate database pages in the background or on demand.</p>
 </li>
 <li>
 <p>Generating each page from the complete chain of its modifications from the beginning of time is prohibitively expensive.</p>
@@ -390,13 +390,13 @@
 </ul>
 </li>
 <li>
-<p>The primary only writes log records to the storage service and streams those log records as well as metadata updates to the replica instances.</p>
+<p>The primary only writes log records to the storage service and streams those log records and metadata updates to the replica instances.</p>
 <img src="/imgs/Distributed/Aurora/NetworkIO.png" width=50%>
 </li>
 <li>
 <p>The storage node involves the following steps:</p>
 <ul>
-<li>(1) receive log record and add to an in-memory queue</li>
+<li>(1) receive the log record and add it to an in-memory queue</li>
 <li>(2) persist record on disk and acknowledge</li>
 <li>(3) organize records and identify gaps in the log since some batches may be lost</li>
 <li>(4) gossip with peers to fill in gaps</li>
@@ -404,7 +404,7 @@
 <li>(6) periodically stage log and new pages to S3</li>
 <li>(7) periodically garbage collect old versions</li>
 <li>(8) periodically validate CRC codes on pages</li>
-<li>Each of the steps above asynchronous, and only steps (1) and (2) are in the foreground path potentially impacting latency.</li>
+<li>Each step above is asynchronous; only steps (1) and (2) are in the foreground path, potentially impacting latency.</li>
 </ul>
 <img src="/imgs/Distributed/Aurora/StorageNode.png" width="50%">
 </li>
@@ -412,58 +412,58 @@
 <h3 id="logs"><a class="markdownIt-Anchor" href="#logs"></a> Logs</h3>
 <h3 id="how-does-aurora-decide-what-is-completed-and-what-is-durable"><a class="markdownIt-Anchor" href="#how-does-aurora-decide-what-is-completed-and-what-is-durable"></a> How does Aurora decide what is completed and what is durable?</h3>
 <ol>
-<li>At a high level, The system maintains points of consistency and durability, and continually advances these points as it receives acknowledgements for outstanding storage requests.</li>
-<li>The logic for tracking partially completed transactions and undoing them is kept in the database engine, just as if it were writing to simple disks.<br />
-Upon restart, before the database is allowed to access the storage volume, the storage service does its own recovery which is focused not on user-level transactions, but on making sure that the database sees a uniform view of storage despite its distributed nature.</li>
+<li>At a high level, The system maintains points of consistency and durability and continually advances them as it receives acknowledgments for outstanding storage requests.</li>
+<li>The logic for tracking and undoing partially completed transactions is kept in the database engine, just as if written on simple disks.<br />
+Upon restart, before the database can access the storage volume, the storage service makes its recovery, focusing not on user-level transactions but on ensuring that the database sees a uniform view of storage despite its distributed nature.</li>
 <li>Completeness:
 <ul>
-<li><em>Log Sequence Number (LSN)</em>: Each log record has an associated LSN that is a monotonically increasing value generated by the database.</li>
-<li><em>Volume Complete LSN (VCL)</em>: The storage service determines the highest LSN for which it can guarantee availability of all prior log records.</li>
-<li>During storage recovery, every log record with an LSN larger than the VCL must be truncated.</li>
+<li><em>Log Sequence Number (LSN)</em>: Each log record has an associated LSN, a monotonically increasing value generated by the database.</li>
+<li><em>Volume Complete LSN (VCL)</em>: The storage service determines the highest LSN to guarantee the availability of all prior log records.</li>
+<li>Every log record with an LSN larger than the VCL during storage recovery must be truncated.</li>
 </ul>
 </li>
 <li>Durability:
 <ul>
 <li><em>Consistency Point LSNs (CPL)</em>: The database can further constrain a subset of points that are allowable for truncation by tagging log records</li>
-<li><em>Volume Durable LSN (VDL)</em>: the highest CPL that is smaller than or equal to VCL and truncate all log records with LSN greater than the VDL.</li>
-<li>A CPL can be thought of as delineating some limited form of storage system transaction that must be accepted in order.</li>
+<li><em>Volume Durable LSN (VDL)</em>: the highest CPL smaller than or equal to VCL and truncate all log records with LSN greater than the VDL.</li>
+<li>A CPL delineates some limited storage system transactions that must be accepted in order.</li>
 </ul>
 </li>
 </ol>
 <h3 id="how-does-the-database-and-storage-interact"><a class="markdownIt-Anchor" href="#how-does-the-database-and-storage-interact"></a> How does the database and storage interact?</h3>
 <ol>
-<li>Each database-level transaction is broken up into multiple mini-transactions (MTRs) that are ordered and must be performed atomically.</li>
-<li>Each mini-transaction is composed of multiple contiguous log records (as many as needed).</li>
+<li>Each database-level transaction is broken up into multiple mini-transactions (MTRs) ordered and must be performed atomically.</li>
+<li>Each mini-transaction comprises multiple contiguous log records (as many as needed).</li>
 <li>The final log record in a mini-transaction is a CPL.</li>
-<li>On recovery, the database talks to the storage service to establish the durable point of each PG and uses that to establish the VDL and then issue commands to truncate the log records above VDL.</li>
+<li>On recovery, the database talks to the storage service to establish the durable point of each PG and uses that to establish the VDL. Then, commands are issued to truncate the log records above VDL.</li>
 </ol>
 <h3 id="how-does-the-database-write-data"><a class="markdownIt-Anchor" href="#how-does-the-database-write-data"></a> How does the database write data?</h3>
 <ol>
 <li>Database view:
 <ul>
-<li>As the database receives acknowledgements to establish the write quorum for each batch of log records, it advances the current VDL.</li>
+<li>As the database receives acknowledgments to establish the write quorum for each batch of log records, it advances the current VDL.</li>
 <li>The database allocates a unique ordered LSN for each redo log record of each transaction that is no greater than the sum of the current VDL and the LSN Allocation Limit (LAL).</li>
-<li>This limit ensures that the database does not get too far ahead of the storage system and introduces back-pressure that can throttle the incoming writes if the storage or network cannot keep up.</li>
+<li>This limit ensures the database does not get too far ahead of the storage system and introduces back pressure that can throttle the incoming writes if the storage or network cannot keep up.</li>
 </ul>
 </li>
 <li>PG view:
 <ul>
-<li>Each segment of each PG only sees a subset of log records in the volume that affect the pages residing on that segment.</li>
+<li>Each segment of each PG only sees a subset of log records in the volume that affects the pages residing on that segment.</li>
 <li>Each log record contains a backlink that identifies the previous log record for that PG to track the point of completeness of the log records that have reached each segment.</li>
-<li><em>Segment Complete LSN (SCL)</em>: Identifies the greatest LSN below which all log records of the PG have been received, established through backlinks.</li>
-<li>The SCL is used by the storage nodes when they gossip with each other in order to find and exchange log records that they are missing.</li>
+<li><em>Segment Complete LSN (SCL)</em>: Identifies the greatest LSN below which all log records of the PG have been received and established through backlinks.</li>
+<li>The SCL is used by the storage nodes when they gossip with each other to find and exchange log records that they are missing.</li>
 </ul>
 </li>
 </ol>
 <h3 id="how-does-the-database-commit-transactions"><a class="markdownIt-Anchor" href="#how-does-the-database-commit-transactions"></a> How does the database commit transactions?</h3>
 <ol>
 <li>When a client commits a transaction, the thread handling the commit request sets the transaction aside by recording its “commit LSN” as part of a separate list of transactions waiting on commit and moves on to perform other work.</li>
-<li>Completing a commit, if and only if, the latest VDL is greater than or equal to the transaction’s commit LSN.</li>
-<li>As the VDL advances, the database identifies qualifying transactions that are waiting to be committed and uses a dedicated thread to send commit acknowledgements to waiting clients.</li>
+<li>Completing a commit only if the latest VDL is greater than or equal to the transaction’s commit LSN.</li>
+<li>As the VDL advances, the database identifies qualifying transactions waiting to be committed and uses a dedicated thread to send commit acknowledgments to wait clients.</li>
 </ol>
 <h3 id="where-does-the-database-read"><a class="markdownIt-Anchor" href="#where-does-the-database-read"></a> Where does the database read?</h3>
 <ol>
-<li>Pages are served from the buffer cache and only result in a storage IO request if the page in question is not present in the cache.</li>
+<li>Pages are served from the buffer cache, resulting in a storage IO request if the page is not in the cache.</li>
 <li>While the Aurora database does not write out pages on cache eviction (or anywhere else), it enforces a similar guarantee: a page in the buffer cache must always be of the latest version.
 <ul>
 <li><em>Page LSN</em>: identify the log record associated with the latest change to the page</li>
@@ -474,25 +474,25 @@ Upon restart, before the database is allowed to access the storage volume, the s
 </ol>
 <h3 id="how-does-the-database-read"><a class="markdownIt-Anchor" href="#how-does-the-database-read"></a> How does the database read?</h3>
 <ol>
-<li>When reading a page from disk, the database establishes a read-point, representing the VDL at the time the request was issued.</li>
-<li>The database can then select a storage node that is complete with respect to the read point, knowing that it will therefore receive an up to date version.</li>
+<li>When reading a page from a disk, the database establishes a read-point, representing the VDL when the request was issued.</li>
+<li>The database can then select a completed storage node with respect to the read point, knowing that it will, therefore, receive an up-to-date version.</li>
 <li>Protection Group Min Read Point LSN (PGMRPL): represents that all the log records of the PG below it are unnecessary.
 <ul>
 <li>If there are read replicas, the writer gossips with them to establish the per-PG Minimum Read Point LSN across all nodes.</li>
-<li>A storage node segment is guaranteed that there will be no read page requests with a read-point that is lower than the PGMRPL.</li>
+<li>A storage node segment guarantees that there will be no read page requests with a read point lower than the PGMRPL.</li>
 <li>Each storage node is aware of the PGMRPL from the database and can, therefore, advance the materialized pages on disk by coalescing the older log records and then safely garbage collecting them.</li>
 </ul>
 </li>
 </ol>
 <h3 id="how-does-the-database-replicate"><a class="markdownIt-Anchor" href="#how-does-the-database-replicate"></a> How does the database replicate?</h3>
 <ol>
-<li>A single writer and up to 15 read replicas can all mount a single shared storage volume.</li>
+<li>A single writer and up to 15 read replicas can all mount a shared storage volume.</li>
 <li>To minimize lag, the log stream generated by the writer and sent to the storage nodes is also sent to all read replicas.</li>
-<li>In the reader, the database consumes this log stream by considering each log record in turn.
+<li>The database consumes this log stream in the reader by considering each log record in turn.
 <ul>
 <li>If the log record refers to a page in the reader’s buffer cache, it uses the log applicator to apply the specified redo operation to the page in the cache.</li>
-<li>Otherwise it simply discards the log record.</li>
-<li>The replicas consume log records asynchronously from the perspective of the writer, which acknowledges user commits independent of the replica.</li>
+<li>Otherwise, it simply discards the log record.</li>
+<li>The replicas consume log records asynchronously from the writer’s perspective, which acknowledges user commits independent of the replica.</li>
 <li>The only log records that will be applied are those whose LSN is less than or equal to the VDL.<br />
 The log records that are part of a single mini-transaction are applied atomically in the replica’s cache to ensure that the replica sees a consistent view of all database objects.</li>
 </ul>
@@ -500,16 +500,16 @@ The log records that are part of a single mini-transaction are applied atomicall
 </ol>
 <h3 id="how-does-the-database-perform-undo-and-redo"><a class="markdownIt-Anchor" href="#how-does-the-database-perform-undo-and-redo"></a> How does the database perform undo and redo?</h3>
 <ol>
-<li>The same redo log applicator is used in the forward processing path as well as on recovery where it operates synchronously and in the foreground while the database is offline.</li>
-<li>The redo log applicator is decoupled from the database and operates on storage nodes, in parallel, and all the time in the background. Once the database starts up it performs volume recovery in collaboration with the storage service.</li>
+<li>The same redo log applicator is used in the forward processing path and on recovery, where it operates synchronously and in the foreground while the database is offline.</li>
+<li>The redo log applicator is decoupled from the database and operates on storage nodes, in parallel, and all the time in the background. Once the database starts up, it performs volume recovery in collaboration with the storage service.</li>
 <li>Undo recovery can happen when the database is online after the system builds the list of these in-flight transactions from the undo segments.</li>
 </ol>
-<h3 id="how-does-the-database-reestablish-runtime-state"><a class="markdownIt-Anchor" href="#how-does-the-database-reestablish-runtime-state"></a> How does the database reestablish runtime state?</h3>
+<h3 id="how-does-the-database-reestablish-the-runtime-state"><a class="markdownIt-Anchor" href="#how-does-the-database-reestablish-the-runtime-state"></a> How does the database reestablish the runtime state?</h3>
 <ol>
-<li>It contacts for each PG, a read quorum of segments which is sufficient to guarantee discovery of any data that could have reached a write quorum.</li>
-<li>Once the database has established a read quorum for every PG it can recalculate the VDL above which data is truncated by generating a truncation range that annuls every log record after the new VDL, up to and including an end LSN which the database can prove is at least as high as the highest possible outstanding log record that could ever have been seen.</li>
-<li>The database infers this upper bound because it allocates LSNs, and limits how far allocation can occur above VDL (the 10 million limit described earlier).</li>
-<li>The truncation ranges are versioned with epoch numbers, and written durably to the storage service so that there is no confusion over the durability of truncations in case recovery is interrupted and restarted.</li>
+<li>It contacts, for each PG, a read quorum of segments, which is sufficient to guarantee the discovery of any data that could have reached a write quorum.</li>
+<li>Once the database has established a read quorum for every PG, it can recalculate the VDL above which data is truncated by generating a truncation range that annuls every log record after the new VDL, up to and including an end LSN, which the database can prove is at least as high as the highest possible outstanding log record that could ever have been seen.</li>
+<li>The database infers this upper bound because it allocates LSNs and limits how far allocation can occur above VDL (the 10 million limit described earlier).</li>
+<li>The truncation ranges are versioned with epoch numbers and written durably to the storage service so that there is no confusion over the durability of truncations in case recovery is interrupted and restarted.</li>
 </ol>
 
     </div>

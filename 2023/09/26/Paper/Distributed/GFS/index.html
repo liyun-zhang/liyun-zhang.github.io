@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Paper: The Google File System  Abstract Purpose Model  Overview  What operations are supported? Architecture  What does the system consist of? What does master need to do? How to prevent the master be">
+    <meta name="description" content="Paper: The Google File System  Abstract Purpose Model  Overview  What operations are supported? Architecture  What does the system consist of? What does the master need to do? How can the master be pr">
 <meta property="og:type" content="article">
 <meta property="og:title" content="GFS">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/GFS/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="Paper: The Google File System  Abstract Purpose Model  Overview  What operations are supported? Architecture  What does the system consist of? What does master need to do? How to prevent the master be">
+<meta property="og:description" content="Paper: The Google File System  Abstract Purpose Model  Overview  What operations are supported? Architecture  What does the system consist of? What does the master need to do? How can the master be pr">
 <meta property="og:locale">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/GFS/01.png">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/GFS/02.png">
@@ -36,7 +36,7 @@
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/GFS/07.png">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/GFS/08.png">
 <meta property="article:published_time" content="2023-09-26T05:06:36.000Z">
-<meta property="article:modified_time" content="2024-02-29T08:21:10.080Z">
+<meta property="article:modified_time" content="2024-03-15T08:33:24.474Z">
 <meta property="article:author" content="LiyunZhang">
 <meta property="article:tag" content="Distributed System">
 <meta property="article:tag" content="Distributed Storage">
@@ -150,7 +150,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#abstract"><span class="nav-number">1.</span> <span class="nav-text"> Abstract</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#purpose"><span class="nav-number">2.</span> <span class="nav-text"> Purpose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#model"><span class="nav-number">3.</span> <span class="nav-text"> Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#overview"><span class="nav-number">3.1.</span> <span class="nav-text"> Overview</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-operations-are-supported"><span class="nav-number">3.1.1.</span> <span class="nav-text"> What operations are supported?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#architecture"><span class="nav-number">3.1.2.</span> <span class="nav-text"> Architecture</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#what-does-the-system-consist-of"><span class="nav-number">3.1.2.1.</span> <span class="nav-text"> What does the system consist of?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-does-master-need-to-do"><span class="nav-number">3.1.2.2.</span> <span class="nav-text"> What does master need to do?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-prevent-the-master-becoming-a-bottleneck"><span class="nav-number">3.1.2.3.</span> <span class="nav-text"> How to prevent the master becoming a bottleneck?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-advantage-of-large-chunk-size"><span class="nav-number">3.1.2.4.</span> <span class="nav-text"> What is the advantage of large chunk size?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-disadvantage-of-large-chunk-size"><span class="nav-number">3.1.2.5.</span> <span class="nav-text"> What is the disadvantage of large chunk size?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#when-will-hot-spots-problem-emerge"><span class="nav-number">3.1.2.6.</span> <span class="nav-text"> When will hot spots problem emerge?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#consistency"><span class="nav-number">3.1.3.</span> <span class="nav-text"> Consistency</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-do-we-define-a-file-region-being-consistent-or-defined"><span class="nav-number">3.1.3.1.</span> <span class="nav-text"> How do we define a file region being consistent or defined?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-many-consistency-rules-should-be-considered"><span class="nav-number">3.1.3.2.</span> <span class="nav-text"> How many consistency rules should be considered?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-do-gfs-guarantees-the-second-rule"><span class="nav-number">3.1.3.3.</span> <span class="nav-text"> How do GFS guarantees the second rule?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-side-effect-of-clients-caching-chunk-locations"><span class="nav-number">3.1.3.4.</span> <span class="nav-text"> What is the side-effect of clients caching chunk locations?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#data-mutation"><span class="nav-number">3.2.</span> <span class="nav-text"> Data mutation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#control-data-flow"><span class="nav-number">3.2.1.</span> <span class="nav-text"> Control &amp; data flow</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-do-we-minimize-management-overhead-at-the-master-of-data-mutation"><span class="nav-number">3.2.1.1.</span> <span class="nav-text"> How do we minimize management overhead at the master of data mutation?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-does-leases-change"><span class="nav-number">3.2.1.2.</span> <span class="nav-text"> What does leases change?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-the-control-flow"><span class="nav-number">3.2.1.3.</span> <span class="nav-text"> How does the control flow?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-primary-and-secondary-servers-write-data"><span class="nav-number">3.2.1.4.</span> <span class="nav-text"> How does primary and secondary servers write data?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-would-the-system-do-if-write-fails"><span class="nav-number">3.2.1.5.</span> <span class="nav-text"> What would the system do if write fails?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-if-a-write-is-large-or-straddles-a-chunk-boundary"><span class="nav-number">3.2.1.6.</span> <span class="nav-text"> What if a write is large or straddles a chunk boundary?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-prevent-primary-become-bottleneck-of-pushing-data"><span class="nav-number">3.2.1.7.</span> <span class="nav-text"> How to prevent primary become bottleneck of pushing data?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-minimize-latency-of-pushing-data"><span class="nav-number">3.2.1.8.</span> <span class="nav-text"> How to minimize latency of pushing data?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#write-and-record-append"><span class="nav-number">3.2.2.</span> <span class="nav-text"> Write and record append</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-difference-between-write-and-record-append"><span class="nav-number">3.2.2.1.</span> <span class="nav-text"> What is the difference between write and record append?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-typical-writing-happen"><span class="nav-number">3.2.2.2.</span> <span class="nav-text"> How does typical writing happen?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-readers-deal-with-occasional-padding-and-duplicates"><span class="nav-number">3.2.2.3.</span> <span class="nav-text"> How does readers deal with occasional padding and duplicates?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#atomic-record-appends"><span class="nav-number">3.2.3.</span> <span class="nav-text"> Atomic record appends</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#what-if-appending-causes-the-current-chunk-to-exceed-the-maximum-size"><span class="nav-number">3.2.3.1.</span> <span class="nav-text"> What if appending causes the current chunk to exceed the maximum size?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-if-appending-fails-at-some-chunkservers"><span class="nav-number">3.2.3.2.</span> <span class="nav-text"> What if appending fails at some chunkservers?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#snapshot"><span class="nav-number">3.2.4.</span> <span class="nav-text"> Snapshot</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#what-does-snapshot-do"><span class="nav-number">3.2.4.1.</span> <span class="nav-text"> What does snapshot do?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-snapshot-be-implemented"><span class="nav-number">3.2.4.2.</span> <span class="nav-text"> How does snapshot be implemented?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-clients-write-a-chunk-after-snapshot"><span class="nav-number">3.2.4.3.</span> <span class="nav-text"> How does clients write a chunk after snapshot?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#master"><span class="nav-number">3.3.</span> <span class="nav-text"> Master</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#basic-operations"><span class="nav-number">3.3.1.</span> <span class="nav-text"> Basic operations</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-client-communicate-with-master-specifically"><span class="nav-number">3.3.1.1.</span> <span class="nav-text"> How does client communicate with master specifically?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-metadata-does-master-need-to-store"><span class="nav-number">3.3.1.2.</span> <span class="nav-text"> What metadata does master need to store?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-persist"><span class="nav-number">3.3.1.3.</span> <span class="nav-text"> How to persist?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-gfs-manage-namespace"><span class="nav-number">3.3.1.4.</span> <span class="nav-text"> How does GFS manage namespace?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-gfs-design-locking-scheme"><span class="nav-number">3.3.1.5.</span> <span class="nav-text"> How does GFS design locking scheme?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#replica-management"><span class="nav-number">3.3.2.</span> <span class="nav-text"> Replica management</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-place-replicas"><span class="nav-number">3.3.2.1.</span> <span class="nav-text"> How to place replicas?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-factors-are-considered-when-create-a-new-chunk"><span class="nav-number">3.3.2.2.</span> <span class="nav-text"> What factors are considered when create a new chunk?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-if-the-number-of-available-replicas-of-a-chunk-falls-below-a-user-specified-goal"><span class="nav-number">3.3.2.3.</span> <span class="nav-text"> What if the number of available replicas of a chunk falls below a user-specified goal?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-if-cloning-traffic-from-overwhelming-client-traffic"><span class="nav-number">3.3.2.4.</span> <span class="nav-text"> What if cloning traffic from overwhelming client traffic?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-keep-the-placement-of-replicas-in-balance"><span class="nav-number">3.3.2.5.</span> <span class="nav-text"> How to keep the placement of replicas in balance?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#deletion"><span class="nav-number">3.3.3.</span> <span class="nav-text"> Deletion</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-delete-a-file"><span class="nav-number">3.3.3.1.</span> <span class="nav-text"> How to delete a file?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-are-the-advantages-and-disadvantages-of-lazy-deletion-over-eager-deletion"><span class="nav-number">3.3.3.2.</span> <span class="nav-text"> What are the advantages and disadvantages of lazy deletion over eager deletion?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-address-the-issues-of-reusing"><span class="nav-number">3.3.3.3.</span> <span class="nav-text"> How to address the issues of reusing?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-handle-the-possible-stale-replicas"><span class="nav-number">3.3.3.4.</span> <span class="nav-text"> How to handle the possible stale replicas?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fault-tolerance"><span class="nav-number">3.4.</span> <span class="nav-text"> Fault tolerance</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-handle-master-failure"><span class="nav-number">3.4.1.</span> <span class="nav-text"> How to handle master failure?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#why-cannot-recover-data-using-other-chunk-replicas-why-each-chunkserver-must-independently-verify-the-integrity"><span class="nav-number">3.4.2.</span> <span class="nav-text"> Why cannot recover data using other chunk replicas? Why each chunkserver must independently verify the integrity?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-ensure-data-integrity"><span class="nav-number">3.4.3.</span> <span class="nav-text"> How to ensure data integrity?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-read-data-with-checksum"><span class="nav-number">3.4.4.</span> <span class="nav-text"> How to read data with checksum?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-write-data-with-checksum"><span class="nav-number">3.4.5.</span> <span class="nav-text"> How to write data with checksum?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-included-in-the-diagnostic-logs"><span class="nav-number">3.4.6.</span> <span class="nav-text"> What is included in the diagnostic logs?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#other-parts-unmentioned"><span class="nav-number">3.5.</span> <span class="nav-text"> Other parts (unmentioned)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#to-sum-up-what-is-the-metadata-of-master-and-where-are-they"><span class="nav-number">3.5.1.</span> <span class="nav-text"> To sum up, what is the metadata of master, and where are they?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-cause-of-split-brain-how-to-solve-it"><span class="nav-number">3.5.2.</span> <span class="nav-text"> What is the cause of split brain? How to solve it?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#why-gfs-doesnt-overwrite-those-failed-records-immediately-but-leaving-padding-and-duplicates"><span class="nav-number">3.5.3.</span> <span class="nav-text"> Why GFS doesn’t overwrite those failed records immediately, but leaving padding and duplicates?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#gfs-is-a-weak-consistency-system-how-can-we-upgrade-it-to-a-strong-consistency-system"><span class="nav-number">3.5.4.</span> <span class="nav-text"> GFS is a weak consistency system, how can we upgrade it to a strong consistency system?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#experiments-and-results"><span class="nav-number">4.</span> <span class="nav-text"> Experiments and results</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#micro-benchmarks"><span class="nav-number">4.1.</span> <span class="nav-text"> Micro-benchmarks</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#read"><span class="nav-number">4.1.1.</span> <span class="nav-text"> Read</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#write"><span class="nav-number">4.1.2.</span> <span class="nav-text"> Write</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#record-append"><span class="nav-number">4.1.3.</span> <span class="nav-text"> Record append</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#real-world-clusters"><span class="nav-number">4.2.</span> <span class="nav-text"> Real world clusters</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#abstract"><span class="nav-number">1.</span> <span class="nav-text"> Abstract</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#purpose"><span class="nav-number">2.</span> <span class="nav-text"> Purpose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#model"><span class="nav-number">3.</span> <span class="nav-text"> Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#overview"><span class="nav-number">3.1.</span> <span class="nav-text"> Overview</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-operations-are-supported"><span class="nav-number">3.1.1.</span> <span class="nav-text"> What operations are supported?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#architecture"><span class="nav-number">3.1.2.</span> <span class="nav-text"> Architecture</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#what-does-the-system-consist-of"><span class="nav-number">3.1.2.1.</span> <span class="nav-text"> What does the system consist of?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-does-the-master-need-to-do"><span class="nav-number">3.1.2.2.</span> <span class="nav-text"> What does the master need to do?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-can-the-master-be-prevented-from-becoming-a-bottleneck"><span class="nav-number">3.1.2.3.</span> <span class="nav-text"> How can the master be prevented from becoming a bottleneck?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-advantage-of-large-chunk-size"><span class="nav-number">3.1.2.4.</span> <span class="nav-text"> What is the advantage of large chunk size?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-disadvantage-of-large-chunk-size"><span class="nav-number">3.1.2.5.</span> <span class="nav-text"> What is the disadvantage of large chunk size?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#when-will-the-hot-spot-problem-emerge"><span class="nav-number">3.1.2.6.</span> <span class="nav-text"> When will the hot spot problem emerge?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#consistency"><span class="nav-number">3.1.3.</span> <span class="nav-text"> Consistency</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-do-we-define-a-file-region-as-being-consistent-or-defined"><span class="nav-number">3.1.3.1.</span> <span class="nav-text"> How do we define a file region as being consistent or defined?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-many-consistency-rules-should-be-considered"><span class="nav-number">3.1.3.2.</span> <span class="nav-text"> How many consistency rules should be considered?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-gfs-guarantee-the-second-rule"><span class="nav-number">3.1.3.3.</span> <span class="nav-text"> How does GFS guarantee the second rule?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-side-effect-of-clients-caching-chunk-locations"><span class="nav-number">3.1.3.4.</span> <span class="nav-text"> What is the side-effect of clients caching chunk locations?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#data-mutation"><span class="nav-number">3.2.</span> <span class="nav-text"> Data mutation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#control-data-flow"><span class="nav-number">3.2.1.</span> <span class="nav-text"> Control &amp; data flow</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-do-we-minimize-management-overhead-at-the-master-of-data-mutation"><span class="nav-number">3.2.1.1.</span> <span class="nav-text"> How do we minimize management overhead at the master of data mutation?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-do-leases-change"><span class="nav-number">3.2.1.2.</span> <span class="nav-text"> What do leases change?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-the-control-flow"><span class="nav-number">3.2.1.3.</span> <span class="nav-text"> How does the control flow?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-do-primary-and-secondary-servers-write-data"><span class="nav-number">3.2.1.4.</span> <span class="nav-text"> How do primary and secondary servers write data?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-would-the-system-do-if-the-write-fails"><span class="nav-number">3.2.1.5.</span> <span class="nav-text"> What would the system do if the write fails?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-if-a-write-is-large-or-straddles-a-chunk-boundary"><span class="nav-number">3.2.1.6.</span> <span class="nav-text"> What if a write is large or straddles a chunk boundary?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-prevent-the-primary-become-bottleneck-of-pushing-data"><span class="nav-number">3.2.1.7.</span> <span class="nav-text"> How to prevent the primary become bottleneck of pushing data?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-minimize-the-latency-of-pushing-data"><span class="nav-number">3.2.1.8.</span> <span class="nav-text"> How to minimize the latency of pushing data?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#write-and-record-append"><span class="nav-number">3.2.2.</span> <span class="nav-text"> Write and record append</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-difference-between-write-and-record-append"><span class="nav-number">3.2.2.1.</span> <span class="nav-text"> What is the difference between write and record append?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-typical-writing-happen"><span class="nav-number">3.2.2.2.</span> <span class="nav-text"> How does typical writing happen?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-do-readers-deal-with-occasional-padding-and-duplicates"><span class="nav-number">3.2.2.3.</span> <span class="nav-text"> How do readers deal with occasional padding and duplicates?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#atomic-record-appends"><span class="nav-number">3.2.3.</span> <span class="nav-text"> Atomic record appends</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#what-if-appending-causes-the-current-chunk-to-exceed-the-maximum-size"><span class="nav-number">3.2.3.1.</span> <span class="nav-text"> What if appending causes the current chunk to exceed the maximum size?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-if-appending-fails-at-some-chunkservers"><span class="nav-number">3.2.3.2.</span> <span class="nav-text"> What if appending fails at some chunkservers?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#snapshot"><span class="nav-number">3.2.4.</span> <span class="nav-text"> Snapshot</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#what-does-snapshot-do"><span class="nav-number">3.2.4.1.</span> <span class="nav-text"> What does snapshot do?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-snapshot-be-implemented"><span class="nav-number">3.2.4.2.</span> <span class="nav-text"> How does snapshot be implemented?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-do-clients-write-a-chunk-after-a-snapshot"><span class="nav-number">3.2.4.3.</span> <span class="nav-text"> How do clients write a chunk after a snapshot?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#master"><span class="nav-number">3.3.</span> <span class="nav-text"> Master</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#basic-operations"><span class="nav-number">3.3.1.</span> <span class="nav-text"> Basic operations</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-the-client-communicate-with-the-master-specifically"><span class="nav-number">3.3.1.1.</span> <span class="nav-text"> How does the client communicate with the master specifically?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-metadata-does-the-master-need-to-store"><span class="nav-number">3.3.1.2.</span> <span class="nav-text"> What metadata does the master need to store?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-persist"><span class="nav-number">3.3.1.3.</span> <span class="nav-text"> How to persist?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-gfs-manage-namespace"><span class="nav-number">3.3.1.4.</span> <span class="nav-text"> How does GFS manage namespace?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-gfs-design-the-locking-scheme"><span class="nav-number">3.3.1.5.</span> <span class="nav-text"> How does GFS design the locking scheme?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#replica-management"><span class="nav-number">3.3.2.</span> <span class="nav-text"> Replica management</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-place-replicas"><span class="nav-number">3.3.2.1.</span> <span class="nav-text"> How to place replicas?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-factors-are-considered-when-creating-a-new-chunk"><span class="nav-number">3.3.2.2.</span> <span class="nav-text"> What factors are considered when creating a new chunk?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-if-the-number-of-available-chunk-replicas-falls-below-a-user-specified-goal"><span class="nav-number">3.3.2.3.</span> <span class="nav-text"> What if the number of available chunk replicas falls below a user-specified goal?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-if-cloning-traffic-from-overwhelming-client-traffic"><span class="nav-number">3.3.2.4.</span> <span class="nav-text"> What if cloning traffic from overwhelming client traffic?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-keep-the-placement-of-replicas-in-balance"><span class="nav-number">3.3.2.5.</span> <span class="nav-text"> How to keep the placement of replicas in balance?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#deletion"><span class="nav-number">3.3.3.</span> <span class="nav-text"> Deletion</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-delete-a-file"><span class="nav-number">3.3.3.1.</span> <span class="nav-text"> How to delete a file?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-are-the-advantages-and-disadvantages-of-lazy-deletion-over-eager-deletion"><span class="nav-number">3.3.3.2.</span> <span class="nav-text"> What are the advantages and disadvantages of lazy deletion over eager deletion?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-address-the-issues-of-reusing"><span class="nav-number">3.3.3.3.</span> <span class="nav-text"> How to address the issues of reusing?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-handle-the-possible-stale-replicas"><span class="nav-number">3.3.3.4.</span> <span class="nav-text"> How to handle the possible stale replicas?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fault-tolerance"><span class="nav-number">3.4.</span> <span class="nav-text"> Fault tolerance</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-handle-master-failure"><span class="nav-number">3.4.1.</span> <span class="nav-text"> How to handle master failure?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#why-cannot-recover-data-using-other-chunk-replicas-why-each-chunkserver-must-independently-verify-the-integrity"><span class="nav-number">3.4.2.</span> <span class="nav-text"> Why cannot recover data using other chunk replicas? Why each chunkserver must independently verify the integrity?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-ensure-data-integrity"><span class="nav-number">3.4.3.</span> <span class="nav-text"> How to ensure data integrity?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-read-data-with-checksum"><span class="nav-number">3.4.4.</span> <span class="nav-text"> How to read data with checksum?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-write-data-with-checksum"><span class="nav-number">3.4.5.</span> <span class="nav-text"> How to write data with checksum?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-included-in-the-diagnostic-logs"><span class="nav-number">3.4.6.</span> <span class="nav-text"> What is included in the diagnostic logs?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#other-parts-unmentioned"><span class="nav-number">3.5.</span> <span class="nav-text"> Other parts (unmentioned)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#to-sum-up-what-is-the-metadata-of-the-master-and-where-are-they"><span class="nav-number">3.5.1.</span> <span class="nav-text"> To sum up, what is the metadata of the master, and where are they?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-cause-of-a-split-brain-how-to-solve-it"><span class="nav-number">3.5.2.</span> <span class="nav-text"> What is the cause of a split-brain? How to solve it?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#why-does-gfs-not-overwrite-those-failed-records-immediately-but-leave-padding-and-duplicates"><span class="nav-number">3.5.3.</span> <span class="nav-text"> Why does GFS not overwrite those failed records immediately but leave padding and duplicates?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#gfs-is-a-weak-consistency-system-how-can-we-upgrade-it-to-a-strong-one"><span class="nav-number">3.5.4.</span> <span class="nav-text"> GFS is a weak consistency system; how can we upgrade it to a strong one?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#experiments-and-results"><span class="nav-number">4.</span> <span class="nav-text"> Experiments and results</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#micro-benchmarks"><span class="nav-number">4.1.</span> <span class="nav-text"> Micro-benchmarks</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#read"><span class="nav-number">4.1.1.</span> <span class="nav-text"> Read</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#write"><span class="nav-number">4.1.2.</span> <span class="nav-text"> Write</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#record-append"><span class="nav-number">4.1.3.</span> <span class="nav-text"> Record append</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#real-world-clusters"><span class="nav-number">4.2.</span> <span class="nav-text"> Real-world clusters</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -237,7 +237,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-02-29 16:21:10" itemprop="dateModified" datetime="2024-02-29T16:21:10+08:00">2024-02-29</time>
+      <time title="Modified: 2024-03-15 16:33:24" itemprop="dateModified" datetime="2024-03-15T16:33:24+08:00">2024-03-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -274,18 +274,18 @@
 <li><a href="#architecture">Architecture</a>
 <ul>
 <li><a href="#what-does-the-system-consist-of">What does the system consist of?</a></li>
-<li><a href="#what-does-master-need-to-do">What does master need to do?</a></li>
-<li><a href="#how-to-prevent-the-master-becoming-a-bottleneck">How to prevent the master becoming a bottleneck?</a></li>
+<li><a href="#what-does-the-master-need-to-do">What does the master need to do?</a></li>
+<li><a href="#how-can-the-master-be-prevented-from-becoming-a-bottleneck">How can the master be prevented from becoming a bottleneck?</a></li>
 <li><a href="#what-is-the-advantage-of-large-chunk-size">What is the advantage of large chunk size?</a></li>
 <li><a href="#what-is-the-disadvantage-of-large-chunk-size">What is the disadvantage of large chunk size?</a></li>
-<li><a href="#when-will-hot-spots-problem-emerge">When will hot spots problem emerge?</a></li>
+<li><a href="#when-will-the-hot-spot-problem-emerge">When will the hot spot problem emerge?</a></li>
 </ul>
 </li>
 <li><a href="#consistency">Consistency</a>
 <ul>
-<li><a href="#how-do-we-define-a-file-region-being-consistent-or-defined">How do we define a file region being consistent or defined?</a></li>
+<li><a href="#how-do-we-define-a-file-region-as-being-consistent-or-defined">How do we define a file region as being consistent or defined?</a></li>
 <li><a href="#how-many-consistency-rules-should-be-considered">How many consistency rules should be considered?</a></li>
-<li><a href="#how-do-gfs-guarantees-the-second-rule">How do GFS guarantees the second rule?</a></li>
+<li><a href="#how-does-gfs-guarantee-the-second-rule">How does GFS guarantee the second rule?</a></li>
 <li><a href="#what-is-the-side-effect-of-clients-caching-chunk-locations">What is the side-effect of clients caching chunk locations?</a></li>
 </ul>
 </li>
@@ -296,20 +296,20 @@
 <li><a href="#control-data-flow">Control &amp; data flow</a>
 <ul>
 <li><a href="#how-do-we-minimize-management-overhead-at-the-master-of-data-mutation">How do we minimize management overhead at the master of data mutation?</a></li>
-<li><a href="#what-does-leases-change">What does leases change?</a></li>
+<li><a href="#what-do-leases-change">What do leases change?</a></li>
 <li><a href="#how-does-the-control-flow">How does the control flow?</a></li>
-<li><a href="#how-does-primary-and-secondary-servers-write-data">How does primary and secondary servers write data?</a></li>
-<li><a href="#what-would-the-system-do-if-write-fails">What would the system do if write fails?</a></li>
+<li><a href="#how-do-primary-and-secondary-servers-write-data">How do primary and secondary servers write data?</a></li>
+<li><a href="#what-would-the-system-do-if-the-write-fails">What would the system do if the write fails?</a></li>
 <li><a href="#what-if-a-write-is-large-or-straddles-a-chunk-boundary">What if a write is large or straddles a chunk boundary?</a></li>
-<li><a href="#how-to-prevent-primary-become-bottleneck-of-pushing-data">How to prevent primary become bottleneck of pushing data?</a></li>
-<li><a href="#how-to-minimize-latency-of-pushing-data">How to minimize latency of pushing data?</a></li>
+<li><a href="#how-to-prevent-the-primary-become-bottleneck-of-pushing-data">How to prevent the primary become bottleneck of pushing data?</a></li>
+<li><a href="#how-to-minimize-the-latency-of-pushing-data">How to minimize the latency of pushing data?</a></li>
 </ul>
 </li>
 <li><a href="#write-and-record-append">Write and record append</a>
 <ul>
 <li><a href="#what-is-the-difference-between-write-and-record-append">What is the difference between write and record append?</a></li>
 <li><a href="#how-does-typical-writing-happen">How does typical writing happen?</a></li>
-<li><a href="#how-does-readers-deal-with-occasional-padding-and-duplicates">How does readers deal with occasional padding and duplicates?</a></li>
+<li><a href="#how-do-readers-deal-with-occasional-padding-and-duplicates">How do readers deal with occasional padding and duplicates?</a></li>
 </ul>
 </li>
 <li><a href="#atomic-record-appends">Atomic record appends</a>
@@ -322,7 +322,7 @@
 <ul>
 <li><a href="#what-does-snapshot-do">What does snapshot do?</a></li>
 <li><a href="#how-does-snapshot-be-implemented">How does snapshot be implemented?</a></li>
-<li><a href="#how-does-clients-write-a-chunk-after-snapshot">How does clients write a chunk after snapshot?</a></li>
+<li><a href="#how-do-clients-write-a-chunk-after-a-snapshot">How do clients write a chunk after a snapshot?</a></li>
 </ul>
 </li>
 </ul>
@@ -331,18 +331,18 @@
 <ul>
 <li><a href="#basic-operations">Basic operations</a>
 <ul>
-<li><a href="#how-does-client-communicate-with-master-specifically">How does client communicate with master specifically?</a></li>
-<li><a href="#what-metadata-does-master-need-to-store">What metadata does master need to store?</a></li>
+<li><a href="#how-does-the-client-communicate-with-the-master-specifically">How does the client communicate with the master specifically?</a></li>
+<li><a href="#what-metadata-does-the-master-need-to-store">What metadata does the master need to store?</a></li>
 <li><a href="#how-to-persist">How to persist?</a></li>
 <li><a href="#how-does-gfs-manage-namespace">How does GFS manage namespace?</a></li>
-<li><a href="#how-does-gfs-design-locking-scheme">How does GFS design locking scheme?</a></li>
+<li><a href="#how-does-gfs-design-the-locking-scheme">How does GFS design the locking scheme?</a></li>
 </ul>
 </li>
 <li><a href="#replica-management">Replica management</a>
 <ul>
 <li><a href="#how-to-place-replicas">How to place replicas?</a></li>
-<li><a href="#what-factors-are-considered-when-create-a-new-chunk">What factors are considered when create a new chunk?</a></li>
-<li><a href="#what-if-the-number-of-available-replicas-of-a-chunk-falls-below-a-user-specified-goal">What if the number of available replicas of a chunk falls below a user-specified goal?</a></li>
+<li><a href="#what-factors-are-considered-when-creating-a-new-chunk">What factors are considered when creating a new chunk?</a></li>
+<li><a href="#what-if-the-number-of-available-chunk-replicas-falls-below-a-user-specified-goal">What if the number of available chunk replicas falls below a user-specified goal?</a></li>
 <li><a href="#what-if-cloning-traffic-from-overwhelming-client-traffic">What if cloning traffic from overwhelming client traffic?</a></li>
 <li><a href="#how-to-keep-the-placement-of-replicas-in-balance">How to keep the placement of replicas in balance?</a></li>
 </ul>
@@ -369,10 +369,10 @@
 </li>
 <li><a href="#other-parts-unmentioned">Other parts (unmentioned)</a>
 <ul>
-<li><a href="#to-sum-up-what-is-the-metadata-of-master-and-where-are-they">To sum up, what is the metadata of master, and where are they?</a></li>
-<li><a href="#what-is-the-cause-of-split-brain-how-to-solve-it">What is the cause of split brain? How to solve it?</a></li>
-<li><a href="#why-gfs-doesnt-overwrite-those-failed-records-immediately-but-leaving-padding-and-duplicates">Why GFS doesn’t overwrite those failed records immediately, but leaving padding and duplicates?</a></li>
-<li><a href="#gfs-is-a-weak-consistency-system-how-can-we-upgrade-it-to-a-strong-consistency-system">GFS is a weak consistency system, how can we upgrade it to a strong consistency system?</a></li>
+<li><a href="#to-sum-up-what-is-the-metadata-of-the-master-and-where-are-they">To sum up, what is the metadata of the master, and where are they?</a></li>
+<li><a href="#what-is-the-cause-of-a-split-brain-how-to-solve-it">What is the cause of a split-brain? How to solve it?</a></li>
+<li><a href="#why-does-gfs-not-overwrite-those-failed-records-immediately-but-leave-padding-and-duplicates">Why does GFS not overwrite those failed records immediately but leave padding and duplicates?</a></li>
+<li><a href="#gfs-is-a-weak-consistency-system-how-can-we-upgrade-it-to-a-strong-one">GFS is a weak consistency system; how can we upgrade it to a strong one?</a></li>
 </ul>
 </li>
 </ul>
@@ -386,7 +386,7 @@
 <li><a href="#record-append">Record append</a></li>
 </ul>
 </li>
-<li><a href="#real-world-clusters">Real world clusters</a></li>
+<li><a href="#real-world-clusters">Real-world clusters</a></li>
 </ul>
 </li>
 </ul>
@@ -401,11 +401,11 @@
 <h1 id="purpose"><a class="markdownIt-Anchor" href="#purpose"></a> Purpose</h1>
 <ol>
 <li>Contribution: provides fault tolerance while running on inexpensive commodity hardware, and it delivers high aggregate performance to a large number of clients.</li>
-<li>Difference points in design space
+<li>Difference points in design space.
 <ul>
-<li>This system integreted constant monitoring, error detection, fault tolerance, and automatic recovery.</li>
-<li>Files are huge by traditional standards. Design assumptions and parameters such as I/O operation and block sizes have to be revisited.</li>
-<li>Most files are mutated by appending new data rather than overwriting existing data. Random writes within a file are practically non-existent. Once written, the files are only read, and often only seuqentially.</li>
+<li>This system integrated constant monitoring, error detection, fault tolerance, and automatic recovery.</li>
+<li>Files are enormous by traditional standards. Design assumptions and parameters such as I/O operation and block sizes have to be revisited.</li>
+<li>Most files are mutated by appending new data rather than overwriting existing data. Random writes within a file are practically nonexistent. Once written, the files are only read, and often only sequentially.</li>
 </ul>
 </li>
 </ol>
@@ -414,45 +414,45 @@
 <h3 id="what-operations-are-supported"><a class="markdownIt-Anchor" href="#what-operations-are-supported"></a> What operations are supported?</h3>
 <ol>
 <li>Usual operations: <code>create</code>, <code>delete</code>, <code>open</code>, <code>close</code>, <code>read</code>, and <code>write</code></li>
-<li><code>snapshot</code>: creates a copy of a file or a directory tree at low cost</li>
+<li><code>snapshot</code>: creates a copy of a file or a directory tree at a low cost</li>
 <li><code>record append</code>: allows multiple clients to append data to the same file concurrently while guaranteeing the atomicity</li>
 </ol>
 <h3 id="architecture"><a class="markdownIt-Anchor" href="#architecture"></a> Architecture</h3>
 <img src="/imgs/Distributed/GFS/01.png" style="zoom:33%;" />
 <h4 id="what-does-the-system-consist-of"><a class="markdownIt-Anchor" href="#what-does-the-system-consist-of"></a> What does the system consist of?</h4>
 <ol>
-<li>Consist of a signle <em>master</em> and multiple <em>chunkservers</em> and is accessed by multiple <em>clients</em>.</li>
-<li>Files are divided into fixed-size chunks. Each chunk is identified by an immutable and globally unique 64 bit <em>chunk handle</em> assigned by the master at the timeof chunk creation.</li>
+<li>It consists of a single <em>master</em> and multiple <em>chunkservers</em> and is accessed by multiple <em>clients</em>.</li>
+<li>Files are divided into fixed-size chunks. Each chunk is identified by an immutable and globally unique 64-bit chunk handle assigned by the master at the time of chunk creation.</li>
 <li>Chunkservers store chunks on local disks as Linux files and read or write chunk data specified by a chunk handle and byte range. Each chunk is replicated on multiple chunkservers, three by default.</li>
 <li>Neither the client nor the chunkserver caches file data. Caches offer little benefit while causing coherence issues. But clients do cache metadata.</li>
 </ol>
-<h4 id="what-does-master-need-to-do"><a class="markdownIt-Anchor" href="#what-does-master-need-to-do"></a> What does master need to do?</h4>
+<h4 id="what-does-the-master-need-to-do"><a class="markdownIt-Anchor" href="#what-does-the-master-need-to-do"></a> What does the master need to do?</h4>
 <ol>
 <li>
-<p>The master maintains all file system metadata, and controls system-wide activities.</p>
+<p>The master maintains all file system metadata and controls system-wide activities.</p>
 <ul>
 <li>
 <p>Metadata includes namespace, access control information, the mapping from files to chunks, and the current locations of chunks.</p>
 </li>
 <li>
-<p>System-wide activities includes chunk lease management, garbage collection of orphaned chunks, and chunk migration between chunkservers.</p>
+<p>System-wide activities include chunk lease management, garbage collection of orphaned chunks, and chunk migration between chunkservers.</p>
 </li>
 </ul>
 </li>
 <li>
-<p>The master periodically comminicates with each chunkserver in HeartBeat messages to give it instructions and collect its state.</p>
+<p>The master periodically communicates with each chunkserver in HeartBeat messages to give instructions and collect its state.</p>
 </li>
 <li>
 <p>Clients interact with the master for metadata operations, but all data-bearing communication goes directly to the chunkservers.</p>
 </li>
 </ol>
-<h4 id="how-to-prevent-the-master-becoming-a-bottleneck"><a class="markdownIt-Anchor" href="#how-to-prevent-the-master-becoming-a-bottleneck"></a> How to prevent the master becoming a bottleneck?</h4>
+<h4 id="how-can-the-master-be-prevented-from-becoming-a-bottleneck"><a class="markdownIt-Anchor" href="#how-can-the-master-be-prevented-from-becoming-a-bottleneck"></a> How can the master be prevented from becoming a bottleneck?</h4>
 <ol>
 <li>
 <p>The idea is to minimize its involvement in reads and writes.</p>
 </li>
 <li>
-<p>A client asks the master which chunkservers it should contact, and caches this information for a limited time and interacts with the chunkservers directly for subsequent operations.</p>
+<p>A client asks the master which chunkservers to contact, caches this information for a limited time, and interacts directly with the chunkservers for subsequent operations.</p>
 </li>
 </ol>
 <h4 id="what-is-the-advantage-of-large-chunk-size"><a class="markdownIt-Anchor" href="#what-is-the-advantage-of-large-chunk-size"></a> What is the advantage of large chunk size?</h4>
@@ -461,7 +461,7 @@
 <p>Reduce clients’ need to interact with the master because reads and writes on the same chunk require only one initial request to the master for chunk location information.</p>
 </li>
 <li>
-<p>Reduce network overhead by keeping a persistent TCP connection to the chunkserver over an extended period of time.</p>
+<p>Reduce network overhead by keeping a persistent TCP connection to the chunkserver over an extended period.</p>
 </li>
 <li>
 <p>Reduce the size of the metadata stored on the master.</p>
@@ -473,26 +473,26 @@
 <p>Wasting space due to internal fragmentation. This can be eased through lazy space allocation.</p>
 </li>
 <li>
-<p>A small file consists of a small number of chunks, perhaps just one. The chunkservers storing those chunks may become hot spots if many clients are accessing the same file. This have not been a major issue.</p>
+<p>A small file consists of several chunks, perhaps just one. The chunkservers storing those chunks may become hot spots if many clients access the same file. This has not been a major issue.</p>
 </li>
 </ol>
-<h4 id="when-will-hot-spots-problem-emerge"><a class="markdownIt-Anchor" href="#when-will-hot-spots-problem-emerge"></a> When will hot spots problem emerge?</h4>
+<h4 id="when-will-the-hot-spot-problem-emerge"><a class="markdownIt-Anchor" href="#when-will-the-hot-spot-problem-emerge"></a> When will the hot spot problem emerge?</h4>
 <ol>
 <li>
-<p>A more common case is that an executable was written to GFS as a single-chunk file and then started on hundreds of machines at the same time.</p>
+<p>A more common case is that an executable was written to GFS as a single-chunk file and then simultaneously started on hundreds of machines.</p>
 </li>
 <li>
 <p>We can fix this problem by storing such executables with a higher replication factor.</p>
 </li>
 </ol>
 <h3 id="consistency"><a class="markdownIt-Anchor" href="#consistency"></a> Consistency</h3>
-<h4 id="how-do-we-define-a-file-region-being-consistent-or-defined"><a class="markdownIt-Anchor" href="#how-do-we-define-a-file-region-being-consistent-or-defined"></a> How do we define a file region being consistent or defined?</h4>
+<h4 id="how-do-we-define-a-file-region-as-being-consistent-or-defined"><a class="markdownIt-Anchor" href="#how-do-we-define-a-file-region-as-being-consistent-or-defined"></a> How do we define a file region as being consistent or defined?</h4>
 <ol>
 <li>
-<p>A file region is consistent if all clients will always see the same data, regardless of which replicas they read from.</p>
+<p>A file region is consistent if all clients always see the same data, regardless of which replicas they read from.</p>
 </li>
 <li>
-<p>A region is defined after a file data mutation if it is consistent and clients will see what the mutation writes in its entirety.</p>
+<p>A region is defined after a file data mutation if consistent, and clients will see what the mutation writes.</p>
 </li>
 <li>
 <p>Concurrent successful mutations leave the region undefined but consistent: all clients see the same data, but it may not reflect what any one mutation has written. Typically, it consists of mingled fragments from multiple mutations.</p>
@@ -500,10 +500,10 @@
 </ol>
 <h4 id="how-many-consistency-rules-should-be-considered"><a class="markdownIt-Anchor" href="#how-many-consistency-rules-should-be-considered"></a> How many consistency rules should be considered?</h4>
 <ol>
-<li>File namespace mutations (e.g. file creation) are atomic.</li>
+<li>File namespace mutations (e.g., file creation) are atomic.</li>
 <li>After a sequence of successful mutations, the mutated file region is guaranteed to be defined and contain the data written by the last mutation.</li>
 </ol>
-<h4 id="how-do-gfs-guarantees-the-second-rule"><a class="markdownIt-Anchor" href="#how-do-gfs-guarantees-the-second-rule"></a> How do GFS guarantees the second rule?</h4>
+<h4 id="how-does-gfs-guarantee-the-second-rule"><a class="markdownIt-Anchor" href="#how-does-gfs-guarantee-the-second-rule"></a> How does GFS guarantee the second rule?</h4>
 <ol>
 <li>Applying mutations to a chunk in the same order on all its replicas.</li>
 <li>Using chunk version numbers to detect any replica that has become stale because it has missed mutations while its chunkserver was down.</li>
@@ -512,68 +512,68 @@
 <h4 id="what-is-the-side-effect-of-clients-caching-chunk-locations"><a class="markdownIt-Anchor" href="#what-is-the-side-effect-of-clients-caching-chunk-locations"></a> What is the side-effect of clients caching chunk locations?</h4>
 <ol>
 <li>They may read from a stale replica before that information is refreshed.</li>
-<li>This window is limited by the cache entry’s timeout and dthe next open of the file.</li>
-<li>As most of files are append-only, a stale replica usually returns a premature end of chunk rather than outdated data.</li>
+<li>This window is limited by the cache entry’s timeout and the next opening of the file.</li>
+<li>As most files are append-only, a stale replica usually returns a premature end of chunk rather than outdated data.</li>
 </ol>
 <h2 id="data-mutation"><a class="markdownIt-Anchor" href="#data-mutation"></a> Data mutation</h2>
 <h3 id="control-data-flow"><a class="markdownIt-Anchor" href="#control-data-flow"></a> Control &amp; data flow</h3>
 <h4 id="how-do-we-minimize-management-overhead-at-the-master-of-data-mutation"><a class="markdownIt-Anchor" href="#how-do-we-minimize-management-overhead-at-the-master-of-data-mutation"></a> How do we minimize management overhead at the master of data mutation?</h4>
 <ol>
 <li>We use leases to maintain a consistent mutation order across replicas.</li>
-<li>The master grants a chunk lease to one of the replicas, which we call the primary. The primary picks a serial order for all mutations to the chunk. All replicas follow this order when applying mutations.</li>
-<li>The client caches who is the lease of a certain chunk for future mutations. It needs to contact the master again only when the primary becomes unreachable or replies that it no longer holds a lease.</li>
+<li>The master grants a chunk lease to one of the replicas, which we call the primary. The primary picks a serial order for all mutations to the chunk. All replicas follow this order when mutations are applied.</li>
+<li>The client caches who leases a certain chunk for future mutations. It needs to contact the master again only when the primary becomes unreachable or replies that it no longer holds a lease.</li>
 </ol>
-<h4 id="what-does-leases-change"><a class="markdownIt-Anchor" href="#what-does-leases-change"></a> What does leases change?</h4>
+<h4 id="what-do-leases-change"><a class="markdownIt-Anchor" href="#what-do-leases-change"></a> What do leases change?</h4>
 <ol>
 <li>A lease has an initial timeout of 60 seconds. However, as long as the chunk is being mutated, the primary can request and typically receive extensions from the master indefinitely.</li>
 <li>These extension requests and grants are piggybacked on the HeartBeat messages regularly exchanged between the master and all chunkservers.</li>
-<li>The master may sometimes try to revoke a lease before it expires (e.g., when the master wants to disable mutations on a file that is being renamed).</li>
+<li>The master may sometimes try to revoke a lease before it expires (e.g. when the master wants to disable mutations on a file that is being renamed).</li>
 <li>Even if the master loses communication with a primary, it can safely grant a new lease to another replica after the old lease expires.</li>
 </ol>
 <h4 id="how-does-the-control-flow"><a class="markdownIt-Anchor" href="#how-does-the-control-flow"></a> How does the control flow?</h4>
 <ol>
 <li>
-<p>the client asks the master which chunkserver holds the current lease for the chunk and the locations of the other replicas. If no one has a lease, the master grants one to a replica it chooses</p>
+<p>The client asks the master which chunkserver holds the current lease for the chunk and the locations of the other replicas. If no one has a lease, the master grants one to a replica it chooses</p>
 </li>
 <li>
-<p>the master replies with the identity of the primary and the locations of the other (secondary) replicas.</p>
+<p>The master replies with the identity of the primary and the locations of the other (secondary) replicas.</p>
 </li>
 <li>
-<p>The client pushes the data to all the replicas in any order, instead of only sending to the lease.</p>
+<p>The client pushes the data to all the replicas in any order instead of only sending it to the lease.</p>
 </li>
 <li>
-<p>once all the replicas have acknowledged receiving the data, the client sends a write request to the primary.</p>
+<p>Once all the replicas have acknowledged receiving the data, the client sends a write request to the primary.</p>
 </li>
 <li>
-<p>the primary forwards the write request to all secondary replicas.</p>
+<p>The primary forwards the write request to all secondary replicas.</p>
 </li>
 <li>
-<p>the secondaries all reply to the primary indicating that they have completed the operation.</p>
+<p>The secondaries reply to the primary, indicating they have completed the operation.</p>
 </li>
 <li>
-<p>the primary replies to the client. Any errors encountered at any of the replicas are reported to the client.</p>
+<p>The primary replies to the client. Any errors encountered at any of the replicas are reported to the client.</p>
 <img src="/imgs/Distributed/GFS/02.png" style="zoom:25%;" />
 </li>
 </ol>
-<h4 id="how-does-primary-and-secondary-servers-write-data"><a class="markdownIt-Anchor" href="#how-does-primary-and-secondary-servers-write-data"></a> How does primary and secondary servers write data?</h4>
+<h4 id="how-do-primary-and-secondary-servers-write-data"><a class="markdownIt-Anchor" href="#how-do-primary-and-secondary-servers-write-data"></a> How do primary and secondary servers write data?</h4>
 <ol>
 <li>
-<p>Each chunkserver will store the data from client in an internal LRU buffer cache until the data is used or aged out.</p>
+<p>Each chunkserver will store the data from the client in an internal LRU buffer cache until the data is used or aged out.</p>
 </li>
 <li>
-<p>The write request from client to primary identifies the data pushed earlier to all of the replicas.</p>
+<p>The write request from the client to primary identifies the data pushed earlier to all of the replicas.</p>
 </li>
 <li>
 <p>The primary assigns consecutive serial numbers to all the mutations it receives, possibly from multiple clients, which provides the necessary serialization.</p>
 </li>
 <li>
-<p>The primary applies the mutation to its own local state in serial number order.</p>
+<p>The primary applies the mutation to its local state in serial number order.</p>
 </li>
 </ol>
-<h4 id="what-would-the-system-do-if-write-fails"><a class="markdownIt-Anchor" href="#what-would-the-system-do-if-write-fails"></a> What would the system do if write fails?</h4>
+<h4 id="what-would-the-system-do-if-the-write-fails"><a class="markdownIt-Anchor" href="#what-would-the-system-do-if-the-write-fails"></a> What would the system do if the write fails?</h4>
 <ol>
 <li>
-<p>If it had failed at the primary, it would not have been assigned a serial number and forwarded.</p>
+<p>It would not have been assigned a serial number and forwarded if it had failed at the primary.</p>
 </li>
 <li>
 <p>In other cases, the write may have succeeded at the primary and an arbitrary subset of the secondary replicas. The client request is considered to have failed, and the modified region is left in an inconsistent state.</p>
@@ -586,20 +586,20 @@
 <ol>
 <li>GFS client code breaks it down into multiple write operations.</li>
 <li>They all follow the control flow described above but may be interleaved with and overwritten by concurrent operations from other clients.</li>
-<li>The shared file region may end up containing fragments from different clients, although the replicas will be identical because the individual operations are completed successfully in the same order on all replicas.</li>
+<li>The shared file region may end up containing fragments from different clients. However, the replicas will be identical because the individual operations are completed successfully in the same order on all replicas.</li>
 </ol>
-<h4 id="how-to-prevent-primary-become-bottleneck-of-pushing-data"><a class="markdownIt-Anchor" href="#how-to-prevent-primary-become-bottleneck-of-pushing-data"></a> How to prevent primary become bottleneck of pushing data?</h4>
+<h4 id="how-to-prevent-the-primary-become-bottleneck-of-pushing-data"><a class="markdownIt-Anchor" href="#how-to-prevent-the-primary-become-bottleneck-of-pushing-data"></a> How to prevent the primary become bottleneck of pushing data?</h4>
 <ol>
 <li>While control flows from the client to the primary and then to all secondaries, data is pushed linearly along a carefully picked chain of chunkservers in a pipelined fashion.</li>
-<li>By decoupling the data flow from the control flow, we can improve performance by scheduling the expensive data flow based on the network topology regardless of which chunkserver is the primary.</li>
-<li>Our goals are to fully utilize each machine’s network bandwidth, avoid network bottlenecks and high-latency links, and minimize the latency to push through all the data.</li>
+<li>Decoupling the data flow from the control flow can improve performance by scheduling the expensive data flow based on the network topology, regardless of which chunkserver is the primary.</li>
+<li>We aim to fully utilize each machine’s network bandwidth, avoid network bottlenecks and high-latency links, and minimize the latency to push through all the data.</li>
 <li>Each machine forwards the data to the “closest” machine in the network topology that has not received it.</li>
 <li>Our network topology is simple enough that “distances” can be accurately estimated from IP addresses.</li>
 </ol>
-<h4 id="how-to-minimize-latency-of-pushing-data"><a class="markdownIt-Anchor" href="#how-to-minimize-latency-of-pushing-data"></a> How to minimize latency of pushing data?</h4>
+<h4 id="how-to-minimize-the-latency-of-pushing-data"><a class="markdownIt-Anchor" href="#how-to-minimize-the-latency-of-pushing-data"></a> How to minimize the latency of pushing data?</h4>
 <ol>
 <li>We minimize latency by pipelining the data transfer over TCP connections. Once a chunkserver receives some data, it starts forwarding immediately.</li>
-<li>Pipelining is especially helpful to us because we use a switched network with full-duplex links. Sending the data immediately does not reduce the receive rate.</li>
+<li>Pipelining is especially helpful because we use a switched network with full-duplex links. Sending the data immediately does not reduce the receive rate.</li>
 </ol>
 <h3 id="write-and-record-append"><a class="markdownIt-Anchor" href="#write-and-record-append"></a> Write and record append</h3>
 <h4 id="what-is-the-difference-between-write-and-record-append"><a class="markdownIt-Anchor" href="#what-is-the-difference-between-write-and-record-append"></a> What is the difference between write and record append?</h4>
@@ -608,76 +608,76 @@
 <p>A write causes data to be written at an application-specified file offset.</p>
 </li>
 <li>
-<p>A record append causes data (the “record”) to be appended atomically at least once even in the presence of concurrent mutations, but at an offset of GFS’s choosing.</p>
+<p>A record append causes data (the “record”) to be appended atomically at least once, even in the presence of concurrent mutations, but at an offset of GFS’s choosing.</p>
 <ul>
 <li>
 <p>The offset is returned to the client and marks the beginning of a defined region that contains the record.</p>
 </li>
 <li>
-<p>GFS may insert padding or record duplicates in between. They occupy regions considered to be inconsistent and are typically dwarfed by the amount of user data.</p>
+<p>GFS may insert padding or record duplicates in between. They occupy regions considered inconsistent and are typically dwarfed by the amount of user data.</p>
 </li>
 </ul>
 </li>
 <li>
-<p>A “regular” append is merely a write at an offset that the client believes to be the current end of file.</p>
+<p>A “regular” append is merely a write at an offset that the client believes to be the current end of the file.</p>
 </li>
 </ol>
 <h4 id="how-does-typical-writing-happen"><a class="markdownIt-Anchor" href="#how-does-typical-writing-happen"></a> How does typical writing happen?</h4>
 <ol>
-<li>A writer generates a file from beginning to end. It atomically renames the file to a permanent name after writing all the data, or periodically checkpoints how much has been successfully written.</li>
-<li>Checkpoints may also include application-level checksums. Readers verify and process only the file region up to the last checkpoint, which is known to be in the defined state.</li>
+<li>A writer generates a file from beginning to end. After writing all the data, it atomically renames the file to a permanent name or periodically checkpoints how much has been successfully written.</li>
+<li>Checkpoints may also include application-level checksums. Readers verify and process only the file region up to the last checkpoint, which is in the defined state.</li>
 <li>Checkpointing allows writers to restart incrementally and keeps readers from processing successfully written file data that is still incomplete.</li>
 </ol>
-<h4 id="how-does-readers-deal-with-occasional-padding-and-duplicates"><a class="markdownIt-Anchor" href="#how-does-readers-deal-with-occasional-padding-and-duplicates"></a> How does readers deal with occasional padding and duplicates?</h4>
+<h4 id="how-do-readers-deal-with-occasional-padding-and-duplicates"><a class="markdownIt-Anchor" href="#how-do-readers-deal-with-occasional-padding-and-duplicates"></a> How do readers deal with occasional padding and duplicates?</h4>
 <ol>
-<li>Each record prepared by the writer contains extra information like checksums so that its validity can be verified.</li>
+<li>Each record prepared by the writer contains extra information like checksums to verify its validity.</li>
 <li>A reader can identify and discard extra padding and record fragments using the checksums.</li>
-<li>If it cannot tolerate the occasional duplicates, it can filter them out using unique identifiers in the records, which are often needed anyway to name corresponding application entities such as web documents.</li>
+<li>Suppose it cannot tolerate the occasional duplicates. In that case, it can filter them out using unique identifiers in the records, often needed to name corresponding application entities such as web documents.</li>
 </ol>
 <h3 id="atomic-record-appends"><a class="markdownIt-Anchor" href="#atomic-record-appends"></a> Atomic record appends</h3>
 <h4 id="what-if-appending-causes-the-current-chunk-to-exceed-the-maximum-size"><a class="markdownIt-Anchor" href="#what-if-appending-causes-the-current-chunk-to-exceed-the-maximum-size"></a> What if appending causes the current chunk to exceed the maximum size?</h4>
 <ol>
-<li>The primary checks to see if appending the record to the current chunk would cause the chunk to exceed the maximum size.</li>
-<li>If so, it pads the chunk to the maximum size, tells secondaries to do the same, and replies to the client indicating that the operation should be retried on the next chunk.</li>
-<li>If the record fits within the maximum size, which is the common case, the primary appends the data to its replica, tells the secondaries to write the data at the exact offset where it has, and finally replies success to the client.</li>
+<li>The primary checks if appending the record to the current chunk would cause the chunk to exceed the maximum size.</li>
+<li>If so, it pads the chunk to the maximum size, tells secondaries to do the same, and replies to the client, indicating that the operation should be retried on the next chunk.</li>
+<li>Suppose the record fits within the maximum size. In that case, the typical case is that the primary appends the data to its replica tells the secondaries to write the data at the exact offset where it has been, and finally replies successfully to the client.</li>
 </ol>
 <h4 id="what-if-appending-fails-at-some-chunkservers"><a class="markdownIt-Anchor" href="#what-if-appending-fails-at-some-chunkservers"></a> What if appending fails at some chunkservers?</h4>
 <ol>
-<li>Replicas of the same chunk may contain different data possibly including duplicates of the same record in whole or in part.</li>
+<li>Replicas of the same chunk may contain different data, possibly including duplicates of the same record as a whole or in part.</li>
 <li>GFS does not guarantee that all replicas are bytewise identical. It only guarantees that the data is written at least once as an atomic unit.</li>
-<li>If there is any secondary chunkserver that can successfully append the record, the primary is succeed. Next time, the primary can choose an offset after the failed record.</li>
-<li>Hence, after this, all replicas are at least as long as the end of record and therefore any future record will be assigned a higher offset or a different chunk even if a different replica later becomes the primary.</li>
+<li>The primary has succeeded if any secondary chunkserver can successfully append the record. Next time, the primary can choose an offset after the failed record.</li>
+<li>Hence, after this, all replicas are at least as long as the end of the record, and therefore, any future record will be assigned a higher offset or a different chunk, even if a different replica later becomes the primary.</li>
 </ol>
 <h3 id="snapshot"><a class="markdownIt-Anchor" href="#snapshot"></a> Snapshot</h3>
 <h4 id="what-does-snapshot-do"><a class="markdownIt-Anchor" href="#what-does-snapshot-do"></a> What does snapshot do?</h4>
 <ol>
-<li>The snapshot operation makes a copy of a file or a directory tree (the “source”) almost instantaneously, while minimizing any interruptions of ongoing mutations.</li>
-<li>Users use it to quickly create branch copies of huge data sets (and often copies of those copies, recursively), or to checkpoint the current state before experimenting with changes that can later be committed or rolled back easily.</li>
+<li>The snapshot operation makes a copy of a file or a directory tree (the “source”) almost instantaneously while minimizing any interruptions of ongoing mutations.</li>
+<li>Users use it to quickly create branch copies of massive data sets (often copies of those copies, recursively) or to checkpoint the current state before experimenting with changes that can later be committed or rolled back easily.</li>
 </ol>
 <h4 id="how-does-snapshot-be-implemented"><a class="markdownIt-Anchor" href="#how-does-snapshot-be-implemented"></a> How does snapshot be implemented?</h4>
 <ol>
 <li>
-<p>It use standard copy-on-write techniques.</p>
+<p>It uses standard copy-on-write techniques.</p>
 </li>
 <li>
 <p>Master revokes leases on the chunks in the files it is about to snapshot.</p>
 <ul>
 <li>
-<p>This ensures that any subsequent writes to these chunks will require an interaction with the master to find the lease holder.</p>
+<p>This ensures that any subsequent writes to these chunks will require an interaction with the master to find the leaseholder.</p>
 </li>
 <li>
-<p>And this will give the master an opportunity to create a new copy of the chunk first.</p>
+<p>This will give the master an opportunity to create a new copy of the chunk first.</p>
 </li>
 </ul>
 </li>
 <li>
-<p>Master logs the operation to disk.</p>
+<p>The master logs the operation to disk.</p>
 </li>
 <li>
 <p>It then applies this log record to its in-memory state by duplicating the metadata for the source file or directory tree. The newly created snapshot files point to the same chunks as the source files.</p>
 </li>
 </ol>
-<h4 id="how-does-clients-write-a-chunk-after-snapshot"><a class="markdownIt-Anchor" href="#how-does-clients-write-a-chunk-after-snapshot"></a> How does clients write a chunk after snapshot?</h4>
+<h4 id="how-do-clients-write-a-chunk-after-a-snapshot"><a class="markdownIt-Anchor" href="#how-do-clients-write-a-chunk-after-a-snapshot"></a> How do clients write a chunk after a snapshot?</h4>
 <ol>
 <li>The first time a client wants to write to a chunk C after the snapshot operation, it sends a request to the master to find the current lease holder.</li>
 <li>The master notices that the reference count for chunk C is greater than one. It defers replying to the client request and instead picks a new chunk handle C’.</li>
@@ -687,37 +687,37 @@
 </ol>
 <h2 id="master"><a class="markdownIt-Anchor" href="#master"></a> Master</h2>
 <h3 id="basic-operations"><a class="markdownIt-Anchor" href="#basic-operations"></a> Basic operations</h3>
-<h4 id="how-does-client-communicate-with-master-specifically"><a class="markdownIt-Anchor" href="#how-does-client-communicate-with-master-specifically"></a> How does client communicate with master specifically?</h4>
+<h4 id="how-does-the-client-communicate-with-the-master-specifically"><a class="markdownIt-Anchor" href="#how-does-the-client-communicate-with-the-master-specifically"></a> How does the client communicate with the master specifically?</h4>
 <ol>
 <li>The client translates the file name and byte offset specified by the application into a chunk index within the file.</li>
-<li>It sends the master a requeust containing the file name and chunk index.</li>
+<li>It sends the master a request containing the file name and chunk index.</li>
 <li>The master replies with the corresponding chunk handle and locations of the replicas.</li>
 <li>The client caches this information using the file name and chunk index as the key.</li>
 </ol>
-<h4 id="what-metadata-does-master-need-to-store"><a class="markdownIt-Anchor" href="#what-metadata-does-master-need-to-store"></a> What metadata does master need to store?</h4>
+<h4 id="what-metadata-does-the-master-need-to-store"><a class="markdownIt-Anchor" href="#what-metadata-does-the-master-need-to-store"></a> What metadata does the master need to store?</h4>
 <ol>
 <li>
 <p>Stored persistently: the file and chunk namespace, the mapping from files to chunks</p>
 <ul>
 <li>
-<p>The master will scan periodically through its entire state in the background</p>
+<p>The master will scan periodically through its entire state in the background.</p>
 </li>
 <li>
 <p>Periodic scanning is to implement chunk garbage collection, re-replication in the presence of chunkserver failures, and chunk migration to balance load and disk space usage across chunkservers.</p>
 </li>
 <li>
-<p>The number of chunks and hence the capacity of the whole system is limited by how much memory the master has. But not a serious limitation for less than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>64</mn></mrow><annotation encoding="application/x-tex">64</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">6</span><span class="mord">4</span></span></span></span> bytes of metadata for each chunk.</p>
+<p>The number of chunks and, hence, the whole system’s capacity is limited by how much memory the master has. But not a serious limitation for less than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>64</mn></mrow><annotation encoding="application/x-tex">64</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">6</span><span class="mord">4</span></span></span></span> bytes of metadata for each chunk.</p>
 </li>
 </ul>
 </li>
 <li>
-<p>No need to store persistently: the locations of each chunk’s replicas.</p>
+<p>There is no need to persistently store the locations of each chunk’s replicas.</p>
 <ul>
 <li>
 <p>The master asks each chunkserver about its chunks at master startup and whenever a chunkserver joins the cluster.</p>
 </li>
 <li>
-<p>The master can keep itself up-to-date thereafter because it controls all chunk placement and monitors chunkserver status.</p>
+<p>The master can keep itself up-to-date after that because it controls all chunk placement and monitors chunkserver status.</p>
 </li>
 </ul>
 </li>
@@ -725,10 +725,10 @@
 <p>Operation record</p>
 <ul>
 <li>
-<p>The namespace and mapping are kept persistent by logging mutations to operation log</p>
+<p>The namespace and mapping are persistent by logging mutations into the operation log.</p>
 </li>
 <li>
-<p>It is stored on the master’s local disk and replicated on remote machines</p>
+<p>It is stored on the master’s local disk and replicated on remote machines.</p>
 </li>
 </ul>
 </li>
@@ -737,16 +737,16 @@
 <ol>
 <li>Operation log
 <ul>
-<li>The operation log contains a historical record of critical metadata changes. Not only is it the only persistent record of critical metadata, it also serves as a logical time line that defines the order of concurrent operations.</li>
-<li>The system respond to a client operation only after flushing the corresponding log record to disk both locally and remotely.</li>
-<li>The master batches several log records together before flushing thereby reducing the impact of flushing and replication on overall system thoughput.</li>
+<li>The operation log contains a historical record of critical metadata changes. It is the only persistent record of critical metadata and serves as a logical timeline that defines the order of concurrent operations.</li>
+<li>The system responds to a client operation only after flushing the corresponding log record locally and remotely to disk.</li>
+<li>The master batches several log records together before flushing, reducing the impact of flushing and replication on overall system thoughput.</li>
 </ul>
 </li>
 <li>Checkpoint
 <ul>
-<li>To minimize startup time, we must keep the log small. The master checkpoints its state whenever the log grows beyond a certain size. It can recover by loading the latest checkpoint and replaying only the records after that.</li>
-<li>The checkpoint is in a compact B-tree like form.</li>
-<li>The master switches to a new log file and creates the new checkpoint in a separate thread.</li>
+<li>To minimize startup time, we must keep the log small. The master checkpoints its state whenever the log grows beyond a certain size. It can recover by loading the latest checkpoint and replaying only the records afterward.</li>
+<li>The checkpoint is in a compact B-tree-like form.</li>
+<li>The master switches to a new log file and creates the latest checkpoint in a separate thread.</li>
 <li>Older checkpoints and log files can be freely deleted, though we keep a few around to guard against catastrophes. A failure during checkpointing does not affect correctness because the recovery code detects and skips incomplete checkpoints.</li>
 </ul>
 </li>
@@ -755,53 +755,53 @@
 <ol>
 <li>GFS does not have a per-directory data structure that lists all the files in that directory. Nor does it support aliases for the same file or directory.</li>
 <li>GFS logically represents its namespace as a lookup table mapping full pathnames to metadata. With prefix compression, this table can be efficiently represented in memory.</li>
-<li>Each node in the namespace tree (either an absolute file name or an absolute directory name) has an associated read-write lock.</li>
+<li>Each node in the namespace tree (an absolute file name or an absolute directory name) has an associated read-write lock.</li>
 </ol>
-<h4 id="how-does-gfs-design-locking-scheme"><a class="markdownIt-Anchor" href="#how-does-gfs-design-locking-scheme"></a> How does GFS design locking scheme?</h4>
+<h4 id="how-does-gfs-design-the-locking-scheme"><a class="markdownIt-Anchor" href="#how-does-gfs-design-the-locking-scheme"></a> How does GFS design the locking scheme?</h4>
 <ol>
-<li>If a master operation involves a certain file or directory, it will acquire read-locks on all the parent directories, and either a read-lock or a write-lock on the leaf file or directory that it will operate directly.</li>
-<li>File creation does not require a write lock on the parent directory because there is no “directory”, or inode-like, data structure to be protected from modification.</li>
+<li>Suppose a master operation involves a specific file or directory. In that case, it will acquire read-locks on all the parent directories and either a read-lock or a write-lock on the leaf file or directory that it will operate directly.</li>
+<li>File creation does not require a write lock on the parent directory because there is no “directory” or inode-like data structure to be protected from modification.</li>
 <li>This locking scheme allows concurrent mutations in the same directory.</li>
 </ol>
 <h3 id="replica-management"><a class="markdownIt-Anchor" href="#replica-management"></a> Replica management</h3>
 <h4 id="how-to-place-replicas"><a class="markdownIt-Anchor" href="#how-to-place-replicas"></a> How to place replicas?</h4>
 <ol>
-<li>There are two purposes: maximize data reliability and availability, and maximize network bandwidth utilization.</li>
+<li>There are two purposes: maximize data reliability and availability and maximize network bandwidth utilization.</li>
 <li>It is not enough to spread replicas across machines, which only guards against disk or machine failures and fully utilizes each machine’s network bandwidth.</li>
 <li>We must also spread chunk replicas across racks. This ensures that some replicas of a chunk will survive and remain available even if an entire rack is damaged or offline. It also means that traffic, especially reads, for a chunk can exploit the aggregate bandwidth of multiple racks.</li>
 <li>On the other hand, write traffic has to flow through multiple racks, a tradeoff we make willingly.</li>
-<li>An even safer way is to spread across data centers in different cities. It can guards against a city-level catastrophe.</li>
+<li>An even safer way is to spread across data centers in different cities. It can guard against a city-level catastrophe.</li>
 </ol>
-<h4 id="what-factors-are-considered-when-create-a-new-chunk"><a class="markdownIt-Anchor" href="#what-factors-are-considered-when-create-a-new-chunk"></a> What factors are considered when create a new chunk?</h4>
+<h4 id="what-factors-are-considered-when-creating-a-new-chunk"><a class="markdownIt-Anchor" href="#what-factors-are-considered-when-creating-a-new-chunk"></a> What factors are considered when creating a new chunk?</h4>
 <ol>
-<li>We want to place new replicas on chunkservers with below-average disk space utilization. Over time this will equalize disk utilization across chunkservers.</li>
+<li>We want to place new replicas on chunkservers with below-average disk space utilization. Over time, this will equalize disk utilization across chunkservers.</li>
 <li>We want to limit the number of “recent” creations on each chunkserver. Although creation itself is cheap, it reliably predicts imminent heavy write traffic because chunks are created when demanded by writes.</li>
 <li>We want to spread replicas of a chunk across racks.</li>
 </ol>
-<h4 id="what-if-the-number-of-available-replicas-of-a-chunk-falls-below-a-user-specified-goal"><a class="markdownIt-Anchor" href="#what-if-the-number-of-available-replicas-of-a-chunk-falls-below-a-user-specified-goal"></a> What if the number of available replicas of a chunk falls below a user-specified goal?</h4>
+<h4 id="what-if-the-number-of-available-chunk-replicas-falls-below-a-user-specified-goal"><a class="markdownIt-Anchor" href="#what-if-the-number-of-available-chunk-replicas-falls-below-a-user-specified-goal"></a> What if the number of available chunk replicas falls below a user-specified goal?</h4>
 <ol>
 <li>
 <p>The master would re-replicate the chunk.</p>
 </li>
 <li>
-<p>If there are many chunks below their goal, the master picks the highest priority chunk considering some factors and “clones” it by instructing some chunkserver to copy the chunk data directly from an existing valid replica.</p>
+<p>Suppose there are many chunks below their goal. In that case, the master picks the highest priority chunk considering some factors and “clones” it by instructing some chunkserver to copy the chunk data directly from an existing valid replica.</p>
 <ul>
 <li>
 <p>How far it is from its replication goal.</p>
 </li>
 <li>
-<p>Prefer to first re-replicate chunks for live files as opposed to chunks that belong to recently deleted files.</p>
+<p>Prefer to re-replicate chunks for live files instead of chunks belonging to recently deleted files.</p>
 </li>
 <li>
-<p>To minimize the impact of failures on running applications, we boost the priority of any chunk that is blocking client progress.</p>
+<p>To minimize the impact of failures on running applications, we boost the priority of any chunk blocking client progress.</p>
 </li>
 </ul>
 </li>
 </ol>
 <h4 id="what-if-cloning-traffic-from-overwhelming-client-traffic"><a class="markdownIt-Anchor" href="#what-if-cloning-traffic-from-overwhelming-client-traffic"></a> What if cloning traffic from overwhelming client traffic?</h4>
 <ol>
-<li>The master limits the numbers of active clone operations both for the cluster and for each chunkserver.</li>
-<li>Each chunkserver limits the amount of bandwidth it spends on each clone operation by throttling its read requests to the source chunkserver.</li>
+<li>The master limits the number of active clone operations for the cluster and each chunkserver.</li>
+<li>Each chunkserver limits its bandwidth on each clone operation by throttling its read requests to the source chunkserver.</li>
 </ol>
 <h4 id="how-to-keep-the-placement-of-replicas-in-balance"><a class="markdownIt-Anchor" href="#how-to-keep-the-placement-of-replicas-in-balance"></a> How to keep the placement of replicas in balance?</h4>
 <ol>
@@ -813,13 +813,13 @@
 <h4 id="how-to-delete-a-file"><a class="markdownIt-Anchor" href="#how-to-delete-a-file"></a> How to delete a file?</h4>
 <ol>
 <li>
-<p>GFS does not immediately reclaim the available physical storage, it is just renamed to a hidden name that includes the deletion timestamp. It does so only lazily during regular garbage collection at both the file and chunk levels.</p>
+<p>GFS does not immediately reclaim the available physical storage; it is just renamed to a hidden name that includes the deletion timestamp. It does so only lazily during regular garbage collection at both the file and chunk levels.</p>
 </li>
 <li>
-<p>During the master’s regular scan of the file system namespace, it removes any such hidden files if they have existed for more than three days (the interval is configurable).</p>
+<p>During the master’s regular scan of the file system namespace, any such hidden files are removed if they have existed for more than three days (the interval is configurable).</p>
 <ul>
 <li>
-<p>Until then, the file can still be read under the new, special name and can be undeleted by renaming it back to normal.</p>
+<p>Until then, the file can still be read under the new, special name and undeleted by renaming it to normal.</p>
 </li>
 <li>
 <p>When the hidden file is removed from the namespace, its in-memory metadata is erased. This effectively severs its links to all its chunks.</p>
@@ -844,16 +844,16 @@
 <p>It is simple and reliable in a large-scale distributed system where component failures are common.</p>
 </li>
 <li>
-<p>It merges storage reclamation into the regular background activities of the master.</p>
+<p>It merges storage reclamation into the master’s regular background activities.</p>
 </li>
 <li>
-<p>The delay in reclaiming storage provides a safety net against accidental, irreversible deletion.</p>
+<p>The delay in reclaiming storage protects against accidental, irreversible deletion.</p>
 </li>
 <li>
-<p>The delay sometimes hinders user effort to fine tune usage when storage is tight.</p>
+<p>The delay sometimes hinders user effort to fine-tune usage when storage is tight.</p>
 </li>
 <li>
-<p>Applications that repeatedly create and delete temporary files may not be able to reuse the storage right away.</p>
+<p>Applications that repeatedly create and delete temporary files may be unable to reuse the storage immediately.</p>
 </li>
 </ol>
 <h4 id="how-to-address-the-issues-of-reusing"><a class="markdownIt-Anchor" href="#how-to-address-the-issues-of-reusing"></a> How to address the issues of reusing?</h4>
@@ -862,7 +862,7 @@
 <p>Expediting storage reclamation if a deleted file is explicitly deleted again.</p>
 </li>
 <li>
-<p>Allow users to apply different replication and reclamation policies to different parts of the namespace.</p>
+<p>Allow users to apply different replication and reclamation policies to different namespace parts.</p>
 </li>
 </ol>
 <h4 id="how-to-handle-the-possible-stale-replicas"><a class="markdownIt-Anchor" href="#how-to-handle-the-possible-stale-replicas"></a> How to handle the possible stale replicas?</h4>
@@ -871,16 +871,16 @@
 <p>For each chunk, the master maintains a chunk version number to distinguish between up-to-date and stale replicas.</p>
 </li>
 <li>
-<p>Whenever the master grants a new lease on a chunk, it increases the chunk version number and informs the up-to-date replicas. This occurs before any client is notified and therefore before it can start writing to the chunk.</p>
+<p>Whenever the master grants a new lease on a chunk, the chunk version number increases and informs the up-to-date replicas. This occurs before any client is notified before it can start writing to the chunk.</p>
 </li>
 <li>
-<p>If one replica is currently unavailable, its chunk version number will not be advanced. The master will detect that this chunkserver has a stale replica when the chunkserver restarts and reports its set of chunks and their associated version numbers.</p>
+<p>If one replica is unavailable, its chunk version number will not be advanced. The master will detect that this chunkserver has a stale replica when the chunkserver restarts and reports its set of chunks and associated version numbers.</p>
 </li>
 <li>
-<p>The master removes stale replicas in its regular garbage collection. Before that, it effectively considers a stale replica not to exist at all when it replies to client requests for chunk information.</p>
+<p>The master removes stale replicas in its regular garbage collection. Before that, it effectively considers a stale replica not to exist when it replies to client requests for chunk information.</p>
 </li>
 <li>
-<p>The master includes the chunk version number when it informs clients which chunkserver holds a lease on a chunk or when it instructs a chunkserver to read the chunk from another chunkserver in a cloning operation.</p>
+<p>The master includes the chunk version number when it informs clients which chunkserver holds a lease on a chunk or instructs a chunkserver to read the chunk from another chunkserver in a cloning operation.</p>
 </li>
 </ol>
 <h2 id="fault-tolerance"><a class="markdownIt-Anchor" href="#fault-tolerance"></a> Fault tolerance</h2>
@@ -904,10 +904,10 @@
 <p>“Shadow” masters provide read-only access to the file system even when the primary master is down.</p>
 <ul>
 <li>
-<p>They enhance read availability for files that are not being actively mutated or applications that do not mind getting slightly stale results.</p>
+<p>They enhance read availability for files not being actively mutated or applications that do not mind getting slightly stale results.</p>
 </li>
 <li>
-<p>Since file content is read from chunkservers, applications do not observe stale file content. What could be stale within short windows is file metadata.</p>
+<p>Since file content is read from chunkservers, applications do not observe stale content. What could be stale within short windows is file metadata.</p>
 </li>
 <li>
 <p>To keep itself informed, a shadow master reads a replica of the growing operation log and applies the same sequence of changes to its data structures exactly as the primary does.</p>
@@ -924,13 +924,13 @@
 <p>It would be impractical to detect corruption by comparing replicas across chunkservers.</p>
 </li>
 <li>
-<p>Divergent replicas may be legal: the semantics of GFS mutations, in particular atomic record append, does not guarantee identical replicas.</p>
+<p>Divergent replicas may be legal: the semantics of GFS mutations, in particular atomic record append, do not guarantee identical replicas.</p>
 </li>
 </ol>
 <h3 id="how-to-ensure-data-integrity"><a class="markdownIt-Anchor" href="#how-to-ensure-data-integrity"></a> How to ensure data integrity?</h3>
 <ol>
 <li>
-<p>Each chunkserver uses checksumming to detect corruption of stored data. A chunk is broken up into 64 KB blocks. Each has a corresponding 32 bit checksum.</p>
+<p>Each chunkserver uses checksumming to detect corruption of stored data. A chunk is broken up into 64 KB blocks. Each has a corresponding 32-bit checksum.</p>
 </li>
 <li>
 <p>Checksums are kept in memory and stored persistently with logging, separate from user data.</p>
@@ -942,7 +942,7 @@
 <h3 id="how-to-read-data-with-checksum"><a class="markdownIt-Anchor" href="#how-to-read-data-with-checksum"></a> How to read data with checksum?</h3>
 <ol>
 <li>
-<p>the chunkserver verifies the checksum of data blocks that overlap the read range before returning any data to the requester, whether a client or another chunkserver.</p>
+<p>The chunkserver verifies the checksum of data blocks that overlap the read range before returning any data to the requester, whether a client or another chunkserver.</p>
 </li>
 <li>
 <p>If a block does not match the recorded checksum, the chunkserver returns an error to the requestor and reports the mismatch to the master.</p>
@@ -957,7 +957,7 @@
 <h3 id="how-to-write-data-with-checksum"><a class="markdownIt-Anchor" href="#how-to-write-data-with-checksum"></a> How to write data with checksum?</h3>
 <ol>
 <li>
-<p>For writes that append to the end of a chunk, we just incrementally update the checksum for the last partial checksum block, and compute new checksums for any brand new checksum blocks filled by the append.</p>
+<p>For writes that append to the end of a chunk, we incrementally update the checksum for the last partial checksum block and compute new checksums for any new checksum blocks filled by the append.</p>
 <ul>
 <li>Even if the last partial checksum block is already corrupted and we fail to detect it now, the new checksum value will not match the stored data, and the corruption will be detected as usual when the block is next read.</li>
 </ul>
@@ -965,21 +965,21 @@
 <li>
 <p>If a write overwrites an existing range of the chunk, we must read and verify the first and last blocks of the range being overwritten, then perform the write, and finally compute and record the new checksums.</p>
 <ul>
-<li>If we do not verify the first and last blocks before overwriting them partially, the new checksums may hide corruption that exists in the regions not being overwritten.</li>
+<li>If we do not verify the first and last blocks before partially overwriting them, the new checksums may hide corruption in the regions not being overwritten.</li>
 </ul>
 </li>
 </ol>
 <h3 id="what-is-included-in-the-diagnostic-logs"><a class="markdownIt-Anchor" href="#what-is-included-in-the-diagnostic-logs"></a> What is included in the diagnostic logs?</h3>
 <ol>
 <li>
-<p>GFS servers generate diagnostic logs that record many significant events (such as chunkservers going up and down) and all RPC requests and replies.</p>
+<p>GFS servers generate diagnostic logs that record significant events (such as chunkservers going up and down) and all RPC requests and replies.</p>
 </li>
 <li>
 <p>The RPC logs include the exact requests and responses sent on the wire, except for the file data being read or written.</p>
 </li>
 </ol>
 <h2 id="other-parts-unmentioned"><a class="markdownIt-Anchor" href="#other-parts-unmentioned"></a> Other parts (unmentioned)</h2>
-<h3 id="to-sum-up-what-is-the-metadata-of-master-and-where-are-they"><a class="markdownIt-Anchor" href="#to-sum-up-what-is-the-metadata-of-master-and-where-are-they"></a> To sum up, what is the metadata of master, and where are they?</h3>
+<h3 id="to-sum-up-what-is-the-metadata-of-the-master-and-where-are-they"><a class="markdownIt-Anchor" href="#to-sum-up-what-is-the-metadata-of-the-master-and-where-are-they"></a> To sum up, what is the metadata of the master, and where are they?</h3>
 <ol>
 <li>
 <p>File name: this is an array of chunk handles. It is stored on disk.</p>
@@ -988,10 +988,10 @@
 <p>Handle: it contains a list of chunkservers, version number, primary, and lease expiration.</p>
 <ul>
 <li>
-<p>Only the version number is stored on disk, due to the rest can be restored by asking chunkservers when master is recovered.</p>
+<p>Only the version number is stored on disk; the rest can be restored by asking chunkservers when the master is recovered.</p>
 </li>
 <li>
-<p>Given that there might have stale chunks, we cannot ask chunkservers for the version number of a chunk.</p>
+<p>Given that there might be stale chunks, we cannot ask chunkservers for the version number of a chunk.</p>
 </li>
 </ul>
 </li>
@@ -999,41 +999,41 @@
 <p>Lops and checkpoints are stored on disk.</p>
 </li>
 </ol>
-<h3 id="what-is-the-cause-of-split-brain-how-to-solve-it"><a class="markdownIt-Anchor" href="#what-is-the-cause-of-split-brain-how-to-solve-it"></a> What is the cause of split brain? How to solve it?</h3>
+<h3 id="what-is-the-cause-of-a-split-brain-how-to-solve-it"><a class="markdownIt-Anchor" href="#what-is-the-cause-of-a-split-brain-how-to-solve-it"></a> What is the cause of a split-brain? How to solve it?</h3>
 <ol>
-<li>Split brain is caused by network partition, the master cannot talk to primary while the primary can talk to clients. Hence the master mistakingly designates two primary for the same chunk.</li>
-<li>The master knowswhen the lease will expire, so when the master cannot talk to the primary, it will wait until the lease expired before assign another primary.</li>
+<li>The split brain is caused by network partition; the master cannot talk to the primary, while the primary can talk to clients. Hence the master mistakingly designates two primary for the same chunk.</li>
+<li>The master knows when the lease will expire, so when the master cannot talk to the primary, it will wait until the lease expires before assigning another primary.</li>
 </ol>
-<h3 id="why-gfs-doesnt-overwrite-those-failed-records-immediately-but-leaving-padding-and-duplicates"><a class="markdownIt-Anchor" href="#why-gfs-doesnt-overwrite-those-failed-records-immediately-but-leaving-padding-and-duplicates"></a> Why GFS doesn’t overwrite those failed records immediately, but leaving padding and duplicates?</h3>
-<p>Because When it starts to write the next record, it may not know the fate of prior record.</p>
-<h3 id="gfs-is-a-weak-consistency-system-how-can-we-upgrade-it-to-a-strong-consistency-system"><a class="markdownIt-Anchor" href="#gfs-is-a-weak-consistency-system-how-can-we-upgrade-it-to-a-strong-consistency-system"></a> GFS is a weak consistency system, how can we upgrade it to a strong consistency system?</h3>
+<h3 id="why-does-gfs-not-overwrite-those-failed-records-immediately-but-leave-padding-and-duplicates"><a class="markdownIt-Anchor" href="#why-does-gfs-not-overwrite-those-failed-records-immediately-but-leave-padding-and-duplicates"></a> Why does GFS not overwrite those failed records immediately but leave padding and duplicates?</h3>
+<p>When it starts to write the next record, it may not know the fate of the prior record.</p>
+<h3 id="gfs-is-a-weak-consistency-system-how-can-we-upgrade-it-to-a-strong-one"><a class="markdownIt-Anchor" href="#gfs-is-a-weak-consistency-system-how-can-we-upgrade-it-to-a-strong-one"></a> GFS is a weak consistency system; how can we upgrade it to a strong one?</h3>
 <ol>
-<li>Primary detects duplicate requests to ensure the failed write doesn’t show up twice</li>
-<li>When primary asks a secondary to do something, the secondary actually does it and doesn’t just return error (except the secondary has a permanent damage, in which case, it should be removed)</li>
-<li>The secondary doesn’t expose data to readers until the primary is sure that all the secondaries really will be execute the append.</li>
-<li>When primary crashes, there will have been some last set of operations that primary had launched to the secondaries, but primary crashed before ensure all operations are done. The new primary need to explicitly resync with all secondaries.</li>
+<li>Primary detects duplicate requests to ensure the failed write doesn’t show up twice.</li>
+<li>When the primary asks a secondary to do something, the secondary actually does it and doesn’t just return an error (except the secondary has permanent damage, in which case, it should be removed)</li>
+<li>The secondary only exposes data to readers once the primary is sure that all the secondaries will execute the append.</li>
+<li>When the primary crashes, there will be some last set of operations that the primary launched for the secondaries. Still, the primary crashed before ensuring all operations are done—the new primary needs to explicitly resync with all secondaries.</li>
 </ol>
 <h1 id="experiments-and-results"><a class="markdownIt-Anchor" href="#experiments-and-results"></a> Experiments and results</h1>
 <h2 id="micro-benchmarks"><a class="markdownIt-Anchor" href="#micro-benchmarks"></a> Micro-benchmarks</h2>
-<p>The author first tested several micro-benchmarks, i.e. reads, writes, and record appends. These tests are that <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> clients do those operation simultaneously. For reading, they read from the file system; for writing, they write to distinct files; for appending, they append to a single file. And test the aggregate throughputs of the system, comparing them with the network limit. The results are as following:</p>
+<p>The author first tested several micro-benchmarks, i.e., reads, writes, and record appends. These tests are that <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> clients do those operations simultaneously. For reading, they read from the file system; for writing, they write to distinct files; for appending, they append to a single file. And test the aggregate throughputs of the system, comparing them with the network limit. The results are as follows:</p>
 <p><img src="/imgs/Distributed/GFS/03.png" alt="" /></p>
 <h3 id="read"><a class="markdownIt-Anchor" href="#read"></a> Read</h3>
 <p>The reading efficiency drops because as the number of readers increases, so does the probability that multiple readers simultaneously read from the same chunkserver.</p>
 <h3 id="write"><a class="markdownIt-Anchor" href="#write"></a> Write</h3>
-<p>The limit plateaus of write rate at 67 MB/s because we need to write each byte to 3 of the 16 chunkservers, each with a 12.5 MB/s input connection.</p>
-<p>The main culprit for a low write rate with only one client is the network stack. It does not interact very well with the pipelining scheme we use for pushing data to chunk replicas. Delays in propagating data from one replica to another reduce the overall write rate.</p>
-<p>As the number of clients grows, it becomes more likely that multiple clients write concurrently to the same chunkserver as the number of clients increases. Moreover, collision is more likely for 16 writers than for 16 readers because each write involves three different replicas.</p>
-<p>Writes are slower than we would like. In practice this has not been a major problem because even though it increases the latencies as seen by individual clients, it does not significantly affect the aggregate write bandwidth delivered by the system to a large number of clients.</p>
+<p>The limit plateaus of the write rate is 67 MB/s because we need to write each byte to 3 of the 16 chunkservers, each with a 12.5 MB/s input connection.</p>
+<p>The network stack is the main culprit for a low write rate with only one client. It does not interact well with the pipelining scheme we use to push data to chunk replicas. Delays in propagating data from one replica to another reduce the overall write rate.</p>
+<p>As the number of clients grows, it becomes more likely that multiple clients will write concurrently to the same chunkserver as the number of clients increases. Moreover, the collision has more potential for 16 writers than 16 readers because each involves three replicas.</p>
+<p>Writes are slower than we would like. In practice, this has not been a major problem because even though it increases the latencies seen by individual clients, it does not significantly affect the aggregate write bandwidth delivered by the system to a large number of clients.</p>
 <h3 id="record-append"><a class="markdownIt-Anchor" href="#record-append"></a> Record append</h3>
 <p>The performance of record appends is limited by the network bandwidth of the chunkservers that store the last chunk of the file, independent of the number of clients.</p>
-<p>The append rate drops mostly due to congestion and variances in network transfer rates seen by different clients.</p>
-<p>The chunkserver network congestion in our experiment is not a significant issue in practice because a client can make progress on writing one file while the chunkservers for another file are busy.</p>
-<h2 id="real-world-clusters"><a class="markdownIt-Anchor" href="#real-world-clusters"></a> Real world clusters</h2>
-<p>The author also measured the performance of real world clusters. First, the author measured their storage usage and size of metadata. Then, the read rate, write rate and the rate of operations sent to the master were measured. The results show that master can easily keep up with this rate, and therefore is not a bottleneck for these workloads.</p>
+<p>The append rate drops primarily due to congestion and variances in network transfer rates seen by different clients.</p>
+<p>The chunkserver network congestion in our experiment is not a significant issue in practice because a client can progress on writing one file. In contrast, the chunkservers for another file are busy.</p>
+<h2 id="real-world-clusters"><a class="markdownIt-Anchor" href="#real-world-clusters"></a> Real-world clusters</h2>
+<p>The author also measured the performance of real-world clusters. First, the author measured their storage usage and the size of metadata. Then, the read rate, write rate, and the rate of operations sent to the master were measured. The results show that the master can easily keep up with this rate and, therefore, is not a bottleneck for these workloads.</p>
 <p><img src="/imgs/Distributed/GFS/04.png" style="zoom: 33%;" /><img src="/imgs/Distributed/GFS/05.png" style="zoom: 31%;" /></p>
-<p>After a chunkserver fails, some chunks will become underreplicated and must be cloned to restore their replication levels. To test the recovery time, the author killed a single chunkserver containing 15000 chunks of 600 GB data.</p>
-<p>To limit the impact on running applications and provide leeway for scheduling decisions, our default parameters limit this cluster to 91 concurrent clonings (40% of the number of chunkservers) where each clone operation is allowed to consume at most 6.25 MB/s (50 Mbps). All chunks were restored in 23.2 minutes, at an effective replication rate of 440 MB/s.</p>
-<p>Finally, the author also measured the workload of chunkserver and master, and breakdown the workload of chunkserver by size and same of master by type. The table 4 shows the distribution of operations by size, and the table 5 shows the total amount of data transferred in operations of various size.</p>
+<p>After a chunkserver fails, some chunks become underreplicated and must be cloned to restore their replication levels. To test the recovery time, the author killed a single chunkserver containing 15000 chunks of 600 GB data.</p>
+<p>To limit the impact on running applications and provide leeway for scheduling decisions, our default parameters limit this cluster to 91 concurrent clonings (40% of the number of chunkservers) where each clone operation is allowed to consume at most 6.25 MB/s (50 Mbps). All chunks were restored in 23.2 minutes at an effective replication rate of 440 MB/s.</p>
+<p>Finally, the author also measured the workload of chunkserver and master and broke down the workload of chunkserver by size, the same as that of master by type. Table 4 shows the distribution of operations by size, and Table 5 shows the total amount of data transferred in operations of various sizes.</p>
 <p><img src="/imgs/Distributed/GFS/06.png" style="zoom:25%;" /><img src="/imgs/Distributed/GFS/07.png" style="zoom:25%;" /><img src="/imgs/Distributed/GFS/08.png" style="zoom: 31%;" /></p>
 
     </div>
