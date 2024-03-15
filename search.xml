@@ -73,22 +73,6 @@
         <content type="html"><![CDATA[<p></p><ol><li><strong>Database</strong> v.s. <strong>CSV files</strong>:<ul><li>Database provided a better encapsulation representation that provides ensurence of data integrety, necessary operations and durability. Only SQL is exposed to the users.</li><li>CSV files requires used to write all operations, e.g. searching and writing, by themselves. It is enough for small amount of data.</li><li>Database can be easily used to manage complex or enormously large data which can be difficult for CSV files.</li></ul></li><li><strong>Disk-oriented DBMS</strong> v.s. <strong>OS memory mapping</strong>:<ul><li>The basic idea is that DBMS always knows better than OS.</li><li>Transaction safety: OS can flush dirty pages at any time causing dirty data corrupt database.</li><li>Error handling: DBMS may isolate the error and handle it only in the storage layer.</li></ul></li><li></li></ol>]]></content>
       
       
-      <categories>
-          
-          <category> Open Courses </category>
-          
-          <category> CMU 15-445/645 Database System </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
-            <tag> Database System </tag>
-            
-            <tag> Trade off </tag>
-            
-        </tags>
       
     </entry>
     
