@@ -20,15 +20,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="B+Tree Page B+Tree search B+Tree insert B+Tree delete    B+Tree Page   The size_ in each page means the number of stored values not keys, i.e. in internal nodes, size_ is 111 larger than the number o">
+    <meta name="description" content="B+Tree Page B+Tree search B+Tree insert B+Tree delete    B+Tree Page   The size_ in each page means the number of stored values, not keys, i.e., in internal nodes, size_ is 111 larger than the number">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Project #2: B+Tree">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/07/07/OpenSource/BusTub/Project-2-B-Tree/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="B+Tree Page B+Tree search B+Tree insert B+Tree delete    B+Tree Page   The size_ in each page means the number of stored values not keys, i.e. in internal nodes, size_ is 111 larger than the number o">
+<meta property="og:description" content="B+Tree Page B+Tree search B+Tree insert B+Tree delete    B+Tree Page   The size_ in each page means the number of stored values, not keys, i.e., in internal nodes, size_ is 111 larger than the number">
 <meta property="og:locale">
 <meta property="article:published_time" content="2023-07-07T05:28:28.000Z">
-<meta property="article:modified_time" content="2023-09-26T05:58:42.994Z">
+<meta property="article:modified_time" content="2024-03-16T15:24:56.901Z">
 <meta property="article:author" content="LiyunZhang">
 <meta property="article:tag" content="Database System">
 <meta property="article:tag" content="Data Structure">
@@ -153,7 +153,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">62</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -227,7 +227,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-09-26 13:58:42" itemprop="dateModified" datetime="2023-09-26T13:58:42+08:00">2023-09-26</time>
+      <time title="Modified: 2024-03-16 23:24:56" itemprop="dateModified" datetime="2024-03-16T23:24:56+08:00">2024-03-16</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -262,31 +262,31 @@
 <h1 id="btree-page"><a class="markdownIt-Anchor" href="#btree-page"></a> B+Tree Page</h1>
 <ol>
 <li>
-<p>The <code>size_</code> in each page means the number of stored values not keys, i.e. in internal nodes, <code>size_</code> is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> larger than the number of keys.</p>
+<p>The <code>size_</code> in each page means the number of stored values, not keys, i.e., in internal nodes, <code>size_</code> is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> larger than the number of keys.</p>
 </li>
 <li>
-<p><code>KeyComparator</code> accept two keys to compare, which will return <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> when they are equal, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span> for the first key “smaller” than the second key, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> for the second key being larger.</p>
+<p><code>KeyComparator</code> accepts two keys to compare, which will return <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> when they are equal, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span> for the first key “smaller” than the second key, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> for the second key being larger.</p>
 </li>
 <li>
-<p>We need to design the sematic of the binary search that will be used in search, insert and delete a key inside a node.</p>
+<p>We need to design the semantic of the binary search that will be used in search, insert, and delete a key inside a node.</p>
 <ul>
 <li>In the leaf node:
 <ul>
-<li>For search and delete, we want this function to tell us the index of the key is it exists.</li>
-<li>For insert, we want this function to indicate the index we need to place the key.</li>
+<li>For search and delete, we want this function to tell us the index of the key if it exists.</li>
+<li>For insert, we want this function to indicate the index to which we need to place the key.</li>
 </ul>
 </li>
 <li>In the internal node:
 <ul>
-<li>For search, we only want it to inform us the child that might have the given key.</li>
-<li>For insert, we want it to return the page ID to find a proper leaf page to store the key in forward search and give the index we need to place the split key when backward split is required.</li>
+<li>For the search, we only want it to inform us of the child that might have the given key.</li>
+<li>For the insert, we want it to return the page ID to find a proper leaf page to store the key in forward search and give the index we need to place the split key when the backward split is required.</li>
 <li>For delete, we want it the same as for insert in the forward search and to provide the index to help merge two children when the backward merge is required.</li>
 </ul>
 </li>
-<li>In the following implemetation of binary search, it will return the index of the key if it exists, or it will return the largest index with smaller key.
+<li>In the following implementation of binary search, it will return the index of the key if it exists, or it will return the largest index with a smaller key.
 <ul>
-<li>Notably that if the given key is smaller than all keys in the node, it will return <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>.</li>
-<li>In internal node, we would expect the smallest possible result is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> since the first key is <code>NULL</code> which should be smaller than any other keys.</li>
+<li>Notably, if the given key is smaller than all keys in the node, it will return <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>.</li>
+<li>In the internal node, we would expect the smallest possible result is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> since the first key is <code>NULL,</code> which should be smaller than any other.</li>
 </ul>
 </li>
 </ul>
@@ -295,8 +295,8 @@
 <li>
 <p><code>FindNextPageID</code> will provide the proper child for the caller to access to find a certain key.</p>
 <ul>
-<li>For leaf node, this will only be used in B+Tree search. If the binary search result is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>, we can conclude that that key does not exist and should tell caller that.</li>
-<li>For internal node, this will be used in B+Tree search or the forward search in insert and delete. If the binary search result is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>, then we should return the first value to indicate the key is smaller than all keys.</li>
+<li>For a leaf node, this will only be used in the B+Tree search. If the binary search result is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>, we can conclude that that key does not exist and should tell the caller that.</li>
+<li>For an internal node, this will be used in the B+Tree search or the forward search in insert and delete. If the binary search result is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>, then we should return the first value to indicate the key is smaller than all keys.</li>
 </ul>
 </li>
 <li>
@@ -305,44 +305,44 @@
 </ol>
 <h1 id="btree-search"><a class="markdownIt-Anchor" href="#btree-search"></a> B+Tree search</h1>
 <ol>
-<li>The thought is simple: we just go down from the root until hit a leaf node. If the key is in the leaf node, return the value. Otherwise, the key does not exists.</li>
-<li>For concurrency control, we can only release the latch of a page after acquired the latch of its child.
+<li>The thought is simple: we go down from the root until hit a leaf node. If the key is in the leaf node, return the value. Otherwise, the key does not exist.</li>
+<li>For concurrency control, we can only release a page’s latch after acquiring its child’s latch.
 <ul>
-<li>This can be implemented with the move assignment operation of <code>PageGuard</code>. In the execution, the right expression will first acquire the latch of next page, then destroy the original page guard of the left variable.</li>
+<li>This can be implemented with the move assignment operation of <code>PageGuard</code>. In the execution, the right expression will first acquire the latch of the next page, then destroy the original page guard of the left variable.</li>
 </ul>
 </li>
 </ol>
 <h1 id="btree-insert"><a class="markdownIt-Anchor" href="#btree-insert"></a> B+Tree insert</h1>
 <ol>
 <li>
-<p>For concurrency control, I implemented both the optimistic scheme and the pessimistic scheme.</p>
+<p>For concurrency control, I implemented both optimistic and pessimistic schemes.</p>
 <ul>
 <li>
-<p>The program will first try with optimistic search with only write latch on leaf node.</p>
+<p>The program will first try with optimistic search with only a write latch on the leaf node.</p>
 </li>
 <li>
-<p>If the leaf node may overflow, release all latches and start again trying to acquire write latch for all nodes.</p>
+<p>If the leaf node may overflow, release all latches and start again trying to acquire a write latch for all nodes.</p>
 </li>
 </ul>
 </li>
 <li>
 <p>In the optimistic search, we can use the queue in <code>Context</code>.</p>
 <ul>
-<li>When we fetched a new page guard, we push it to the back of <code>ctx.read_set_</code> and pop the front element out of the queue. Every time we just need to access the last element of the queue to find the next page to read.</li>
-<li>When we realised that we have reached the leaf node, we are holding a read latch for that page. Hence, we still need to release the read latch and re-acquire the write latch, i.e. we cannot release the latch of last internal page when we first acquire the leaf page.</li>
-<li>The solution is to release the latch before read the “grand-child” of it.</li>
+<li>When fetched a new page guard, we pushed it to the back of <code>ctx.read_set_</code> and popped the front element out of the queue. We need to access the last element of the queue every time to find the next page to read.</li>
+<li>When we realize we have reached the leaf node, we hold a read latch for that page. Hence, we still need to release the read latch and re-acquire the write latch, i.e., we cannot release the latch of the last internal page when we first acquire the leaf page.</li>
+<li>The solution is to release the latch before reading the “grandchild” of it.</li>
 </ul>
 </li>
 <li>
-<p>In the pessimistic search, we need to acquire write latch for all pages we want to access.</p>
+<p>In the pessimistic search, we must acquire a write latch for all pages we want to access.</p>
 <ul>
-<li>We can check whether a node is safe after its write latch is acquired. If the node is safe, we can release all latches acquired before it, including the header page.</li>
+<li>We can check whether a node is safe after acquiring its write latch. If the node is safe, we can release all latches acquired before it, including the header page.</li>
 </ul>
 </li>
 <li>
 <p>In the insert function, there are three cases to handle:</p>
 <ul>
-<li>The first case is that this is an empty tree, i.e. the <code>root_page_id_</code> in header page is invalid. We just need to create a new page for the node and update header page.</li>
+<li>The first case is that this is an empty tree, i.e., the root_page_id_ in the header page is invalid. We need to create a new page for the node and update the header page.</li>
 <li>The second case is that the leaf node won’t overflow where a simple insertion is enough.</li>
 <li>The last case is that the leaf node might overflow.</li>
 </ul>
@@ -350,18 +350,18 @@
 <li>
 <p>When the leaf node might overflow:</p>
 <ul>
-<li>After acquired the write latches, we need to check whether there is an overflow again in case that other thread already handled overflow causing unexpected split.</li>
+<li>After acquiring the write latches, we need to check whether there is an overflow again in case the other thread already handled overflow, causing an unexpected split.</li>
 <li><code>SolveLeafOverflow</code>
 <ul>
-<li>When a leaf reaches max size after insertion, it will immediately split. So this is used after the insertion.</li>
-<li>It will create a new page to store the larger half the nodes and return the first key in the new page to insert to its parent node to indicate to this page.</li>
-<li>Also, it need to take care of the sibling pointers between leaf nodes. The new page will point to what the original page points to. And the original page will point to the new page.</li>
+<li>When a leaf reaches max size after insertion, it will immediately split. So, this is used after the insertion.</li>
+<li>It will create a new page to store the larger half of the nodes and return the first key in the new page to insert to its parent node to indicate to this page.</li>
+<li>Also, it needs to take care of the sibling pointers between leaf nodes. The new page will point to what the original page points to. The original page will point to the new page.</li>
 </ul>
 </li>
 <li><code>SolveInternalOverflow</code>
 <ul>
-<li>Internal nodes won’t split immediately when it reaches max size. This means that internal nodes must split first before insertion, otherwise the address will overflow.</li>
-<li>The process is similar with the leaf case, except that it will choose a proper page to insert the key after split. (Or it just does not need to split if it is a safe node).</li>
+<li>Internal nodes won’t split immediately when they reach the maximum size. This means that internal nodes must split before insertion; otherwise, the address will overflow.</li>
+<li>The process is similar to the leaf case, except it will choose a proper page to insert the key after splitting. (Or it does not need to split if it is a safe node).</li>
 </ul>
 </li>
 </ul>
@@ -369,32 +369,32 @@
 </ol>
 <h1 id="btree-delete"><a class="markdownIt-Anchor" href="#btree-delete"></a> B+Tree delete</h1>
 <ol>
-<li>The concurrency control is similar with the insert operation, except that the condition of whether a node is safe is different.</li>
+<li>The concurrency control is similar to the insert operation, except that the condition of whether a node is safe differs.</li>
 <li>Compare with insertion,
 <ul>
 <li>if the tree is empty, there is nothing else to do;</li>
-<li>if the leaf node won’t underflow, a simple deletion is enough;</li>
-<li>if the leaf node might underflow, we need to handle it and possible following cascade underflow.</li>
+<li>If the leaf node won’t underflow, a simple deletion is enough;</li>
+<li>If the leaf node might underflow, we need to handle it and possibly follow cascade underflow.</li>
 </ul>
 </li>
 <li>When the leaf node might overflow:
 <ul>
-<li>Similar with the insertion situation, we need to re-acquire write latches, and check whether the underflow is handled by another thread.</li>
-<li>If the underflowed leaf is the root, i.e. the tree has only one node, we do not need to do anything further.</li>
+<li>Similar to the insertion situation, we must re-acquire write latches and check whether another thread handles the underflow.</li>
+<li>If the underflowed leaf is the root, i.e., the tree has only one node, we do not need to do anything further.</li>
 <li><code>SolveLeafUnderflow</code>
 <ul>
-<li>There are three situations: left sibling can borrow a key, right sibling can borrow a key or neither siblings can borrow a key.</li>
-<li>When we can borrow a key, the underflow is solved easily, no more cascading. We need to modify the key in parent node that separates the two involving node to the new first key of the right node.</li>
-<li>When we need to merge with one of the siblings, we also need to handle the pointers between leaf nodes. If we move the data of the left node to the right node and delete the left node, it is hard for us to modify the pointer of the left of the left node. Instead, if we move delete the right node, we only need to modify the pointer of the left node to the original pointer of the right node.</li>
-<li>If a leaf only has left sibling or right sibling to merge with, then we do not have a choice.</li>
+<li>There are three situations: the left sibling can borrow a key, the right sibling can borrow a key, or neither sibling can borrow a key.</li>
+<li>When we can borrow a key, the underflow is solved easily, and there is no more cascading. We need to modify the key in the parent node that separates the two involved nodes to the new first key of the right node.</li>
+<li>When merging with one of the siblings, we must also handle the pointers between leaf nodes. If we move the data of the left node to the right node and delete the left node, it is hard for us to modify the pointer of the left of the left node. Instead, if we delete the right node, we only need to modify the left node’s pointer to the right node’s original pointer.</li>
+<li>If a leaf only has a left sibling or right sibling to merge with, then we do not have a choice.</li>
 </ul>
 </li>
 <li><code>SolveInternalUnderflow</code>
 <ul>
-<li>The process is similar with <code>SolveLeafUnderflow</code>, except how to borrow a key.</li>
-<li>When a node is borrowing a key to its left sibling, it will borrow the first valid key and the fire value, i.e. <code>array_[1].first</code> and <code>array_[0].second</code>.</li>
-<li>When a node is borrowing a key to its right sibling, it will borrow the last key-value pair. And the node accpeting those keys will use the key as its first valid key and the value as its first valid value.</li>
-<li>We need to set the corresponding key in parent node to the borrowed key.</li>
+<li>The process is similar to SolveLeafUnderflow, except for how to borrow a key.</li>
+<li>When a node borrows a key to its left sibling, it will borrow the first valid key and the fire value, i.e., <code>array_[1].first</code> and <code>array_[0].second</code>.</li>
+<li>When a node borrows a key to its right sibling, it will borrow the last key-value pair. The node accpeting those keys will use the key as its first valid key and the value as its first valid value.</li>
+<li>We must set the corresponding key in the parent node to the borrowed key.</li>
 </ul>
 </li>
 </ul>

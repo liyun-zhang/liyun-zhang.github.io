@@ -20,18 +20,18 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="The cache coherence problem  This problem happens in a shared memory multi-processor system. Reading a value at address X should return the last value written to address X by any processor. This is a">
+    <meta name="description" content="The cache coherence problem  This problem happens in a shared memory multi-processor system. Reading a value at address X should return the last value written to address X by any processor. This prob">
 <meta property="og:type" content="article">
 <meta property="og:title" content="08. Snooping-based Cache Coherence">
 <meta property="og:url" content="http://liyun-zhang.github.io/2022/06/19/Courses/CS149/08-Snooping-based-Cache-Coherence/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="The cache coherence problem  This problem happens in a shared memory multi-processor system. Reading a value at address X should return the last value written to address X by any processor. This is a">
+<meta property="og:description" content="The cache coherence problem  This problem happens in a shared memory multi-processor system. Reading a value at address X should return the last value written to address X by any processor. This prob">
 <meta property="og:locale">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/CS149/08/1.jpeg">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/CS149/08/2.png">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/CS149/08/3.jpeg">
 <meta property="article:published_time" content="2022-06-19T11:30:41.000Z">
-<meta property="article:modified_time" content="2024-02-09T05:58:37.655Z">
+<meta property="article:modified_time" content="2024-03-16T12:39:51.116Z">
 <meta property="article:author" content="LiyunZhang">
 <meta property="article:tag" content="Parallelism">
 <meta name="twitter:card" content="summary">
@@ -143,7 +143,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#the-cache-coherence-problem"><span class="nav-number">1.</span> <span class="nav-text"> The cache coherence problem</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#uniprocessor-case"><span class="nav-number">1.1.</span> <span class="nav-text"> Uniprocessor case</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#coherence-definition"><span class="nav-number">1.2.</span> <span class="nav-text"> Coherence definition</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#implementing-choherence"><span class="nav-number">2.</span> <span class="nav-text"> Implementing choherence</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#shared-caches"><span class="nav-number">2.1.</span> <span class="nav-text"> Shared caches</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#snooping-cache-coherence-schemes"><span class="nav-number">2.2.</span> <span class="nav-text"> Snooping cache-coherence schemes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#write-through-caches"><span class="nav-number">2.2.1.</span> <span class="nav-text"> Write-through caches</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#write-back-caches-invalidation-based"><span class="nav-number">3.</span> <span class="nav-text"> Write-back caches (Invalidation-based)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#msi-write-back-invalidation-protocol"><span class="nav-number">3.1.</span> <span class="nav-text"> MSI write-back invalidation protocol</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mesi-invalidation-protocol"><span class="nav-number">3.2.</span> <span class="nav-text"> MESI invalidation protocol</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-stage-invalidation-based-protocol"><span class="nav-number">3.3.</span> <span class="nav-text"> 5-stage invalidation-based protocol</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#invalidation-based-vs-update-based"><span class="nav-number">4.</span> <span class="nav-text"> Invalidation-based vs. Update-based</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#snoop-for-a-cache-hierarchy"><span class="nav-number">5.</span> <span class="nav-text"> Snoop for a cache hierarchy</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#false-sharing"><span class="nav-number">6.</span> <span class="nav-text"> False sharing</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#the-cache-coherence-problem"><span class="nav-number">1.</span> <span class="nav-text"> The cache coherence problem</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#uniprocessor-case"><span class="nav-number">1.1.</span> <span class="nav-text"> Uniprocessor case</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#coherence-definition"><span class="nav-number">1.2.</span> <span class="nav-text"> Coherence definition</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#implementing-coherence"><span class="nav-number">2.</span> <span class="nav-text"> Implementing coherence</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#shared-caches"><span class="nav-number">2.1.</span> <span class="nav-text"> Shared caches</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#snooping-cache-coherence-schemes"><span class="nav-number">2.2.</span> <span class="nav-text"> Snooping cache-coherence schemes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#write-through-caches"><span class="nav-number">2.2.1.</span> <span class="nav-text"> Write-through caches</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#write-back-caches-invalidation-based"><span class="nav-number">3.</span> <span class="nav-text"> Write-back caches (Invalidation-based)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#msi-write-back-invalidation-protocol"><span class="nav-number">3.1.</span> <span class="nav-text"> MSI write-back invalidation protocol</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mesi-invalidation-protocol"><span class="nav-number">3.2.</span> <span class="nav-text"> MESI invalidation protocol</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-stage-invalidation-based-protocol"><span class="nav-number">3.3.</span> <span class="nav-text"> 5-stage invalidation-based protocol</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#invalidation-based-vs-update-based"><span class="nav-number">4.</span> <span class="nav-text"> Invalidation-based vs. Update-based</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#snoop-for-a-cache-hierarchy"><span class="nav-number">5.</span> <span class="nav-text"> Snoop for a cache hierarchy</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#false-sharing"><span class="nav-number">6.</span> <span class="nav-text"> False sharing</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -156,7 +156,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">62</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -230,7 +230,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-02-09 13:58:37" itemprop="dateModified" datetime="2024-02-09T13:58:37+08:00">2024-02-09</time>
+      <time title="Modified: 2024-03-16 20:39:51" itemprop="dateModified" datetime="2024-03-16T20:39:51+08:00">2024-03-16</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -258,162 +258,161 @@
     <div class="post-body" itemprop="articleBody"><h1 id="the-cache-coherence-problem"><a class="markdownIt-Anchor" href="#the-cache-coherence-problem"></a> The cache coherence problem</h1>
 <ol>
 <li>This problem happens in a shared memory multi-processor system. Reading a value at address X should return the last value written to address X by any processor.</li>
-<li>This is a problem created by replicating the data stored at address X in local caches (a hardware implementation detail), and cannot be fixed by adding locks.</li>
-<li>Memory coherence problem exists because there is both global storage (main memory) and per-processor local storage (processor caches) implementing the abstraction of a single shared address space.</li>
+<li>This problem is created by replicating the data stored at address X in local caches (a hardware implementation detail) and cannot be fixed by adding locks.</li>
+<li>Memory coherence problems exist because global storage (main memory) and per-processor local storage (processor caches) implement the abstraction of a single shared address space.</li>
 <li>In a cache hierarchy,<br />
-L1 and L2 caches are private per core while L3 cahce is shared by cores in the same chip.<br />
-L3 cache is split into sectors or banks. Each bank is physically associated with a core, but managed hardware-wise as a single coherent unit.<br />
-L2 cache and L3 cache communicate through a ring interconnect where most inter-processor actions happens.</li>
+L1 and L2 caches are private per core, while cores share the L3 cache in the same chip.<br />
+L3 cache is split into sectors or banks. Each bank is physically associated with a core but managed hardware-wise as a single coherent unit.<br />
+L2 and L3 cache communicate through a ring interconnect where most inter-processor actions happen.</li>
 </ol>
 <h2 id="uniprocessor-case"><a class="markdownIt-Anchor" href="#uniprocessor-case"></a> Uniprocessor case</h2>
 <ol>
-<li>On a uniprocessor, providing coherence is fairly simple, since writes typically come from one client: the processor. Load operation must examine all pending stores in store buffer and select the last sequence.</li>
-<li>There is one exception on a uniprocessor, which is device I/O via direct memory access (DMA).</li>
-<li>One solution to DMA is that CPU writes to shared buffers using uncached stores.<br />
-Another way is supported by OS which will mark virtual memory pages containing shared buffers as not-cachable, and explicitly flush pages from cache when I/O completes.</li>
+<li>Providing coherence is fairly simple on a uniprocessor since writes typically come from one client: the processor. Load operation must examine all pending stores in the store buffer and select the last sequence.</li>
+<li>One exception on a uniprocessor is device I/O via direct memory access (DMA).</li>
+<li>One solution to DMA is that the CPU writes to shared buffers using uncached stores.<br />
+Another way OS supports this is by marking virtual memory pages containing shared buffers as not-cachable and explicitly flushing pages from the cache when I/O is completed.</li>
 <li>In practice, DMA transfers are infrequent compared to CPU loads and stores (so these heavyweight software solutions are acceptable)</li>
 </ol>
 <h2 id="coherence-definition"><a class="markdownIt-Anchor" href="#coherence-definition"></a> Coherence definition</h2>
 <ol>
-<li>Obeys program order as expected of a uniprocessor system: A read by processor P to address X that follows a write by P to address X, should return the value of the write by P (assuming no other processor wrote to X in between)</li>
-<li>Write propagation: A read by processor P1 to address X that follows a write by processor P2 to X returns the written value, if the read and write are “sufficiently separated” in time (assuming no other write to X occurs in between)</li>
+<li>Obeys program order as expected of a uniprocessor system: A read by processor P to address X that follows a write by P to address X should return the value of the write by P (assuming no other processor wrote to X in between)</li>
+<li>Write propagation: A read by processor P1 to address X that follows a write by processor P2 to X returns the written value if the read and write are “sufficiently separated&quot; in time (assuming no other write to X occurs in between)</li>
 <li>Write serialization: Writes to the same address are serialized: two writes to address X by any two processors are observed in the same order by all processors.</li>
 <li>Write propagation means that notification of a write must eventually get to the other processors. Note that precisely when information about the write is propagated is not specified in the definition of coherence.</li>
 </ol>
-<h1 id="implementing-choherence"><a class="markdownIt-Anchor" href="#implementing-choherence"></a> Implementing choherence</h1>
+<h1 id="implementing-coherence"><a class="markdownIt-Anchor" href="#implementing-coherence"></a> Implementing coherence</h1>
 <ol>
-<li>Software-based solution: OS uses page-fault mechanism to propagate writes. It can be used to implement memory coherence over clusters of workstations</li>
-<li>Hardware-based solutions: “snooping”-based coherence implementations and directory-based coherence implementations</li>
+<li>Software-based solution: OS uses a page-fault mechanism to propagate writes. It can be used to implement memory coherence over clusters of workstations.</li>
+<li>Hardware-based solutions: “snooping&quot;-based coherence implementations and directory-based coherence implementations</li>
 <li>Most modern multi-core CPUs implement cache coherence<br />
 Discrete GPUs do not implement cache coherence. Overhead of coherence deemed not worth it for graphics and scientific computing applications (NVIDIA GPUs provide single shared L2 + atomic memory operations)<br />
 But the latest Intel Integrated GPUs do implement cache coherence</li>
 </ol>
 <h2 id="shared-caches"><a class="markdownIt-Anchor" href="#shared-caches"></a> Shared caches</h2>
 <ol>
-<li>One single cache shared by all processors eliminates problem of replicating state in multiple caches and makes coherence easy.</li>
+<li>One single cache shared by all processors eliminates the problem of replicating the state in multiple caches and makes coherence easy.</li>
 <li>This has obvious scalability problems since the point of a cache is to be local and fast. It also causes interference and contention due to many clients.</li>
-<li>Facilitates fine-grained sharing (overlapping working sets). Loads/stores by one processor might pre-fetch lines for another processor</li>
+<li>Facilitates fine-grained sharing (overlapping working sets). Loads/stores by one processor might pre-fetch lines for another processor.</li>
 </ol>
 <h2 id="snooping-cache-coherence-schemes"><a class="markdownIt-Anchor" href="#snooping-cache-coherence-schemes"></a> Snooping cache-coherence schemes</h2>
 <ol>
 <li>Main idea: all coherence-related activity is broadcast to all processors</li>
-<li>Cache controllers monitor (“they snoop”) memory operations, and react accordingly to maintain memory coherence</li>
-<li>Cache controller must respond to actions from both ends:<br />
-It must respond the Load/Store requests from its local processor<br />
-It also must respond coherence-related activity broadcast over the chip’s interconnect.</li>
-<li>The interconnect is between memory and caches possessed by each processor. There is not only memory-cache information, but also cache-cache information, which will limit the scality of the system.</li>
+<li>Cache controllers monitor (“they snoop&quot;) memory operations and react accordingly to maintain memory coherence.</li>
+<li>The cache controller must respond to actions from both ends:<br />
+It must respond to the Load/Store requests from its local processor<br />
+It also must respond to coherence-related activity broadcast over the chip’s interconnect.</li>
+<li>The interconnect is between memory and caches possessed by each processor. There is not only memory-cache information but also cache-cache information, limiting the system’s scalability.</li>
 </ol>
 <h3 id="write-through-caches"><a class="markdownIt-Anchor" href="#write-through-caches"></a> Write-through caches</h3>
 <ol>
-<li>For the invalidation-based protocol, when one processor write into an address, cache controller broadcasts<br />
-invalidation message for other caches to mark that line to invalidation.<br />
-the next read from other processors will trigger cache miss</li>
-<li>For the update-based protocol: other caches will update their local copies as the information is sent.</li>
+<li>For the invalidation-based protocol, when one processor writes into an address, the cache controller broadcasts an invalidation message for other caches to mark that line to invalidation.<br />
+The next read from other processors will trigger a cache miss.</li>
+<li>Other caches will update their local copies as the information is sent for the update-based protocol.</li>
 <li>States: Valid (V) or Invalid (I)<br />
 A local processor read (PrRd) always ends at valid. If the operation starts from an invalid state, a message will be sent (BusRd). If it starts from a valid state, no message will be sent.<br />
-A local processor write (PrWr) always ends at the same state as before the operation (assumes write no-allocate policy), and always sends a message (BusWr).<br />
-When a write message from other processor is received (BusWr), It always ends at invalid state.<br />
+A local processor write (PrWr) always ends in the same state as before the operation (assumes write no-allocate policy) and always sends a message (BusWr).<br />
+When a write message from another processor is received (BusWr), It always ends in an invalid state.<br />
 <img src="/imgs/CS149/08/1.jpeg" width="20%"></li>
 <li>Requirements of the interconnect:<br />
-All write transactions visible to all cache controllers.<br />
-All write transactions visible to all cache controllers in the same order.</li>
+All write transactions are visible to all cache controllers.<br />
+All write transactions are visible to all cache controllers in the same order.</li>
 <li>Simplifying assumptions here:<br />
 Interconnect and memory transactions are atomic<br />
-Processor waits until previous memory operations is complete before issuing next memory operation<br />
-Invalidation applied immediately as part of receiving invalidation broadcast</li>
+The processor waits until previous memory operations are complete before issuing the next memory operation<br />
+Invalidation applied immediately as part of receiving an invalidation broadcast</li>
 </ol>
 <h1 id="write-back-caches-invalidation-based"><a class="markdownIt-Anchor" href="#write-back-caches-invalidation-based"></a> Write-back caches (Invalidation-based)</h1>
 <ol>
-<li>Dirty state of cache line now indicates exclusive ownership</li>
+<li>The dirty state of the cache line now indicates exclusive ownership</li>
 <li>Exclusive: cache is only cache with a valid copy of line (it can safely be written to)<br />
-Owner: cache is responsible for supplying the line to other processors when they attempt to load it from memory (otherwise a load from another processor will get stale data from memory)</li>
-<li>A line in the “exclusive” state can be modified without notifying<br />
+Owner: cache is responsible for supplying the line to other processors when they attempt to load it from memory (otherwise, a load from another processor will get stale data from memory)</li>
+<li>A line in the “exclusive&quot; state can be modified without notifying<br />
 the other caches<br />
-Processor can only write to lines in the exclusive state. So they need a way to tell other caches that they want exclusive access to the line. They will do this by sending all the other caches messages<br />
-When cache controller snoops a request for exclusive access to line it contains, it must invalidate the line in its own cache</li>
+The processor can only write to lines in the exclusive state. So, they need a way to tell other caches they want exclusive access to the line. They will do this by sending all the other cache messages.<br />
+When the cache controller snoops a request for exclusive access to the line it contains, it must invalidate the line in its cache.</li>
 </ol>
 <h2 id="msi-write-back-invalidation-protocol"><a class="markdownIt-Anchor" href="#msi-write-back-invalidation-protocol"></a> MSI write-back invalidation protocol</h2>
 <ol>
 <li>Three cache line states:<br />
 Invalid (I): same as meaning of invalid in uniprocessor cache<br />
 Shared (S): line valid in one or more caches<br />
-Modified (M): line valid in exactly one cache (a.k.a. “dirty” or “exclusive” state)</li>
-<li>The local processors have the same operations as write-through case.<br />
+Modified (M): line valid in exactly one cache (a.k.a. “dirty&quot; or “exclusive&quot; state)</li>
+<li>The local processors have the same operations as a write-through case.<br />
 The coherence-related bus transactions from remote caches have three kinds:<br />
-BusRd: obtain copy of line with no intent to modify<br />
-BusRdX: obtain copy of line with intent to modify<br />
+BusRd: obtain a copy of the line with no intent to modify<br />
+BusRdX: obtain a copy of the line with the intent to modify<br />
 flush: write dirty line out to memory<br />
 <img src="/imgs/CS149/08/2.png" width="50%"></li>
 <li>When try to write an invalid line without reading it, the content of the current modified state line will be sent to the new writer.</li>
-<li>Write propagation is achieved via combination of invalidation on BusRdX, and flush from M-state on subsequent BusRd/BusRdX from another processors</li>
+<li>Write propagation is achieved via a combination of invalidation on BusRdX and flush from M-state on subsequent BusRd/BusRdX from another processor.</li>
 <li>Write serialization<br />
 Writes that appear on interconnect are ordered by the order they appear on interconnect (BusRdX)<br />
-Reads that appear on interconnect are ordered by order they appear on interconnect (BusRd)<br />
+Reads that appear on interconnect are ordered by the order they appear on interconnect (BusRd)<br />
 Writes that don’t appear on the interconnect (PrWr to line already in M state):
 <ul>
-<li>Sequence of writes to line comes between two interconnect transactions for the line</li>
-<li>All writes in sequence performed by same processor, P (that processor certainly observes them in correct sequential order)</li>
-<li>All other processors observe notification of these writes only after a interconnect transaction for the line.</li>
-<li>So all processors see writes in the same order.</li>
+<li>The sequence of writes to the line comes between two interconnect transactions for the line</li>
+<li>All writes in sequence are performed by the same processor, P (that processor certainly observes them in correct sequential order)</li>
+<li>All other processors observe notification of these writes only after an interconnect transaction for the line.</li>
+<li>So, all processors see writes in the same order.</li>
 </ul>
 </li>
 </ol>
 <h2 id="mesi-invalidation-protocol"><a class="markdownIt-Anchor" href="#mesi-invalidation-protocol"></a> MESI invalidation protocol</h2>
 <ol>
-<li>MSI requires two interconnect transactions for the common case of reading an address, then writing to it
+<li>MSI requires two interconnect transactions for the common case of reading an address and then writing to it
 <ul>
 <li>Transaction 1: BusRd to move from I to S state</li>
 <li>Transaction 2: BusRdX to move from S to M state</li>
 </ul>
 </li>
-<li>Solution: add additional state E (“exclusive clean”) to mark the line that has not been modified, but only this cache has a copy of the line<br />
-This state decouples exclusivity from line ownership (line not dirty, so copy in memory is valid copy of data)<br />
-Upgrade from E to M does not require an interconnect transaction</li>
+<li>Solution: add additional state E (“exclusive clean&quot;) to mark the line that has not been modified, but only this cache has a copy of the line<br />
+This state decouples exclusivity from line ownership (the line is not dirty, so the copy in memory is a valid copy of data)<br />
+Upgrade from E to M does not require an interconnect transaction.</li>
 <li>
 <img src="/imgs/CS149/08/3.jpeg" width="50%">
 </li>
 </ol>
 <h2 id="5-stage-invalidation-based-protocol"><a class="markdownIt-Anchor" href="#5-stage-invalidation-based-protocol"></a> 5-stage invalidation-based protocol</h2>
 <ol>
-<li>Who should supply data on a cache miss when line is in the E or S state of another cache? <br />
-Can get cache line data from memory or can get data from another cache? If source is another cache, which one should provide it?</li>
-<li>Cache-to-cache transfers add complexity, but commonly used to reduce both latency of data access and reduce memory bandwidth required by application</li>
-<li>MESIF: Like MESI, but one cache holds shared line in F state rather than S (F=”forward”). Cache with line in F state services miss<br />
+<li>Who should supply data on a cache miss when the line is in the E or S state of another cache? <br />
+Can get cache line data from memory, or can get data from another cache? If the source is another cache, which one should provide it?</li>
+<li>Cache-to-cache transfers add complexity but are commonly used to reduce the latency of data access and the memory bandwidth required by the application.</li>
+<li>MESIF: Like MESI, but one cache holds a shared line in the F state rather than S (F=“forward”). Cache with a line in F state services miss<br />
 Simplifies decision of which cache should service miss (basic MESI: all caches respond)<br />
 Used by Intel processors</li>
-<li>MOESI: Transition from M to O (O=”owned, but not exclusive”) and do not flush to memory (In MESI protocol, transition from M to S requires flush to memory).<br />
-Other processors maintain shared line in S state, one processor maintains line in O state. Data in memory is stale, so cache with line in O state must service cache misses.<br />
+<li>MOESI: Transition from M to O (O=“owned, but not exclusive”) and do not flush to memory (In MESI protocol, transition from M to S requires flush to memory).<br />
+Other processors maintain a shared line in the S state, while one maintains a line in the O state. Data in memory is stale, so cache with a line in O state must service cache misses.<br />
 Used in AMD Opteron</li>
 </ol>
 <h1 id="invalidation-based-vs-update-based"><a class="markdownIt-Anchor" href="#invalidation-based-vs-update-based"></a> Invalidation-based vs. Update-based</h1>
 <ol>
-<li>Invalidation-based protocol: To write to a line, cache must obtain exclusive access to it. All other caches must invalidate their copies</li>
+<li>Invalidation-based protocol: The cache must obtain exclusive access to write to a line. All other caches must invalidate their copies.</li>
 <li>Update-based protocol: Can write to shared copy by broadcasting update to all other copies</li>
-<li>Intuitively, update would seem preferable if other processors<br />
-sharing data continue to access it after a write occurs<br />
-But updates are overhead if data just sits in caches (and is never read by another processor again) or application performs many writes before the next read</li>
-<li>Update can reduce cache miss rate since all shared copies remain valid.<br />
-Update can suffer from high traffic due to multiple writes before the next read by another processor</li>
+<li>Intuitively, the update would seem preferable if other processors<br />
+sharing data, continue to access it after a write occurs<br />
+But updates are overhead if data sits in caches (and is never reread by another processor) or the application performs many writes before the next read</li>
+<li>The update can reduce the cache miss rate since all shared copies remain valid.<br />
+The update can suffer from high traffic due to multiple writes before the next read by another processor.</li>
 </ol>
 <h1 id="snoop-for-a-cache-hierarchy"><a class="markdownIt-Anchor" href="#snoop-for-a-cache-hierarchy"></a> Snoop for a cache hierarchy</h1>
 <ol>
-<li>Challenge: changes made to data at L1 cache may not be visible to L2 cache controller than snoops the interconnect.</li>
+<li>Challenge: changes made to data at the L1 cache may not be visible to the L2 cache controller, then snoops the interconnect.</li>
 <li>Inclusion property:<br />
-All lines in closer to processor cache are also in farther from processor cache. Thus, all transactions relevant to L1 are also relevant to L2, so it is sufficient for only the L2 to snoop the interconnect.<br />
-If line is in owned state (M in MSI/MESI) in L1, it must also be in owned state in L2. Allows L2 to determine if a bus transaction is requesting a modified cache line in L1 without requiring information from L1.</li>
-<li>Even if L2 is larger than L1, the inclusion cannot be maintained automatically. L1 and L2 might choose to evict different lines because the access histories differ.</li>
-<li>When line X is invalidated in L2 cache due to BusRdX from another cache. Must also invalidate line X in L1<br />
-Solution: Each L2 line contains an additional state bit indicating if line also exists in L1. This bit tells the L2 invalidations of the cache line due to coherence traffic need to be propagated to L1.</li>
-<li>When L1 write is hit, the corresponding line in L2 cache is in modified state in the coherence protocol, but L2 data is stale.<br />
-When coherence protocol requires X to be flushed from L2, L2 cache must request the data from L1.<br />
-Add another bit for “modified-but-stale” (flushing a “modified-but-stale” L2 line requires getting the real data from L1 first.)</li>
+All lines closer to the processor cache are also in farther caches. Thus, all transactions relevant to L1 are also relevant to L2, so it is sufficient for only the L2 to snoop the interconnect.<br />
+If the line is in the owned state (M in MSI/MESI) in L1, it must also be in an owned state in L2. Allows L2 to determine if a bus transaction requests a modified cache line in L1 without requiring information from L1.</li>
+<li>Even if L2 is larger than L1, the inclusion cannot be maintained automatically. L1 and L2 might evict different lines because the access histories differ.</li>
+<li>When line X is invalidated in the L2 cache due to BusRdX from another cache. Must also invalidate line X in L1<br />
+Solution: Each L2 line contains an additional state bit indicating if the line also exists in L1. This bit tells the L2 invalidations of the cache line due to coherence traffic need to be propagated to L1.</li>
+<li>When the L1 write is hit, the corresponding line in the L2 cache is in the modified state in the coherence protocol, but the L2 data is stale.<br />
+When the coherence protocol requires X to be flushed from L2, the L2 cache must request the data from L1.<br />
+Add another bit for “modified-but-stale&quot; (flushing a “modified-but-stale&quot; L2 line requires getting the real data from L1 first.)</li>
 </ol>
 <h1 id="false-sharing"><a class="markdownIt-Anchor" href="#false-sharing"></a> False sharing</h1>
 <ol>
-<li>Fasle sharing is that two processors write to different addresses, but those addresses map to the same cache line. The cache line keeps invalidating and request data from another processor, generating significant amounts of communication due to the coherence protocol.</li>
-<li>We can split the line into two parts and each processor only write one part.</li>
-<li>One way is to insert some paddings to make the data written by one processor take up a whole cache line. This can easily implemented in software level. But it causes memory waste.</li>
-<li>Another way is mapping addresses handled by the same processor to the same cache line. This causes no waste, but break the successiveness of memory address within a cache line. Also it needs to know the addresses each processor will write, and is harder to implement.</li>
+<li>False sharing is when two processors write to different addresses, but those addresses map to the same cache line. The cache line keeps invalidating and requesting data from another processor, generating significant communication due to the coherence protocol.</li>
+<li>We can split the line into two parts; each processor only writes one part.</li>
+<li>One way is to insert some paddings to make the data written by one processor take up a whole cache line. This can easily implemented at the software level. But it causes memory waste.</li>
+<li>Another way is mapping addresses handled by the same processor to the same cache line. This causes no waste but breaks the successiveness of memory address within a cache line. Also, it needs to know the addresses each processor will write and is harder to implement.</li>
 </ol>
 
     </div>
@@ -431,13 +430,13 @@ Add another bit for “modified-but-stale” (flushing a “modified-but-stale�
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2022/06/11/Courses/CS149/07-Workload-driven-Perfromance-Evaluation/" rel="prev" title="07. Workload-driven Perfromance Evaluation">
-                  <i class="fa fa-chevron-left"></i> 07. Workload-driven Perfromance Evaluation
+                <a href="/2022/06/11/Courses/CS149/07-Workload-driven-Perfromance-Evaluation/" rel="prev" title="07. Workload-driven Performance Evaluation">
+                  <i class="fa fa-chevron-left"></i> 07. Workload-driven Performance Evaluation
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2022/07/06/Courses/CS149/09-Directory-Based-Cache-Cohurence/" rel="next" title="09. Directory-Based Cache Cohurence">
-                  09. Directory-Based Cache Cohurence <i class="fa fa-chevron-right"></i>
+                <a href="/2022/07/06/Courses/CS149/09-Directory-Based-Cache-Cohurence/" rel="next" title="09. Directory-Based Cache Coherence">
+                  09. Directory-Based Cache Coherence <i class="fa fa-chevron-right"></i>
                 </a>
             </div>
           </div>

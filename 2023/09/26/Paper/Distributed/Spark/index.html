@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Paper: Resilient Distributed Datasets: A Fault-Tolerant Abstraction for In-Memory Cluster Computing  Purpose Model  RDDs  What is RDD? What is the advantges of the RDD model comparing with distributed">
+    <meta name="description" content="Paper: Resilient Distributed Datasets: A Fault-Tolerant Abstraction for In-Memory Cluster Computing  Purpose Model  RDDs  What is RDD? What are the advantages of the RDD model compared with distribute">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Spark">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/Spark/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="Paper: Resilient Distributed Datasets: A Fault-Tolerant Abstraction for In-Memory Cluster Computing  Purpose Model  RDDs  What is RDD? What is the advantges of the RDD model comparing with distributed">
+<meta property="og:description" content="Paper: Resilient Distributed Datasets: A Fault-Tolerant Abstraction for In-Memory Cluster Computing  Purpose Model  RDDs  What is RDD? What are the advantages of the RDD model compared with distribute">
 <meta property="og:locale">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/Spark/runtime.png">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/Spark/ml-base.png">
@@ -34,7 +34,7 @@
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/Spark/fault-recovery.png">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/Spark/mem-lim.png">
 <meta property="article:published_time" content="2023-09-26T05:50:52.000Z">
-<meta property="article:modified_time" content="2023-10-04T08:31:31.764Z">
+<meta property="article:modified_time" content="2024-03-15T13:29:05.814Z">
 <meta property="article:author" content="LiyunZhang">
 <meta property="article:tag" content="Distributed System">
 <meta property="article:tag" content="Distributed Computation">
@@ -147,7 +147,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#purpose"><span class="nav-number">1.</span> <span class="nav-text"> Purpose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#model"><span class="nav-number">2.</span> <span class="nav-text"> Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#rdds"><span class="nav-number">2.1.</span> <span class="nav-text"> RDDs</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-rdd"><span class="nav-number">2.1.1.</span> <span class="nav-text"> What is RDD?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-advantges-of-the-rdd-model-comparing-with-distributed-shared-memory-dsm"><span class="nav-number">2.1.2.</span> <span class="nav-text"> What is the advantges of the RDD model comparing with distributed shared memory (DSM)?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-kind-of-applications-are-suited-for-rdds"><span class="nav-number">2.1.3.</span> <span class="nav-text"> What kind of applications are suited for RDDs?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#spark"><span class="nav-number">2.2.</span> <span class="nav-text"> Spark</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-runtime-of-spark"><span class="nav-number">2.2.1.</span> <span class="nav-text"> What is the runtime of Spark?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-spark-programming-interface-of-rdds"><span class="nav-number">2.2.2.</span> <span class="nav-text"> What is Spark programming interface of RDDs?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-rdd-operations-are-supported-in-spark"><span class="nav-number">2.2.3.</span> <span class="nav-text"> What RDD operations are supported in Spark?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-common-interface-of-each-rdd"><span class="nav-number">2.2.4.</span> <span class="nav-text"> What is the common interface of each RDD?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-interface-of-representing-dependencies-between-rdds"><span class="nav-number">2.2.5.</span> <span class="nav-text"> What is the interface of representing dependencies between RDDs?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#implementation"><span class="nav-number">2.3.</span> <span class="nav-text"> Implementation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-spark-schedule-computations"><span class="nav-number">2.3.1.</span> <span class="nav-text"> How does Spark schedule computations?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-spark-handle-task-failures"><span class="nav-number">2.3.2.</span> <span class="nav-text"> How does Spark handle task failures?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-spark-manage-storage-of-persistent-rdds"><span class="nav-number">2.3.3.</span> <span class="nav-text"> How does Spark manage storage of persistent RDDs?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-spark-evict-rdds-when-run-out-of-memory"><span class="nav-number">2.3.4.</span> <span class="nav-text"> How does Spark evict RDDs when run out of memory?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#when-will-checkpointing-be-useful"><span class="nav-number">2.3.5.</span> <span class="nav-text"> When will checkpointing be useful?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#experiement"><span class="nav-number">3.</span> <span class="nav-text"> Experiement</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#purpose"><span class="nav-number">1.</span> <span class="nav-text"> Purpose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#model"><span class="nav-number">2.</span> <span class="nav-text"> Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#rdds"><span class="nav-number">2.1.</span> <span class="nav-text"> RDDs</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-rdd"><span class="nav-number">2.1.1.</span> <span class="nav-text"> What is RDD?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-are-the-advantages-of-the-rdd-model-compared-with-distributed-shared-memory-dsm"><span class="nav-number">2.1.2.</span> <span class="nav-text"> What are the advantages of the RDD model compared with distributed shared memory (DSM)?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-kind-of-applications-are-suited-for-rdds"><span class="nav-number">2.1.3.</span> <span class="nav-text"> What kind of applications are suited for RDDs?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#spark"><span class="nav-number">2.2.</span> <span class="nav-text"> Spark</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-runtime-of-spark"><span class="nav-number">2.2.1.</span> <span class="nav-text"> What is the runtime of Spark?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-spark-programming-interface-of-rdds"><span class="nav-number">2.2.2.</span> <span class="nav-text"> What is the Spark programming interface of RDDs?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-rdd-operations-are-supported-in-spark"><span class="nav-number">2.2.3.</span> <span class="nav-text"> What RDD operations are supported in Spark?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-common-interface-of-each-rdd"><span class="nav-number">2.2.4.</span> <span class="nav-text"> What is the common interface of each RDD?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-interface-that-represents-dependencies-between-rdds"><span class="nav-number">2.2.5.</span> <span class="nav-text"> What is the interface that represents dependencies between RDDs?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#implementation"><span class="nav-number">2.3.</span> <span class="nav-text"> Implementation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-spark-schedule-computations"><span class="nav-number">2.3.1.</span> <span class="nav-text"> How does Spark schedule computations?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-spark-handle-task-failures"><span class="nav-number">2.3.2.</span> <span class="nav-text"> How does Spark handle task failures?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-spark-manage-the-storage-of-persistent-rdds"><span class="nav-number">2.3.3.</span> <span class="nav-text"> How does Spark manage the storage of persistent RDDs?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-spark-evict-rdds-when-run-out-of-memory"><span class="nav-number">2.3.4.</span> <span class="nav-text"> How does Spark evict RDDs when run out of memory?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#when-will-checkpointing-be-useful"><span class="nav-number">2.3.5.</span> <span class="nav-text"> When will checkpointing be useful?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#experiment"><span class="nav-number">3.</span> <span class="nav-text"> Experiment</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -160,7 +160,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">62</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -234,7 +234,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-10-04 16:31:31" itemprop="dateModified" datetime="2023-10-04T16:31:31+08:00">2023-10-04</time>
+      <time title="Modified: 2024-03-15 21:29:05" itemprop="dateModified" datetime="2024-03-15T21:29:05+08:00">2024-03-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -267,31 +267,31 @@
 <li><a href="#rdds">RDDs</a>
 <ul>
 <li><a href="#what-is-rdd">What is RDD?</a></li>
-<li><a href="#what-is-the-advantges-of-the-rdd-model-comparing-with-distributed-shared-memory-dsm">What is the advantges of the RDD model comparing with distributed shared memory (DSM)?</a></li>
+<li><a href="#what-are-the-advantages-of-the-rdd-model-compared-with-distributed-shared-memory-dsm">What are the advantages of the RDD model compared with distributed shared memory (DSM)?</a></li>
 <li><a href="#what-kind-of-applications-are-suited-for-rdds">What kind of applications are suited for RDDs?</a></li>
 </ul>
 </li>
 <li><a href="#spark">Spark</a>
 <ul>
 <li><a href="#what-is-the-runtime-of-spark">What is the runtime of Spark?</a></li>
-<li><a href="#what-is-spark-programming-interface-of-rdds">What is Spark programming interface of RDDs?</a></li>
+<li><a href="#what-is-the-spark-programming-interface-of-rdds">What is the Spark programming interface of RDDs?</a></li>
 <li><a href="#what-rdd-operations-are-supported-in-spark">What RDD operations are supported in Spark?</a></li>
 <li><a href="#what-is-the-common-interface-of-each-rdd">What is the common interface of each RDD?</a></li>
-<li><a href="#what-is-the-interface-of-representing-dependencies-between-rdds">What is the interface of representing dependencies between RDDs?</a></li>
+<li><a href="#what-is-the-interface-that-represents-dependencies-between-rdds">What is the interface that represents dependencies between RDDs?</a></li>
 </ul>
 </li>
 <li><a href="#implementation">Implementation</a>
 <ul>
 <li><a href="#how-does-spark-schedule-computations">How does Spark schedule computations?</a></li>
 <li><a href="#how-does-spark-handle-task-failures">How does Spark handle task failures?</a></li>
-<li><a href="#how-does-spark-manage-storage-of-persistent-rdds">How does Spark manage storage of persistent RDDs?</a></li>
+<li><a href="#how-does-spark-manage-the-storage-of-persistent-rdds">How does Spark manage the storage of persistent RDDs?</a></li>
 <li><a href="#how-does-spark-evict-rdds-when-run-out-of-memory">How does Spark evict RDDs when run out of memory?</a></li>
 <li><a href="#when-will-checkpointing-be-useful">When will checkpointing be useful?</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#experiement">Experiement</a></li>
+<li><a href="#experiment">Experiment</a></li>
 </ul>
 </p>
 <h1 id="purpose"><a class="markdownIt-Anchor" href="#purpose"></a> Purpose</h1>
@@ -299,15 +299,15 @@
 <li>
 <p>Contribution:</p>
 <ul>
-<li>Present Resilient Distributed Datasets (RDDs), a distributed memory abstraction that lets programmers perform in-memory computations on large clusters in a fault-tolerant manner.</li>
-<li>RDDs provide an interface based on coarse-grained transformations (e.g., map, filter and join) that apply the same operation to many data items.</li>
+<li>Present Resilient Distributed Datasets (RDDs), a distributed memory abstraction, lets programmers perform in-memory computations on large clusters fault-tolerantly.</li>
+<li>RDDs provide an interface based on coarse-grained transformations (e.g., map, filter, and join) that apply the same operation to many data items.</li>
 </ul>
 </li>
 <li>
 <p>Issues:</p>
 <ul>
 <li>
-<p>Two types of applications that current computing frameworks handle inefficiently: iterative algorithms and interactive data mining tools.</p>
+<p>Current computing frameworks handle two types of applications inefficiently: iterative algorithms and interactive data mining tools.</p>
 </li>
 <li>
 <p>Current frameworks lack abstractions for leveraging distributed memory.</p>
@@ -318,10 +318,10 @@
 </ul>
 </li>
 <li>
-<p>There are some specialized frameworks developed for some applications that require data reuse. But they do not provide abstractions for more general reuse.</p>
+<p>Some specialized frameworks have been developed for some applications that require data reuse. However, they do not provide abstractions for more general reuse.</p>
 </li>
 <li>
-<p>Both replicatint the data across machines or logging updates across machines are expensive for data-intensive workloads.</p>
+<p>Both replicating the data across machines and logging updates across machines are expensive for data-intensive workloads.</p>
 </li>
 </ul>
 </li>
@@ -332,7 +332,7 @@
 <ol>
 <li>An RDD is a read-only, partitioned collection of records.
 <ul>
-<li>Although individual RDDs are immutable, it is possible to implement mutable state by having multiple RDDs to represent multiple versions of a dataset.</li>
+<li>Although individual RDDs are immutable, it is possible to implement mutable states with multiple RDDs representing multiple dataset versions.</li>
 </ul>
 </li>
 <li>RDDs can only be created through deterministic operations on either data in stable storage or other RDDs.
@@ -348,43 +348,43 @@
 </li>
 <li>Users can control two other aspects of RDDs: persistence and partitioning.
 <ul>
-<li>Users can indicate which RDDs they will reuse and choose a storage strategy for them.</li>
+<li>Users can indicate which RDDs they will reuse and choose a storage strategy.</li>
 <li>They can also ask that an RDD’s elements be partitioned across machines based on a key in each record.</li>
 </ul>
 </li>
 </ol>
-<h3 id="what-is-the-advantges-of-the-rdd-model-comparing-with-distributed-shared-memory-dsm"><a class="markdownIt-Anchor" href="#what-is-the-advantges-of-the-rdd-model-comparing-with-distributed-shared-memory-dsm"></a> What is the advantges of the RDD model comparing with distributed shared memory (DSM)?</h3>
+<h3 id="what-are-the-advantages-of-the-rdd-model-compared-with-distributed-shared-memory-dsm"><a class="markdownIt-Anchor" href="#what-are-the-advantages-of-the-rdd-model-compared-with-distributed-shared-memory-dsm"></a> What are the advantages of the RDD model compared with distributed shared memory (DSM)?</h3>
 <ol>
 <li>
-<p>The main difference between RDDs and DSM is that RDDs can only be created (“written”) through coarsegrained transformations, while DSM allows reads and writes to each memory location.</p>
+<p>The main difference between RDDs and DSM is that RDDs can only be created (“written”) through coarse-grained transformations, while DSM allows reads and writes to each memory location.</p>
 <ul>
-<li>This restricts RDDs to applications that perform bulk writes, but allows for more efficient fault tolerance.</li>
+<li>This restricts RDDs to applications that perform bulk writes but allows for more efficient fault tolerance.</li>
 <li>RDDs do not need to incur the overhead of checkpointing, as they can be recovered using lineage.</li>
-<li>Only the lost partitions of an RDD need to be recomputed upon failure, and they can be recomputed in parallel on different nodes, without having to roll back the whole program.</li>
+<li>Only the lost partitions of an RDD need to be recomputed upon failure, and they can be recomputed in parallel on different nodes without having to roll back the whole program.</li>
 </ul>
 </li>
 <li>
-<p>RDDs’ immutable nature lets a system mitigate slow nodes (stragglers) by running backup copies of slow tasks as in MapReduce.</p>
+<p>RDDs’ immutable nature lets a system mitigate slow nodes (stragglers) by running backup copies of slow tasks, as in MapReduce.</p>
 <ul>
-<li>Backup tasks would be hard to implement with DSM, as the two copies of a task would access the same memory locations and interfere with each other’s updates.</li>
+<li>Backup tasks would be challenging to implement with DSM, as the two copies of a task would access the same memory locations and interfere with each other’s updates.</li>
 </ul>
 </li>
 <li>
 <p>In bulk operations on RDDs, a runtime can schedule tasks based on data locality to improve performance.</p>
 </li>
 <li>
-<p>RDDs degrade gracefully when there is not enough memory to store them, as long as they are only being used in scan-based operations.</p>
-<p>Partitions that do not fit in RAM can be stored on disk and will provide similar performance to current data-parallel systems.</p>
+<p>RDDs degrade gracefully when there is not enough memory to store them as long as they are only used in scan-based operations.</p>
+<p>Partitions that do not fit in RAM can be stored on disk and provide performance similar to current data-parallel systems.</p>
 </li>
 </ol>
 <h3 id="what-kind-of-applications-are-suited-for-rdds"><a class="markdownIt-Anchor" href="#what-kind-of-applications-are-suited-for-rdds"></a> What kind of applications are suited for RDDs?</h3>
 <ol>
-<li>RDDs are best suited for batch applications that apply the same operation to all elements of a dataset.
+<li>RDDs are best suited for batch applications that apply the same operation to all dataset elements.
 <ul>
-<li>RDDs can efficiently remember each transformation as one step in a lineage graph and can recover lost partitions without having to log large amounts of data.</li>
+<li>RDDs can efficiently remember each transformation as one step in a lineage graph and recover lost partitions without logging large amounts of data.</li>
 </ul>
 </li>
-<li>RDDs would be less suitable for applications that make asynchronous finegrained updates to shared state.</li>
+<li>RDDs would be less suitable for applications that make asynchronous fine-grained updates to shared states.</li>
 </ol>
 <h2 id="spark"><a class="markdownIt-Anchor" href="#spark"></a> Spark</h2>
 <h3 id="what-is-the-runtime-of-spark"><a class="markdownIt-Anchor" href="#what-is-the-runtime-of-spark"></a> What is the runtime of Spark?</h3>
@@ -398,9 +398,9 @@
 <li>The workers are long-lived processes that can store RDD partitions in RAM across operations.</li>
 </ol>
 <img src="/imgs/Distributed/Spark/runtime.png" width="30%">
-<h3 id="what-is-spark-programming-interface-of-rdds"><a class="markdownIt-Anchor" href="#what-is-spark-programming-interface-of-rdds"></a> What is Spark programming interface of RDDs?</h3>
+<h3 id="what-is-the-spark-programming-interface-of-rdds"><a class="markdownIt-Anchor" href="#what-is-the-spark-programming-interface-of-rdds"></a> What is the Spark programming interface of RDDs?</h3>
 <ol>
-<li>Each dataset is represented as an object and transformations are invoked using methods on these objects.</li>
+<li>Each dataset is represented as an object, and transformations are invoked using methods for these objects.</li>
 <li>Programmers start by defining one or more RDDs through transformations on data in stable storage.
 <ul>
 <li>They can then use these RDDs in actions, which are operations that return a value to the application or export data to a storage system.</li>
@@ -408,7 +408,7 @@
 </li>
 <li>Programmers can call a <code>persist()</code> method to indicate which RDDs they want to reuse in future operations.
 <ul>
-<li>Spark keeps persistent RDDs in memory by default, but it can spill them to disk if there is not enough RAM.</li>
+<li>Spark keeps persistent RDDs in memory by default but can spill them to disk without enough RAM.</li>
 <li>Users can set a persistence priority on each RDD to specify which in-memory data should spill to disk first.</li>
 <li>The user can call <code>persist</code> with a <code>RELIABLE</code> flag to reliably replicate some of the versions of RDDs to reduce fault recovery times.</li>
 </ul>
@@ -449,27 +449,27 @@
 <ol>
 <li>A set of partitions, which are atomic pieces of the dataset
 <ul>
-<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>a</mi><mi>r</mi><mi>t</mi><mi>i</mi><mi>t</mi><mi>i</mi><mi>o</mi><mi>n</mi><mi>e</mi><mi>r</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo><mo>:</mo></mrow><annotation encoding="application/x-tex">partitioner():</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mopen">(</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span></span></span></span> Return metadata specifying whether the RDD is hash/range partitioned</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>a</mi><mi>r</mi><mi>t</mi><mi>i</mi><mi>t</mi><mi>i</mi><mi>o</mi><mi>n</mi><mi>e</mi><mi>r</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo><mo>:</mo></mrow><annotation encoding="application/x-tex">partitioner():</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mopen">(</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span></span></span></span> Return metadata specifying whether the RDD is hash/range partitioned.</li>
 </ul>
 </li>
 <li>A set of dependencies on parent RDDs
 <ul>
-<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mi>e</mi><mi>p</mi><mi>e</mi><mi>n</mi><mi>d</mi><mi>e</mi><mi>n</mi><mi>c</mi><mi>i</mi><mi>e</mi><mi>s</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo><mo>:</mo></mrow><annotation encoding="application/x-tex">dependencies():</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">d</span><span class="mord mathnormal">e</span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal">n</span><span class="mord mathnormal">d</span><span class="mord mathnormal">e</span><span class="mord mathnormal">n</span><span class="mord mathnormal">c</span><span class="mord mathnormal">i</span><span class="mord mathnormal">e</span><span class="mord mathnormal">s</span><span class="mopen">(</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span></span></span></span> Return a list of dependencies</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mi>e</mi><mi>p</mi><mi>e</mi><mi>n</mi><mi>d</mi><mi>e</mi><mi>n</mi><mi>c</mi><mi>i</mi><mi>e</mi><mi>s</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo><mo>:</mo></mrow><annotation encoding="application/x-tex">dependencies():</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">d</span><span class="mord mathnormal">e</span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal">n</span><span class="mord mathnormal">d</span><span class="mord mathnormal">e</span><span class="mord mathnormal">n</span><span class="mord mathnormal">c</span><span class="mord mathnormal">i</span><span class="mord mathnormal">e</span><span class="mord mathnormal">s</span><span class="mopen">(</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span></span></span></span> Return a list of dependencies.</li>
 </ul>
 </li>
 <li>A function for computing the dataset based on its parents
 <ul>
-<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mi>t</mi><mi>e</mi><mi>r</mi><mi>a</mi><mi>t</mi><mi>o</mi><mi>r</mi><mo stretchy="false">(</mo><mi>p</mi><mo separator="true">,</mo><mi>p</mi><mi>a</mi><mi>r</mi><mi>e</mi><mi>n</mi><mi>t</mi><mi>I</mi><mi>t</mi><mi>e</mi><mi>r</mi><mi>s</mi><mo stretchy="false">)</mo><mo>:</mo></mrow><annotation encoding="application/x-tex">iterator(p, parentIters):</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">a</span><span class="mord mathnormal">t</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mopen">(</span><span class="mord mathnormal">p</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal">n</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">s</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span></span></span></span> Compute the elements of partition p given iterators for its parent partitions</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mi>t</mi><mi>e</mi><mi>r</mi><mi>a</mi><mi>t</mi><mi>o</mi><mi>r</mi><mo stretchy="false">(</mo><mi>p</mi><mo separator="true">,</mo><mi>p</mi><mi>a</mi><mi>r</mi><mi>e</mi><mi>n</mi><mi>t</mi><mi>I</mi><mi>t</mi><mi>e</mi><mi>r</mi><mi>s</mi><mo stretchy="false">)</mo><mo>:</mo></mrow><annotation encoding="application/x-tex">iterator(p, parentIters):</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">a</span><span class="mord mathnormal">t</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mopen">(</span><span class="mord mathnormal">p</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal">n</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">s</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span></span></span></span> Compute the elements of partition p given iterators for its parent partitions.</li>
 </ul>
 </li>
 <li>Metadata about its partitioning scheme and data placement
 <ul>
-<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>a</mi><mi>r</mi><mi>t</mi><mi>i</mi><mi>t</mi><mi>i</mi><mi>o</mi><mi>n</mi><mi>s</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo><mo>:</mo></mrow><annotation encoding="application/x-tex">partitions():</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mord mathnormal">s</span><span class="mopen">(</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span></span></span></span> Return a list of Partition objects</li>
-<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>f</mi><mi>e</mi><mi>r</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>L</mi><mi>o</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>i</mi><mi>o</mi><mi>n</mi><mi>s</mi><mo stretchy="false">(</mo><mi>p</mi><mo stretchy="false">)</mo><mo>:</mo></mrow><annotation encoding="application/x-tex">preferredLocations(p):</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal">d</span><span class="mord mathnormal">L</span><span class="mord mathnormal">o</span><span class="mord mathnormal">c</span><span class="mord mathnormal">a</span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mord mathnormal">s</span><span class="mopen">(</span><span class="mord mathnormal">p</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span></span></span></span> List nodes where partition <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi></mrow><annotation encoding="application/x-tex">p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">p</span></span></span></span> can be accessed faster due to data locality</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>a</mi><mi>r</mi><mi>t</mi><mi>i</mi><mi>t</mi><mi>i</mi><mi>o</mi><mi>n</mi><mi>s</mi><mo stretchy="false">(</mo><mo stretchy="false">)</mo><mo>:</mo></mrow><annotation encoding="application/x-tex">partitions():</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mord mathnormal">s</span><span class="mopen">(</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span></span></span></span> Return a list of Partition objects.</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>f</mi><mi>e</mi><mi>r</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>L</mi><mi>o</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>i</mi><mi>o</mi><mi>n</mi><mi>s</mi><mo stretchy="false">(</mo><mi>p</mi><mo stretchy="false">)</mo><mo>:</mo></mrow><annotation encoding="application/x-tex">preferredLocations(p):</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal">d</span><span class="mord mathnormal">L</span><span class="mord mathnormal">o</span><span class="mord mathnormal">c</span><span class="mord mathnormal">a</span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mord mathnormal">s</span><span class="mopen">(</span><span class="mord mathnormal">p</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span></span></span></span> List nodes where the partition <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi></mrow><annotation encoding="application/x-tex">p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">p</span></span></span></span> can be accessed faster due to data locality</li>
 </ul>
 </li>
 </ol>
-<h3 id="what-is-the-interface-of-representing-dependencies-between-rdds"><a class="markdownIt-Anchor" href="#what-is-the-interface-of-representing-dependencies-between-rdds"></a> What is the interface of representing dependencies between RDDs?</h3>
+<h3 id="what-is-the-interface-that-represents-dependencies-between-rdds"><a class="markdownIt-Anchor" href="#what-is-the-interface-that-represents-dependencies-between-rdds"></a> What is the interface that represents dependencies between RDDs?</h3>
 <ol>
 <li>
 <p>Classify dependencies into two types:</p>
@@ -479,8 +479,8 @@
 </ul>
 </li>
 <li>
-<p>Narrow dependencies allow for pipelined execution on one cluster node, which can compute all the parent partitions.</p>
-<p>Wide dependencies require data from all parent partitions to be available and to be shuffled across the nodes using a MapReducelike operation.</p>
+<p>Narrow dependencies allow pipelined execution on one cluster node, which can compute all the parent partitions.</p>
+<p>Wide dependencies require data from all parent partitions to be available and shuffled across the nodes using a MapReduce-like operation.</p>
 </li>
 <li>
 <p>Recovery after a node failure is more efficient with a narrow dependency, as only the lost parent partitions need to be recomputed, and they can be recomputed in parallel on different nodes.</p>
@@ -497,15 +497,15 @@
 <p>Each stage contains as many pipelined transformations with narrow dependencies as possible.</p>
 </li>
 <li>
-<p>The boundaries of the stages are the shuffle operations required for wide dependencies, or any already computed partitions that can short-circuit the computation of a parent RDD.</p>
+<p>The boundaries of the stages are the shuffle operations required for wide dependencies or any already computed partitions that can short-circuit the computation of a parent RDD.</p>
 </li>
 </ul>
 </li>
 <li>
-<p>The scheduler then launches tasks to compute missing partitions from each stage until it has computed the target RDD.</p>
+<p>The scheduler then launches tasks to compute missing partitions from each stage until the target RDD is computed.</p>
 <ul>
 <li>The scheduler assigns tasks to machines based on data locality using delay scheduling.</li>
-<li>If a task needs to process a partition that is available in memory on a node, we send it to that node.</li>
+<li>If a task needs to process a partition available in memory on a node, we send it to that node.</li>
 <li>Otherwise, if a task processes a partition for which the containing RDD provides preferred locations (e.g., an HDFS file), we send it to those.</li>
 </ul>
 </li>
@@ -513,25 +513,25 @@
 <h3 id="how-does-spark-handle-task-failures"><a class="markdownIt-Anchor" href="#how-does-spark-handle-task-failures"></a> How does Spark handle task failures?</h3>
 <ol>
 <li>
-<p>For wide dependencies, it is possible that those alive workers have long passed the wide-dependent points and already discard intermediate results causing the stage become unavailable. In that case, all the dependencies need to be re-calculated, which is costly.</p>
+<p>For wide dependencies, it is possible that those alive workers have long passed the wide-dependent points and already discard intermediate results, causing the stage to become unavailable. In that case, all the dependencies must be re-calculated, which is costly.</p>
 </li>
 <li>
 <p>Hence, intermediate records are materialized on the nodes holding parent partitions to simplify fault recovery.</p>
 <ul>
 <li>
-<p>If a task fails, it will be re-run on another node as long as its stage’s parents are still available.</p>
+<p>If a task fails, it will be re-run on another node if its stage’s parents are still available.</p>
 </li>
 <li>
-<p>If some stages have become unavailable, limited number of tasks to compute the missing partitions are resubmitted in parallel.</p>
+<p>If some stages have become unavailable, a limited number of tasks to compute the missing partitions are resubmitted in parallel.</p>
 </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-does-spark-manage-storage-of-persistent-rdds"><a class="markdownIt-Anchor" href="#how-does-spark-manage-storage-of-persistent-rdds"></a> How does Spark manage storage of persistent RDDs?</h3>
+<h3 id="how-does-spark-manage-the-storage-of-persistent-rdds"><a class="markdownIt-Anchor" href="#how-does-spark-manage-the-storage-of-persistent-rdds"></a> How does Spark manage the storage of persistent RDDs?</h3>
 <ol>
 <li>In-memory storage as deserialized Java objects
 <ul>
-<li>It provides the fastest performance, because the Java VM can access each RDD element natively.</li>
+<li>It provides the fastest performance because the Java VM can access each RDD element natively.</li>
 </ul>
 </li>
 <li>In-memory storage as serialized data
@@ -547,11 +547,11 @@
 </ol>
 <h3 id="how-does-spark-evict-rdds-when-run-out-of-memory"><a class="markdownIt-Anchor" href="#how-does-spark-evict-rdds-when-run-out-of-memory"></a> How does Spark evict RDDs when run out of memory?</h3>
 <ol>
-<li>LRU eviction policy is used at the level of RDDs.</li>
+<li>The LRU eviction policy is used at the RDD level.</li>
 <li>Unless the LRU RDD is the same RDD as the one with the new partition.
 <ul>
 <li>The old partition is kept in memory to prevent cycling partitions from the same RDD in and out.</li>
-<li>This is important because most operations will run tasks over an entire RDD, so it is quite likely that the partition already in memory will be needed in the future.</li>
+<li>This is important because most operations will run tasks over an entire RDD, so it is likely that the partition already in memory will be needed in the future.</li>
 </ul>
 </li>
 </ol>
@@ -562,71 +562,71 @@
 <li>A node failure in the cluster may result in the loss of some slice of data from each parent RDD, requiring a full recomputation.</li>
 </ul>
 </li>
-<li>For RDDs with narrow dependencies on data in stable storage, checkpointing may never be worthwhile.
+<li>Checkpointing may never be worthwhile for RDDs with narrow dependencies on data in stable storage.
 <ul>
-<li>If a node fails, lost partitions from these RDDs can be recomputed in parallel on other nodes, at a fraction of the cost of replicating the whole RDD.</li>
+<li>If a node fails, lost partitions from these RDDs can be recomputed in parallel on other nodes at a fraction of the cost of replicating the whole RDD.</li>
 </ul>
 </li>
-<li>The read-only nature of RDDs makes  them simpler to checkpoint than general shared memory.
+<li>The read-only nature of RDDs makes them simpler to checkpoint than general shared memory.
 <ul>
-<li>Consistency is not a concern, RDDs can be written out in the background without requiring program pauses or distributed snapshot schemes.</li>
+<li>Consistency is not a concern. RDDs can be written in the background without program pauses or distributed snapshot schemes.</li>
 </ul>
 </li>
 </ol>
-<h1 id="experiement"><a class="markdownIt-Anchor" href="#experiement"></a> Experiement</h1>
+<h1 id="experiment"><a class="markdownIt-Anchor" href="#experiment"></a> Experiment</h1>
 <ol>
 <li>
-<p>The main contribution of this paper is improving the performance of iterative applications, hence the author measured the speedup of Spark against Hadoop.</p>
+<p>The main contribution of this paper is improving the performance of iterative applications; hence, the author measured the speedup of Spark against Hadoop.</p>
 <ul>
 <li>
-<p>One scene of iterative applications is machine learning applications. The author choosed k-means and logistic regression to measure performance.</p>
+<p>One scene of iterative applications is machine learning applications. The author chose k-means and logistic regression to measure performance.</p>
 <ul>
 <li>The iteration time of k-means is dominated by computation.</li>
 <li>Logistic regression is less compute-intensive and thus more sensitive to time spent in deserialization and I/O.</li>
-<li>The time consumed should be reported for the first iteration and subsequent iterations separately as following:</li>
+<li>The time consumed should be reported for the first iteration and subsequent iterations separately as follows:</li>
 </ul>
 <img src="/imgs/Distributed/Spark/ml-base.png" width="50%">
 </li>
 <li>
-<p>Another scene is PageRank algorithm.</p>
+<p>Another scene is the PageRank algorithm.</p>
 </li>
 </ul>
 </li>
 <li>
-<p>Hadoop ran slower due to several factors</p>
+<p>Hadoop ran slower due to several factors.</p>
 <ul>
 <li>Minimum overhead of the Hadoop software stack
 <ul>
 <li>It can be measured by running no-op Hadoop jobs.</li>
 </ul>
 </li>
-<li>Overhead of HDFS while serving data
+<li>The overhead of HDFS while serving data
 <ul>
 <li>HDFS performed multiple memory copies and a checksum to serve each block.</li>
-<li>It can be seen by comparing the time of accessing in-memory HDFS and local file.</li>
+<li>This can be seen by comparing the time it takes to access in-memory HDFS and local files.</li>
 </ul>
 </li>
-<li>Deserialization cost to convert binary records to usable in-memory Java objects
+<li>Deserialization cost to convert binary records to usable in-memory Java objects.
 <ul>
-<li>It can be seen by comparing the time of access text input and binary input.</li>
+<li>This can be seen by comparing the time of access to text and binary input.</li>
 </ul>
 </li>
 </ul>
 <img src="/imgs/Distributed/Spark/hadoop.png" width=50%>
 </li>
 <li>
-<p>The scalability is another concerned metrics. The result of machine learning algorithm is as shown below:</p>
+<p>Scalability is another metric. The result of a machine learning algorithm is as shown below:</p>
 <img src="/imgs/Distributed/Spark/ml-scale.png" width="50%">
 </li>
 <li>
-<p>Other important metric of the systems is failure fault recovery.</p>
+<p>Another important metric of the systems is failure fault recovery.</p>
 <ul>
 <li>The author measured the time consumed in each iteration while a node failed at the start of 6th iteration.</li>
 </ul>
 <img src="/imgs/Distributed/Spark/fault-recovery.png" width="50%">
 </li>
 <li>
-<p>Given that Spark makes the assumption that most RDDs will be stored in memory, the author also measured the performance when memory is limited.</p>
+<p>Given that Spark assumes that most RDDs will be stored in memory, the author also measured the performance when memory is limited.</p>
 <ul>
 <li>The performance degrades gracefully with less space.</li>
 </ul>
@@ -636,7 +636,7 @@
 <p>Given that Spark provides an interactive interpreter, the author also measured the response time thes of those queries.</p>
 </li>
 <li>
-<p>To prove that RDD can support a wide class of applications, the author showed how to use RDDs to express exists programming models (e.g. MapReduce, SQL, Pregel)</p>
+<p>To prove that RDD can support a broad class of applications, the author showed how to use RDDs to express existing programming models (e.g., MapReduce, SQL, Pregel)</p>
 </li>
 </ol>
 

@@ -28,7 +28,7 @@
 <meta property="og:description" content="Balancing the workload Always implement the simplest solution first, then measure performance to determine if you need to do better.  Static assignment  The assignment of work to threads is pre-deter">
 <meta property="og:locale">
 <meta property="article:published_time" content="2022-05-17T07:35:33.000Z">
-<meta property="article:modified_time" content="2024-02-09T04:57:21.219Z">
+<meta property="article:modified_time" content="2024-03-16T11:12:41.160Z">
 <meta property="article:author" content="LiyunZhang">
 <meta property="article:tag" content="Parallelism">
 <meta name="twitter:card" content="summary">
@@ -152,7 +152,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">62</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -226,7 +226,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-02-09 12:57:21" itemprop="dateModified" datetime="2024-02-09T12:57:21+08:00">2024-02-09</time>
+      <time title="Modified: 2024-03-16 19:12:41" itemprop="dateModified" datetime="2024-03-16T19:12:41+08:00">2024-03-16</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -255,19 +255,19 @@
 <p>Always implement the simplest solution first, then measure performance to determine if you need to do better.</p>
 <h2 id="static-assignment"><a class="markdownIt-Anchor" href="#static-assignment"></a> Static assignment</h2>
 <ol>
-<li>The assignment of work to threads is pre-determined. But not necessarily determined at compile-time, may depend on runtime parameters.</li>
+<li>The assignment of work to threads is pre-determined. But it is not necessarily determined at compile-time; it may depend on runtime parameters.</li>
 <li>Benefit: simple, essentially zero runtime overhead</li>
-<li>Applicable situation: When the cost (execution time) of work and the amount of work is predictable. The followings are some most common situations:<br />
-When it is known up front that all work has the same cost<br />
-When work is predictable, but not all jobs have same cost<br />
+<li>Applicable situation: When the cost (execution time) of work and the amount of work is predictable. The following are some of the most common situations:<br />
+When it is known upfront that all work has the same cost<br />
+When work is predictable, but not all jobs have the same cost<br />
 When statistics about execution time are known</li>
-<li>Semi-static assignment: When the cost of work is predictable for near-term future, we can periodically profile itself and re-adjust assignment.<br />
-Assignment is “static” for the interval between re-adjustments</li>
+<li>Semi-static assignment: When the work cost is predictable for the near-term future, we can periodically profile itself and re-adjust the assignment.<br />
+The assignment is “static” for the interval between re-adjustments</li>
 </ol>
 <h2 id="dynamic-assignment"><a class="markdownIt-Anchor" href="#dynamic-assignment"></a> Dynamic assignment</h2>
 <ol>
 <li>
-<p>Program determines assignment dynamically at runtime to ensure a well distributed load. Often used when the execution time of tasks, or the total number of tasks, is unpredictable.</p>
+<p>The program determines assignment dynamically at runtime to ensure a well-distributed load. They are often used when the execution time or the total number of tasks is unpredictable.</p>
 </li>
 <li>
 <p>The ISPC task is implemented dynamically.</p>
@@ -276,121 +276,121 @@ Assignment is “static” for the interval between re-adjustments</li>
 <h3 id="with-one-queue"><a class="markdownIt-Anchor" href="#with-one-queue"></a> With one queue</h3>
 <ol>
 <li>
-<p>The programmers divide the whole problem into sub-problems (or “tasks”, “work”). A queue shared by all threads is a collection of work to do. Whenever a thread finished its task, it will grab another task from the queue.</p>
+<p>The programmers divide the whole problem into sub-problems (or “tasks”, “work”). A queue shared by all threads is a collection of work to do. A thread will grab another task from the queue whenever it finishes its task.</p>
 </li>
 <li>
 <p>Fine granularity partitioning: each task is small.<br />
-This is likely to have a good workload balance, but potential for high synchronization cost.</p>
+This is likely to have a good workload balance, but there is potential for high synchronization costs.</p>
 </li>
 <li>
 <p>Coarse granularity partitioning: each task is larger.<br />
-This will decrease synchronization cost and the overhead, but may have a worse workload balance.</p>
+This will decrease synchronization cost and the overhead but may have a worse workload balance.</p>
 </li>
 <li>
-<p>Long tasks should be scheduled first. Thread performing long task performs fewer overall tasks, but approximately the same amount of work as the other threads. This requires some knowledge of workload.</p>
+<p>Long tasks should be scheduled first. Thread performing long tasks performs fewer overall tasks but approximately the same amount of work as the other threads. This requires some knowledge of the workload.</p>
 </li>
 </ol>
 <h3 id="with-a-set-of-queues"><a class="markdownIt-Anchor" href="#with-a-set-of-queues"></a> With a set of queues</h3>
 <ol>
 <li>
-<p>When assign with one queue, all threads have to communicate with each other about the queue.</p>
+<p>When assigned to one queue, all threads have to communicate with each other about the queue.</p>
 </li>
 <li>
-<p>Each thread has their own queue, and they only execute tasks in their queue. So there is no need to communication with other threads.</p>
+<p>Each thread has its queue, and it only executes tasks in its queue. So, there is no need to communicate with other threads.</p>
 </li>
 <li>
-<p>At the beginning, the programmer push tasks into queues arbitarily (a bit like static assignment).<br />
-The dynamic is that when a queue is empty, that thread can steal from other threads that is  still working.<br />
+<p>Initially, the programmer pushes tasks into queues arbitrarily (a bit like a static assignment).<br />
+The dynamic is that when a queue is empty, that thread can steal from other still-working threads.<br />
 It will steal from a random thread. Every time, it will steal a proportion of the tasks in the target queue, not all of them, and usually more than one task.<br />
-A thread is terminated when there is no thread for it to steal, namely when a steal is failed, it will try to steal from other threads, util it have tried all of them.</p>
+A thread is terminated when there is no thread for it to steal; when a steal fails, it will try to steal from other threads until it has tried all of them.</p>
 </li>
 <li>
-<p>Stealing involves communication, but in a lower frequency then one queue method. And in this way, the local queue access is fast.</p>
+<p>Stealing involves communication but at a lower frequency than one queue method. In this way, the local queue access is fast.</p>
 </li>
 <li>
-<p>Sometimes it is hard to have fully independent task, but work in task queues need not be independent.<br />
-A task is not removed from queue and assigned to worker thread until all task dependencies are satisfied. Workers can submit new tasks (with optional explicit dependencies) to task system</p>
+<p>Sometimes, it is hard to have fully independent tasks, but work in task queues need not be independent.<br />
+A task is not removed from the queue and assigned to the worker thread until all task dependencies are satisfied. Workers can submit new tasks (with optional, explicit dependencies) to the task system.</p>
 </li>
 </ol>
 <h1 id="scheduling"><a class="markdownIt-Anchor" href="#scheduling"></a> Scheduling</h1>
-<p>In a divide-and-conquer algorithm, there is both dependencies and independencies. Like in quick-sort, both the divide is dependent on the partition, and those two divide is independent.<br />
+<p>In a divide-and-conquer algorithm, there are both dependencies and independencies. Like in quick-sort, both divides depend on the partition, and those two divides are independent.<br />
 With Cilk Plus, we can express divide-and-conquer easier.</p>
 <h2 id="cilk_spawn"><a class="markdownIt-Anchor" href="#cilk_spawn"></a> cilk_spawn</h2>
 <ol>
 <li>
-<p><code>cilk_spawn</code> is labelled before a function call, so that the called function can run with the code after the call concurrently.<br />
-The call labelled <code>cilk_spawn</code> is the spawned child, and the rest of the code is the continuation.</p>
+<p><code>cilk_spawn</code> is labeled before a function call so that the called function can run concurrently with the code after the call.<br />
+The call labeled <code>cilk_spawn</code> is the spawned child, and the rest of the code is the continuation.</p>
 </li>
 <li>
-<p>In divide-and-conquer, there is always a time, when the problem size is small enough that overhead of spawn trumps benefits of<br />
-potential parallelization. And then we will solve those problems sequentially.</p>
+<p>In divide-and-conquer, there is always a time when the problem size is small enough that the overhead of spawn trumps the benefits of<br />
+potential parallelization. Then, we will solve those problems sequentially.</p>
 </li>
 <li>
 <p>The main idea is to expose independent work (potential parallelism) to the system using <code>cilk_spawn</code>.</p>
 </li>
 <li>
-<p><code>cilk_spawn</code> is a bit like <code>pthread_create</code>, and <code>cilk_sync</code> is similar to <code>pthread_join</code>. But <code>pthread</code> has some problems when too many threads are spawned.<br />
-The first is the heavyweight spawn operation. And many more concurrently running threads than cores, which will cause context switching overhead and larger working set than necessary, less cache locality.</p>
+<p><code>cilk_spawn</code> is a bit like <code>pthread_create</code>, and <code>cilk_sync</code> is similar to <code>pthread_join</code>. But the <code>pthread</code> has some problems when too many threads are spawned.<br />
+The first is the heavyweight spawn operation. Many more concurrently running threads than cores will cause context-switching overhead, a larger working set than necessary, and less cache locality.</p>
 </li>
 <li>
-<p>The Cilk Plus runtime maintains pool of worker threads. All threads created at application launch.  There are exactly as many worker threads as execution contexts in the machine.<br />
-If we labelled everything <code>cilk_spawn</code>, the main thread has nothing to do.</p>
+<p>The Cilk Plus runtime maintains a pool of worker threads. All threads are created at the application launch.  The machine has exactly as many worker threads as in execution contexts.<br />
+If we labeled everything <code>cilk_spawn</code>, the main thread has nothing to do.</p>
 </li>
 <li>
 <p>Each thread in the pool will maintain a work queue to store what word needs to be done.<br />
-When a thread goes idle, it will look in busy thread’s queue for work, and moves work from busy thread’s queue to its own queue.</p>
+When a thread goes idle, it will look in the busy thread’s queue for work and move work from the busy thread’s queue to its queue.</p>
 </li>
 <li>
-<p>If caller thread runs the continuation first, the queue should record the child for later execution, and child is made available for stealing by other threads.<br />
-In this method, caller thread will spawn as many child as it could, like BFS. If no stealing, execution order is very different than<br />
+<p>If the caller thread runs the continuation first, the queue should record the child for later execution, and the child is made available for stealing by other threads.<br />
+The caller thread will spawn as many children as possible using this method, like BFS. If there is no stealing, the execution order is very different than<br />
 that of program withcilk_spawnremoved.</p>
 </li>
 <li>
-<p>If caller thread runs the child first, the queue should record continuation for later execution, and continuation is made available for stealing by other threads.<br />
-In this method, caller thread will only create one item to steal.<br />
-If no stealing occurs, thread continually pops continuation from work queue, enqueues new continuation (like DFS). The order of execution is the same as for program with spawn removed.<br />
-If continuation is stolen, stealing thread spawns next child.</p>
+<p>If the caller thread runs the child first, the queue should record continuation for later execution, and continuation is made available for stealing by other threads.<br />
+In this method, the caller thread will only create one item to steal.<br />
+If no stealing occurs, the thread continually pops continuation from the work queue and enqueues new continuation (like DFS). The execution order is the same as for the program with spawn removed.<br />
+If continuation is stolen, the stealing thread spawns the next child.</p>
 </li>
 <li>
-<p>If the continuation is run first, there will be more items to steal, and thus makes a better advantage of multi-thread.<br />
-But if the continuation is run first, the work queue storage for system with T threads is no more than T times that of stack storage for single threaded execution, and thus saves more space.</p>
+<p>If the continuation is run first, there will be more items to steal; thus, it will be a better advantage of multi-thread.<br />
+But if the continuation is run first, the work queue storage for a system with T threads is no more than T times that of stack storage for single-threaded execution and thus saves more space.</p>
 </li>
 <li>
-<p>Work queue is implemented as a dequeue (double ended queue).<br />
-Local thread pushes/pops from the “tail” (bottom), while remote threads steal from “head” (top).<br />
-Reduces contention with local thread: local thread is not accessing same part of dequeue that stealing threads do.<br />
-Do larger work first: in divide-and-conquer, the top of the queue is usually at the beginning of call tree, and is a larger piece of work.<br />
-Maximizes locality: in conjunction with run-child-first policy, local thread works on local part of call tree</p>
+<p>The work queue is implemented as a dequeue (double-ended queue).<br />
+Local thread pushes/pops from the “tail” (bottom), while remote threads steal from the “head” (top).<br />
+Reduces contention with local thread: local thread does not access the same part of dequeue as stealing threads.<br />
+Do larger work first: in divide-and-conquer, the top of the queue is usually at the beginning of the call tree and is a larger piece of work.<br />
+Maximizes locality: in conjunction with the run-child-first policy, the local thread works on the local part of the call tree</p>
 </li>
 </ol>
 <h2 id="cilk_sync"><a class="markdownIt-Anchor" href="#cilk_sync"></a> cilk_sync</h2>
 <ol>
 <li>
-<p><code>cilk_sync</code> is used after those <code>cilk_spawn</code> call code. It will return when all calls spawned by current function have completed.</p>
+<p><code>cilk_sync</code> is used after those <code>cilk_spawn</code> call code. It will return when all calls spawned by the current function have been completed.</p>
 </li>
 <li>
-<p>There is an implicitcilk_syncat the end of every function that contains a cilk_spawn, so when a Cilk function returns, all work associated with that function is complete.</p>
+<p>There is an implicit <code>cilk_sync</code> at the end of every function containing a cilk_spawn, so when a Cilk function returns, all work associated with that function is complete.</p>
 </li>
 <li>
 <p>If no work has been stolen by other threads, then there’s nothing to do at the sync point, <code>cilk_sync</code> is a no-op. But this is not a common situation.</p>
 </li>
 <li>
-<p>One way to implement sync is with stalling joint.<br />
-Thread that initiates the fork must perform the sync. Therefore it waits for all spawned work to be complete.<br />
-descriptor for block A created<br />
-When a stealing from the initial thread happens, a descriptor for that stolen work is created to track the number of outstanding spawns for the block, and the number of those spawns that have completed.<br />
-When all the child spowned for the block is done, this block is considered done, and the descriptor is free. When all the blocks are done, sync is fullfilled.</p>
+<p>One way to implement sync is with a stalling joint.<br />
+The thread that initiates the fork must perform the sync. Therefore, it waits for all spawned work to be complete.<br />
+The descriptor for block A was created.<br />
+When stealing from the initial thread happens, a descriptor for that stolen work is created to track the number of outstanding spawns for the block and the number of those that have completed.<br />
+When all the child spawned for the block is done, this block is considered done, and the descriptor is free. When all the blocks are done, sync is fulfilled.</p>
 </li>
 <li>
 <p>Another way to implement sync is the greedy policy.<br />
-When thread that initiates the fork goes idle, it can look to steal new work.  Last thread to reach the join point continues execution after sync. This will also create a decriptor for those stolen work.<br />
-Worker thread that initiated spawn may not be thread that executes logic after <code>cilk_sync</code>.</p>
+When the thread that initiates the fork goes idle, it can look to steal new work.  The last thread to reach the join point continues execution after sync. This will also create a descriptor for those stolen works.<br />
+The worker thread that initiated spawn may not be the thread that executes logic after <code>cilk_sync</code>.</p>
 </li>
 <li>
-<p>In greedy policy, All threads always attempt to steal if there is nothing to do, and thread only goes idle if no work to steal is present in system. But in stalling policy, the initial thread doesn’t steal, and only waits when its work is done.</p>
+<p>In greed policy, All threads always attempt to steal if there is nothing to do, and the thread only goes idle if no work to steal is present in the system. But in stalling policy, the initial thread doesn’t steal and only waits until its work is done.</p>
 </li>
 <li>
-<p>Overhead of bookkeeping steals and managing sync points only occurs when steals occur. If large pieces of work are stolen, this should occur infrequently. Most of the time, threads are pushing/popping local work from their local dequeue.</p>
+<p>The overhead of bookkeeping steals and managing sync points only occurs when steals occur. If large pieces of work are stolen, this should occur infrequently. Most of the time, threads push/pop local work from their local queue.</p>
 </li>
 <li>
 <p>Cilk uses greedy join scheduling.</p>

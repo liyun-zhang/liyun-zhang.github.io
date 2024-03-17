@@ -20,18 +20,18 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="What is the difference between OLTP and OLAP? 2-Phase Commit (2PC)  What is the procedure of 2PC? What would happen if some nodes crash during 2PC? How to recover from crash during 2PC? How can we op">
+    <meta name="description" content="What is the difference between OLTP and OLAP? 2-Phase Commit (2PC)  What is the procedure of 2PC? What would happen if some nodes crash during 2PC? How to recover from a crash during 2PC? How can we">
 <meta property="og:type" content="article">
 <meta property="og:title" content="16 Distributed OLTP Databases">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/09/02/Courses/15445/16-Distributed-OLTP-Databases/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="What is the difference between OLTP and OLAP? 2-Phase Commit (2PC)  What is the procedure of 2PC? What would happen if some nodes crash during 2PC? How to recover from crash during 2PC? How can we op">
+<meta property="og:description" content="What is the difference between OLTP and OLAP? 2-Phase Commit (2PC)  What is the procedure of 2PC? What would happen if some nodes crash during 2PC? How to recover from a crash during 2PC? How can we">
 <meta property="og:locale">
 <meta property="article:published_time" content="2023-09-01T16:02:00.000Z">
-<meta property="article:modified_time" content="2023-09-26T06:01:19.343Z">
+<meta property="article:modified_time" content="2024-03-16T08:55:17.156Z">
 <meta property="article:author" content="LiyunZhang">
-<meta property="article:tag" content="Database System">
 <meta property="article:tag" content="Distributed System">
+<meta property="article:tag" content="Database System">
 <meta name="twitter:card" content="summary">
 
 
@@ -140,7 +140,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#what-is-the-difference-between-oltp-and-olap"><span class="nav-number">1.</span> <span class="nav-text"> What is the difference between OLTP and OLAP?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-phase-commit-2pc"><span class="nav-number">2.</span> <span class="nav-text"> 2-Phase Commit (2PC)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-the-procedure-of-2pc"><span class="nav-number">2.1.</span> <span class="nav-text"> What is the procedure of 2PC?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-would-happen-if-some-nodes-crash-during-2pc"><span class="nav-number">2.2.</span> <span class="nav-text"> What would happen if some nodes crash during 2PC?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-recover-from-crash-during-2pc"><span class="nav-number">2.3.</span> <span class="nav-text"> How to recover from crash during 2PC?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-we-optimize-2pc-to-reduce-communication"><span class="nav-number">2.4.</span> <span class="nav-text"> How can we optimize 2PC to reduce communication?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-the-difference-betwen-2pc-and-paxos"><span class="nav-number">2.5.</span> <span class="nav-text"> What is the difference betwen 2PC and Paxos?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#replication"><span class="nav-number">3.</span> <span class="nav-text"> Replication</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-we-execute-readwrite-with-replication"><span class="nav-number">3.1.</span> <span class="nav-text"> How can we execute read&#x2F;write with replication?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#when-should-notify-application-of-result"><span class="nav-number">3.2.</span> <span class="nav-text"> When should notify application of result?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#when-should-propagate-updates-between-nodes"><span class="nav-number">3.3.</span> <span class="nav-text"> When should propagate updates between nodes?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-should-be-sent-to-the-followers"><span class="nav-number">3.4.</span> <span class="nav-text"> What should be sent to the followers?</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#what-is-the-difference-between-oltp-and-olap"><span class="nav-number">1.</span> <span class="nav-text"> What is the difference between OLTP and OLAP?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-phase-commit-2pc"><span class="nav-number">2.</span> <span class="nav-text"> 2-Phase Commit (2PC)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-the-procedure-of-2pc"><span class="nav-number">2.1.</span> <span class="nav-text"> What is the procedure of 2PC?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-would-happen-if-some-nodes-crash-during-2pc"><span class="nav-number">2.2.</span> <span class="nav-text"> What would happen if some nodes crash during 2PC?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-recover-from-a-crash-during-2pc"><span class="nav-number">2.3.</span> <span class="nav-text"> How to recover from a crash during 2PC?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-we-optimize-2pc-to-reduce-communication"><span class="nav-number">2.4.</span> <span class="nav-text"> How can we optimize 2PC to reduce communication?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-the-difference-between-2pc-and-paxos"><span class="nav-number">2.5.</span> <span class="nav-text"> What is the difference between 2PC and Paxos?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#replication"><span class="nav-number">3.</span> <span class="nav-text"> Replication</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-we-execute-readwrite-with-replication"><span class="nav-number">3.1.</span> <span class="nav-text"> How can we execute read&#x2F;write with replication?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#when-should-notify-the-application-of-the-result"><span class="nav-number">3.2.</span> <span class="nav-text"> When should notify the application of the result?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#when-should-propagate-updates-between-nodes"><span class="nav-number">3.3.</span> <span class="nav-text"> When should propagate updates between nodes?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-should-be-sent-to-the-followers"><span class="nav-number">3.4.</span> <span class="nav-text"> What should be sent to the followers?</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -153,7 +153,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">62</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -227,7 +227,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-09-26 14:01:19" itemprop="dateModified" datetime="2023-09-26T14:01:19+08:00">2023-09-26</time>
+      <time title="Modified: 2024-03-16 16:55:17" itemprop="dateModified" datetime="2024-03-16T16:55:17+08:00">2024-03-16</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -258,15 +258,15 @@
 <ul>
 <li><a href="#what-is-the-procedure-of-2pc">What is the procedure of 2PC?</a></li>
 <li><a href="#what-would-happen-if-some-nodes-crash-during-2pc">What would happen if some nodes crash during 2PC?</a></li>
-<li><a href="#how-to-recover-from-crash-during-2pc">How to recover from crash during 2PC?</a></li>
+<li><a href="#how-to-recover-from-a-crash-during-2pc">How to recover from a crash during 2PC?</a></li>
 <li><a href="#how-can-we-optimize-2pc-to-reduce-communication">How can we optimize 2PC to reduce communication?</a></li>
-<li><a href="#what-is-the-difference-betwen-2pc-and-paxos">What is the difference betwen 2PC and Paxos?</a></li>
+<li><a href="#what-is-the-difference-between-2pc-and-paxos">What is the difference between 2PC and Paxos?</a></li>
 </ul>
 </li>
 <li><a href="#replication">Replication</a>
 <ul>
 <li><a href="#how-can-we-execute-readwrite-with-replication">How can we execute read/write with replication?</a></li>
-<li><a href="#when-should-notify-application-of-result">When should notify application of result?</a></li>
+<li><a href="#when-should-notify-the-application-of-the-result">When should notify the application of the result?</a></li>
 <li><a href="#when-should-propagate-updates-between-nodes">When should propagate updates between nodes?</a></li>
 <li><a href="#what-should-be-sent-to-the-followers">What should be sent to the followers?</a></li>
 </ul>
@@ -275,47 +275,47 @@
 </p>
 <h1 id="what-is-the-difference-between-oltp-and-olap"><a class="markdownIt-Anchor" href="#what-is-the-difference-between-oltp-and-olap"></a> What is the difference between OLTP and OLAP?</h1>
 <ol>
-<li>OLTP is the front-end databases that communicate and interact with the outside world, e.g. applications. And OLAP is the back-end databases that used to analyze the data in those front-end databases.</li>
-<li>OLTP often executes repetitive short-lived read/write txns, while OLAP executes long-running, read-only queries involving complex joins.</li>
-<li>Before going into OLAP system, data in OLTP databases need an intermediate step called ETL, or Extract, Transform, and Load, which combines the OLTP databases into a universal schema for the data warehouse.</li>
+<li>OLTP is the front-end database communicating and interacting with the outside world, e.g., applications. OLAP is the back-end database used to analyze the data in those front-end databases.</li>
+<li>OLTP often executes repetitive, short-lived read/write transactions, while OLAP executes long-running, read-only queries involving complex joins.</li>
+<li>Before going into the OLAP system, data in OLTP databases need an intermediate step called ETL, or Extract, Transform, and Load, which combines the OLTP databases into a universal schema for the data warehouse.</li>
 </ol>
 <h1 id="2-phase-commit-2pc"><a class="markdownIt-Anchor" href="#2-phase-commit-2pc"></a> 2-Phase Commit (2PC)</h1>
 <h2 id="what-is-the-procedure-of-2pc"><a class="markdownIt-Anchor" href="#what-is-the-procedure-of-2pc"></a> What is the procedure of 2PC?</h2>
 <ol>
-<li>When application sends a commit request to the coordinator, the coordinator tells other nodes to go into the first phase, prepare phase.</li>
-<li>When participants are ready, they will reply to the coordinator with acknowledgement.</li>
-<li>If the coordinator receives acknoledgement from all participants, they can begin the second phase, commit phase.
+<li>When an application sends a commit request to the coordinator, the coordinator tells other nodes to go into the first phase, the preparation phase.</li>
+<li>When participants are ready, they will reply to the coordinator with acknowledgment.</li>
+<li>If the coordinator receives an acknowledgment from all participants, they can begin the second commit phase.
 <ul>
-<li>And the coordinator will response to application with success after receiving all acknowledgement of commit phase from all participants.</li>
+<li>The coordinator will respond to the application successfully after receiving all participants’ acknowledgment of the commit phase.</li>
 </ul>
 </li>
-<li>If the coordinator receives abort messages from any of the participants, the coordinator responses to application with abort message and begins the abort phase.
+<li>If the coordinator receives abort messages from any participants, the coordinator responds to the application with an abort message and begins the abort phase.
 <ul>
-<li>As usual, participants need to reply acknowledgement to coordinator in abort phase.</li>
+<li>As usual, participants need to reply with acknowledgment to the coordinator in the abort phase.</li>
 </ul>
 </li>
 </ol>
 <h2 id="what-would-happen-if-some-nodes-crash-during-2pc"><a class="markdownIt-Anchor" href="#what-would-happen-if-some-nodes-crash-during-2pc"></a> What would happen if some nodes crash during 2PC?</h2>
 <ol>
-<li>If the coordinator crashes, participants must decide what to do after a timeout, either abort or elect a new coordinator.
+<li>If the coordinator crashes, participants must decide what to do after a timeout: either abort or elect a new coordinator.
 <ul>
 <li>The system is not available during this timeout.</li>
 </ul>
 </li>
-<li>If one of the participants crashes, coordinator assumes that it responded with an abort if it hasn’t sent an acknowledgement yet.
+<li>If one of the participants crashes, the coordinator assumes it responded with an abort if it hasn’t sent an acknowledgment yet.
 <ul>
-<li>Nodes use a timeout to determine that participant is dead.</li>
+<li>Nodes use a timeout to determine that the participant is dead.</li>
 </ul>
 </li>
 </ol>
-<h2 id="how-to-recover-from-crash-during-2pc"><a class="markdownIt-Anchor" href="#how-to-recover-from-crash-during-2pc"></a> How to recover from crash during 2PC?</h2>
+<h2 id="how-to-recover-from-a-crash-during-2pc"><a class="markdownIt-Anchor" href="#how-to-recover-from-a-crash-during-2pc"></a> How to recover from a crash during 2PC?</h2>
 <ol>
-<li>Each node records the inbound/outbound messages and outcome of each phase in a non-volatile storage log.</li>
-<li>On recovery, examine the log for 2PC messages
+<li>Each node records each phase’s inbound/outbound messages and outcomes in a non-volatile storage log.</li>
+<li>On recovery, examine the log for 2PC messages.
 <ul>
-<li>If local txn in prepared state, contact coordinator.</li>
-<li>If local txn not in prepared, abort it.</li>
-<li>If local txn was committing and node is the coordinator, send <code>COMMIT</code> message to nodes.</li>
+<li>If the local transaction is prepared, contact the coordinator.</li>
+<li>If the local transaction is not prepared, abort it.</li>
+<li>If the local transaction is committed and the node is the coordinator, send a <code>COMMIT</code> message to nodes.</li>
 </ul>
 </li>
 </ol>
@@ -324,18 +324,18 @@
 <li>The first method is early prepare voting.
 <ul>
 <li>If you send a query to a remote node that you know will be the last one you execute there, then that node will also return their vote for the prepare phase with the query result.</li>
-<li>This is rare due to rarely write database application with the idea of last query.</li>
-<li>However, this can be used in RPC sorts of things where we can sure that this process will terminate after executed certain query.</li>
+<li>This is rare because database applications are rarely written with the idea of the last query.</li>
+<li>However, this can be used in RPC sorts of things where we can be sure that this process will terminate after executing a certain query.</li>
 </ul>
 </li>
-<li>The second method is early ACK after prepare.
+<li>The second method is early ACK after preparation.
 <ul>
-<li>If all nodes vote to commit a txn, the coordinator can send the client an acknowledgement that their txn was successful before the commit phase finishes, i.e. send acknowledgement to client after receiving all acknowledgement from participants.</li>
-<li>This could cause a small windown of client receiving success, yet cannot see modifications from servers due to commit phase is not finished yet.</li>
+<li>Suppose all nodes vote to commit a transaction. In that case, the coordinator can send the client an acknowledgment that their transaction was successful before the commit phase finishes, i.e., send an acknowledgment to the client after receiving all participant acknowledgments.</li>
+<li>This could cause a small window of clients receiving success yet not seeing modifications from servers because the commit phase is not yet finished.</li>
 </ul>
 </li>
 </ol>
-<h2 id="what-is-the-difference-betwen-2pc-and-paxos"><a class="markdownIt-Anchor" href="#what-is-the-difference-betwen-2pc-and-paxos"></a> What is the difference betwen 2PC and Paxos?</h2>
+<h2 id="what-is-the-difference-between-2pc-and-paxos"><a class="markdownIt-Anchor" href="#what-is-the-difference-between-2pc-and-paxos"></a> What is the difference between 2PC and Paxos?</h2>
 <ol>
 <li>2-phase commit is a degenerate case of Paxos.
 <ul>
@@ -343,10 +343,10 @@
 <li>2-phase commit sets <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F = 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>.</li>
 </ul>
 </li>
-<li>2-phase commit blocks if coordinator fails after the prepare message is sent, until coordinator recovers.<br />
-Paxos remains non-blocking if a majority participants are alive, provided there is a sufficiently long period without further failures.</li>
-<li>2-phase commit requires all nodes to agree on the commit while Paxos only requires majority agreement.</li>
-<li>In 2-phase commit, each node may have different data, executing different commands. However, in Paxos, all nodes are only replications.</li>
+<li>2-phase commit blocks if the coordinator fails after the prepared message is sent until the coordinator recovers.<br />
+Paxos remains non-blocking if a majority of participants are alive, provided there is a sufficiently long period without further failures.</li>
+<li>A 2-phase commit requires all nodes to agree on the commit, while Paxos only requires majority agreement.</li>
+<li>In a 2-phase commit, each node may have different data, executing different commands. However, in Paxos, all nodes are only replications.</li>
 </ol>
 <h1 id="replication"><a class="markdownIt-Anchor" href="#replication"></a> Replication</h1>
 <h2 id="how-can-we-execute-readwrite-with-replication"><a class="markdownIt-Anchor" href="#how-can-we-execute-readwrite-with-replication"></a> How can we execute read/write with replication?</h2>
@@ -354,28 +354,28 @@ Paxos remains non-blocking if a majority participants are alive, provided there 
 <li>The first approach is primary-replica.
 <ul>
 <li>All updates go to a designated primary for each object. The primary propagates updates to its replicas without an atomic commit protocol.</li>
-<li>Read-only txns may be allowed to access replicas.</li>
+<li>Read-only transactions may allow access to replicas.</li>
 <li>If the primary goes down, then hold an election to select a new primary.</li>
 </ul>
 </li>
 <li>The second approach is multi-primary.
 <ul>
-<li>Txns can update data objects at any replica.</li>
+<li>Transactions can update data objects at any replica.</li>
 <li>Replicas must synchronize with each other using an atomic commit protocol.</li>
 </ul>
 </li>
 </ol>
-<h2 id="when-should-notify-application-of-result"><a class="markdownIt-Anchor" href="#when-should-notify-application-of-result"></a> When should notify application of result?</h2>
+<h2 id="when-should-notify-the-application-of-the-result"><a class="markdownIt-Anchor" href="#when-should-notify-the-application-of-the-result"></a> When should notify the application of the result?</h2>
 <ol>
-<li>When a txn commits on a replicated database, the DBMS decides whether it must wait for that txn’s changes to propagate to other nodes before it can send the acknowledgement to application.</li>
+<li>When a transaction is committed on a replicated database, the DBMS decides whether to wait for its changes to propagate to other nodes before sending the acknowledgment to the application.</li>
 <li>The first propagation level is synchronous, which leads to strong consistency.
 <ul>
-<li>The primary sends updates to replicas and then waits for them to acknowledge that they fully applied (i.e., logged) the changes before sending acknowledgement to application.</li>
+<li>The primary sends updates to replicas and then waits for them to acknowledge that they fully applied (i.e., logged) the changes before sending an acknowledgment to the application.</li>
 </ul>
 </li>
 <li>The second propagation level is asynchronous, which leads to eventual consistency.
 <ul>
-<li>The primary immediately returns the acknowledgement to the client without waiting for replicas to apply the changes.</li>
+<li>The primary immediately returns the acknowledgment to the client without waiting for replicas to apply the changes.</li>
 </ul>
 </li>
 </ol>
@@ -387,11 +387,11 @@ Paxos remains non-blocking if a majority participants are alive, provided there 
 <li>It also needs to send a commit/abort message.</li>
 </ul>
 </li>
-<li>The second approach is on commit.
+<li>The second approach is to commit.
 <ul>
-<li>The DBMS only sends the log messages for a txn to the replicas once the txn is commits.</li>
-<li>Do not waste time sending log records for aborted txns.</li>
-<li>It assumes that a txn’s log records fits entirely in memory.</li>
+<li>The DBMS only sends the log messages for a transaction to the replicas once the transaction is committed.</li>
+<li>Do not waste time sending log records for aborted transactions.</li>
+<li>It assumes that a transaction’s log records fit entirely in memory.</li>
 </ul>
 </li>
 </ol>
@@ -399,13 +399,13 @@ Paxos remains non-blocking if a majority participants are alive, provided there 
 <ol>
 <li>The first choice is active-active.
 <ul>
-<li>A txn executes at each replica independently.</li>
-<li>Need to check at the end whether the txn ends up with the same result at each replica.</li>
+<li>A transaction executes at each replica independently.</li>
+<li>Check at the end whether the transaction ends with the same result at each replica.</li>
 </ul>
 </li>
 <li>The second choice is active-passive.
 <ul>
-<li>Each txn executes at a single location and propagates the changes to the replica.</li>
+<li>Each transaction executes at a single location and propagates the changes to the replica.</li>
 <li>Can either do physical or logical replication.</li>
 </ul>
 </li>
@@ -419,8 +419,8 @@ Paxos remains non-blocking if a majority participants are alive, provided there 
 
     <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Database-System/" rel="tag"><i class="fa fa-tag"></i> Database System</a>
               <a href="/tags/Distributed-System/" rel="tag"><i class="fa fa-tag"></i> Distributed System</a>
+              <a href="/tags/Database-System/" rel="tag"><i class="fa fa-tag"></i> Database System</a>
           </div>
 
         

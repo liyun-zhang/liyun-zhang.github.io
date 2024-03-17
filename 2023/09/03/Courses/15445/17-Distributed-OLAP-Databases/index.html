@@ -20,18 +20,18 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="How should we divide tables? Execution models  How to execute when required data are in different nodes? How to handle query fault? When pushing query to data, what are the queries?   Distributed Joi">
+    <meta name="description" content="How should we divide tables? Execution models  How to execute when required data are in different nodes? How to handle query faults? When pushing a query to data, what are the queries?   Distributed">
 <meta property="og:type" content="article">
 <meta property="og:title" content="17 Distributed OLAP Databases">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/09/03/Courses/15445/17-Distributed-OLAP-Databases/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="How should we divide tables? Execution models  How to execute when required data are in different nodes? How to handle query fault? When pushing query to data, what are the queries?   Distributed Joi">
+<meta property="og:description" content="How should we divide tables? Execution models  How to execute when required data are in different nodes? How to handle query faults? When pushing a query to data, what are the queries?   Distributed">
 <meta property="og:locale">
 <meta property="article:published_time" content="2023-09-03T04:05:46.000Z">
-<meta property="article:modified_time" content="2023-09-26T06:01:27.814Z">
+<meta property="article:modified_time" content="2024-03-16T09:00:07.224Z">
 <meta property="article:author" content="LiyunZhang">
-<meta property="article:tag" content="Database System">
 <meta property="article:tag" content="Distributed System">
+<meta property="article:tag" content="Database System">
 <meta name="twitter:card" content="summary">
 
 
@@ -140,7 +140,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#how-should-we-divide-tables"><span class="nav-number">1.</span> <span class="nav-text"> How should we divide tables?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#execution-models"><span class="nav-number">2.</span> <span class="nav-text"> Execution models</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-execute-when-required-data-are-in-different-nodes"><span class="nav-number">2.1.</span> <span class="nav-text"> How to execute when required data are in different nodes?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-handle-query-fault"><span class="nav-number">2.2.</span> <span class="nav-text"> How to handle query fault?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#when-pushing-query-to-data-what-are-the-queries"><span class="nav-number">2.3.</span> <span class="nav-text"> When pushing query to data, what are the queries?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#distributed-join-algorithms"><span class="nav-number">3.</span> <span class="nav-text"> Distributed Join Algorithms</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-perform-distributed-joins"><span class="nav-number">3.1.</span> <span class="nav-text"> How to perform distributed joins?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-semi-join"><span class="nav-number">3.2.</span> <span class="nav-text"> What is semi-join?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#cloud-systems"><span class="nav-number">4.</span> <span class="nav-text"> Cloud systems</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-the-difference-for-dbmss-running-in-cloud-systems"><span class="nav-number">4.1.</span> <span class="nav-text"> What is the difference for DBMSs running in cloud systems?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-store-data-of-different-schema"><span class="nav-number">4.2.</span> <span class="nav-text"> How to store data of different schema?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-share-data-between-systems"><span class="nav-number">4.3.</span> <span class="nav-text"> How to share data between systems?</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#how-should-we-divide-tables"><span class="nav-number">1.</span> <span class="nav-text"> How should we divide tables?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#execution-models"><span class="nav-number">2.</span> <span class="nav-text"> Execution models</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-execute-when-required-data-are-in-different-nodes"><span class="nav-number">2.1.</span> <span class="nav-text"> How to execute when required data are in different nodes?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-handle-query-faults"><span class="nav-number">2.2.</span> <span class="nav-text"> How to handle query faults?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#when-pushing-a-query-to-data-what-are-the-queries"><span class="nav-number">2.3.</span> <span class="nav-text"> When pushing a query to data, what are the queries?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#distributed-join-algorithms"><span class="nav-number">3.</span> <span class="nav-text"> Distributed Join Algorithms</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-perform-distributed-joins"><span class="nav-number">3.1.</span> <span class="nav-text"> How to perform distributed joins?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-semi-join"><span class="nav-number">3.2.</span> <span class="nav-text"> What is semi-join?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#cloud-systems"><span class="nav-number">4.</span> <span class="nav-text"> Cloud systems</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-the-difference-for-dbmss-running-in-cloud-systems"><span class="nav-number">4.1.</span> <span class="nav-text"> What is the difference for DBMSs running in cloud systems?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-store-data-of-different-schema"><span class="nav-number">4.2.</span> <span class="nav-text"> How to store data of different schema?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-share-data-between-systems"><span class="nav-number">4.3.</span> <span class="nav-text"> How to share data between systems?</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -153,7 +153,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">62</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -227,7 +227,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-09-26 14:01:27" itemprop="dateModified" datetime="2023-09-26T14:01:27+08:00">2023-09-26</time>
+      <time title="Modified: 2024-03-16 17:00:07" itemprop="dateModified" datetime="2024-03-16T17:00:07+08:00">2024-03-16</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -257,8 +257,8 @@
 <li><a href="#execution-models">Execution models</a>
 <ul>
 <li><a href="#how-to-execute-when-required-data-are-in-different-nodes">How to execute when required data are in different nodes?</a></li>
-<li><a href="#how-to-handle-query-fault">How to handle query fault?</a></li>
-<li><a href="#when-pushing-query-to-data-what-are-the-queries">When pushing query to data, what are the queries?</a></li>
+<li><a href="#how-to-handle-query-faults">How to handle query faults?</a></li>
+<li><a href="#when-pushing-a-query-to-data-what-are-the-queries">When pushing a query to data, what are the queries?</a></li>
 </ul>
 </li>
 <li><a href="#distributed-join-algorithms">Distributed Join Algorithms</a>
@@ -278,17 +278,17 @@
 </p>
 <h1 id="how-should-we-divide-tables"><a class="markdownIt-Anchor" href="#how-should-we-divide-tables"></a> How should we divide tables?</h1>
 <ol>
-<li>The first schema is star schema.
+<li>The first schema is the star schema.
 <ul>
 <li>Star schemas contain two types of tables: fact tables and dimension tables.</li>
-<li>The fact table contains multiple “events” that occur in the application. It will contain the minimal unique information per event.</li>
-<li>The rest of the attributes will be foreign key references to outer dimension tables.</li>
-<li>In a star schema, there can only be one dimension-level out from the fact table.</li>
+<li>The fact table contains multiple “events” that occur in the application. It will contain minimal unique information per event.</li>
+<li>The remaining attributes will be foreign key references to outer dimension tables.</li>
+<li>In a star schema, there can only be one dimension-level out of the fact table.</li>
 </ul>
 </li>
-<li>The second schema is snowflake schema.
+<li>The second schema is the snowflake schema.
 <ul>
-<li>It allows for more than one dimension out from the fact table.</li>
+<li>It allows for more than one dimension out of the fact table.</li>
 </ul>
 </li>
 <li>Snowflake schemas take up less storage space. Denormalized data models may incur integrity and consistency violations.</li>
@@ -297,28 +297,28 @@
 <h1 id="execution-models"><a class="markdownIt-Anchor" href="#execution-models"></a> Execution models</h1>
 <h2 id="how-to-execute-when-required-data-are-in-different-nodes"><a class="markdownIt-Anchor" href="#how-to-execute-when-required-data-are-in-different-nodes"></a> How to execute when required data are in different nodes?</h2>
 <ol>
-<li>The first approach is to push query to data.
+<li>The first approach is to push the query to data.
 <ul>
 <li>Send the query (or a portion of it) to the node that contains the data.</li>
-<li>The result is then sent back to where the query is being executed, which uses local data and the data sent to it, to complete the query.</li>
-<li>Perform as much filtering and processing as possible where data resides before transmitting over network.</li>
-<li>This is more common in a shared nothing system.</li>
+<li>The result is then sent back to where the query is being executed, which uses local data and the data sent to it to complete the query.</li>
+<li>Perform as much filtering and processing as possible where data resides before transmitting over the network.</li>
+<li>This is more common in a shared-nothing system.</li>
 </ul>
 </li>
 <li>The second approach is to pull data to query.
 <ul>
-<li>Bring the data to the node that is executing a query that needs it for processing.</li>
-<li>This is normally what a shared disk system would do.</li>
-<li>The problem with this is that the size of the data relative to the size of the query could be very different.</li>
+<li>Bring the data to the node and execute a query that needs processing.</li>
+<li>This usually is what a shared disk system would do.</li>
+<li>The problem with this is that the data size relative to the query size could be very different.</li>
 </ul>
 </li>
 </ol>
-<h2 id="how-to-handle-query-fault"><a class="markdownIt-Anchor" href="#how-to-handle-query-fault"></a> How to handle query fault?</h2>
+<h2 id="how-to-handle-query-faults"><a class="markdownIt-Anchor" href="#how-to-handle-query-faults"></a> How to handle query faults?</h2>
 <ol>
-<li>The data that a node receives from remote sources are cached in the buffer pool.
+<li>The data a node receives from remote sources is cached in the buffer pool.
 <ul>
-<li>When buffer pool run out of memory, the DBMS can write some pages out to disk in some ephemeral pages.</li>
-<li>This allows the DBMS to support intermediate results that are large than the amount of memory available.</li>
+<li>When the buffer pool runs out of memory, the DBMS can write some pages out to disk in some ephemeral pages.</li>
+<li>This allows the DBMS to support intermediate results larger than the amount of memory available.</li>
 <li>Ephemeral pages are not persisted after a restart.</li>
 </ul>
 </li>
@@ -329,24 +329,24 @@
 </li>
 <li>The DBMS could take a snapshot of the intermediate results for a query during execution to allow it to recover if nodes fail.
 <ul>
-<li>Most of the DMBSs do not want to pay the penalty of writing intermediate results to disk for quick queries.</li>
+<li>Most DMBSs do not want to pay the penalty of writing intermediate results to disk for quick queries.</li>
 <li>This is adopted if the query takes a long time.</li>
 </ul>
 </li>
 <li>In shared-disk distributed OLAP DMBSs, they can write results to the shared disk to prevent performing the same calculation again. However, the frequency of writing to disk is also a trade-off.</li>
 </ol>
-<h2 id="when-pushing-query-to-data-what-are-the-queries"><a class="markdownIt-Anchor" href="#when-pushing-query-to-data-what-are-the-queries"></a> When pushing query to data, what are the queries?</h2>
+<h2 id="when-pushing-a-query-to-data-what-are-the-queries"><a class="markdownIt-Anchor" href="#when-pushing-a-query-to-data-what-are-the-queries"></a> When pushing a query to data, what are the queries?</h2>
 <ol>
 <li>The DBMSs only need to push fragments of the query instead of the whole query.</li>
 <li>The first approach is pushing physical operators.
 <ul>
-<li>Generate a single query plan and then break it up into partition-specific  fragments.</li>
+<li>Generate a single query plan and then break it up into partition-specific fragments.</li>
 <li>Most systems implement this approach.</li>
 </ul>
 </li>
 <li>The second approach is pushing another SQL query.
 <ul>
-<li>The DBMS will rewrite original query into partition-specific queries.</li>
+<li>The DBMS will rewrite the original query into partition-specific queries.</li>
 <li>This approach allows for local optimization at each node.</li>
 </ul>
 </li>
@@ -360,16 +360,16 @@
 <li>It has expensive data transferring over the network.</li>
 </ul>
 </li>
-<li>To join tables, the DBMS needs to get the proper tuples on the same node. Once the data is at the node, the DBMS then executes the single-node join algorithms.</li>
+<li>The DBMS needs to get the proper tuples on the same node to join tables. The DBMS executes the single-node join algorithms once the data is at the node.</li>
 <li>The best scenario is that one table is replicated at every node.
 <ul>
-<li>Each node joins its local data in parallel and then sends their results to a coordinating node.</li>
+<li>Each node joins its local data in parallel and then sends its results to a coordinating node.</li>
 </ul>
 </li>
 <li>The second scenario is that tables are partitioned on the join attribute.
 <ul>
-<li>Each node only needs to acquire tuples of the second table that will match the tuples of the left table that are already in it.</li>
-<li>Each node performs the join on local data and then sends to a coordinator node for coalescing.</li>
+<li>Each node only needs to acquire tuples of the second table that will match the tuples of the left table already in it.</li>
+<li>Each node performs the join on local data and then sends it to a coordinator node for coalescing.</li>
 </ul>
 </li>
 <li>The third scenario is that both tables are partitioned on different keys while one of the tables is small.
@@ -377,7 +377,7 @@
 <li>The DBMS will broadcast that table to all nodes.</li>
 </ul>
 </li>
-<li>The worst scenario is that both tables are not partitioned on the join key.
+<li>The worst scenario is that neither table is partitioned on the join key.
 <ul>
 <li>The DBMS copies the tables by shuffling them across nodes.</li>
 </ul>
@@ -385,11 +385,11 @@
 </ol>
 <h2 id="what-is-semi-join"><a class="markdownIt-Anchor" href="#what-is-semi-join"></a> What is semi-join?</h2>
 <ol>
-<li>If the result only contains columns sfrom the left table, the DBMSs use semi-join to minimize the amount of data sent during joins.</li>
+<li>If the result only contains columns from the left table, the DBMSs use semi-join to minimize the amount of data sent during joins.</li>
 <li>This is like a projection pushdown. The DBMS transmits only the necessary columns of the left table to other nodes.</li>
 <li>For DBMSs that do not support <code>SEMI JOIN</code>, we can fake it with <code>EXISTS</code>.
 <ul>
-<li>Wrap the predicates of <code>WHERE</code>  clause with <code>EXISTS (SELECT 1 from S WHERE predicates)</code>.</li>
+<li>Wrap the <code>WHERE</code> clause predicates with <code>EXISTS (SELECT 1 from S WHERE predicates)</code>.</li>
 </ul>
 </li>
 </ol>
@@ -407,19 +407,19 @@
 <li>Usually based on a shared-disk architecture.</li>
 </ul>
 </li>
-<li>A “serverless” DBMS evicts tenants when they become idle, rather than always maintaining compute resources for each customer.</li>
+<li>A “serverless” DBMS evicts tenants when they become idle rather than always maintaining compute resources for each customer.</li>
 </ol>
 <h2 id="how-to-store-data-of-different-schema"><a class="markdownIt-Anchor" href="#how-to-store-data-of-different-schema"></a> How to store data of different schema?</h2>
 <ol>
-<li>A Data Lake is a centralized repository for storing large amounts of structured, semi-structured, and un- structured data without having to define a schema or ingest the data into proprietary internal formats.</li>
-<li>Data lakes are usually faster at ingesting data, as they do not require transformation right away. Yet, when they are fetching data, they need to look up the catalog before transforming data into the desired schema.</li>
-<li>They do require the user to write their own transformation piplines.</li>
+<li>A Data Lake is a centralized repository for storing large amounts of structured, semi-structured, and unstructured data without defining a schema or ingesting the data into proprietary internal formats.</li>
+<li>Data lakes are usually faster at ingesting data, as they do not immediately require transformation. Yet, when fetching data, they must look up the catalog before transforming it into the desired schema.</li>
+<li>They require the user to write their transformation pipelines.</li>
 </ol>
 <h2 id="how-to-share-data-between-systems"><a class="markdownIt-Anchor" href="#how-to-share-data-between-systems"></a> How to share data between systems?</h2>
 <ol>
 <li>Most DBMSs use a proprietary on-disk binary file format for their databases.</li>
 <li>The only way to share data between systems is to convert data into a common text-based format.</li>
-<li>There are new open-source binary file formats that make it easier to access data across systems.</li>
+<li>New open-source binary file formats make it easier to access data across systems.</li>
 </ol>
 
     </div>
@@ -430,8 +430,8 @@
 
     <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Database-System/" rel="tag"><i class="fa fa-tag"></i> Database System</a>
               <a href="/tags/Distributed-System/" rel="tag"><i class="fa fa-tag"></i> Distributed System</a>
+              <a href="/tags/Database-System/" rel="tag"><i class="fa fa-tag"></i> Database System</a>
           </div>
 
         

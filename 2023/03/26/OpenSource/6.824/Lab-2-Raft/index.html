@@ -20,15 +20,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Leader election  How to count the votes a candidate gets? How to does each server initial an election?   Log Replication  How does the leader sending log entries to followers? How to optimize the con">
+    <meta name="description" content="Leader election  How to count the votes a candidate gets? How does each server initial an election? How can we prevent partitioned followers from ending up in a high term?   Log Replication  How does">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Lab 2: Raft">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/03/26/OpenSource/6.824/Lab-2-Raft/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="Leader election  How to count the votes a candidate gets? How to does each server initial an election?   Log Replication  How does the leader sending log entries to followers? How to optimize the con">
+<meta property="og:description" content="Leader election  How to count the votes a candidate gets? How does each server initial an election? How can we prevent partitioned followers from ending up in a high term?   Log Replication  How does">
 <meta property="og:locale">
 <meta property="article:published_time" content="2023-03-26T05:57:11.000Z">
-<meta property="article:modified_time" content="2024-03-15T06:39:56.901Z">
+<meta property="article:modified_time" content="2024-03-17T03:28:50.632Z">
 <meta property="article:author" content="LiyunZhang">
 <meta property="article:tag" content="Distributed System">
 <meta property="article:tag" content="Distributed Storage">
@@ -141,7 +141,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#leader-election"><span class="nav-number">1.</span> <span class="nav-text"> Leader election</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-count-the-votes-a-candidate-gets"><span class="nav-number">1.1.</span> <span class="nav-text"> How to count the votes a candidate gets?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-does-each-server-initial-an-election"><span class="nav-number">1.2.</span> <span class="nav-text"> How to does each server initial an election?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#log-replication"><span class="nav-number">2.</span> <span class="nav-text"> Log Replication</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-does-the-leader-sending-log-entries-to-followers"><span class="nav-number">2.1.</span> <span class="nav-text"> How does the leader sending log entries to followers?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-optimize-the-consistency-check-protocol"><span class="nav-number">2.2.</span> <span class="nav-text"> How to optimize the consistency check protocol?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-should-a-follower-accept-log-entries-after-passing-all-consistency-check"><span class="nav-number">2.3.</span> <span class="nav-text"> How should a follower accept log entries after passing all consistency check?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-will-each-server-commit-index"><span class="nav-number">2.4.</span> <span class="nav-text"> How will each server commit index?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-do-the-leader-check-which-entries-can-be-committed"><span class="nav-number">2.5.</span> <span class="nav-text"> How do the leader check which entries can be committed?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-the-constraint-of-committing-uncommitted-entries-of-earlier-terms"><span class="nav-number">2.6.</span> <span class="nav-text"> What is the constraint of committing uncommitted entries of earlier terms?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#persistence"><span class="nav-number">3.</span> <span class="nav-text"> Persistence</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#when-will-persist-be-called"><span class="nav-number">3.1.</span> <span class="nav-text"> When will persist() be called?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#when-a-server-restarts-what-information-should-it-restore"><span class="nav-number">3.2.</span> <span class="nav-text"> When a server restarts, what information should it restore?**</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-invoke-persist"><span class="nav-number">3.3.</span> <span class="nav-text"> How to invoke persist()?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#log-compaction"><span class="nav-number">4.</span> <span class="nav-text"> Log compaction</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-deal-with-those-deleted-entries-when-a-server-restarts"><span class="nav-number">4.1.</span> <span class="nav-text"> How to deal with those deleted entries when a server restarts?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-take-a-snapshot"><span class="nav-number">4.2.</span> <span class="nav-text"> How to take a snapshot?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-install-a-snapshot"><span class="nav-number">4.3.</span> <span class="nav-text"> How to install a snapshot?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#optimizations"><span class="nav-number">5.</span> <span class="nav-text"> Optimizations</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-we-take-advantage-of-follower-nodes"><span class="nav-number">5.1.</span> <span class="nav-text"> How can we take advantage of follower nodes?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-we-prevent-partitioned-followers-end-up-in-a-high-term"><span class="nav-number">5.2.</span> <span class="nav-text"> How can we prevent partitioned followers end up in a high term?</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#leader-election"><span class="nav-number">1.</span> <span class="nav-text"> Leader election</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-count-the-votes-a-candidate-gets"><span class="nav-number">1.1.</span> <span class="nav-text"> How to count the votes a candidate gets?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-does-each-server-initial-an-election"><span class="nav-number">1.2.</span> <span class="nav-text"> How does each server initial an election?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-we-prevent-partitioned-followers-from-ending-up-in-a-high-term"><span class="nav-number">1.3.</span> <span class="nav-text"> How can we prevent partitioned followers from ending up in a high term?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#log-replication"><span class="nav-number">2.</span> <span class="nav-text"> Log Replication</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-does-the-leader-send-log-entries-to-followers"><span class="nav-number">2.1.</span> <span class="nav-text"> How does the leader send log entries to followers?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-optimize-the-consistency-check-protocol"><span class="nav-number">2.2.</span> <span class="nav-text"> How to optimize the consistency check protocol?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-should-a-follower-accept-log-entries-after-passing-all-consistency-checks"><span class="nav-number">2.3.</span> <span class="nav-text"> How should a follower accept log entries after passing all consistency checks?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-will-each-server-commit-an-index"><span class="nav-number">2.4.</span> <span class="nav-text"> How will each server commit an index?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-does-the-leader-check-which-entries-can-be-committed"><span class="nav-number">2.5.</span> <span class="nav-text"> How does the leader check which entries can be committed?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-the-constraint-of-committing-uncommitted-entries-of-earlier-terms"><span class="nav-number">2.6.</span> <span class="nav-text"> What is the constraint of committing uncommitted entries of earlier terms?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#persistence"><span class="nav-number">3.</span> <span class="nav-text"> Persistence</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#when-a-server-restarts-what-information-should-it-restore"><span class="nav-number">3.1.</span> <span class="nav-text"> When a server restarts, what information should it restore?**</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#when-will-invoke-persist"><span class="nav-number">3.2.</span> <span class="nav-text"> When will invoke persist()?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#log-compaction"><span class="nav-number">4.</span> <span class="nav-text"> Log compaction</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-deal-with-those-deleted-entries-when-a-server-restarts"><span class="nav-number">4.1.</span> <span class="nav-text"> How to deal with those deleted entries when a server restarts?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-take-a-snapshot"><span class="nav-number">4.2.</span> <span class="nav-text"> How to take a snapshot?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-install-a-snapshot"><span class="nav-number">4.3.</span> <span class="nav-text"> How to install a snapshot?</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -154,7 +154,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">62</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -228,7 +228,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-15 14:39:56" itemprop="dateModified" datetime="2024-03-15T14:39:56+08:00">2024-03-15</time>
+      <time title="Modified: 2024-03-17 11:28:50" itemprop="dateModified" datetime="2024-03-17T11:28:50+08:00">2024-03-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -257,24 +257,24 @@
 <li><a href="#leader-election">Leader election</a>
 <ul>
 <li><a href="#how-to-count-the-votes-a-candidate-gets">How to count the votes a candidate gets?</a></li>
-<li><a href="#how-to-does-each-server-initial-an-election">How to does each server initial an election?</a></li>
+<li><a href="#how-does-each-server-initial-an-election">How does each server initial an election?</a></li>
+<li><a href="#how-can-we-prevent-partitioned-followers-from-ending-up-in-a-high-term">How can we prevent partitioned followers from ending up in a high term?</a></li>
 </ul>
 </li>
 <li><a href="#log-replication">Log Replication</a>
 <ul>
-<li><a href="#how-does-the-leader-sending-log-entries-to-followers">How does the leader sending log entries to followers?</a></li>
+<li><a href="#how-does-the-leader-send-log-entries-to-followers">How does the leader send log entries to followers?</a></li>
 <li><a href="#how-to-optimize-the-consistency-check-protocol">How to optimize the consistency check protocol?</a></li>
-<li><a href="#how-should-a-follower-accept-log-entries-after-passing-all-consistency-check">How should a follower accept log entries after passing all consistency check?</a></li>
-<li><a href="#how-will-each-server-commit-index">How will each server commit index?</a></li>
-<li><a href="#how-do-the-leader-check-which-entries-can-be-committed">How do the leader check which entries can be committed?</a></li>
+<li><a href="#how-should-a-follower-accept-log-entries-after-passing-all-consistency-checks">How should a follower accept log entries after passing all consistency checks?</a></li>
+<li><a href="#how-will-each-server-commit-an-index">How will each server commit an index?</a></li>
+<li><a href="#how-does-the-leader-check-which-entries-can-be-committed">How does the leader check which entries can be committed?</a></li>
 <li><a href="#what-is-the-constraint-of-committing-uncommitted-entries-of-earlier-terms">What is the constraint of committing uncommitted entries of earlier terms?</a></li>
 </ul>
 </li>
 <li><a href="#persistence">Persistence</a>
 <ul>
-<li><a href="#when-will-persist-be-called">When will persist() be called?</a></li>
 <li><a href="#when-a-server-restarts-what-information-should-it-restore">When a server restarts, what information should it restore?**</a></li>
-<li><a href="#how-to-invoke-persist">How to invoke persist()?</a></li>
+<li><a href="#when-will-invoke-persist">When will invoke persist()?</a></li>
 </ul>
 </li>
 <li><a href="#log-compaction">Log compaction</a>
@@ -284,265 +284,230 @@
 <li><a href="#how-to-install-a-snapshot">How to install a snapshot?</a></li>
 </ul>
 </li>
-<li><a href="#optimizations">Optimizations</a>
-<ul>
-<li><a href="#how-can-we-take-advantage-of-follower-nodes">How can we take advantage of follower nodes?</a></li>
-<li><a href="#how-can-we-prevent-partitioned-followers-end-up-in-a-high-term">How can we prevent partitioned followers end up in a high term?</a></li>
-</ul>
-</li>
 </ul>
 </p>
 <h1 id="leader-election"><a class="markdownIt-Anchor" href="#leader-election"></a> Leader election</h1>
 <h2 id="how-to-count-the-votes-a-candidate-gets"><a class="markdownIt-Anchor" href="#how-to-count-the-votes-a-candidate-gets"></a> How to count the votes a candidate gets?</h2>
 <ol>
-<li>The candidate begins a new goroutine to request vote from each server.</li>
-<li>Use a shared variable to track how many votes has the candidate gotten. Each goroutine monitor that after this vote, has the candidate gotten enough votes to become a leader independently.</li>
-<li>When each goroutine received reply from other peers, it needs to check whether the reply is still in the same term as the term where it is now and whether it is still a candidate.
+<li>The candidate begins a new goroutine to request votes from each server.</li>
+<li>Use a shared variable to track how many votes the candidate has gotten. After this vote, each goroutine monitors that the candidate has gotten enough votes to become a leader independently.</li>
+<li>When each goroutine receives a reply from other peers, it needs to check whether the reply is still in the same term as the term where it is now and whether it is still a candidate.
 <ul>
-<li>Only check its state is insufficient. The check of term is to prevent delayed replies arrives in the future election initialed by this server.</li>
+<li>Only checking its state is insufficient. The check of the term is in case delayed replies arrive in the future election initialed by this server.</li>
 </ul>
 </li>
 <li>My initial thought
 <ul>
 <li>The election goroutine will monitor the process of votes instead of the request goroutines.</li>
-<li>Then the check loop in election goroutine need to sleep after each time it failed. Or the election would be hard to converge.</li>
-<li>I GUESS that the reason is the for-loop never ends and takes too many resources, causing the CPU cannot schedule those RequestVote goroutine and later eletion goroutine in time.</li>
+<li>Then the check loop in the election goroutine needs to sleep after each time it fails. Or the election would be hard to converge.</li>
+<li>I GUESS that the reason is the for-loop never ends and takes too many resources, causing the CPU to not schedule the RequestVote goroutine and later election goroutines in time.</li>
 </ul>
 </li>
 </ol>
-<h2 id="how-to-does-each-server-initial-an-election"><a class="markdownIt-Anchor" href="#how-to-does-each-server-initial-an-election"></a> How to does each server initial an election?</h2>
+<h2 id="how-does-each-server-initial-an-election"><a class="markdownIt-Anchor" href="#how-does-each-server-initial-an-election"></a> How does each server initial an election?</h2>
 <ol>
-<li>A timestamp is used to record the last time heard from leader or candidate. And <code>electionTimeout</code> is set randomly in startup and beginning of election.
+<li>A timestamp records the last time heard from a leader or candidate. And <code>electionTimeout</code> is set randomly at the startup and beginning of the election.
 <ul>
-<li>Each time the server wants to change its state into follower, it needs to reset timestamp before switch state, or it may trigger a new election due to the stale timeStamp.</li>
-<li>When the replied term is larger than the term of sending <code>AppendEntries</code>, the leader should known that itself is out-of-date. But before any further settings, it should check that whether the replied term is larger than the term where it is now to prevent this is a stale reply processed with a stale term, causing <code>currectTerm</code> decreasing.</li>
+<li>Each time the server wants to change its state into a follower, it must reset the timestamp before switching, or it may trigger a new election due to the stale timestamp.</li>
+<li>When the replied term is larger than the term of sending <code>AppendEntries</code>, the leader should know that itself is out-of-date. But before any further settings, it should check whether the replied term is larger than the term where it is now to prevent this being a stale reply processed with a stale term, causing currectTerm to decrease.</li>
 </ul>
 </li>
-<li><code>ticker()</code> will check whether the time since timestamp is larger than the <code>electionTimeout</code> periodically, and if so, an new election is initiated.
+<li><code>ticker()</code> will check periodically whether the time since the timestamp is larger than the <code>electionTimeout</code> and if so, a new election is initiated.
 <ul>
-<li>When the checking is failed, this goroutine should sleep for a short time. But it cannot simply sleep as long as <code>electionTimeout</code>, because the next sleep may be shorter then <code>electionTimeout</code>.</li>
+<li>When the checking is failed, this goroutine should sleep for a short time. However, it cannot simply sleep as long as <code>electionTimeout</code> because the next sleep may be shorter than <code>electionTimeout</code>.</li>
 </ul>
 </li>
-<li>Another way is to set the <code>electionTimeout </code> when checking the condition instead of fixed <code>electionTimeout</code> between two elections.
+<li>Another way is to set the <code>electionTimeout </code> when checking the condition instead of fixing the electionTimeout`` between two elections.
 <ul>
-<li>But this will cause multiple peers initiate election in short gap. In addition to the unreliable network and the burden of scheduling goroutines, the <code>RequestVote()</code> may not be executed by others immediately and causing severe split brain and re-elections.</li>
-<li>The reason, I GUESS, is that it only need one short sleep time to kick off election. And with a new random sleep time every <code>CHECKTIMEOUT</code> ms, there is a greater probability that one sleep time is short and it actually shortened the <code>electionTimeout</code> I want.</li>
+<li>But this will cause multiple peers to initiate an election in a short gap. In addition to the unreliable network and the burden of scheduling goroutines, the <code>RequestVote()</code> may not be executed by others immediately, causing severe brain split and re-elections.</li>
+<li>The reason, I GUESS, is that it only needs one short sleep time to kick off the election. And with a new random sleep time every <code>CHECKTIMEOUT</code> ms, there is a greater probability that one sleep time is short, which shortens the <code>electionTimeout</code> I want.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-can-we-prevent-partitioned-followers-from-ending-up-in-a-high-term"><a class="markdownIt-Anchor" href="#how-can-we-prevent-partitioned-followers-from-ending-up-in-a-high-term"></a> How can we prevent partitioned followers from ending up in a high term?</h2>
+<ol>
+<li>The problem is that when a follower is partitioned, it cannot receive from the leader. It will try to be elected to be the leader. Yet, because it cannot connect to the majority of its peers, it can never succeed, causing it to keep increasing its term.</li>
+<li>To solve the problem, we need to make a peer realize that it has no chance to be elected to be the leader and gives up increasing their term.
+<ul>
+<li>Before truly increasing its term, we can ask it to simulate the election, i.e., pre-vote.</li>
+<li>During the pre-vote, the candidate will send the same data as the true election, and other peers will reply whether they will vote for a candidate.</li>
+<li>An actual election is initiated until a peer has received a pre-vote from the majority.</li>
+</ul>
+</li>
+<li>The difference between a pre-vote and an actual election:
+<ul>
+<li>The pre-vote can grant votes to different peers in the same term.</li>
+<li>The pre-vote will not cause voters to increase the term and become followers.</li>
+<li>The pre-vote happens before increasing the term.</li>
+</ul>
+</li>
+<li>The disadvantage of the pre-vote is that it requires an extra round of RPC for an election.
+<ul>
+<li>This cost is significantly unacceptable when the network is too unreliable, causing many elections.</li>
+<li>When the network is more stable, the elections are rare, and it can prevent partitioned followers from interrupting the current term.</li>
 </ul>
 </li>
 </ol>
 <h1 id="log-replication"><a class="markdownIt-Anchor" href="#log-replication"></a> Log Replication</h1>
-<h2 id="how-does-the-leader-sending-log-entries-to-followers"><a class="markdownIt-Anchor" href="#how-does-the-leader-sending-log-entries-to-followers"></a> How does the leader sending log entries to followers?</h2>
+<h2 id="how-does-the-leader-send-log-entries-to-followers"><a class="markdownIt-Anchor" href="#how-does-the-leader-send-log-entries-to-followers"></a> How does the leader send log entries to followers?</h2>
 <ol>
-<li><code>nextIndex</code> is the lowest indices of entries missed by each peers known by leader.</li>
-<li>There are two situations of sending log entries: the first is when there are some un-replicated entries for some follower, and the second is the heartbeat message.
+<li><code>nextIndex</code> is the lowest index of entries missed by each peer known by the leader.</li>
+<li>There are two situations for sending log entries: the first is when there are some un-replicated entries for some followers, and the second is the heartbeat message.
 <ul>
 <li><code>SyncLogWithFollower(x int)</code> is implemented to check whether server x has some missing entries.</li>
-<li><code>Heartbeat()</code> is implemented to send heartbeat message.</li>
-<li><code>SendEntriesOnceTo(x int)</code> is implemented to actually send log entries to server x.</li>
-<li>The <code>SyncLogWIthFollower()</code> goroutine for each server and the <code>Heartbeat()</code> goroutine is initiated when the server is elected to be leader.</li>
+<li><code>Heartbeat()</code> is implemented to send a heartbeat message.</li>
+<li><code>SendEntriesOnceTo(x int)</code> is implemented actually to send log entries to server x.</li>
+<li>The <code>SyncLogWIthFollower()</code> goroutine for each server and the <code>Heartbeat()</code> goroutine is initiated when the server is elected leader.</li>
 </ul>
 </li>
 <li>The difference between <code>SyncLogWithFollower()</code> and <code>Heartbeat()</code>
 <ul>
-<li><code>SyncLogWithFollower()</code> sends entries only when there are missing entries in server x. But <code>Heartbeat()</code> always sends entries even when there is no missing entries in which case an empty log is sent.</li>
-<li>The check cycle in <code>SyncLogWithFollower()</code> is way more short than the sending cycle in <code>Heartbeat()</code> to ensure the missing entries can be replicated as soon as possible.</li>
+<li><code>SyncLogWithFollower()</code> sends entries only when there are missing entries in server x. But <code>Heartbeat()</code> always sends entries even when there are no missing entries, in which case an empty log is sent.</li>
+<li>The check cycle in <code>SyncLogWithFollower()</code> is way shorter than the sending cycle in <code>Heartbeat()</code> to ensure the missing entries can be replicated as soon as possible.</li>
 </ul>
 </li>
 <li>When <code>SyncLogWithFollower()</code> calls <code>SendEntriesOnceTo()</code>, it cannot create a goroutine.
 <ul>
-<li>Because the check cycle in <code>SyncLogWithFollower()</code> is quite short, if the <code>SyncLogWithFollower()</code> goroutine keeps being scheduled, the <code>SendEntriesOnceTo()</code> cannot send entries to follower. And thus <code>SyncLogWithFollower()</code> goroutine keeps creating too many <code>SendEntriesOnceTo()</code> goroutine.</li>
+<li>Because the check cycle in <code>SyncLogWithFollower()</code> is quite short, if the <code>SyncLogWithFollower()</code> goroutine keeps being scheduled, the <code>SendEntriesOnceTo()</code> cannot send entries to the follower. Thus, the <code>SyncLogWithFollower()</code> goroutine keeps creating too many <code>SendEntriesOnceTo()</code> goroutine.</li>
 </ul>
 </li>
 <li>My initial thought
 <ul>
-<li>Start a <code>SendEntriesOnceTo()</code> goroutine for every follower after <code>Start()</code> has added a new log entry to leader’s logs instead of using <code>SyncLogWithFollower()</code> goroutine.</li>
-<li>But when there are concurrent <code>Start()</code>, this may cause mulitple <code>SendEntriesOnceTo()</code> goroutine sending the same RPC to the same follower.</li>
+<li>Start a <code>SendEntriesOnceTo()</code> goroutine for every follower after <code>Start()</code> has added a new log entry to the leader’s logs instead of using <code>SyncLogWithFollower()</code> goroutine.</li>
+<li>But concurrent Start() may cause multiple <code>SendEntriesOnceTo()</code> goroutines to send the same RPC to the same follower.</li>
 </ul>
 </li>
 </ol>
 <h2 id="how-to-optimize-the-consistency-check-protocol"><a class="markdownIt-Anchor" href="#how-to-optimize-the-consistency-check-protocol"></a> How to optimize the consistency check protocol?</h2>
 <ol>
-<li>Additional AppenEntries RPC results for fast roll back:
+<li>Additional AppenEntries RPC results for fast rollback:
 <ul>
 <li><code>Xterm</code>: the term of the conflicting entry.</li>
-<li><code>Xindex</code>: the first index that is in <code>Xterm</code>.</li>
-<li><code>Xlen</code>: the length of log</li>
+<li><code>Xindex</code>: the first index in <code>Xterm</code>.</li>
+<li><code>Xlen</code>: the length of the log</li>
 </ul>
 </li>
-<li>Fast roll back implementation:
+<li>Fast rollback implementation:
 <ul>
-<li>If the leader doesn’t have <code>Xterm</code>, then every entries of <code>Xterm</code> in follower’s log will causing conflict. Hence the <code>nextIndex</code> can backup to <code>Xindex</code>.</li>
-<li>If the leader has <code>Xterm</code>, the matching entry in leader’s log must have a term no larger than <code>Xterm</code>. Hence, the <code>nextIndex</code> should backup to the next entry of the last <code>Xterm</code> in leader’s log.</li>
-<li>If the follower’s conflicting is due to empty in <code>prevLogTerm</code>, then <code>Xterm</code> is set to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>, and leader should backup to <code>Xlen</code>.</li>
+<li>If the leader doesn’t have <code>Xterm</code>, then every entry of Xterm in the follower’s log will cause conflict. Hence, the <code>nextIndex</code> can back up to <code>Xindex</code>.</li>
+<li>If the leader has <code>Xterm</code>, the matching entry in the leader’s log must have a term no larger than <code>Xterm</code>. Hence, the <code>nextIndex</code> should go back to the next entry of the last Xterm in the leader’s log.</li>
+<li>If the follower’s conflict is due to empty in <code>prevLogTerm</code>, then <code>Xterm</code> is set to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>, and the leader should back up to <code>Xlen</code>.</li>
 </ul>
 </li>
 </ol>
-<h2 id="how-should-a-follower-accept-log-entries-after-passing-all-consistency-check"><a class="markdownIt-Anchor" href="#how-should-a-follower-accept-log-entries-after-passing-all-consistency-check"></a> How should a follower accept log entries after passing all consistency check?</h2>
+<h2 id="how-should-a-follower-accept-log-entries-after-passing-all-consistency-checks"><a class="markdownIt-Anchor" href="#how-should-a-follower-accept-log-entries-after-passing-all-consistency-checks"></a> How should a follower accept log entries after passing all consistency checks?</h2>
 <ol>
-<li>The <code>nextIndex</code> and <code>logs</code> of the leader can be updated by different goroutines of <code>SendEntriesOnce()</code> and <code>Start()</code>. So it is possible that <code>args.Entries</code> are chosen through a stale <code>nextIndex</code> and an up-to-date <code>log</code>, or even a stale <code>nextIndex</code> and a stale <code>log</code>.</li>
-<li>If the <code>nextIndex</code> is stale while the <code>log</code> is up-to-date, i.e. there are some entries after the <code>nextIndex</code> is already replicated by follower.
+<li>The <code>nextIndex</code> and <code>logs</code> of the leader can be updated by different goroutines of <code>SendEntriesOnce()</code> and <code>Start()</code>. So it is possible that <code>args.Entries</code> are chosen through a stale <code>nextIndex</code> and an up-to-date <code>log</code> or even a stale <code>nextIndex</code> and a stale <code>log</code>.</li>
+<li>If the <code>nextIndex</code> is stale while the <code>log</code> is up-to-date, i.e., there are some entries after the nextIndex is already replicated by the follower.
 <ul>
-<li>Then we need to drop those replicated entries but not all the entries since there still could have some new entries.</li>
+<li>Then we need to drop those replicated entries, but not all, since there could still be some new entries.</li>
 <li>We need to drop those entries with the same index and the same term according to the Log Matching property and append only those different entries.</li>
-<li>I didn’t consider the case of <code>nextIndex</code> being larger than the follower’s replicated indices. Since in this case, transmission won’tsuccess and a fast backup will be triggered.</li>
+<li>I didn’t consider the case of <code>nextIndex</code> being larger than the follower’s replicated indices. Transmission won’t succeed, and a fast backup will be triggered.</li>
 </ul>
 </li>
-<li>If both the <code>nextIndex</code> and <code>logs</code> are stale, it is similar to the former situation, since the only additional problem is that it cannot be brought up-to-date by one <code>AppendEntries</code>.</li>
+<li>If both the <code>nextIndex</code> and <code>logs</code> are stale, it is similar to the former situation since the only additional problem is that it cannot be brought up-to-date by one <code>AppendEntries</code>.</li>
 </ol>
-<h2 id="how-will-each-server-commit-index"><a class="markdownIt-Anchor" href="#how-will-each-server-commit-index"></a> How will each server commit index?</h2>
+<h2 id="how-will-each-server-commit-an-index"><a class="markdownIt-Anchor" href="#how-will-each-server-commit-an-index"></a> How will each server commit an index?</h2>
 <ol>
 <li><code>commitIndex</code> is the highest index of entries that can commit now. This is included in the <code>AppendEntries</code> arguments from leader to followers.</li>
-<li><code>lastApplied</code> is the highest index of entries that is committed. If <code>lastApplied</code> no larger than <code>commitIndex</code>, then a server can commit the entry next to <code>lastApplied</code>.</li>
-<li>Followers cannot modify <code>commitIndex</code> before the logs are synchronized, since there may have some entries need to wipe out by the leader.</li>
+<li><code>lastApplied</code> is the highest index of committed entries. If <code>lastApplied</code> is no larger than <code>commitIndex</code>, a server can commit the entry next to <code>lastApplied</code>.</li>
+<li>Followers cannot modify <code>commitIndex</code> before the logs are synchronized since there may be some entries that need to be wiped out by the leader.</li>
 </ol>
-<h2 id="how-do-the-leader-check-which-entries-can-be-committed"><a class="markdownIt-Anchor" href="#how-do-the-leader-check-which-entries-can-be-committed"></a> How do the leader check which entries can be committed?</h2>
+<h2 id="how-does-the-leader-check-which-entries-can-be-committed"><a class="markdownIt-Anchor" href="#how-does-the-leader-check-which-entries-can-be-committed"></a> How does the leader check which entries can be committed?</h2>
 <ol>
 <li>My solution
 <ul>
-<li><code>matchIndex</code> is used to track the highest indices of entries replicated by each peers.</li>
-<li>When a group of entries that ends with index <code>i</code> is accepted by one peer, the leader first set the corresponding <code>matchIndex</code> to <code>i</code>.</li>
-<li>Than check whether a majority of <code>matchIndex</code> is larger than <code>i</code>. If so, than the leader can commit at least until <code>i</code>. Or, it won’t commit any entry.</li>
+<li><code>matchIndex</code> tracks the highest indices of entries replicated by each peer.</li>
+<li>When a group of entries that ends with index <code>i</code> is accepted by one peer, the leader first sets the corresponding <code>matchIndex</code> to <code>i</code>.</li>
+<li>Then, check whether a majority of <code>matchIndex</code> is larger than <code>i</code>. If so, the leader can commit at least until <code>i</code>, or it won’t commit any entry.</li>
 </ul>
 </li>
 <li>Improvement
 <ul>
-<li>When a lagged peer replicated a lot of entries, it may be insufficient to commit the last entry it replicated. But it could be sufficient to commit some earlier entries.</li>
+<li>When a lagged peer replicated a lot of entries, it may be insufficient to commit the last entry it replicated. It could be sufficient to commit some earlier entries.</li>
 <li>We only need to commit the k-th largest index in <code>matchIndex</code>.</li>
 </ul>
 </li>
 <li>My initial thought
 <ul>
-<li>Track the replication state of each entry instead each peer.</li>
-<li>But the entries are a lot more than peers causing higher time complexity to maintain when a lot of entries are by peers.</li>
+<li>Track the replication state of each entry instead of each peer.</li>
+<li>However, the entries are a lot more than peers, causing higher time complexity to maintain when a lot of entries are by peers.</li>
 </ul>
 </li>
 </ol>
 <h2 id="what-is-the-constraint-of-committing-uncommitted-entries-of-earlier-terms"><a class="markdownIt-Anchor" href="#what-is-the-constraint-of-committing-uncommitted-entries-of-earlier-terms"></a> What is the constraint of committing uncommitted entries of earlier terms?</h2>
 <ol>
-<li>A constraint on commit entries is that each leader can only commit entries added in its term. And by committing such entries, they also commit all entries before it. Hence the entries of earlier terms are committed indirectly.</li>
-<li>But there is a corner case that a leader doesn’t receive any entry at the beginning of its term. And those uncommitted entries of earlier terms cannot be committed until the leader received its first entry.</li>
-<li>My solution is that when a server becomes the leader, it will add an empty entry, and by this empty entry, those uncomitted entries can be committed.</li>
-<li>But the test system of 6.824 didn’t consider this case. This implementation will cause all tests failed.</li>
+<li>A constraint on commit entries is that each leader can only commit entries added to the term. And by committing such entries, they also commit all entries before it. Hence, the entries of earlier terms are committed indirectly.</li>
+<li>But there is a corner case where a leader doesn’t receive any entry at the beginning of its term, causing those uncommitted entries of earlier terms not to be committed.</li>
+<li>My solution is that when a server becomes the leader, it will add an empty entry, and by this empty entry, those uncommitted entries can be committed.</li>
+<li>However, the test system of 6.824 didn’t consider this case. This implementation will cause all tests to fail.</li>
 </ol>
 <h1 id="persistence"><a class="markdownIt-Anchor" href="#persistence"></a> Persistence</h1>
-<h2 id="when-will-persist-be-called"><a class="markdownIt-Anchor" href="#when-will-persist-be-called"></a> When will persist() be called?</h2>
-<ol>
-<li><code>persist()</code> is called only when <code>rf.currentTerm</code>, <code>rf.votedFor</code> or <code>rf.logs</code> is changed. And when they’re changed, the <code>rf.mu</code> lock must be hold by the caller of <code>persist()</code>.</li>
-<li>In order to make the states stored as soon as possible, I won’t release the lock util <code>persist()</code> is finished.</li>
-</ol>
 <h2 id="when-a-server-restarts-what-information-should-it-restore"><a class="markdownIt-Anchor" href="#when-a-server-restarts-what-information-should-it-restore"></a> When a server restarts, what information should it restore?**</h2>
 <ol>
-<li>Naturally, it need to restore its <code>currentTerm</code>, <code>votedFor</code> and <code>logs</code> from the persisted state.</li>
-<li>Then it need to set its <code>lastLogIndex</code> and <code>lastLogTerm</code> appropriately.</li>
-<li>The <code>lastApplied</code>, <code>commitIndex</code> and <code>lastIncludedIndex</code> will be set to the index of the sentinel entry.
+<li>Naturally, it must restore its <code>currentTerm</code>, <code>votedFor</code>, and <code>logs</code> from the persisted state.</li>
+<li>Then, it needs to set its <code>lastLogIndex</code> and <code>lastLogTerm</code> appropriately.</li>
+<li>The <code>lastApplied</code>, <code>commitIndex</code>, and <code>lastIncludedIndex</code> will be set to the index of the sentinel entry.
 <ul>
 <li>Because the current state is the same state executed until the sentinel entry.</li>
-<li>In the future, if the server finds that other peers have committed later entries, it need to re-execute those entries to achieve the same state.</li>
+<li>In the future, if the server finds that other peers have committed later entries, it needs to re-execute those entries to achieve the same state.</li>
 </ul>
 </li>
 <li>It should update its <code>lastApplied</code> to the last committed entry according to the commit state in each log entry.</li>
 </ol>
-<h2 id="how-to-invoke-persist"><a class="markdownIt-Anchor" href="#how-to-invoke-persist"></a> How to invoke persist()?</h2>
+<h2 id="when-will-invoke-persist"><a class="markdownIt-Anchor" href="#when-will-invoke-persist"></a> When will invoke persist()?</h2>
 <ol>
-<li><code>persist()</code> is called only when <code>rf.currentTerm</code>, <code>rf.votedFor</code> or <code>rf.logs</code> is changed.</li>
-<li>When they’re changed, the <code>rf.mu</code> lock must be hold by the caller of <code>persist()</code>. In order to make the states stored as soon as possible, I won’t release the lock util <code>persist()</code> is finished.</li>
-<li>If it is possible to modify the three variables several times before communicate with outside, or release the lock, we just use a variable to mark whether need to persist, instead of really call <code>persist()</code> each time. And only call the <code>persist()</code> at the end.</li>
+<li><code>persist()</code> is called only when <code>rf.currentTerm</code>, <code>rf.votedFor</code>, or <code>rf.logs</code> is changed.</li>
+<li>When they’re changed, the <code>rf.mu</code> lock must be held by the caller of <code>persist()</code>. I won’t release the lock until the <code>persist()</code> is finished to store the states as soon as possible.</li>
+<li>Modifying the three variables several times before communicating with outside or releasing the lock is possible. In that case, we use a variable to mark whether persist is needed instead of really calling <code>persist()</code> each time. And only call the <code>persist()</code> at the end.</li>
 </ol>
 <h1 id="log-compaction"><a class="markdownIt-Anchor" href="#log-compaction"></a> Log compaction</h1>
 <h2 id="how-to-deal-with-those-deleted-entries-when-a-server-restarts"><a class="markdownIt-Anchor" href="#how-to-deal-with-those-deleted-entries-when-a-server-restarts"></a> How to deal with those deleted entries when a server restarts?</h2>
 <ol>
 <li>When a server restores its state from <code>readPersist()</code>, we want it to re-execute those persisted logs.</li>
-<li>But we don’t require to re-execute those deleted entries since we can get to the state of last deleted log by restore snapshot without execution.</li>
-<li>The effect is the same as we have committed those missing entries. So we also need to modify the <code>lastApplied</code> and <code>commitIndex</code> to the last deleted log index before re-executing.</li>
+<li>But we don’t need to re-execute those deleted entries since we can get to the state of the last deleted log by restoring the snapshot without execution.</li>
+<li>The effect is the same as we have committed those missing entries. So, we also need to modify the <code>lastApplied</code> and <code>commitIndex</code> to the last deleted log index before re-executing.</li>
 </ol>
 <h2 id="how-to-take-a-snapshot"><a class="markdownIt-Anchor" href="#how-to-take-a-snapshot"></a> How to take a snapshot?</h2>
 <ol>
 <li>In this lab, the snapshot is naive. It simply stores all the log entries.</li>
-<li>Hence, the server just need to set <code>lastIncludedIndex</code> and <code>lastIncludedTerm</code> appropriately, and remove all the snapshotted entries.</li>
-<li>Also, if the log is empty after removal, we need to insert the sentinel entry back to the entry. Its command is still unimportant.</li>
+<li>Hence, the server must set <code>lastIncludedIndex</code> and <code>lastIncludedTerm</code> appropriately, and all the snapshotted entries must be removed.</li>
+<li>Also, if the log is empty after removal, we need to insert the sentinel entry back into the entry. Its command is still unimportant.</li>
 </ol>
 <h2 id="how-to-install-a-snapshot"><a class="markdownIt-Anchor" href="#how-to-install-a-snapshot"></a> How to install a snapshot?</h2>
 <ol>
-<li>The snapshot data only contain commands in log entries, so we need to recover the log entries with the snapshot.
+<li>The snapshot data only contains commands in log entries, so we need to recover the log entries with the snapshot.
 <ul>
 <li>Their indices and commands are easy to understand.</li>
-<li>We only know the <code>lastIncludedterm</code>. Also these entries are already committed in leader. Thus no matter what will happen in the future, these entries will not be overwriten and no <code>AppendEntry</code> will need to compare with these entries except for the last one. Hence for convenient, I set all their terms to the <code>LastIncludedTerm</code>.</li>
+<li>We only know the <code>lastIncludedterm</code>. Also, the leader has already committed to these entries. Thus, no matter what happens, these entries will not be overwritten, and no <code>AppendEntry</code> will need to compare with these entries except for the last one. Hence, for convenience, I set all their terms to the <code>LastIncludedTerm</code>.</li>
 <li>As aforementioned, these entries are already reflected in the snapshot. Thus, there is no need to re-commit them again.</li>
 </ul>
 </li>
-<li>Then we need to determine whether the snapshot contains new information.
+<li>Then, we need to determine whether the snapshot contains new information.
 <ul>
-<li><code>FirstUncover</code> is to indicate the first entry in <code>logs</code> that is more up-to-date than the last entry in snapshot.
+<li><code>FirstUncover</code> indicates the first entry in <code>logs</code> that is more up-to-date than the last entry in the snapshot.
 <ul>
 <li>If the snapshot contains new information not already in the recipient’s log, then <code>firstUncover == len(rf.logs)</code>.</li>
-<li>If the snapshot describes a prefix of its log, then <code>firstUncover &lt; len(rf.logs)</code>, then we only need to delete the former entries.</li>
+<li>If the snapshot describes a prefix of its log, then <code>firstUncover &lt; len(rf.logs)</code>, we only need to delete the former entries.</li>
 </ul>
 </li>
-<li>I thought that maybe I just need to compare <code>lastLogIndex</code> in server and <code>LastIncludedIndex</code> of snapshot, but this is not sufficient.
+<li>I thought that maybe I needed to compare the <code>lastLogIndex</code> in the server and the <code>LastIncludedIndex</code> in the snapshot, but this is insufficient.
 <ul>
-<li>Because some server need to discard the last few entries from ealier leaders, yet not in the logs of the current leader.</li>
-<li>We need to remove the entries whose term is smaller than the <code>LastIncludedTerm</code> of snapshot while whose index is larger than <code>LastIncludedIndex</code> of snapshot.</li>
+<li>Some servers need to discard the last few entries from earlier leaders, yet they are not in the current leader’s logs.</li>
+<li>We need to remove the entries whose term is smaller than the <code>LastIncludedTerm</code> of the snapshot and whose index is larger than the <code>LastIncludedIndex</code>.</li>
 </ul>
 </li>
 </ul>
 </li>
 <li>If the snapshot contains new information
 <ul>
-<li>We will discard the whole log entries, and insert a new sentinel entry with index equals to <code>LastIncludedIndex</code> and term equals to <code>LastIncludedTerm</code>.</li>
-<li>Then <code>commitIndex</code> and <code>lastApplied</code> need to be updated to <code>LastIncludedIndex</code> since we won’t re-execute those new entries in snapshot.</li>
-<li>It need to be persisted.</li>
+<li>We will discard all log entries and insert a new sentinel entry with an index equal to <code>LastIncludedIndex</code> and a term equal to <code>LastIncludedTerm</code>.</li>
+<li>Then <code>commitIndex</code> and <code>lastApplied</code> need to be updated to <code>LastIncludedIndex</code> since we won’t re-execute those new entries in the snapshot.</li>
+<li>It needs to be persisted.</li>
 </ul>
 </li>
-<li>If the snapshot describes only a prefix of logs, then discard the covered entries. But don’t discard those covered, yet uncommitted entries and need to leave one entry as sentinel.</li>
-<li>If PrevLog is already trimmed, we should find the entry with the same index as the sentinel. And make it the new PrevLog, only accept the entries following it.</li>
-</ol>
-<h1 id="optimizations"><a class="markdownIt-Anchor" href="#optimizations"></a> Optimizations</h1>
-<h2 id="how-can-we-take-advantage-of-follower-nodes"><a class="markdownIt-Anchor" href="#how-can-we-take-advantage-of-follower-nodes"></a> How can we take advantage of follower nodes?</h2>
-<ol>
-<li>To achieve linearizability, there is no chance for follower to improve the performance of Put/Append operation. However, we can allow thtem to handle read-only request to improve the throughput of the cluster.</li>
-<li>The key idea is to make the follower know that it is up-to-date to handle the read. To confirm that, we must consult the leader of the current commit index.</li>
-<li>A case is that a partitioned follower and leader when there exists another true leader that connects to majority.
-<ul>
-<li>The solution is that the leader must check whether it still is a legistical leader before authorize follower to execute read.</li>
-</ul>
-</li>
-<li>The whole process is as followed:
-<ul>
-<li>When a follower received a read from client, it would consult the leader for a <code>readIndex</code>.</li>
-<li>The leader then need to send heartbeats to all peers in its group to make sure that it is still the leader.</li>
-<li>When the leader received from majority, it can return the current commit index to the follower as the <code>readIndex</code>.</li>
-<li>The follower can execute the read request as long as it has as least applied up to <code>readIndex</code>.</li>
-</ul>
-</li>
-<li>Another case is that a new leader missed the latest commit index causing returning a smaller index than the true commit index.
-<ul>
-<li>The leader must be restricted to grant <code>readIndex</code> that points to an entry appended in its term.</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-can-we-prevent-partitioned-followers-end-up-in-a-high-term"><a class="markdownIt-Anchor" href="#how-can-we-prevent-partitioned-followers-end-up-in-a-high-term"></a> How can we prevent partitioned followers end up in a high term?</h2>
-<ol>
-<li>The problem is that when a follower is partitioned, it cannot receive from the leader. It will try to be elected  to be the leader. Yet, due to it cannot connect to majority of the peers, it can never success causing it keeps to increase its term.</li>
-<li>To solve the problem, we need to make a peer realise that it has no chance to be elected to be the leader and gives up increasing its term.
-<ul>
-<li>Before truely increasing its term, we can ask it to run a simulation of the election, i.e. pre-vote.</li>
-<li>During the pre-vote, candidate will send the same data as the true election and other peers will reply that whether they will vote for candidate.</li>
-<li>An actual election is initiated until a peer has received pre-vote from majority.</li>
-</ul>
-</li>
-<li>The difference between a pre-vote and an actual election:
-<ul>
-<li>The pre-vote can grant votes to different peers in the same term.</li>
-<li>The pre-vote will not causing voters increasing term and becoming follower.</li>
-<li>The pre-vote happens before increasing the term.</li>
-</ul>
-</li>
-<li>The disadvantage of pre-vote is that it makes an election requires an extra round of RPC.
-<ul>
-<li>This cost is significantly unacceptable when the network is too unreliable causing many elections.</li>
-<li>When the network is more stable, election is rare and it can prevent partitioned follower interupting the current term.</li>
-</ul>
-</li>
+<li>If the snapshot describes only a prefix of logs, then discard the covered entries. But don’t discard those covered yet uncommitted entries, and leave one entry as a dummy entry.</li>
+<li>If PrevLog is already trimmed, we should find the entry with the same index as the sentinel. Make it the new <code>PrevLog</code>, and only accept the entries following it.</li>
 </ol>
 
     </div>

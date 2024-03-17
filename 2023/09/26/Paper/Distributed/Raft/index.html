@@ -20,17 +20,17 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Paper: In Search of an Understandable Consensus Algorithm  Abstract Purpose Model  Basics  How does Raft implements consensus overall? What are the states of each server? How to divide the terms? How">
+    <meta name="description" content="Paper: In Search of an Understandable Consensus Algorithm  Abstract Purpose Model  Basics  How does Raft implement consensus overall? What are the states of each server? How to divide the terms? How d">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Raft">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/Raft/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="Paper: In Search of an Understandable Consensus Algorithm  Abstract Purpose Model  Basics  How does Raft implements consensus overall? What are the states of each server? How to divide the terms? How">
+<meta property="og:description" content="Paper: In Search of an Understandable Consensus Algorithm  Abstract Purpose Model  Basics  How does Raft implement consensus overall? What are the states of each server? How to divide the terms? How d">
 <meta property="og:locale">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/Raft/01.png">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/Raft/02.png">
 <meta property="article:published_time" content="2023-09-26T05:14:13.000Z">
-<meta property="article:modified_time" content="2024-02-26T17:06:59.252Z">
+<meta property="article:modified_time" content="2024-03-15T12:56:17.776Z">
 <meta property="article:author" content="LiyunZhang">
 <meta property="article:tag" content="Distributed System">
 <meta property="article:tag" content="Distributed Storage">
@@ -144,7 +144,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#abstract"><span class="nav-number">1.</span> <span class="nav-text"> Abstract</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#purpose"><span class="nav-number">2.</span> <span class="nav-text"> Purpose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#model"><span class="nav-number">3.</span> <span class="nav-text"> Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#basics"><span class="nav-number">3.1.</span> <span class="nav-text"> Basics</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-raft-implements-consensus-overall"><span class="nav-number">3.1.1.</span> <span class="nav-text"> How does Raft implements consensus overall?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-are-the-states-of-each-server"><span class="nav-number">3.1.2.</span> <span class="nav-text"> What are the states of each server?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-divide-the-terms"><span class="nav-number">3.1.3.</span> <span class="nav-text"> How to divide the terms?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-terms-change"><span class="nav-number">3.1.4.</span> <span class="nav-text"> How does terms change?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-raft-handle-follower-and-candidate-crashes"><span class="nav-number">3.1.5.</span> <span class="nav-text"> How does Raft handle follower and candidate crashes?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#states-stored-on-servers"><span class="nav-number">3.1.6.</span> <span class="nav-text"> States stored on servers</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#leader-election"><span class="nav-number">3.2.</span> <span class="nav-text"> Leader election</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-servers-states-transit"><span class="nav-number">3.2.1.</span> <span class="nav-text"> How does the servers states transit?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-elect-a-leader"><span class="nav-number">3.2.2.</span> <span class="nav-text"> How to elect a leader?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-is-the-election-held"><span class="nav-number">3.2.3.</span> <span class="nav-text"> How is the election held?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-determine-that-a-server-loses-the-election"><span class="nav-number">3.2.4.</span> <span class="nav-text"> How to determine that a server loses the election?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-handle-a-split-vote"><span class="nav-number">3.2.5.</span> <span class="nav-text"> How to handle a split vote?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-ensure-that-the-leader-of-any-given-term-contains-all-of-the-entries-committed-in-previous-terms"><span class="nav-number">3.2.6.</span> <span class="nav-text"> How to ensure that the leader of any given term contains all of the entries committed in previous terms?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-limitation-of-broadcast-time-and-election-timeout"><span class="nav-number">3.2.7.</span> <span class="nav-text"> What is the limitation of broadcast time and election timeout?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#requestvote-rpc"><span class="nav-number">3.2.8.</span> <span class="nav-text"> RequestVote RPC</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#log-replication"><span class="nav-number">3.3.</span> <span class="nav-text"> Log replication</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-are-client-requests-handled"><span class="nav-number">3.3.1.</span> <span class="nav-text"> How are client requests handled?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-stored-in-a-log-entry"><span class="nav-number">3.3.2.</span> <span class="nav-text"> What is stored in a log entry?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-apply-a-log-entry-to-the-state-machines"><span class="nav-number">3.3.3.</span> <span class="nav-text"> How to apply a log entry to the state machines?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-determine-the-consistency-between-logs"><span class="nav-number">3.3.4.</span> <span class="nav-text"> How to determine the consistency between logs?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-check-the-consistency-in-appendentries-rpcs"><span class="nav-number">3.3.5.</span> <span class="nav-text"> How to check the consistency in AppendEntries RPCs?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-kinds-of-inconsistency-may-incur"><span class="nav-number">3.3.6.</span> <span class="nav-text"> What kinds of inconsistency may incur?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-leader-handle-follower-inconsistencies"><span class="nav-number">3.3.7.</span> <span class="nav-text"> How does leader handle follower inconsistencies?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-appendentries-rpc-perform-consistency-check"><span class="nav-number">3.3.8.</span> <span class="nav-text"> How does AppendEntries RPC perform consistency check?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-handle-uncommited-entries-from-previous-leaders"><span class="nav-number">3.3.9.</span> <span class="nav-text"> How to handle uncommited entries from previous leaders?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#appendentries-rpc"><span class="nav-number">3.3.10.</span> <span class="nav-text"> AppendEntries RPC</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#log-compaction"><span class="nav-number">3.4.</span> <span class="nav-text"> Log compaction</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-raft-compact-logs"><span class="nav-number">3.4.1.</span> <span class="nav-text"> How does Raft compact logs?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-handle-the-appendentries-that-requires-compated-entries"><span class="nav-number">3.4.2.</span> <span class="nav-text"> How to handle the AppendEntries that requires compated entries?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-install-the-snapshot-from-leader"><span class="nav-number">3.4.3.</span> <span class="nav-text"> How to install the snapshot from leader?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#when-should-a-server-to-snapshot"><span class="nav-number">3.4.4.</span> <span class="nav-text"> When should a server to snapshot?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-reduce-the-delays-of-normal-operations-caused-by-a-snapshot"><span class="nav-number">3.4.5.</span> <span class="nav-text"> How to reduce the delays of normal operations caused by a snapshot?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#installsnapshot-rpc"><span class="nav-number">3.4.6.</span> <span class="nav-text"> InstallSnapshot RPC</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#client-interaction"><span class="nav-number">3.5.</span> <span class="nav-text"> Client interaction</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-client-find-cluster-leader"><span class="nav-number">3.5.1.</span> <span class="nav-text"> How does client find cluster leader?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-prevent-raft-execute-a-command-multiple-times"><span class="nav-number">3.5.2.</span> <span class="nav-text"> How to prevent Raft execute a command multiple times?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-prevent-returning-stale-date-to-a-read-only-operation"><span class="nav-number">3.5.3.</span> <span class="nav-text"> How to prevent returning stale date to a read-only operation?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#experiements-and-results"><span class="nav-number">4.</span> <span class="nav-text"> Experiements and results</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#reproduce-and-unmentioned-parts"><span class="nav-number">5.</span> <span class="nav-text"> Reproduce and unmentioned parts</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#abstract"><span class="nav-number">1.</span> <span class="nav-text"> Abstract</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#purpose"><span class="nav-number">2.</span> <span class="nav-text"> Purpose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#model"><span class="nav-number">3.</span> <span class="nav-text"> Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#basics"><span class="nav-number">3.1.</span> <span class="nav-text"> Basics</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-raft-implement-consensus-overall"><span class="nav-number">3.1.1.</span> <span class="nav-text"> How does Raft implement consensus overall?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-are-the-states-of-each-server"><span class="nav-number">3.1.2.</span> <span class="nav-text"> What are the states of each server?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-divide-the-terms"><span class="nav-number">3.1.3.</span> <span class="nav-text"> How to divide the terms?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-do-terms-change"><span class="nav-number">3.1.4.</span> <span class="nav-text"> How do terms change?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-raft-handle-follower-and-candidate-crashes"><span class="nav-number">3.1.5.</span> <span class="nav-text"> How does Raft handle follower and candidate crashes?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#states-stored-on-servers"><span class="nav-number">3.1.6.</span> <span class="nav-text"> States stored on servers</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#leader-election"><span class="nav-number">3.2.</span> <span class="nav-text"> Leader election</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-do-the-servers-state-transit"><span class="nav-number">3.2.1.</span> <span class="nav-text"> How do the servers state transit?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-elect-a-leader"><span class="nav-number">3.2.2.</span> <span class="nav-text"> How to elect a leader?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-is-the-election-held"><span class="nav-number">3.2.3.</span> <span class="nav-text"> How is the election held?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-determine-that-a-server-loses-the-election"><span class="nav-number">3.2.4.</span> <span class="nav-text"> How to determine that a server loses the election?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-handle-a-split-vote"><span class="nav-number">3.2.5.</span> <span class="nav-text"> How to handle a split vote?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-ensure-that-the-leader-of-any-given-term-contains-all-of-the-entries-committed-in-previous-terms"><span class="nav-number">3.2.6.</span> <span class="nav-text"> How to ensure that the leader of any given term contains all of the entries committed in previous terms?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-are-the-limitations-of-broadcast-time-and-election-timeout"><span class="nav-number">3.2.7.</span> <span class="nav-text"> What are the limitations of broadcast time and election timeout?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#requestvote-rpc"><span class="nav-number">3.2.8.</span> <span class="nav-text"> RequestVote RPC</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#log-replication"><span class="nav-number">3.3.</span> <span class="nav-text"> Log replication</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-are-client-requests-handled"><span class="nav-number">3.3.1.</span> <span class="nav-text"> How are client requests handled?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-stored-in-a-log-entry"><span class="nav-number">3.3.2.</span> <span class="nav-text"> What is stored in a log entry?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-apply-a-log-entry-to-the-state-machines"><span class="nav-number">3.3.3.</span> <span class="nav-text"> How to apply a log entry to the state machines?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-determine-the-consistency-between-logs"><span class="nav-number">3.3.4.</span> <span class="nav-text"> How to determine the consistency between logs?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-check-the-consistency-in-appendentries-rpcs"><span class="nav-number">3.3.5.</span> <span class="nav-text"> How to check the consistency in AppendEntries RPCs?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-kinds-of-inconsistency-may-incur"><span class="nav-number">3.3.6.</span> <span class="nav-text"> What kinds of inconsistency may incur?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-leader-handle-follower-inconsistencies"><span class="nav-number">3.3.7.</span> <span class="nav-text"> How does the leader handle follower inconsistencies?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-appendentries-rpc-perform-a-consistency-check"><span class="nav-number">3.3.8.</span> <span class="nav-text"> How does AppendEntries RPC perform a consistency check?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-handle-uncommitted-entries-from-previous-leaders"><span class="nav-number">3.3.9.</span> <span class="nav-text"> How to handle uncommitted entries from previous leaders?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#appendentries-rpc"><span class="nav-number">3.3.10.</span> <span class="nav-text"> AppendEntries RPC</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#log-compaction"><span class="nav-number">3.4.</span> <span class="nav-text"> Log compaction</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-raft-compact-logs"><span class="nav-number">3.4.1.</span> <span class="nav-text"> How does Raft compact logs?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-handle-the-appendentries-that-require-compated-entries"><span class="nav-number">3.4.2.</span> <span class="nav-text"> How to handle the AppendEntries that require compated entries?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-install-the-snapshot-from-the-leader"><span class="nav-number">3.4.3.</span> <span class="nav-text"> How to install the snapshot from the leader?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#when-should-a-server-take-a-snapshot"><span class="nav-number">3.4.4.</span> <span class="nav-text"> When should a server take a snapshot?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-can-the-delays-of-normal-operations-caused-by-a-snapshot-be-reduced"><span class="nav-number">3.4.5.</span> <span class="nav-text"> How can the delays of normal operations caused by a snapshot be reduced?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#installsnapshot-rpc"><span class="nav-number">3.4.6.</span> <span class="nav-text"> InstallSnapshot RPC</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#client-interaction"><span class="nav-number">3.5.</span> <span class="nav-text"> Client interaction</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-client-find-the-cluster-leader"><span class="nav-number">3.5.1.</span> <span class="nav-text"> How does the client find the cluster leader?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-prevent-raft-from-executing-a-command-multiple-times"><span class="nav-number">3.5.2.</span> <span class="nav-text"> How to prevent Raft from executing a command multiple times?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-prevent-returning-stale-data-to-a-read-only-operation"><span class="nav-number">3.5.3.</span> <span class="nav-text"> How to prevent returning stale data to a read-only operation?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#experiments-and-results"><span class="nav-number">4.</span> <span class="nav-text"> Experiments and results</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#reproduce-and-unmentioned-parts"><span class="nav-number">5.</span> <span class="nav-text"> Reproduce and unmentioned parts</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -157,7 +157,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">62</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -231,7 +231,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-02-27 01:06:59" itemprop="dateModified" datetime="2024-02-27T01:06:59+08:00">2024-02-27</time>
+      <time title="Modified: 2024-03-15 20:56:17" itemprop="dateModified" datetime="2024-03-15T20:56:17+08:00">2024-03-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -264,23 +264,23 @@
 <ul>
 <li><a href="#basics">Basics</a>
 <ul>
-<li><a href="#how-does-raft-implements-consensus-overall">How does Raft implements consensus overall?</a></li>
+<li><a href="#how-does-raft-implement-consensus-overall">How does Raft implement consensus overall?</a></li>
 <li><a href="#what-are-the-states-of-each-server">What are the states of each server?</a></li>
 <li><a href="#how-to-divide-the-terms">How to divide the terms?</a></li>
-<li><a href="#how-does-terms-change">How does terms change?</a></li>
+<li><a href="#how-do-terms-change">How do terms change?</a></li>
 <li><a href="#how-does-raft-handle-follower-and-candidate-crashes">How does Raft handle follower and candidate crashes?</a></li>
 <li><a href="#states-stored-on-servers">States stored on servers</a></li>
 </ul>
 </li>
 <li><a href="#leader-election">Leader election</a>
 <ul>
-<li><a href="#how-does-the-servers-states-transit">How does the servers states transit?</a></li>
+<li><a href="#how-do-the-servers-state-transit">How do the servers state transit?</a></li>
 <li><a href="#how-to-elect-a-leader">How to elect a leader?</a></li>
 <li><a href="#how-is-the-election-held">How is the election held?</a></li>
 <li><a href="#how-to-determine-that-a-server-loses-the-election">How to determine that a server loses the election?</a></li>
 <li><a href="#how-to-handle-a-split-vote">How to handle a split vote?</a></li>
 <li><a href="#how-to-ensure-that-the-leader-of-any-given-term-contains-all-of-the-entries-committed-in-previous-terms">How to ensure that the leader of any given term contains all of the entries committed in previous terms?</a></li>
-<li><a href="#what-is-the-limitation-of-broadcast-time-and-election-timeout">What is the limitation of broadcast time and election timeout?</a></li>
+<li><a href="#what-are-the-limitations-of-broadcast-time-and-election-timeout">What are the limitations of broadcast time and election timeout?</a></li>
 <li><a href="#requestvote-rpc">RequestVote RPC</a></li>
 </ul>
 </li>
@@ -292,73 +292,73 @@
 <li><a href="#how-to-determine-the-consistency-between-logs">How to determine the consistency between logs?</a></li>
 <li><a href="#how-to-check-the-consistency-in-appendentries-rpcs">How to check the consistency in AppendEntries RPCs?</a></li>
 <li><a href="#what-kinds-of-inconsistency-may-incur">What kinds of inconsistency may incur?</a></li>
-<li><a href="#how-does-leader-handle-follower-inconsistencies">How does leader handle follower inconsistencies?</a></li>
-<li><a href="#how-does-appendentries-rpc-perform-consistency-check">How does AppendEntries RPC perform consistency check?</a></li>
-<li><a href="#how-to-handle-uncommited-entries-from-previous-leaders">How to handle uncommited entries from previous leaders?</a></li>
+<li><a href="#how-does-the-leader-handle-follower-inconsistencies">How does the leader handle follower inconsistencies?</a></li>
+<li><a href="#how-does-appendentries-rpc-perform-a-consistency-check">How does AppendEntries RPC perform a consistency check?</a></li>
+<li><a href="#how-to-handle-uncommitted-entries-from-previous-leaders">How to handle uncommitted entries from previous leaders?</a></li>
 <li><a href="#appendentries-rpc">AppendEntries RPC</a></li>
 </ul>
 </li>
 <li><a href="#log-compaction">Log compaction</a>
 <ul>
 <li><a href="#how-does-raft-compact-logs">How does Raft compact logs?</a></li>
-<li><a href="#how-to-handle-the-appendentries-that-requires-compated-entries">How to handle the AppendEntries that requires compated entries?</a></li>
-<li><a href="#how-to-install-the-snapshot-from-leader">How to install the snapshot from leader?</a></li>
-<li><a href="#when-should-a-server-to-snapshot">When should a server to snapshot?</a></li>
-<li><a href="#how-to-reduce-the-delays-of-normal-operations-caused-by-a-snapshot">How to reduce the delays of normal operations caused by a snapshot?</a></li>
+<li><a href="#how-to-handle-the-appendentries-that-require-compated-entries">How to handle the AppendEntries that require compated entries?</a></li>
+<li><a href="#how-to-install-the-snapshot-from-the-leader">How to install the snapshot from the leader?</a></li>
+<li><a href="#when-should-a-server-take-a-snapshot">When should a server take a snapshot?</a></li>
+<li><a href="#how-can-the-delays-of-normal-operations-caused-by-a-snapshot-be-reduced">How can the delays of normal operations caused by a snapshot be reduced?</a></li>
 <li><a href="#installsnapshot-rpc">InstallSnapshot RPC</a></li>
 </ul>
 </li>
 <li><a href="#client-interaction">Client interaction</a>
 <ul>
-<li><a href="#how-does-client-find-cluster-leader">How does client find cluster leader?</a></li>
-<li><a href="#how-to-prevent-raft-execute-a-command-multiple-times">How to prevent Raft execute a command multiple times?</a></li>
-<li><a href="#how-to-prevent-returning-stale-date-to-a-read-only-operation">How to prevent returning stale date to a read-only operation?</a></li>
+<li><a href="#how-does-the-client-find-the-cluster-leader">How does the client find the cluster leader?</a></li>
+<li><a href="#how-to-prevent-raft-from-executing-a-command-multiple-times">How to prevent Raft from executing a command multiple times?</a></li>
+<li><a href="#how-to-prevent-returning-stale-data-to-a-read-only-operation">How to prevent returning stale data to a read-only operation?</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#experiements-and-results">Experiements and results</a></li>
+<li><a href="#experiments-and-results">Experiments and results</a></li>
 <li><a href="#reproduce-and-unmentioned-parts">Reproduce and unmentioned parts</a></li>
 </ul>
 </p>
 <h1 id="abstract"><a class="markdownIt-Anchor" href="#abstract"></a> Abstract</h1>
 <ol>
-<li><strong>Main idea</strong>: Understandability also matters for an algorithm to be implemented and deployed. Separate leader election and log replication parts in consensus to increase understandability. Linearizability are provided by restricting entries accepted by followers and client commands are executed only once.</li>
-<li><strong>Key findings</strong>: The key of the correctness of the system is that committed entries are durable in all nodes. Based on Log Matching property and Leader Append-Only property, we can easily induct it. Another corner case to be noticed is that leaders commit entries of previous terms only by committing entries from its own term.</li>
-<li><strong>The system</strong>: The elected leaders are restricted to be at least as up-to-date as majority nodes, and only leaders can append entries from clients.</li>
-<li><strong>Evaluation</strong>: The authors evaluated the understandability againsted Paxos and the performance of electing leaders are measured.</li>
+<li><strong>Main idea</strong>: Understandability also matters for an algorithm to be implemented and deployed. Separate leader election and log replication parts in consensus to increase understandability. Linearizability is provided by restricting entries accepted by followers, and client commands are executed only once.</li>
+<li><strong>Key findings</strong>: The key to the correctness of the system is that committed entries are durable in all nodes. We can easily induct it based on the Log Matching property and Leader Append-Only property. Another corner case is that leaders commit entries of previous terms only by committing entries from its term.</li>
+<li><strong>The system</strong>: The elected leaders are restricted to be at least as up-to-date as majority nodes and only leaders can append entries from clients.</li>
+<li><strong>Evaluation</strong>: The authors evaluated the understandability against Paxos, and the performance of elected leaders is measured.</li>
 </ol>
 <h1 id="purpose"><a class="markdownIt-Anchor" href="#purpose"></a> Purpose</h1>
 <ol>
-<li>Enhance the understandability of Paxos
+<li>Enhance the understandability of Paxos.
 <ul>
-<li>Raft separates the key elements of consensus, such as leader election, log replication, and safety</li>
-<li>It enforces a stronger degree of coherency to reduce the number of states that must be considered</li>
+<li>Raft separates the critical consensus elements, such as leader election, log replication, and safety.</li>
+<li>It enforces a stronger coherency to reduce the number of states that must be considered.</li>
 </ul>
 </li>
 <li>Novel features: strong leader, leader election, membership changes.</li>
-<li><strong>What is the common properties of consensus algorithms?</strong>
+<li><strong>What are the common properties of consensus algorithms?</strong>
 <ul>
-<li>Safety: never returning an incorrect result under all non-Byzantine conditions, including network delays, partitions, and packet loss, duplication, and reordering.</li>
-<li>Available as long as any majority of the servers are operational and can communicate with each other and with clients.</li>
+<li>Safety: never returning an incorrect result under all non-Byzantine conditions, including network delays, partitions, packet loss, duplication, and reordering.</li>
+<li>Available as long as the majority of the servers are operational and can communicate with each other and with clients.</li>
 <li>They do not depend on timing to ensure the consistency of the logs: faulty clocks and extreme message delays can, at worst, cause availability problems.</li>
-<li>A command can complete as soon as a majority of the cluster has responded to a single round of remote procedure calls; a minority of slow servers need not impact overall system performance.</li>
+<li>A command can be completed as soon as a majority of the cluster has responded to a single round of remote procedure calls; a minority of slow servers need not impact overall system performance.</li>
 </ul>
 </li>
 </ol>
 <h1 id="model"><a class="markdownIt-Anchor" href="#model"></a> Model</h1>
 <h2 id="basics"><a class="markdownIt-Anchor" href="#basics"></a> Basics</h2>
-<h3 id="how-does-raft-implements-consensus-overall"><a class="markdownIt-Anchor" href="#how-does-raft-implements-consensus-overall"></a> How does Raft implements consensus overall?</h3>
+<h3 id="how-does-raft-implement-consensus-overall"><a class="markdownIt-Anchor" href="#how-does-raft-implement-consensus-overall"></a> How does Raft implement consensus overall?</h3>
 <ol>
-<li>First electing a distinguished leader, then giving the leader complete responsibility for managing the replicated log.</li>
-<li>The leader accepts log entries from clients, replicates them on other servers, and tells servers when it is safe to apply log entries to their state machines.</li>
+<li>First, a distinguished leader is elected, and then the leader is responsible for managing the replicated log.</li>
+<li>The leader accepts log entries from clients, replicates them on other servers, and tells servers when it is safe to apply them to their state machines.</li>
 <li>A leader can fail or become disconnected from the other servers, in which case a new leader is elected.</li>
 </ol>
 <h3 id="what-are-the-states-of-each-server"><a class="markdownIt-Anchor" href="#what-are-the-states-of-each-server"></a> What are the states of each server?</h3>
 <ol>
-<li>At any given time each server is in one of three states: leader, follower, or candidate.</li>
-<li>In normal operation there is exactly one leader and all of the other servers are followers.</li>
-<li>Followers are passive: they issue no requests on their own but simply respond to requests from leaders and candidates.</li>
+<li>Each server is in one of three states at any given time: leader, follower, or candidate.</li>
+<li>In normal operation, there is exactly one leader, and all other servers are followers.</li>
+<li>Followers are passive: they issue no requests on their own but respond to requests from leaders and candidates.</li>
 <li>The leader handles all client requests. If a client contacts a follower, the follower redirects it to the leader.</li>
 <li>The candidate is used to elect a new leader.</li>
 </ol>
@@ -366,26 +366,26 @@
 <ol>
 <li>Terms are numbered with consecutive integers. Each election begins a new term.</li>
 <li>If an election results in a split vote, the term will end with no leader; a new term with a new election will begin shortly.</li>
-<li>Terms act as a logical clock in Raft, and they allow servers to detect obsolete information such as stale leaders.</li>
+<li>Terms act as a logical clock in Raft, allowing servers to detect obsolete information, such as stale leaders.</li>
 </ol>
-<h3 id="how-does-terms-change"><a class="markdownIt-Anchor" href="#how-does-terms-change"></a> How does terms change?</h3>
+<h3 id="how-do-terms-change"><a class="markdownIt-Anchor" href="#how-do-terms-change"></a> How do terms change?</h3>
 <ol>
 <li>Each server stores a current term number, which increases monotonically over time.</li>
-<li>Current terms are exchanged whenever servers communicate; if one server’s current term is smaller than the other’s, then it updates its current term to the larger value.</li>
-<li>If a candidate or leader discovers that its term is out of date, it immediately reverts to follower state.</li>
-<li>If a server receives a request with a stale term number, it rejects the request.</li>
+<li>Current terms are exchanged whenever servers communicate; if one server’s term is smaller than the other’s, it updates its current term to the larger value.</li>
+<li>If a candidate or leader discovers its term is outdated, it immediately reverts to a follower state.</li>
+<li>The request is rejected if a server receives a request with a stale term number.</li>
 </ol>
 <h3 id="how-does-raft-handle-follower-and-candidate-crashes"><a class="markdownIt-Anchor" href="#how-does-raft-handle-follower-and-candidate-crashes"></a> How does Raft handle follower and candidate crashes?</h3>
 <ol>
 <li>If a follower or candidate crashes, then future <code>RequestVote</code> and <code>AppendEntries</code> RPCs sent to it will fail. Raft handles these failures by retrying indefinitely.</li>
-<li>If a server crashes after completing an RPC but before responding, then it will receive the same RPC again after it restarts. Raft RPCs are idempotent, i.e. servers will ignore the RPCs that is already handled, so this causes no harm.</li>
+<li>If a server crashes after completing an RPC but before responding, it will receive the same RPC again after it restarts. Raft RPCs are idempotent, i.e., servers will ignore the RPCs that are already handled, so this causes no harm.</li>
 </ol>
 <h3 id="states-stored-on-servers"><a class="markdownIt-Anchor" href="#states-stored-on-servers"></a> States stored on servers</h3>
 <ol>
-<li>Persistent state on all servers: These states need to be updated on stable storage before responding to RPCs, i.e. communicating with outside.
+<li>Persistent state on all servers: These states must be updated on stable storage before responding to RPCs, i.e., communicating with outside.
 <ul>
-<li><code>currentTerm</code>: latest term server has seen (initialized to 0 on first boot, increases monotonically)</li>
-<li><code>votedFor</code>: candidateId that received vote in current term (or <code>null</code> if none)</li>
+<li><code>currentTerm</code>: The latest term server has seen (initialized to 0 on first boot, increases monotonically)</li>
+<li><code>votedFor</code>: the candidate that received the vote in the current term (or <code>null</code> if none)</li>
 <li><code>log[]</code>: log entries</li>
 </ul>
 </li>
@@ -395,83 +395,83 @@
 <li><code>lastApplied</code>: index of highest log entry applied to state machine (initialized to 0, increases monotonically)</li>
 </ul>
 </li>
-<li>Volatile state on leaders: These states need to be reinitialized after election
+<li>Volatile state on leaders: These states need to be reinitialized after the election
 <ul>
-<li><code>nextIndex[]</code>: for each server, index of the next log entry to send to that server (initialized to leader last log index + 1)</li>
-<li><code>matchIndex[]</code>: for each server, index of highest log entry known to be replicated on server (initialized to 0, increases monotonically)</li>
+<li><code>nextIndex[]</code>: for each server, the index of the next log entry to send to that server (initialized to leader last log index + 1)</li>
+<li><code>matchIndex[]</code>: for each server, the index of the highest log entry known to be replicated on the server (initialized to 0, increases monotonically)</li>
 </ul>
 </li>
 </ol>
 <h2 id="leader-election"><a class="markdownIt-Anchor" href="#leader-election"></a> Leader election</h2>
-<h3 id="how-does-the-servers-states-transit"><a class="markdownIt-Anchor" href="#how-does-the-servers-states-transit"></a> How does the servers states transit?</h3>
+<h3 id="how-do-the-servers-state-transit"><a class="markdownIt-Anchor" href="#how-do-the-servers-state-transit"></a> How do the servers state transit?</h3>
 <ol>
-<li>When servers start up, they begin as followers. A server remains in follower state as long as it receives valid RPCs from a leader or candidate.</li>
-<li>Leaders send periodic heartbeats (<code>AppendEntries</code> RPCs that carry no log entries) to all followers in order to maintain their authority.</li>
-<li>If a follower receives no communication over a period of time called the election timeout, then it assumes there is no viable leader and become a candidate to initiate a new election.</li>
-<li>A candidate that receives votes from a majority of the full cluster becomes the new leader.<br />
+<li>When servers start up, they begin as followers. A server remains in a follower state if it receives valid RPCs from a leader or candidate.</li>
+<li>Leaders send periodic heartbeats (<code>AppendEntries</code> RPCs with no log entries) to all followers to maintain their authority.</li>
+<li>Suppose a follower receives no communication over a period called the election timeout. In that case, it assumes there is no viable leader and becomes a candidate to initiate a new election.</li>
+<li>A candidate who receives votes from a majority of the entire cluster becomes the new leader.<br />
 <img src="/imgs/Distributed/Raft/01.png" alt="" /></li>
 </ol>
 <h3 id="how-to-elect-a-leader"><a class="markdownIt-Anchor" href="#how-to-elect-a-leader"></a> How to elect a leader?</h3>
 <ol>
-<li>To begin an election, a follower increments its current term and transitions to candidate state.</li>
-<li>It then votes for itself and issues <code>RequestVote</code> RPCs in parallel to each of the other servers in the cluster.</li>
-<li>Candidate continues in this state until one of three things happens
+<li>To begin an election, a follower increments its current term and transitions to the candidate state.</li>
+<li>It then votes for itself and issues <code>RequestVote</code> RPCs parallel to each other cluster server.</li>
+<li>The candidate continues in this state until one of three things happens.
 <ul>
-<li>It wins the election</li>
-<li>Another server establishes itself as leader</li>
+<li>It wins the election.</li>
+<li>Another server establishes itself as the leader.</li>
 <li>A period of time goes by with no winner.</li>
 </ul>
 </li>
 </ol>
 <h3 id="how-is-the-election-held"><a class="markdownIt-Anchor" href="#how-is-the-election-held"></a> How is the election held?</h3>
 <ol>
-<li>Each server will vote for at most one candidate in a given term, on a first-come-first-served basis to ensure that at most one candidate can win the election for a particular term.</li>
-<li>A candidate wins an election if it receives votes from a majority of the servers in the full cluster for the same term.</li>
-<li>Once a candidate wins an election, it becomes leader. It then sends heartbeat messages to all of the other servers to establish its authority and prevent new elections.</li>
+<li>Each server will vote for at most one candidate in a given term on a first-come-first-served basis to ensure that one candidate can win the election for a particular term.</li>
+<li>A candidate wins an election if it receives votes from a majority of the servers in the whole cluster for the same term.</li>
+<li>Once a candidate wins an election, it becomes the leader. It then sends heartbeat messages to all other servers to establish its authority and prevent new elections.</li>
 </ol>
 <h3 id="how-to-determine-that-a-server-loses-the-election"><a class="markdownIt-Anchor" href="#how-to-determine-that-a-server-loses-the-election"></a> How to determine that a server loses the election?</h3>
 <ol>
-<li>A candidate may receive an <code>AppendEntries</code> RPC from another server claiming to be leader.</li>
-<li>If the leader’s term is at least as large as the candidate’s current term, then the candidate recognizes the leader as legitimate and returns to follower state.</li>
-<li>If the term in the RPC is smaller than the candidate’s current term, then the candidate rejects the RPC and continues in candidate state.</li>
+<li>A candidate may receive an <code>AppendEntries</code> RPC from another server claiming to be the leader.</li>
+<li>If the leader’s term is at least as large as the candidate’s current term, the candidate recognizes the leader as legitimate and returns to the follower state.</li>
+<li>If the term in the RPC is smaller than the candidate’s current term, then the candidate rejects the RPC and continues in the candidate state.</li>
 </ol>
 <h3 id="how-to-handle-a-split-vote"><a class="markdownIt-Anchor" href="#how-to-handle-a-split-vote"></a> How to handle a split vote?</h3>
 <ol>
-<li>If many followers become candidates at the same time, votes could be split so that no candidate obtains a majority.</li>
-<li>Each candidate will time out and start a new election by incrementing its term and initiating another round of RequestVote RPCs.</li>
-<li>Raft uses randomized election timeouts to ensure that split votes are rare and that they are resolved quickly.
+<li>If many followers become candidates simultaneously, votes could be split so that no candidate obtains a majority.</li>
+<li>Each candidate will time out and start a new election by incrementing their term and initiating another round of RequestVote RPCs.</li>
+<li>Raft uses randomized election timeouts to ensure that split votes are rare and resolved quickly.
 <ul>
 <li>Election timeouts are chosen randomly from a fixed interval at the start of an election, and it waits for that timeout to elapse before starting the next election.</li>
-<li>In most cases only a single server will time out; it wins the election and sends heartbeats before any other servers time out.</li>
+<li>In most cases, only a single server will time out; it wins the election and sends heartbeats before any other servers time out.</li>
 </ul>
 </li>
 </ol>
 <h3 id="how-to-ensure-that-the-leader-of-any-given-term-contains-all-of-the-entries-committed-in-previous-terms"><a class="markdownIt-Anchor" href="#how-to-ensure-that-the-leader-of-any-given-term-contains-all-of-the-entries-committed-in-previous-terms"></a> How to ensure that the leader of any given term contains all of the entries committed in previous terms?</h3>
 <ol>
-<li>A candidate must contact a majority of the cluster in order to be elected, which means that every committed entry must be present in at least one of those servers.</li>
-<li>If the candidate’s log is at least as up-to-date as any other log in that majority, then it will hold all the committed entries.</li>
-<li>In the <code>RequestVote</code> RPC, the voter denies its vote if its own log is more up-to-date than that of the candidate.</li>
-<li>Raft determines which of two logs is more up-to-date by comparing the index and term of the last entries in the logs.
+<li>A candidate must contact a majority of the cluster to be elected, meaning that every committed entry must be present in at least one of those servers.</li>
+<li>If the candidate’s log is at least as up-to-date as any others in that majority, it will hold all the committed entries.</li>
+<li>In the <code>RequestVote</code> RPC, the voter denies voting if its log is more up-to-date than the candidate’s.</li>
+<li>Raft determines which of the two logs is more up-to-date by comparing the index and term of the last log entries.
 <ul>
 <li>If the logs have last entries with different terms, then the log with the later term is more up-to-date.</li>
-<li>If the logs end with the same term, then whichever log is longer is more up-to-date.</li>
+<li>If the logs end with the same term, the longer log is more up-to-date.</li>
 </ul>
 </li>
 </ol>
-<h3 id="what-is-the-limitation-of-broadcast-time-and-election-timeout"><a class="markdownIt-Anchor" href="#what-is-the-limitation-of-broadcast-time-and-election-timeout"></a> What is the limitation of broadcast time and election timeout?</h3>
+<h3 id="what-are-the-limitations-of-broadcast-time-and-election-timeout"><a class="markdownIt-Anchor" href="#what-are-the-limitations-of-broadcast-time-and-election-timeout"></a> What are the limitations of broadcast time and election timeout?</h3>
 <ol>
 <li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mi>r</mi><mi>o</mi><mi>a</mi><mi>d</mi><mi>c</mi><mi>a</mi><mi>s</mi><mi>t</mi><mi>T</mi><mi>i</mi><mi>m</mi><mi>e</mi><mo>≪</mo><mi>e</mi><mi>l</mi><mi>e</mi><mi>c</mi><mi>t</mi><mi>i</mi><mi>o</mi><mi>n</mi><mi>T</mi><mi>i</mi><mi>m</mi><mi>e</mi><mi>o</mi><mi>u</mi><mi>t</mi><mo>≪</mo><mi>M</mi><mi>T</mi><mi>B</mi><mi>F</mi></mrow><annotation encoding="application/x-tex">broadcastTime\ll electionTimeout\ll MTBF</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.73354em;vertical-align:-0.0391em;"></span><span class="mord mathnormal">b</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">o</span><span class="mord mathnormal">a</span><span class="mord mathnormal">d</span><span class="mord mathnormal">c</span><span class="mord mathnormal">a</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal">i</span><span class="mord mathnormal">m</span><span class="mord mathnormal">e</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≪</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.73354em;vertical-align:-0.0391em;"></span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">e</span><span class="mord mathnormal">c</span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal">i</span><span class="mord mathnormal">m</span><span class="mord mathnormal">e</span><span class="mord mathnormal">o</span><span class="mord mathnormal">u</span><span class="mord mathnormal">t</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≪</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span></span></span></span></li>
-<li>BbroadcastTime is the average time it takes a server to send RPCs in parallel to every server in the cluster and receive their responses. electionTimeout is the election timeout. MTBF is the average time between failures for a single server.</li>
-<li>The broadcast time should be an order of magnitude less than the election timeout so that leaders can reliably send the heartbeat messages required to keep followers from starting elections.</li>
+<li>BbroadcastTime is the average time it takes a server to send RPCs in parallel to every server in the cluster and receive their responses. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mi>l</mi><mi>e</mi><mi>c</mi><mi>t</mi><mi>i</mi><mi>o</mi><mi>n</mi><mi>T</mi><mi>i</mi><mi>m</mi><mi>e</mi><mi>o</mi><mi>u</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">electionTimeout</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">e</span><span class="mord mathnormal">c</span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal">i</span><span class="mord mathnormal">m</span><span class="mord mathnormal">e</span><span class="mord mathnormal">o</span><span class="mord mathnormal">u</span><span class="mord mathnormal">t</span></span></span></span> is the election timeout. MTBF is the average time between failures for a single server.</li>
+<li>The broadcast time should be an order of magnitude less than the election timeout so leaders can reliably send the heartbeat messages required to keep followers from starting elections.</li>
 <li>The election timeout should be a few orders of magnitude less than MTBF so that the system makes steady progress.</li>
 </ol>
 <h3 id="requestvote-rpc"><a class="markdownIt-Anchor" href="#requestvote-rpc"></a> RequestVote RPC</h3>
 <ol>
-<li>This is invoked by candidates to gather votes.</li>
+<li>Candidates invoke this to gather votes.</li>
 <li>Arguments:
 <ul>
 <li><code>term</code>: candidate’s term</li>
-<li><code>candidateId</code>: candidate requesting vote</li>
+<li><code>candidateId</code>: candidate requesting a vote</li>
 <li><code>lastLogIndex</code>: index of candidate’s last log entry</li>
 <li><code>lastLogTerm</code>: term of candidate’s last log entry</li>
 </ul>
@@ -479,13 +479,13 @@
 <li>Results:
 <ul>
 <li><code>term</code>: currentTerm, for candidate to update itself</li>
-<li><code>voteGranted</code>: true means candidate received vote</li>
+<li><code>voteGranted</code>: true means the candidate received a vote</li>
 </ul>
 </li>
 <li>Receiver implementation:
 <ul>
 <li>Reply <code>false</code> if <code>term &lt; currentTerm</code></li>
-<li>If votedFor is <code>null</code> or <code>candidateId</code>, and candidate’s log is at least as up-to-date as receiver’s log, grant vote</li>
+<li>If votedFor is <code>null</code> or <code>candidateId</code>, and the candidate’s log is at least as up-to-date as the receiver’s log, grant vote</li>
 </ul>
 </li>
 </ol>
@@ -493,80 +493,80 @@
 <h3 id="how-are-client-requests-handled"><a class="markdownIt-Anchor" href="#how-are-client-requests-handled"></a> How are client requests handled?</h3>
 <ol>
 <li>Each client request contains a command to be executed by the replicated state machines.</li>
-<li>The leader appends the command to its log as a new entry, then issues <code>AppendEntries</code> RPCs in parallel to each of the other servers to replicate the entry.</li>
+<li>The leader appends the command to its log as a new entry, then issues <code>AppendEntries</code> RPCs parallel to each other server to replicate the entry.</li>
 <li>When the entry has been safely replicated, the leader applies the entry to its state machine and returns the result of that execution to the client.</li>
-<li>If followers crash or run slowly, or if network packets are lost, the leader retries <code>AppendEntries</code> RPCs indefinitely (even after it has responded to the client) until all followers eventually store all log entries.</li>
+<li>Suppose followers crash or run slowly or network packets are lost. In that case, the leader retries <code>AppendEntries</code> RPCs indefinitely (even after it has responded to the client) until all followers eventually store all log entries.</li>
 </ol>
 <h3 id="what-is-stored-in-a-log-entry"><a class="markdownIt-Anchor" href="#what-is-stored-in-a-log-entry"></a> What is stored in a log entry?</h3>
 <ol>
 <li>A command for state machine</li>
-<li>A term number when entry was received by leader.</li>
+<li>A term number when the leader received entry.</li>
 <li>An index to identify its position in the log. The index of the first log is 1.</li>
 </ol>
 <h3 id="how-to-apply-a-log-entry-to-the-state-machines"><a class="markdownIt-Anchor" href="#how-to-apply-a-log-entry-to-the-state-machines"></a> How to apply a log entry to the state machines?</h3>
 <ol>
-<li>The leader decides when it is safe to apply a log entry to the state machines.
+<li>The leader decides when applying a log entry to the state machines is safe.
 <ul>
 <li>Such an entry is called <code>committed</code>.</li>
-<li>Raft guarantees that committed entries are durable and will eventually be executed by all of the available state machines.</li>
+<li>Raft guarantees that committed entries are durable and will eventually be executed by all available state machines.</li>
 </ul>
 </li>
 <li>A log entry is committed once the leader that created the entry has replicated it on a majority of the servers.</li>
 <li>It also commits all preceding entries in the leader’s log, including entries created by previous leaders.</li>
 <li>The leader keeps track of the highest index it knows to be committed, and it includes that index in future <code>AppendEntries</code> RPCs, including heartbeats, so that the other servers eventually find out that they should commit some new entries.</li>
-<li>Once a follower learns that a log entry is committed, it applies the entry to its local state machine in log order.</li>
+<li>Once a follower learns that a log entry is committed, the entry is applied to its local state machine in log order.</li>
 </ol>
 <h3 id="how-to-determine-the-consistency-between-logs"><a class="markdownIt-Anchor" href="#how-to-determine-the-consistency-between-logs"></a> How to determine the consistency between logs?</h3>
 <ol>
-<li><strong>Log Matching property</strong>: If two logs contain an entry with the same index and term, then the logs are identical in all entries up through the given index.</li>
+<li><strong>Log Matching property</strong>: If two logs contain an entry with the same index and term, the logs are identical in all entries up through the given index.</li>
 <li>The Log Matching property is maintained through the following properties:
 <ul>
-<li>If two entries in different logs have the same index and term, then they store the same command.</li>
+<li>If two entries in different logs have the same index and term, they store the same command.</li>
 <li>If two entries in different logs have the same index and term, then the logs are identical in all preceding entries.</li>
 </ul>
 </li>
 </ol>
 <h3 id="how-to-check-the-consistency-in-appendentries-rpcs"><a class="markdownIt-Anchor" href="#how-to-check-the-consistency-in-appendentries-rpcs"></a> How to check the consistency in AppendEntries RPCs?</h3>
 <ol>
-<li>When sending an <code>AppendEntries</code> RPC, the leader includes the index and term of the entry in its log that immediately precedes the new entries.</li>
-<li>If the follower does not find an entry in its log with the same index and term, then it refuses the new entries.</li>
+<li>When sending an <code>AppendEntries</code> RPC, the leader includes the index and term of the entry in its log, which immediately precedes the new entries.</li>
+<li>If the follower does not find an entry with the same index and term in its log, it refuses the new entries.</li>
 </ol>
 <h3 id="what-kinds-of-inconsistency-may-incur"><a class="markdownIt-Anchor" href="#what-kinds-of-inconsistency-may-incur"></a> What kinds of inconsistency may incur?</h3>
 <ol>
-<li>Leader crashes can leave the logs inconsistent. The old leader may not have fully replicated all of the entries in its log.</li>
-<li>A follower may be missing entries that are present on the leader, it may have extra entries that are not present on the leader, or both.</li>
+<li>Leader crashes can leave the logs inconsistent. The old leader may not have fully replicated all the entries in its log.</li>
+<li>A follower may be missing entries that are present on the leader; it may have extra entries that are not present on the leader or both.</li>
 </ol>
-<h3 id="how-does-leader-handle-follower-inconsistencies"><a class="markdownIt-Anchor" href="#how-does-leader-handle-follower-inconsistencies"></a> How does leader handle follower inconsistencies?</h3>
+<h3 id="how-does-the-leader-handle-follower-inconsistencies"><a class="markdownIt-Anchor" href="#how-does-the-leader-handle-follower-inconsistencies"></a> How does the leader handle follower inconsistencies?</h3>
 <ol>
 <li><strong>Leader Append-Only</strong> property: a leader never overwrites or deletes entries in its log.</li>
 <li>The leader handles inconsistencies by forcing the followers’ logs to duplicate its own. Namely, conflicting entries in follower logs will be overwritten with entries from the leader’s log.</li>
 <li>The leader must find the latest log entry where the two logs agree, delete any entries in the follower’s log after that point, and send the follower all of the leader’s entries after that point.</li>
-<li>All of these actions happen in response to the consistency check performed by AppendEntries RPCs.</li>
+<li>These actions happen in response to the consistency check performed by AppendEntries RPCs.</li>
 <li>A leader does not need to take any special actions to restore log consistency when it comes to power. It just begins normal operation, and the logs automatically converge in response to failures of the AppendEntries consistency check.</li>
 </ol>
-<h3 id="how-does-appendentries-rpc-perform-consistency-check"><a class="markdownIt-Anchor" href="#how-does-appendentries-rpc-perform-consistency-check"></a> How does AppendEntries RPC perform consistency check?</h3>
+<h3 id="how-does-appendentries-rpc-perform-a-consistency-check"><a class="markdownIt-Anchor" href="#how-does-appendentries-rpc-perform-a-consistency-check"></a> How does AppendEntries RPC perform a consistency check?</h3>
 <ol>
-<li>The leader maintains a nextIndex for each follower. When a leader first comes to power, it initializes all nextIndex values to the index just after the last one in its log, i.e. assuming all followers are as up-to-date as itself.</li>
+<li>The leader maintains a nextIndex for each follower. When a leader first comes to power, it initializes all nextIndex values to the index just after the last one in its log, i.e., assuming all followers are as up-to-date as itself.</li>
 <li>If a follower’s log is inconsistent with the leader’s, the consistency check will fail in the next <code>AppendEntries</code> RPC.</li>
 <li>After a rejection, the leader decrements nextIndex and retries the <code>AppendEntries</code> RPC.</li>
-<li>Eventually <code>nextIndex</code> will reach a point where the leader and follower logs match. When this happens, <code>AppendEntries</code> will succeed, which removes any conflicting entries in the follower’s log and appends entries from the leader’s log (if any).</li>
+<li>Eventually, <code>nextIndex</code> will reach a point where the leader and follower logs match. When this happens, <code>AppendEntries</code> will succeed, removing any conflicting entries in the follower’s log and appending entries from the leader’s log (if any).</li>
 <li>Once <code>AppendEntries</code> succeeds, the follower’s log is consistent with the leader’s, and it will remain that way for the rest of the term.</li>
 </ol>
-<h3 id="how-to-handle-uncommited-entries-from-previous-leaders"><a class="markdownIt-Anchor" href="#how-to-handle-uncommited-entries-from-previous-leaders"></a> How to handle uncommited entries from previous leaders?</h3>
+<h3 id="how-to-handle-uncommitted-entries-from-previous-leaders"><a class="markdownIt-Anchor" href="#how-to-handle-uncommitted-entries-from-previous-leaders"></a> How to handle uncommitted entries from previous leaders?</h3>
 <ol>
 <li>If a leader crashes before committing an entry, future leaders will attempt to finish replicating the entry.</li>
 <li>A leader cannot immediately conclude that an entry from a previous term <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mi>e</mi><mi>r</mi><msub><mi>m</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">term_p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9011879999999999em;vertical-align:-0.286108em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">p</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> is committed once it is stored on a majority of servers.
 <ul>
-<li>There could have other entries in a <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mi>e</mi><mi>r</mi><msub><mi>m</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">term_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76508em;vertical-align:-0.15em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> between <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mi>e</mi><mi>r</mi><msub><mi>m</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">term_p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9011879999999999em;vertical-align:-0.286108em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">p</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> and the leader’s current term <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mi>e</mi><mi>r</mi><msub><mi>m</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">term_c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76508em;vertical-align:-0.15em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
-<li>If nothing in the leaders current term has reached agreement, after the leader dies, that server with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mi>e</mi><mi>r</mi><msub><mi>m</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">term_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76508em;vertical-align:-0.15em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> may become the new leader, and it can overwrite entries of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mi>e</mi><mi>r</mi><msub><mi>m</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">term_p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9011879999999999em;vertical-align:-0.286108em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">p</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> although those entries are committed since <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mi>e</mi><mi>r</mi><msub><mi>m</mi><mi>i</mi></msub><mo>&gt;</mo><mi>t</mi><mi>e</mi><mi>r</mi><msub><mi>m</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">term_i&gt;term_p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76508em;vertical-align:-0.15em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.9011879999999999em;vertical-align:-0.286108em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">p</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span></li>
+<li>There could be other entries in a <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mi>e</mi><mi>r</mi><msub><mi>m</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">term_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76508em;vertical-align:-0.15em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> between <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mi>e</mi><mi>r</mi><msub><mi>m</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">term_p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9011879999999999em;vertical-align:-0.286108em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">p</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> and the leader’s current term <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mi>e</mi><mi>r</mi><msub><mi>m</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">term_c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76508em;vertical-align:-0.15em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
+<li>If nothing in the leader’s current term has reached an agreement after the leader dies, that server with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mi>e</mi><mi>r</mi><msub><mi>m</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">term_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76508em;vertical-align:-0.15em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> may become the new leader, and it can overwrite entries of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mi>e</mi><mi>r</mi><msub><mi>m</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">term_p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9011879999999999em;vertical-align:-0.286108em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">p</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> although those entries are committed since <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mi>e</mi><mi>r</mi><msub><mi>m</mi><mi>i</mi></msub><mo>&gt;</mo><mi>t</mi><mi>e</mi><mi>r</mi><msub><mi>m</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">term_i&gt;term_p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76508em;vertical-align:-0.15em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.9011879999999999em;vertical-align:-0.286108em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">p</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span></li>
 </ul>
 </li>
 <li>Raft never commits log entries from previous terms by counting replicas.</li>
-<li>Only log entries from the leader’s current term are committed by counting replicas; once an entry from the current term has been committed in this way, then all prior entries are committed indirectly because of the Log Matching Property.</li>
+<li>Only log entries from the leader’s current term are committed by counting replicas; once an entry from the current term has been committed, all prior entries are committed indirectly because of the Log Matching Property.</li>
 </ol>
 <h3 id="appendentries-rpc"><a class="markdownIt-Anchor" href="#appendentries-rpc"></a> AppendEntries RPC</h3>
 <ol>
-<li>This is invoked by leader to replicate log entries; also used as heartbeat.</li>
+<li>Leader invokes this to replicate log entries; also used as heartbeat.</li>
 <li>Arguments:
 <ul>
 <li><code>term</code>: leader’s term</li>
@@ -579,16 +579,16 @@
 </li>
 <li>Results:
 <ul>
-<li><code>term</code>: <code>currentTerm</code>, for leader to update itself</li>
-<li><code>success</code>: true if follower contrained entry matching <code>prevLogIndex</code> and <code>prevLogTerm</code></li>
+<li><code>term</code>: <code>currentTerm</code>, for the leader to update itself</li>
+<li><code>success</code>: true if the follower contained an entry matching <code>prevLogIndex</code> and <code>prevLogTerm</code></li>
 </ul>
 </li>
 <li>Receiver implementation:
 <ul>
 <li>Reply <code>false</code> if <code>term &lt; currentTerm</code></li>
-<li>Reply <code>false</code> if log doesn’t contrain an entry at <code>prevLogIndex</code> whose term matches <code>prevLogTerm</code></li>
+<li>Reply <code>false</code> if log doesn’t contain an entry at <code>prevLogIndex</code> whose term matches <code>prevLogTerm</code></li>
 <li>If an existing entry conflicts with a new one (same index but different terms), delete the existing entry and all that follow it.</li>
-<li>Append any new entries not already in the log.</li>
+<li>Append any new entries that are not already in the log.</li>
 <li>If <code>leaderCommit &gt; commitIndex</code>, set <code>commitIndex = min(leaderCommit, index of last new entry)</code>.</li>
 </ul>
 </li>
@@ -597,11 +597,11 @@
 <h3 id="how-does-raft-compact-logs"><a class="markdownIt-Anchor" href="#how-does-raft-compact-logs"></a> How does Raft compact logs?</h3>
 <ol>
 <li>In snapshotting, the entire current system state is written to a snapshot on stable storage.</li>
-<li>Once a server completes writing a snapshot, it may delete all log entries up through the last included index, as well as any prior snapshot.</li>
+<li>Once a server completes writing a snapshot, it may delete all log entries up through the last included index and any prior snapshot.</li>
 <li>Each server takes snapshots independently, covering just the committed entries in its log.</li>
-<li>Data still only flows from leaders to followers, just followers can now reorganize their data.</li>
+<li>Data still only flows from leaders to followers; followers can now reorganize their data.</li>
 </ol>
-<h3 id="how-to-handle-the-appendentries-that-requires-compated-entries"><a class="markdownIt-Anchor" href="#how-to-handle-the-appendentries-that-requires-compated-entries"></a> How to handle the AppendEntries that requires compated entries?</h3>
+<h3 id="how-to-handle-the-appendentries-that-require-compated-entries"><a class="markdownIt-Anchor" href="#how-to-handle-the-appendentries-that-require-compated-entries"></a> How to handle the AppendEntries that require compated entries?</h3>
 <ol>
 <li>Raft also includes a small amount of metadata in the snapshot.
 <ul>
@@ -612,46 +612,46 @@
 <li>When the leader has already discarded the next log entry that it needs to send to a follower.</li>
 <li>This situation is unlikely in normal operation: a follower that has kept up with the leader would already have this entry. However, an exceptionally slow follower or a new server joining the cluster would not.</li>
 </ol>
-<h3 id="how-to-install-the-snapshot-from-leader"><a class="markdownIt-Anchor" href="#how-to-install-the-snapshot-from-leader"></a> How to install the snapshot from leader?</h3>
+<h3 id="how-to-install-the-snapshot-from-the-leader"><a class="markdownIt-Anchor" href="#how-to-install-the-snapshot-from-the-leader"></a> How to install the snapshot from the leader?</h3>
 <ol>
 <li>The leader uses a new RPC called <code>InstallSnapshot</code> to send snapshots to followers that are too far behind.</li>
 <li>When a follower receives a snapshot with this RPC, it must decide what to do with its existing log entries.</li>
 <li>If the snapshot contains new information not already in the recipient’s log
 <ul>
-<li>The follower discards its entire log</li>
-<li>It is all superseded by the snapshot and may possibly have uncommitted entries that conflict with the snapshot.</li>
+<li>The follower discards the entire log.</li>
+<li>It is all superseded by the snapshot and may have uncommitted entries that conflict with the snapshot.</li>
 </ul>
 </li>
-<li>If instead the follower receives a snapshot that describes a prefix of its log
+<li>If, instead, the follower receives a snapshot that describes a prefix of its log
 <ul>
 <li>This could be due to retransmission or by mistake.</li>
-<li>Log entries covered by the snapshot are deleted but entries following the snapshot are still valid and must be retained.</li>
+<li>Log entries covered by the snapshot have been deleted, but entries following the snapshot are still valid and must be retained.</li>
 </ul>
 </li>
 </ol>
-<h3 id="when-should-a-server-to-snapshot"><a class="markdownIt-Anchor" href="#when-should-a-server-to-snapshot"></a> When should a server to snapshot?</h3>
+<h3 id="when-should-a-server-take-a-snapshot"><a class="markdownIt-Anchor" href="#when-should-a-server-take-a-snapshot"></a> When should a server take a snapshot?</h3>
 <ol>
-<li>If a server snapshots too often, it wastes disk bandwidth and energy; if it snapshots too infrequently, it risks exhausting its storage capacity, and it increases the time required to replay the log during restarts.</li>
-<li>One simple strategy is to take a snapshot when the log reaches a fixed size in bytes.</li>
-<li>If this size is set to be significantly larger than the expected size of a snapshot, then the disk bandwidth overhead for snapshotting will be small.</li>
+<li>If a server snapshots too often, it wastes disk bandwidth and energy; if it snapshots too infrequently, it risks exhausting its storage capacity, increasing the time required to replay the log during restarts.</li>
+<li>A straightforward strategy is to take a snapshot when the log reaches a fixed size in bytes.</li>
+<li>If this size is significantly larger than a snapshot’s expected size, then the disk bandwidth overhead for snapshotting will be small.</li>
 </ol>
-<h3 id="how-to-reduce-the-delays-of-normal-operations-caused-by-a-snapshot"><a class="markdownIt-Anchor" href="#how-to-reduce-the-delays-of-normal-operations-caused-by-a-snapshot"></a> How to reduce the delays of normal operations caused by a snapshot?</h3>
+<h3 id="how-can-the-delays-of-normal-operations-caused-by-a-snapshot-be-reduced"><a class="markdownIt-Anchor" href="#how-can-the-delays-of-normal-operations-caused-by-a-snapshot-be-reduced"></a> How can the delays of normal operations caused by a snapshot be reduced?</h3>
 <ol>
-<li>The solution is to use copy-on-write techniques so that new updates can be accepted without impacting the snapshot being written.</li>
-<li>The operating system’s copy-on-write support (e.g., fork on Linux) can be used to create an in-memory snapshot of the entire state machine.</li>
+<li>The solution is to use copy-on-write techniques to accept new updates without impacting the snapshot being written.</li>
+<li>The operating system’s copy-on-write support (e.g., fork on Linux) can create an in-memory snapshot of the entire state machine.</li>
 </ol>
 <h3 id="installsnapshot-rpc"><a class="markdownIt-Anchor" href="#installsnapshot-rpc"></a> InstallSnapshot RPC</h3>
 <ol>
-<li>This is invoked by leader to send chunks of snapshot to a follower. Leaders always send chunks in order.</li>
+<li>The leader invokes this to send chunks of snapshot to a follower. Leaders always send chunks in order.</li>
 <li>Arguments:
 <ul>
 <li><code>term</code>: leader’s term</li>
 <li><code>leaderId</code>: so follower can redirect clients</li>
 <li><code>lastIncludedIndex</code>: the snapshot replaces all entries up through and including this index</li>
 <li><code>lastIncludedTerm</code>: term of <code>lastIncludedIndex</code></li>
-<li><code>offset</code>: byte offset where chunk is positioned in the snapshot file
+<li><code>offset</code>: byte offset where the chunk is positioned in the snapshot file
 <ul>
-<li>The whole snapshot file may be large, and hence divided into several chunks.</li>
+<li>The whole snapshot file may be large and hence divided into several chunks.</li>
 </ul>
 </li>
 <li><code>data[]</code>: raw bytes of the snapshot chunk, starting at offset</li>
@@ -660,52 +660,52 @@
 </li>
 <li>Results:
 <ul>
-<li><code>term</code>: <code>currentTerm</code>, for leader to update itself</li>
+<li><code>term</code>: <code>currentTerm</code>, for the leader to update itself</li>
 </ul>
 </li>
 <li>Receiver implementation:
 <ul>
 <li>Reply immediately if <code>term &lt; currentTerm</code></li>
-<li>Create new snapshot file if first chunk (offset is 0)</li>
-<li>Write data into snapshot file at given offset</li>
+<li>Create a new snapshot file if the first chunk (offset is 0)</li>
+<li>Write data into a snapshot file at the given offset.</li>
 <li>Reply and wait for more data chunks if done is <code>false</code>.</li>
-<li>Save snapshot file, discard any existing or partial snapshot with smaller index</li>
-<li>If existing log entry has same index and term as snapshot’s last included entry, retain log entries following it and reply</li>
-<li>Discard the entire log</li>
+<li>Save the snapshot file, and discard any existing or partial snapshots with a smaller index.</li>
+<li>If the existing log entry has the same index and term as the snapshot’s last included entry, retain log entries following it and reply</li>
+<li>Discard the entire log.</li>
 <li>Reset state machine using snapshot contents (and load snapshot’s cluster configuration)</li>
 </ul>
 </li>
 </ol>
 <h2 id="client-interaction"><a class="markdownIt-Anchor" href="#client-interaction"></a> Client interaction</h2>
-<h3 id="how-does-client-find-cluster-leader"><a class="markdownIt-Anchor" href="#how-does-client-find-cluster-leader"></a> How does client find cluster leader?</h3>
+<h3 id="how-does-the-client-find-the-cluster-leader"><a class="markdownIt-Anchor" href="#how-does-the-client-find-the-cluster-leader"></a> How does the client find the cluster leader?</h3>
 <ol>
 <li>When a client first starts up
 <ul>
-<li>It connects to a randomly-chosen server.</li>
-<li>If the client’s first choice is not the leader, that server will reject the client’s request and supply information about the most recent leader it has heard from.</li>
+<li>It connects to a randomly chosen server.</li>
+<li>If the client’s first choice is not the leader, that server will reject the request and supply information about the most recent leader it has heard from.</li>
 </ul>
 </li>
 <li>If the leader crashes
 <ul>
 <li>Client requests will time out.</li>
-<li>Clients then try again with randomly-chosen servers.</li>
+<li>Clients then try again with randomly chosen servers.</li>
 </ul>
 </li>
 </ol>
-<h3 id="how-to-prevent-raft-execute-a-command-multiple-times"><a class="markdownIt-Anchor" href="#how-to-prevent-raft-execute-a-command-multiple-times"></a> How to prevent Raft execute a command multiple times?</h3>
+<h3 id="how-to-prevent-raft-from-executing-a-command-multiple-times"><a class="markdownIt-Anchor" href="#how-to-prevent-raft-from-executing-a-command-multiple-times"></a> How to prevent Raft from executing a command multiple times?</h3>
 <ol>
-<li>Our goal for Raft is to implement linearizable semantics, i.e. each operation appears to execute instantaneously, exactly once, at some point between its invocation and its response.
+<li>Our goal for Raft is to implement linearizable semantics, i.e., each operation appears to execute instantaneously, exactly once, at some point between its invocation and its response.
 <ul>
-<li>One case of executing a command multiple times is that if the leader crashes after committing the log entry but before responding to the client, the client will retry the command with a new leader, causing it to be executed a second time.</li>
+<li>One case of executing a command multiple times is if the leader crashes after committing the log entry but before responding to the client; the client will retry the command with a new leader, causing it to be executed a second time.</li>
 </ul>
 </li>
 <li>The solution is for clients to assign unique serial numbers to every command.</li>
-<li>Then, the state machine tracks the latest serial number processed for each client, along with the associated response.</li>
-<li>If it receives a command whose serial number has already been executed, it responds immediately without re-executing the request.</li>
+<li>Then, the state machine tracks the latest serial number processed for each client and the associated response.</li>
+<li>If it receives a command with a serial number already executed, it responds immediately without re-executing the request.</li>
 </ol>
-<h3 id="how-to-prevent-returning-stale-date-to-a-read-only-operation"><a class="markdownIt-Anchor" href="#how-to-prevent-returning-stale-date-to-a-read-only-operation"></a> How to prevent returning stale date to a read-only operation?</h3>
+<h3 id="how-to-prevent-returning-stale-data-to-a-read-only-operation"><a class="markdownIt-Anchor" href="#how-to-prevent-returning-stale-data-to-a-read-only-operation"></a> How to prevent returning stale data to a read-only operation?</h3>
 <ol>
-<li>The reason for stale reading is that the leader responding to the request might have been superseded by a newer leader of which it is unaware.</li>
+<li>The stale reading is because the leader responding to the request might have been superseded by a newer leader of which it is unaware.</li>
 <li>A leader must have the latest information on which entries are committed.
 <ul>
 <li>The Leader Completeness Property guarantees that a leader has all committed entries, but at the start of its term, it may not know which those are.</li>
@@ -713,21 +713,21 @@
 <li>Raft handles this by having each leader commit a blank <em>no-op</em> entry into the log at the start of its term.</li>
 </ul>
 </li>
-<li>A leader must check whether it has been deposed before processing a read-only request, since its information may be stale if a more recent leader has been elected).
+<li>A leader must check whether it has been deposed before processing a read-only request since its information may be stale if a more recent leader has been elected).
 <ul>
 <li>Raft handles this by having the leader exchange heartbeat messages with a majority of the cluster before responding to read-only requests.</li>
-<li>Alternatively, the leader could rely on the heartbeat mechanism to provide a form of lease, but this would rely on timing for safety (it assumes bounded clock skew).</li>
+<li>Alternatively, the leader could rely on the heartbeat mechanism to provide a lease, but this would rely on timing for safety (it assumes bounded clock skew).</li>
 </ul>
 </li>
 </ol>
-<h1 id="experiements-and-results"><a class="markdownIt-Anchor" href="#experiements-and-results"></a> Experiements and results</h1>
+<h1 id="experiments-and-results"><a class="markdownIt-Anchor" href="#experiments-and-results"></a> Experiments and results</h1>
 <ol>
-<li>The main goal of Raft is to propose a consensus algorithm which is easier to understand than Paxos. Hence the author measured the understandability of this model through scores of learning students.</li>
-<li>A most important measure of a new system is its correctness. The author proved the correctness of Raft with a formal specification.</li>
+<li>The main goal of Raft is to propose a consensus algorithm that is easier to understand than Paxos. Hence, the author measured this model’s understandability through learning student scores.</li>
+<li>The most critical measure of a new system is its correctness. The author proved Raft’s correctness with formal specifications.</li>
 <li>Finally, the author also measured the performance of Raft, which is similar to other consensus algorithms.</li>
-<li>The election timeout will effect the performance of the system through the performance of leader election. Hence, the author measured how will the randomization and base election timeout effect the performance.
+<li>The election timeout will affect the system’s performance through the performance of the leader election. Hence, the author measured how the randomization and base election timeout would affect the performance.
 <ul>
-<li>A small amount of randomization in the election timeout is enough to avoid split votes in elections. Using more randomness improves worst-case behavior.</li>
+<li>A small randomization in the election timeout is enough to avoid split votes. Using more randomness improves worst-case behavior.</li>
 <li>Downtime can be reduced by reducing the election timeout.
 <ul>
 <li>However, lowering the timeouts beyond 12 - 14 ms violates Raft’s timing requirement: leaders have difficulty broadcasting heartbeats before other servers start new elections. This can cause unnecessary leader changes and lower overall system availability.</li>
@@ -741,7 +741,7 @@
 </li>
 </ol>
 <h1 id="reproduce-and-unmentioned-parts"><a class="markdownIt-Anchor" href="#reproduce-and-unmentioned-parts"></a> Reproduce and unmentioned parts</h1>
-<p>Reference to the Lab 2, 3 and 4 of MIT 6.824.</p>
+<p>Reference to Labs 2, 3, and 4 of MIT 6.824.</p>
 
     </div>
 

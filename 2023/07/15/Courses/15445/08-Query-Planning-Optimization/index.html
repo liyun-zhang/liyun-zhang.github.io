@@ -20,16 +20,16 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Query planning  What are the logical plans and physical plans? What is the process flow of query execution? How does optimizer work?   Heuristics optimization  How should we optimize logical plans? H">
+    <meta name="description" content="Query planning  What are the logical plans and physical plans? What is the process flow of query execution? How does the optimizer work?   Heuristics optimization  How should we optimize logical plan">
 <meta property="og:type" content="article">
 <meta property="og:title" content="08 Query Planning &amp; Optimization">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/07/15/Courses/15445/08-Query-Planning-Optimization/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="Query planning  What are the logical plans and physical plans? What is the process flow of query execution? How does optimizer work?   Heuristics optimization  How should we optimize logical plans? H">
+<meta property="og:description" content="Query planning  What are the logical plans and physical plans? What is the process flow of query execution? How does the optimizer work?   Heuristics optimization  How should we optimize logical plan">
 <meta property="og:locale">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/15445/Optimizer/architecture.png">
 <meta property="article:published_time" content="2023-07-15T11:52:41.000Z">
-<meta property="article:modified_time" content="2023-09-26T06:00:43.908Z">
+<meta property="article:modified_time" content="2024-03-16T07:14:47.935Z">
 <meta property="article:author" content="LiyunZhang">
 <meta property="article:tag" content="Database System">
 <meta property="article:tag" content="Executor">
@@ -142,7 +142,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#query-planning"><span class="nav-number">1.</span> <span class="nav-text"> Query planning</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-are-the-logical-plans-and-physical-plans"><span class="nav-number">1.1.</span> <span class="nav-text"> What are the logical plans and physical plans?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-the-process-flow-of-query-execution"><span class="nav-number">1.2.</span> <span class="nav-text"> What is the process flow of query execution?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-does-optimizer-work"><span class="nav-number">1.3.</span> <span class="nav-text"> How does optimizer work?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#heuristics-optimization"><span class="nav-number">2.</span> <span class="nav-text"> Heuristics optimization</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-should-we-optimize-logical-plans"><span class="nav-number">2.1.</span> <span class="nav-text"> How should we optimize logical plans?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-should-we-optimize-for-nested-sub-queries"><span class="nav-number">2.2.</span> <span class="nav-text"> How should we optimize for nested sub-queries?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-we-rewrite-expression"><span class="nav-number">2.3.</span> <span class="nav-text"> How can we rewrite expression?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#cost-based-search"><span class="nav-number">3.</span> <span class="nav-text"> Cost-based search</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#cost-estimation"><span class="nav-number">3.1.</span> <span class="nav-text"> Cost estimation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-cost-do-we-care"><span class="nav-number">3.1.1.</span> <span class="nav-text"> What cost do we care?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-do-dbms-estimate-the-costs"><span class="nav-number">3.1.2.</span> <span class="nav-text"> How do DBMS estimate the costs?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-statistics-does-the-dbms-maintain"><span class="nav-number">3.1.3.</span> <span class="nav-text"> What statistics does the DBMS maintain?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#query-optimization"><span class="nav-number">3.2.</span> <span class="nav-text"> Query optimization</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-do-we-perform-cost-based-optimization"><span class="nav-number">3.2.1.</span> <span class="nav-text"> How do we perform cost-based optimization?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-bottom-up-optimization-work"><span class="nav-number">3.2.2.</span> <span class="nav-text"> How does bottom-up optimization work?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-top-down-optimization-work"><span class="nav-number">3.2.3.</span> <span class="nav-text"> How does top-down optimization work?</span></a></li></ol></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#query-planning"><span class="nav-number">1.</span> <span class="nav-text"> Query planning</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-are-the-logical-plans-and-physical-plans"><span class="nav-number">1.1.</span> <span class="nav-text"> What are the logical plans and physical plans?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-the-process-flow-of-query-execution"><span class="nav-number">1.2.</span> <span class="nav-text"> What is the process flow of query execution?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-does-the-optimizer-work"><span class="nav-number">1.3.</span> <span class="nav-text"> How does the optimizer work?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#heuristics-optimization"><span class="nav-number">2.</span> <span class="nav-text"> Heuristics optimization</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-should-we-optimize-logical-plans"><span class="nav-number">2.1.</span> <span class="nav-text"> How should we optimize logical plans?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-should-we-optimize-for-nested-sub-queries"><span class="nav-number">2.2.</span> <span class="nav-text"> How should we optimize for nested sub-queries?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-we-rewrite-expression"><span class="nav-number">2.3.</span> <span class="nav-text"> How can we rewrite expression?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#cost-based-search"><span class="nav-number">3.</span> <span class="nav-text"> Cost-based search</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#cost-estimation"><span class="nav-number">3.1.</span> <span class="nav-text"> Cost estimation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-cost-do-we-care"><span class="nav-number">3.1.1.</span> <span class="nav-text"> What cost do we care?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-dbms-estimate-the-costs"><span class="nav-number">3.1.2.</span> <span class="nav-text"> How does DBMS estimate the costs?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-statistics-does-the-dbms-maintain"><span class="nav-number">3.1.3.</span> <span class="nav-text"> What statistics does the DBMS maintain?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#query-optimization"><span class="nav-number">3.2.</span> <span class="nav-text"> Query optimization</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-do-we-perform-cost-based-optimization"><span class="nav-number">3.2.1.</span> <span class="nav-text"> How do we perform cost-based optimization?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-bottom-up-optimization-work"><span class="nav-number">3.2.2.</span> <span class="nav-text"> How does bottom-up optimization work?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-top-down-optimization-work"><span class="nav-number">3.2.3.</span> <span class="nav-text"> How does top-down optimization work?</span></a></li></ol></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -155,7 +155,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">62</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -229,7 +229,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-09-26 14:00:43" itemprop="dateModified" datetime="2023-09-26T14:00:43+08:00">2023-09-26</time>
+      <time title="Modified: 2024-03-16 15:14:47" itemprop="dateModified" datetime="2024-03-16T15:14:47+08:00">2024-03-16</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -259,7 +259,7 @@
 <ul>
 <li><a href="#what-are-the-logical-plans-and-physical-plans">What are the logical plans and physical plans?</a></li>
 <li><a href="#what-is-the-process-flow-of-query-execution">What is the process flow of query execution?</a></li>
-<li><a href="#how-does-optimizer-work">How does optimizer work?</a></li>
+<li><a href="#how-does-the-optimizer-work">How does the optimizer work?</a></li>
 </ul>
 </li>
 <li><a href="#heuristics-optimization">Heuristics optimization</a>
@@ -274,7 +274,7 @@
 <li><a href="#cost-estimation">Cost estimation</a>
 <ul>
 <li><a href="#what-cost-do-we-care">What cost do we care?</a></li>
-<li><a href="#how-do-dbms-estimate-the-costs">How do DBMS estimate the costs?</a></li>
+<li><a href="#how-does-dbms-estimate-the-costs">How does DBMS estimate the costs?</a></li>
 <li><a href="#what-statistics-does-the-dbms-maintain">What statistics does the DBMS maintain?</a></li>
 </ul>
 </li>
@@ -292,33 +292,33 @@
 <h1 id="query-planning"><a class="markdownIt-Anchor" href="#query-planning"></a> Query planning</h1>
 <h2 id="what-are-the-logical-plans-and-physical-plans"><a class="markdownIt-Anchor" href="#what-are-the-logical-plans-and-physical-plans"></a> What are the logical plans and physical plans?</h2>
 <ol>
-<li>The optimizer generates a mapping of a logical algebra expression to the optimal equivalent physical algebra expression.</li>
-<li>Physical operators define a specific execution strategy using an access path, i.e. a specific algorithm.
+<li>The optimizer maps a logical algebra expression to the optimal equivalent physical algebra expression.</li>
+<li>Physical operators define a specific execution strategy using an access path, i.e., a specific algorithm.
 <ul>
-<li>They depend on the physical format of the data that they process, i.e., sorting, compression.</li>
+<li>They depend on the physical format of the data they process, i.e., sorting and compression.</li>
 </ul>
 </li>
 </ol>
 <h2 id="what-is-the-process-flow-of-query-execution"><a class="markdownIt-Anchor" href="#what-is-the-process-flow-of-query-execution"></a> What is the process flow of query execution?</h2>
 <ol>
-<li>The application connected to the database system and sends a SQL query, which may be rewritten to a different format in SQL rewriter.</li>
+<li>The application is connected to the database system and sends a SQL query, which may be rewritten to a different format in SQL rewriter.</li>
 <li>The SQL string is parsed into tokens that make up the syntax tree.</li>
 <li>The binder converts named objects in the syntax tree to internal identifiers by consulting the system catalog.</li>
-<li>The binder emits a logical plan which may be fed to a tree rewriter for additional schema info.</li>
-<li>The logical plan is given to the optimizer which selects the most efficient procedure to execute the plan.</li>
+<li>The binder emits a logical plan, which may be fed to a tree rewriter for additional schema info.</li>
+<li>The logical plan is given to the optimizer, which will select the most efficient procedure to execute the plan.</li>
 </ol>
 <img src="/imgs/15445/Optimizer/architecture.png" width="50%">
-<h2 id="how-does-optimizer-work"><a class="markdownIt-Anchor" href="#how-does-optimizer-work"></a> How does optimizer work?</h2>
+<h2 id="how-does-the-optimizer-work"><a class="markdownIt-Anchor" href="#how-does-the-optimizer-work"></a> How does the optimizer work?</h2>
 <ol>
-<li>One way is heuristics / rules.
+<li>One way is heuristics/rules.
 <ul>
-<li>Rewrite the query to remove stupid / inefficient things.</li>
-<li>These techniques may need to examine catalog, but they do not need to examine data.</li>
+<li>Rewrite the query to remove stupid/inefficient things.</li>
+<li>These techniques may need to examine the catalog, but they do not need to examine data.</li>
 </ul>
 </li>
 <li>Another way is the cost-based search.
 <ul>
-<li>We need to use a model to estimate the cost of executing a plan.</li>
+<li>We need a model to estimate the cost of executing a plan.</li>
 <li>Enumerate multiple equivalent plans for a query and pick the one with the lowest cost.</li>
 </ul>
 </li>
@@ -336,28 +336,28 @@
 <li>Move the predicate to the lowest applicable point in the plan.</li>
 </ul>
 </li>
-<li>Replace cartesian products with joins
+<li>Replace cartesian products with joins.
 <ul>
 <li>Replace all Cartesian Products with inner joins using the join predicates.</li>
 </ul>
 </li>
 <li>Projection pushdown
 <ul>
-<li>This is to eliminate redundant attributes before pipeline breakers to reduce materialization cost and the data passed aroung.</li>
+<li>This eliminates redundant attributes before pipeline breakers to reduce materialization costs and the data passed around.</li>
 </ul>
 </li>
 </ol>
 <h2 id="how-should-we-optimize-for-nested-sub-queries"><a class="markdownIt-Anchor" href="#how-should-we-optimize-for-nested-sub-queries"></a> How should we optimize for nested sub-queries?</h2>
 <ol>
-<li>Rewrite to de-correlate and/or flatten them
+<li>Rewrite to de-correlate and flatten them.
 <ul>
-<li>E.g. an <code>EXISTS</code> sub-query in <code>WHERE</code> clause may be rewrited as an inner-join.</li>
+<li>For example, an <code>EXISTS</code> sub-query in the <code>WHERE</code> clause may be rewritten as an inner-join.</li>
 </ul>
 </li>
-<li>Decompose nested query and store result to temporary table.
+<li>Decompose nested queries and store results in a temporary table.
 <ul>
-<li>For those sub-queries uncorrelated with outer query, the optimizer breaks up queries into blocks and then concentrates on one block at a time.</li>
-<li>Sub-queries are written to a temporary table that are discarded after the query finishes.</li>
+<li>For those sub-queries uncorrelated with an outer query, the optimizer breaks up queries into blocks and then concentrates on one block at a time.</li>
+<li>Sub-queries are written to a temporary table and discarded after the query finishes.</li>
 </ul>
 </li>
 </ol>
@@ -368,8 +368,8 @@
 <li>Search for expressions that match a pattern. When a match is found, rewrite the expression. Halt if there are no more rules that match.</li>
 </ul>
 </li>
-<li>One approach is replacing impossible or unnecessary predicates by false.</li>
-<li>Another approach is merging predicates, e.g. numeric ranging predicates.</li>
+<li>One approach is replacing impossible or unnecessary predicates with false ones.</li>
+<li>Another approach is merging predicates, e.g., numeric ranging predicates.</li>
 </ol>
 <h1 id="cost-based-search"><a class="markdownIt-Anchor" href="#cost-based-search"></a> Cost-based search</h1>
 <h2 id="cost-estimation"><a class="markdownIt-Anchor" href="#cost-estimation"></a> Cost estimation</h2>
@@ -377,7 +377,7 @@
 <ol>
 <li>Physical Costs
 <ul>
-<li>Predict CPU cycles, I/O, cache misses, RAM consumption, network messages.</li>
+<li>Predict CPU cycles, I/O, cache misses, RAM consumption, and network messages.</li>
 <li>This cost depends heavily on hardware.</li>
 </ul>
 </li>
@@ -385,7 +385,7 @@
 <ul>
 <li>Estimate output size per operator.</li>
 <li>This cost is independent of the operator algorithm since algorithms are physical.</li>
-<li>It need estimations for operator result sizes.</li>
+<li>It needs estimations for operator result sizes.</li>
 </ul>
 </li>
 <li>Algorithmic Costs
@@ -395,24 +395,24 @@
 </li>
 <li>We may use a combination of multiple costs that are weighted by magic constant factors.
 <ul>
-<li>Some assumptions is that processing a tuple in memory is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>400</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">400\times</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">4</span><span class="mord">0</span><span class="mord">0</span><span class="mord">×</span></span></span></span> faster than reading a tuple from disk, and sequential I/O is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">4\times</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">4</span><span class="mord">×</span></span></span></span> faster than random I/O.</li>
-<li>Most commonly used cost is the combination of the physical costs and logical costs.</li>
+<li>Some assumptions are that processing a tuple in memory is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>400</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">400\times</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">4</span><span class="mord">0</span><span class="mord">0</span><span class="mord">×</span></span></span></span> faster than reading a tuple from a disk, and sequential I/O is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">4\times</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">4</span><span class="mord">×</span></span></span></span> faster than random I/O.</li>
+<li>The most commonly used cost is the combination of physical costs and logical costs.</li>
 </ul>
 </li>
 </ol>
-<h3 id="how-do-dbms-estimate-the-costs"><a class="markdownIt-Anchor" href="#how-do-dbms-estimate-the-costs"></a> How do DBMS estimate the costs?</h3>
+<h3 id="how-does-dbms-estimate-the-costs"><a class="markdownIt-Anchor" href="#how-does-dbms-estimate-the-costs"></a> How does DBMS estimate the costs?</h3>
 <ol>
 <li>The DBMS stores internal statistics about tables, attributes, and indexes in its internal catalog.
 <ul>
 <li>Different systems update them at different times.</li>
 </ul>
 </li>
-<li>Then DBMS derives the <strong>selection cardinality</strong> (<strong>selectivity</strong>) of a predicate which is the fraction of tuples that qualify.</li>
-<li>We can make some assumptions to estimate selectivity
+<li>Then, DBMS derives a predicate’s selection cardinality (selectivity), the fraction of tuples that qualify.</li>
+<li>We can make some assumptions to estimate selectivity.
 <ul>
-<li>Uniform data: The distribution of values (except for the heavy hitters) is the same. May maintain a heavy hitter list that stores most common values and assume that the occurrence of the rest data is the same.</li>
-<li>Independent predicates: The predicates on attributes are independent, i.e. the conjuction of predicates can result in multiplication or addition of probabilities.</li>
-<li>Inclusion principle: The domain of join keys overlap such that each key in the inner relation will also exist in the outer table.</li>
+<li>Uniform data: The distribution of values (except for the heavy hitters) is the same. May maintain a heavy hitter list that stores the most common values and assume that the occurrence of the rest of the data is the same.</li>
+<li>Independent predicates: The predicates on attributes are independent, i.e., the conjunction of predicates can result in the multiplication or addition of probabilities.</li>
+<li>Inclusion principle: The domain of join keys overlaps such that each key in the inner relation will also exist in the outer table.</li>
 <li>These assumptions may not be true.</li>
 </ul>
 </li>
@@ -422,22 +422,22 @@
 <li>Histograms:
 <ul>
 <li>The naive and most accurate way is to maintain an occurrence count per value in a column.</li>
-<li>Equi-width histograms maintain counts for a group of values. All buckets have the same width, i.e. the same number of values.</li>
+<li>Equi-width histograms maintain counts for a group of values. All buckets have the same width, i.e., the same number of values.</li>
 <li>Equi-depth histograms vary the width of buckets so that the total number of occurrences for each bucket is roughly the same.</li>
-<li>Equi-width or equi-depth histograms use the total count of a bucket dividing by the number of values in that bucket as the count of each values.</li>
+<li>Equi-width or equi-depth histograms use the total count of a bucket divided by the number of values in that bucket as the count of each value.</li>
 </ul>
 </li>
 <li>Sketches:
 <ul>
 <li>Probabilistic data structure that gives an approximate count for a given value.</li>
-<li>Cost-model can replace histograms with sketches to improve its selectivity estimate accuracy.</li>
+<li>The cost-model can replace histograms with sketches to improve its selectivity estimate accuracy.</li>
 </ul>
 </li>
 <li>Sampling:
 <ul>
 <li>DBMS maintains a small subset of each table that it then uses to evaluate expressions to compute selectivity.</li>
 <li>The selectivity is estimated by running the same query on the sample table.</li>
-<li>Sample table is updated when the underlying tables changes significantly.</li>
+<li>The sample table is updated when the underlying tables change significantly.</li>
 </ul>
 </li>
 </ol>
@@ -446,45 +446,45 @@
 <ol>
 <li>After performing rule-based rewriting, the DBMS will enumerate different plans for the query and estimate their costs.
 <ul>
-<li>It chooses the best plan it has seen for the query after exhausting all plans or some timeout.</li>
-<li>The time spent on search should be significantly smaller than the time of executing query. DBMS can set a time threshold to end search.</li>
+<li>After exhausting all plans or some timeout, it chooses the best plan it has seen for the query.</li>
+<li>The time spent on the search should be significantly smaller than the time spent executing the query. DBMS can set a time threshold to end the search.</li>
 </ul>
 </li>
-<li>DBMS mainly enumerates the access methods (sequential scan, binary search / clustered indexes, index scan) and evaluation ordering.</li>
+<li>DBMS mainly enumerates the access methods (sequential scan, binary search / clustered indexes, index scan) and evaluation order.</li>
 <li>Query planning for OLTP queries is easy because they are <strong>sargable</strong> (Search Argument Able).
 <ul>
 <li>It is usually just picking the best index.</li>
 <li>Joins are almost always on foreign key relationships with a small cardinality.</li>
 </ul>
 </li>
-<li>For multi-relation query planning, there are two choices.
+<li>There are two choices for multi-relation query planning.
 <ul>
-<li>Bottom-up optimization: Start with nothing and then build up the plan to get to the outcome that you want.</li>
-<li>Top-down optimization: Start with the outcome that you want, and then work down the tree to find the optimal plan that gets you to that goal.</li>
+<li>Bottom-up optimization: Start with nothing and then build up the plan to get to the desired outcome.</li>
+<li>Top-down optimization: Start with the outcome you want, then work down the tree to find the optimal plan that gets you to that goal.</li>
 </ul>
 </li>
 </ol>
 <h3 id="how-does-bottom-up-optimization-work"><a class="markdownIt-Anchor" href="#how-does-bottom-up-optimization-work"></a> How does bottom-up optimization work?</h3>
 <ol>
-<li>Break query up into blocks and generate the logical operators for each block. For each logical operator, generate a set of physical operators that implement it.</li>
-<li>The whole diagram can be layered by relations or temporary relations, i.e. results of logical operators.</li>
+<li>Break the query into blocks and generate the logical operators for each block. For each logical operator, generate a set of physical operators that implement it.</li>
+<li>Relations or temporary relations can layer the whole diagram, i.e., results of logical operators.</li>
 <li>We can visualize the whole optimization diagram as a tree with different layers.
 <ul>
-<li>The top layer is the output of the query and the bottom layer is all the relations.</li>
+<li>The top layer is the query output, and the bottom contains all the relations.</li>
 <li>The middle layers are the enumerations of different ordering. Each layer only performs one more operator than its last layer.</li>
-<li>Hence each pair of layers is connected with an undetermined physical operator.</li>
+<li>Hence, each pair of layers is connected to an undetermined physical operator.</li>
 </ul>
 </li>
-<li>From bottom layer up, we enumarate the possible physical algorithm of each logical operator.
+<li>From the bottom layer up, we enumerate the possible physical algorithm of each logical operator.
 <ul>
-<li>Then estimate the cost of all possible physical algorithms.</li>
-<li>Leave only the more efficient physical algorithm for each logical operator after comare with only the possible physical algorithms of the same logical operator.</li>
+<li>Then, estimate the cost of all possible physical algorithms.</li>
+<li>Leave only the more efficient physical algorithm for each logical operator after comparing with only the possible physical algorithms of the same logical operator.</li>
 </ul>
 </li>
-<li>When reaches the top layer, we can determine the most efficient path of all possible paths.</li>
-<li>Then iteratively construct a “left-deep” join tree that minimizes the estimated amount of work to execute the plan.
+<li>When it reaches the top layer, we can determine the most efficient path of all possible paths.</li>
+<li>Then, iteratively construct a “left-deep” join tree that minimizes the estimated amount of work to execute the plan.
 <ul>
-<li>Generate a left-deep tree is to take advantages of pipeline.</li>
+<li>Generate a left-deep tree to take advantage of the pipeline.</li>
 </ul>
 </li>
 </ol>
@@ -493,16 +493,16 @@
 <li>Start with a logical plan of what we want the query to be.</li>
 <li>Perform a branch-and-bound search to traverse the plan tree by converting logical operators into physical operators.
 <ul>
-<li>When traversing from logical operator to logical operators, it is enumarating different ordering.</li>
-<li>When traversing from logical operator to physical operators, it is enumarating different physical algorithm.</li>
-<li>The layers are similar with bottom-up optimization.</li>
-<li>When we meet a logical operator, we need to estimate the cost of its all possible physical algorithms.
+<li>Traversing from logical operator to logical operator enumerates different orderings.</li>
+<li>Traversing from logical operators to physical operators enumerates different physical algorithms.</li>
+<li>The layers are similar to bottom-up optimization.</li>
+<li>When we meet a logical operator, we must estimate the cost of all possible physical algorithms.
 <ul>
-<li>So for each physical algorithm, we need to go deeper until the bottom to calculate the estimation.</li>
-<li>For the sub-logical-operators in the physical algorithm, we will enumarate its optimal execution in the lower levels.</li>
+<li>So, for each physical algorithm, we must go deeper until the bottom to calculate the estimation.</li>
+<li>For the sub-logical operators in the physical algorithm, we will enumerate its optimal execution in the lower levels.</li>
 </ul>
 </li>
-<li>During the search, we can cut-off a branch if its cost is already more expensive then another branch we have already seen.</li>
+<li>During the search, we can cut off a branch if its cost is already more expensive than another branch we have already seen.</li>
 </ul>
 </li>
 </ol>

@@ -20,15 +20,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Database  Why shouldn’t we just store database in a flat file like CSV that we manage ourselve in our application code? What does DBMS and data models do? What kinds of data models are there? How doe">
+    <meta name="description" content="Database  Why shouldn’t we store the database in a flat file like CSV, which we manage ourselves in our application code? What do DBMS and data models do? What kinds of data models are there? How doe">
 <meta property="og:type" content="article">
 <meta property="og:title" content="01 Relational Model">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/06/24/Courses/15445/01-Relational-Model/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="Database  Why shouldn’t we just store database in a flat file like CSV that we manage ourselve in our application code? What does DBMS and data models do? What kinds of data models are there? How doe">
+<meta property="og:description" content="Database  Why shouldn’t we store the database in a flat file like CSV, which we manage ourselves in our application code? What do DBMS and data models do? What kinds of data models are there? How doe">
 <meta property="og:locale">
 <meta property="article:published_time" content="2023-06-24T07:14:56.000Z">
-<meta property="article:modified_time" content="2024-02-22T11:06:48.529Z">
+<meta property="article:modified_time" content="2024-03-16T04:05:06.693Z">
 <meta property="article:author" content="LiyunZhang">
 <meta property="article:tag" content="Database System">
 <meta property="article:tag" content="Relational Model">
@@ -140,7 +140,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#database"><span class="nav-number">1.</span> <span class="nav-text"> Database</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#why-shouldnt-we-just-store-database-in-a-flat-file-like-csv-that-we-manage-ourselve-in-our-application-code"><span class="nav-number">1.1.</span> <span class="nav-text"> Why shouldn’t we just store database in a flat file like CSV that we manage ourselve in our application code?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-does-dbms-and-data-models-do"><span class="nav-number">1.2.</span> <span class="nav-text"> What does DBMS and data models do?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-kinds-of-data-models-are-there"><span class="nav-number">1.3.</span> <span class="nav-text"> What kinds of data models are there?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-does-document-data-model-store-data"><span class="nav-number">1.4.</span> <span class="nav-text"> How does document data model store data?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#relational-model"><span class="nav-number">2.</span> <span class="nav-text"> Relational model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-are-data-stored"><span class="nav-number">2.1.</span> <span class="nav-text"> How are data stored?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-primary-keys-and-foreign-keys"><span class="nav-number">2.2.</span> <span class="nav-text"> What is primary keys and foreign keys?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-supported-in-relational-algebra"><span class="nav-number">2.3.</span> <span class="nav-text"> What is supported in relational algebra?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#morden-sql"><span class="nav-number">3.</span> <span class="nav-text"> Morden SQL</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-provided-in-a-relational-language"><span class="nav-number">3.1.</span> <span class="nav-text"> What is provided in a relational language?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#aggregations-and-group-by"><span class="nav-number">3.2.</span> <span class="nav-text"> Aggregations and Group By</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-are-aggregations"><span class="nav-number">3.2.1.</span> <span class="nav-text"> What are aggregations?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-output-other-columns-with-aggregations"><span class="nav-number">3.2.2.</span> <span class="nav-text"> How to output other columns with aggregations?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-string-operations-are-supported"><span class="nav-number">3.3.</span> <span class="nav-text"> What string operations are supported?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#output"><span class="nav-number">3.4.</span> <span class="nav-text"> Output</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#where-can-we-redirect-outputs"><span class="nav-number">3.4.1.</span> <span class="nav-text"> Where can we redirect outputs?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-can-we-control-the-outputs"><span class="nav-number">3.4.2.</span> <span class="nav-text"> How can we control the outputs?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-if-we-need-temporary-relation-in-a-query"><span class="nav-number">3.5.</span> <span class="nav-text"> What if we need temporary relation in a query?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-does-window-functions-work"><span class="nav-number">3.6.</span> <span class="nav-text"> How does window functions work?</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#database"><span class="nav-number">1.</span> <span class="nav-text"> Database</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#why-shouldnt-we-store-the-database-in-a-flat-file-like-csv-which-we-manage-ourselves-in-our-application-code"><span class="nav-number">1.1.</span> <span class="nav-text"> Why shouldn’t we store the database in a flat file like CSV, which we manage ourselves in our application code?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-do-dbms-and-data-models-do"><span class="nav-number">1.2.</span> <span class="nav-text"> What do DBMS and data models do?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-kinds-of-data-models-are-there"><span class="nav-number">1.3.</span> <span class="nav-text"> What kinds of data models are there?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-does-the-document-data-model-store-data"><span class="nav-number">1.4.</span> <span class="nav-text"> How does the document data model store data?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#relational-model"><span class="nav-number">2.</span> <span class="nav-text"> Relational model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-are-data-stored"><span class="nav-number">2.1.</span> <span class="nav-text"> How are data stored?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-are-primary-keys-and-foreign-keys"><span class="nav-number">2.2.</span> <span class="nav-text"> What are primary keys and foreign keys?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-supported-in-relational-algebra"><span class="nav-number">2.3.</span> <span class="nav-text"> What is supported in relational algebra?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#morden-sql"><span class="nav-number">3.</span> <span class="nav-text"> Morden SQL</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-provided-in-a-relational-language"><span class="nav-number">3.1.</span> <span class="nav-text"> What is provided in a relational language?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#aggregations-and-group-by"><span class="nav-number">3.2.</span> <span class="nav-text"> Aggregations and Group By</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-are-aggregations"><span class="nav-number">3.2.1.</span> <span class="nav-text"> What are aggregations?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-output-other-columns-with-aggregations"><span class="nav-number">3.2.2.</span> <span class="nav-text"> How to output other columns with aggregations?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-string-operations-are-supported"><span class="nav-number">3.3.</span> <span class="nav-text"> What string operations are supported?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#output"><span class="nav-number">3.4.</span> <span class="nav-text"> Output</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#where-can-we-redirect-outputs"><span class="nav-number">3.4.1.</span> <span class="nav-text"> Where can we redirect outputs?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-can-we-control-the-outputs"><span class="nav-number">3.4.2.</span> <span class="nav-text"> How can we control the outputs?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-if-we-need-a-temporary-relation-in-a-query"><span class="nav-number">3.5.</span> <span class="nav-text"> What if we need a temporary relation in a query?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-do-window-functions-work"><span class="nav-number">3.6.</span> <span class="nav-text"> How do window functions work?</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -153,7 +153,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">62</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -227,7 +227,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-02-22 19:06:48" itemprop="dateModified" datetime="2024-02-22T19:06:48+08:00">2024-02-22</time>
+      <time title="Modified: 2024-03-16 12:05:06" itemprop="dateModified" datetime="2024-03-16T12:05:06+08:00">2024-03-16</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -255,16 +255,16 @@
     <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
 <li><a href="#database">Database</a>
 <ul>
-<li><a href="#why-shouldnt-we-just-store-database-in-a-flat-file-like-csv-that-we-manage-ourselve-in-our-application-code">Why shouldn’t we just store database in a flat file like CSV that we manage ourselve in our application code?</a></li>
-<li><a href="#what-does-dbms-and-data-models-do">What does DBMS and data models do?</a></li>
+<li><a href="#why-shouldnt-we-store-the-database-in-a-flat-file-like-csv-which-we-manage-ourselves-in-our-application-code">Why shouldn’t we store the database in a flat file like CSV, which we manage ourselves in our application code?</a></li>
+<li><a href="#what-do-dbms-and-data-models-do">What do DBMS and data models do?</a></li>
 <li><a href="#what-kinds-of-data-models-are-there">What kinds of data models are there?</a></li>
-<li><a href="#how-does-document-data-model-store-data">How does document data model store data?</a></li>
+<li><a href="#how-does-the-document-data-model-store-data">How does the document data model store data?</a></li>
 </ul>
 </li>
 <li><a href="#relational-model">Relational model</a>
 <ul>
 <li><a href="#how-are-data-stored">How are data stored?</a></li>
-<li><a href="#what-is-primary-keys-and-foreign-keys">What is primary keys and foreign keys?</a></li>
+<li><a href="#what-are-primary-keys-and-foreign-keys">What are primary keys and foreign keys?</a></li>
 <li><a href="#what-is-supported-in-relational-algebra">What is supported in relational algebra?</a></li>
 </ul>
 </li>
@@ -284,53 +284,53 @@
 <li><a href="#how-can-we-control-the-outputs">How can we control the outputs?</a></li>
 </ul>
 </li>
-<li><a href="#what-if-we-need-temporary-relation-in-a-query">What if we need temporary relation in a query?</a></li>
-<li><a href="#how-does-window-functions-work">How does window functions work?</a></li>
+<li><a href="#what-if-we-need-a-temporary-relation-in-a-query">What if we need a temporary relation in a query?</a></li>
+<li><a href="#how-do-window-functions-work">How do window functions work?</a></li>
 </ul>
 </li>
 </ul>
 </p>
 <h1 id="database"><a class="markdownIt-Anchor" href="#database"></a> Database</h1>
-<h2 id="why-shouldnt-we-just-store-database-in-a-flat-file-like-csv-that-we-manage-ourselve-in-our-application-code"><a class="markdownIt-Anchor" href="#why-shouldnt-we-just-store-database-in-a-flat-file-like-csv-that-we-manage-ourselve-in-our-application-code"></a> Why shouldn’t we just store database in a flat file like CSV that we manage ourselve in our application code?</h2>
+<h2 id="why-shouldnt-we-store-the-database-in-a-flat-file-like-csv-which-we-manage-ourselves-in-our-application-code"><a class="markdownIt-Anchor" href="#why-shouldnt-we-store-the-database-in-a-flat-file-like-csv-which-we-manage-ourselves-in-our-application-code"></a> Why shouldn’t we store the database in a flat file like CSV, which we manage ourselves in our application code?</h2>
 <ol>
 <li>The first concern is data integrity:
 <ul>
-<li>How to ensure that the data is make sense to the design schema?</li>
-<li>How to prevent invalid data and malicious attack?</li>
-<li>And the management of deleting some entries causing deleting entries in other databases is pain.</li>
+<li>How to ensure that the data makes sense to the design schema?</li>
+<li>How to prevent invalid data and malicious attacks?</li>
+<li>The management of deleting some entries causing deleting entries in other databases is a pain.</li>
 </ul>
 </li>
 <li>Another problem is implementation:
 <ul>
 <li>How to find a record?</li>
-<li>How to share database between applications?</li>
+<li>How to share a database between applications?</li>
 <li>How to handle concurrent writes?</li>
 </ul>
 </li>
 <li>Also concerned about durability:
 <ul>
-<li>What if machine crashed?</li>
-<li>How to replicate database?</li>
+<li>What if the machine crashed?</li>
+<li>How to replicate the database?</li>
 </ul>
 </li>
 </ol>
-<h2 id="what-does-dbms-and-data-models-do"><a class="markdownIt-Anchor" href="#what-does-dbms-and-data-models-do"></a> What does DBMS and data models do?</h2>
+<h2 id="what-do-dbms-and-data-models-do"><a class="markdownIt-Anchor" href="#what-do-dbms-and-data-models-do"></a> What do DBMS and data models do?</h2>
 <ol>
 <li>DBMS supports the definition, creation, querying, update, and administration of databases in accordance with some data model.
 <ul>
 <li>The physical storage is left up to the DBMS implementation.</li>
-<li>Programmers access data through high-level language, DBMS figures out best execution strategy.</li>
+<li>Programmers access data through high-level language, and DBMS figures out the best execution strategy.</li>
 </ul>
 </li>
-<li>A data model is a collection of concepts for describing the data in a database.
+<li>A data model is a collection of concepts describing the data in a database.
 <ul>
-<li>A schema is a description of a particular collection of data using a given data model.</li>
+<li>A schema describes a particular collection of data using a given data model.</li>
 </ul>
 </li>
 </ol>
 <h2 id="what-kinds-of-data-models-are-there"><a class="markdownIt-Anchor" href="#what-kinds-of-data-models-are-there"></a> What kinds of data models are there?</h2>
 <ol>
-<li>The most used is Relational model.</li>
+<li>The most used is the Relational model.</li>
 <li>One class called NoSQL:
 <ul>
 <li>Key/Value</li>
@@ -339,7 +339,7 @@
 <li>Wide-Column / Column-family</li>
 </ul>
 </li>
-<li>For machine learning, there are Array / Matrix / Vectors</li>
+<li>For machine learning, there are Array / Matrix / Vectors.</li>
 <li>The obsolete or legacy ones are:
 <ul>
 <li>Hierarchical</li>
@@ -348,34 +348,34 @@
 </ul>
 </li>
 </ol>
-<h2 id="how-does-document-data-model-store-data"><a class="markdownIt-Anchor" href="#how-does-document-data-model-store-data"></a> How does document data model store data?</h2>
+<h2 id="how-does-the-document-data-model-store-data"><a class="markdownIt-Anchor" href="#how-does-the-document-data-model-store-data"></a> How does the document data model store data?</h2>
 <ol>
-<li>It embeds data hierarchy into a single object like JSON, or XML, etc.</li>
-<li>The problem is similar with the aforementioned store database in a flat file like CSV.</li>
+<li>It embeds data hierarchy into a single object like JSON, XML, etc.</li>
+<li>The problem is similar to the aforementioned store database in a flat file like CSV.</li>
 </ol>
 <h1 id="relational-model"><a class="markdownIt-Anchor" href="#relational-model"></a> Relational model</h1>
 <h2 id="how-are-data-stored"><a class="markdownIt-Anchor" href="#how-are-data-stored"></a> How are data stored?</h2>
 <ol>
 <li>Data are stored in simple data structures called relations.</li>
-<li>A relation is an <strong>unordered set</strong> that contain the relationship of attributes that represent entities.
+<li>A relation is an <strong>unordered set</strong> that contains the relationship of attributes that represent entities.
 <ul>
-<li>A n-ary relation is  a table with n columns.</li>
+<li>A n-ary relation is a table with n columns.</li>
 </ul>
 </li>
 <li>A tuple is a set of attribute values (domain) in the relation.
 <ul>
-<li>NULL is a member of every domain, if allowed.</li>
+<li>NULL is a member of every domain if allowed.</li>
 </ul>
 </li>
 </ol>
-<h2 id="what-is-primary-keys-and-foreign-keys"><a class="markdownIt-Anchor" href="#what-is-primary-keys-and-foreign-keys"></a> What is primary keys and foreign keys?</h2>
+<h2 id="what-are-primary-keys-and-foreign-keys"><a class="markdownIt-Anchor" href="#what-are-primary-keys-and-foreign-keys"></a> What are primary keys and foreign keys?</h2>
 <ol>
 <li>A relation’s primary key uniquely identifies a single tuple.
 <ul>
-<li>In the definition of a relation, primary keys are usually marked with underline.</li>
+<li>In defining a relation, primary keys are usually marked with an underline.</li>
 </ul>
 </li>
-<li>A foreign key specifies that an attribute from one relation has to map to a tuple in another relation.
+<li>A foreign key specifies that an attribute from one relation must map to a tuple in another.
 <ul>
 <li>Normally, foreign keys must be primary keys in another relation.</li>
 </ul>
@@ -391,47 +391,47 @@
 </li>
 <li>Projection: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Π</mi><mrow><msub><mi>A</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>A</mi><mn>2</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>A</mi><mi>n</mi></msub></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\Pi_{A_1,A_2,\dots,A_n}(R)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord">Π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.328331em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31731428571428577em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31731428571428577em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="minner mtight">…</span><span class="mpunct mtight">,</span><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.16454285714285719em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mclose">)</span></span></span></span>
 <ul>
-<li>Generate a relation with tuples that contains only the specified attributes</li>
+<li>Generate a relation with tuples that contain only the specified attributes.</li>
 <li>It can be used to rearrange attributes’ ordering and manipulate the values.<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> A1, A2, ..., An <span class="keyword">FROM</span> R;</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
 <li>Union: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>∪</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\cup S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∪</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span>
 <ul>
-<li>Two relations must have same attributes.</li>
-<li>The result may be duplicated if some tuples appeared in both relations.<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">UNION</span> <span class="keyword">ALL</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
+<li>Two relations must have identical attributes.</li>
+<li>The result may be duplicated if some tuples appear in both relations.<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">UNION</span> <span class="keyword">ALL</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
 <li>Intersection: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>∩</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\cap S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∩</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span>
 <ul>
-<li>Two relations must have same attributes.<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">INTERSECT</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
+<li>Two relations must have the same attributes.<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">INTERSECT</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
 <li>Difference: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>−</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R-S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span>
 <ul>
-<li>Two relations must have same attributes.<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">EXCEPT</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
+<li>Two relations must have identical attributes.<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R) <span class="keyword">EXCEPT</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S);</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
 <li>Product: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>×</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\times S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span>
 <ul>
-<li>Generate a relation that contains all possible combinations of tuple from the input relations, i.e. Cartesian product.<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">CROSS</span> <span class="keyword">JOIN</span> S;</span><br><span class="line"># <span class="keyword">Or</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R, S;</span><br></pre></td></tr></table></figure>
+<li>Generate a relation that contains all possible combinations of tuples from the input relations, i.e., Cartesian product.<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">CROSS</span> <span class="keyword">JOIN</span> S;</span><br><span class="line"># <span class="keyword">Or</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R, S;</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
 <li>Join: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>⋈</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\bowtie S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68833em;vertical-align:-0.005em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⋈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span>
 <ul>
-<li>The difference between join and intersection is that join can match attributes’ name automatically, while intersetion requires that two relations have the same attribute order.</li>
+<li>The difference between join and intersection is that join can match attributes’ names automatically, while intersection requires that two relations have the same attribute order.</li>
 <li>It does product first, then compare attributes.<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">NATURAL</span> <span class="keyword">JOIN</span> S;</span><br><span class="line"># <span class="keyword">Or</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> R <span class="keyword">JOIN</span> S <span class="keyword">USING</span> (A1, A2, ..., An);</span><br></pre></td></tr></table></figure>
 </li>
-<li>In the broad sense, join can have predicate <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><msub><mo>⋈</mo><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mi>S</mi></mrow><annotation encoding="application/x-tex">R\bowtie_{predicate}S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel"><span class="mrel">⋈</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span> which is the same as <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo>×</mo><mi>S</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sigma_{predicate}(R\times S)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mclose">)</span></span></span></span>.</li>
+<li>In the broad sense, join can have a predicate <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><msub><mo>⋈</mo><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mi>S</mi></mrow><annotation encoding="application/x-tex">R\bowtie_{predicate}S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel"><span class="mrel">⋈</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span> which is the same as <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo>×</mo><mi>S</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sigma_{predicate}(R\times S)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mclose">)</span></span></span></span>.</li>
 </ul>
 </li>
-<li>It is obvious that different order of steps can have the same result with different amout of computation.
+<li>Different orders of steps can have the same result with varying amounts of computation.
 <ul>
-<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>⋈</mo><mo stretchy="false">(</mo><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R\bowtie(\sigma_{predicate}(S))</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68833em;vertical-align:-0.005em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⋈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mclose">)</span><span class="mclose">)</span></span></span></span> is much efficient than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo>⋈</mo><mi>S</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sigma_{predicate}(R\bowtie S)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⋈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mclose">)</span></span></span></span>.</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>⋈</mo><mo stretchy="false">(</mo><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R\bowtie(\sigma_{predicate}(S))</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68833em;vertical-align:-0.005em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⋈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mclose">)</span><span class="mclose">)</span></span></span></span> is much more efficient than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>c</mi><mi>a</mi><mi>t</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><mi>R</mi><mo>⋈</mo><mi>S</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sigma_{predicate}(R\bowtie S)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⋈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mclose">)</span></span></span></span>.</li>
 </ul>
 </li>
 </ol>
@@ -441,7 +441,7 @@
 <li>Data Manipulation Language (DML)</li>
 <li>Data Definition Language (DDL)</li>
 <li>Data Control Language (DCL)</li>
-<li>Also view definition, integrity and referential constraints, transactions.</li>
+<li>Also, view definition, integrity, and referential constraints, transactions.</li>
 </ol>
 <h2 id="aggregations-and-group-by"><a class="markdownIt-Anchor" href="#aggregations-and-group-by"></a> Aggregations and Group By</h2>
 <h3 id="what-are-aggregations"><a class="markdownIt-Anchor" href="#what-are-aggregations"></a> What are aggregations?</h3>
@@ -449,37 +449,37 @@
 <li>They are functions that return a single value from a bag of tuples.</li>
 <li><code>AVG(col)</code>, <code>MIN(col)</code>, <code>MAX(col)</code>, <code>SUM(col)</code>, <code>COUNT(col)</code>
 <ul>
-<li>For <code>COUNT</code>, the passed argument actual does not mater since it only returns the number of rows.</li>
+<li>For <code>COUNT</code>, the passed argument does not matter since it only returns the number of rows.</li>
 </ul>
 </li>
 <li>Aggregate functions can almost only be used in the <code>SELECT</code> output list.</li>
-<li><code>COUNT</code>, <code>SUM</code>, <code>AVG</code> support <code>DISTINCT</code>.
+<li><code>COUNT</code>, <code>SUM</code>, and <code>AVG</code> support <code>DISTINCT</code>.
 <ul>
 <li>In this case, the columns passed to <code>COUNT</code> matters.</li>
 </ul>
 </li>
-<li>Output of other columns outside of an aggregate is undefined.
+<li>The output of other columns outside of an aggregate is undefined.
 <ul>
-<li>Aggregations actually create a new relation with different number of tuples.</li>
-<li>If we directly ask for other colmns, the number of tuples won’t match with output of aggregations</li>
-<li>And we don’t know the relation between output of aggregations and values from other columns (some language may allow this but with chaos order).</li>
+<li>Aggregations create a new relation with a different number of tuples.</li>
+<li>If we directly ask for other columns, the number of tuples won’t match the output of aggregations.</li>
+<li>We don’t know the relation between the output of aggregations and values from other columns (some languages may allow this but with chaotic order).</li>
 </ul>
 </li>
-<li>We also cannot filter output tuples with the result of aggregation column names.
+<li>We also cannot filter output tuples based on aggregation column names.
 <ul>
-<li>Since <code>SELECT</code> happens a last, when <code>WHERE</code> or <code>HAVING </code> is calculated, the aggregation columns haven’t been calculated yet.</li>
+<li>Since <code>SELECT</code> happens at last, when <code>WHERE</code> or <code>HAVING </code> is calculated, the aggregation columns haven’t been calculated yet.</li>
 </ul>
 </li>
 </ol>
 <h3 id="how-to-output-other-columns-with-aggregations"><a class="markdownIt-Anchor" href="#how-to-output-other-columns-with-aggregations"></a> How to output other columns with aggregations?</h3>
 <ol>
-<li><code>GROUP BY</code> projects tuples into subsets and calculate aggregates against each subset.</li>
-<li>Non-aggregated valuese in <code>SELECT</code> output clause must appear in <code>GROUP BY</code> clause.</li>
+<li><code>GROUP BY</code> projects tuples into subsets and calculates aggregates against each subset.</li>
+<li>Non-aggregated values in the SELECT output clause must appear in the <code>GROUP BY</code> clause.</li>
 <li>With group-by, each aggregation output has the same values in those grouped columns. So <code>SELECT</code> knows their relation.</li>
 <li><code>HAVING</code> like a <code>WHERE</code> clause for a <code>GROUP BY</code>.
 <ul>
-<li>It can filter results based on aggregation computation. But it also shouldn’t use the columns names of aggregation in <code>SELECT</code>.</li>
-<li>Instead, it should directly use aggregation function. Although the execution engine knows that these two are the same and don’t do the repeat calculation.</li>
+<li>It can filter results based on aggregation computation. But it also shouldn’t use the column names of aggregation in <code>SELECT</code>.</li>
+<li>Instead, it should directly use the aggregation function. Although the execution engine knows these two are the same and doesn’t do the repeat calculation.</li>
 </ul>
 </li>
 </ol>
@@ -487,7 +487,7 @@
 <ol>
 <li>Predicate of string matching can be done with <code>=</code>
 <ul>
-<li>Some DBMSs are case sensitive while others are not.</li>
+<li>Some DBMSs are case-sensitive, while others are not.</li>
 <li>We can also use <code>LIKE</code> to match with string-match operators.
 <ul>
 <li><code>%</code> matches any substring (including empty strings)</li>
@@ -502,21 +502,21 @@
 <li><code>SUBSTRING(str, start_index, end_index)</code></li>
 </ul>
 </li>
-<li>Different language has different ways to concatenate strings: <code>str1 || str2</code>, <code>str1 + str2</code> or <code>CONCAT(str1, str2)</code>.</li>
+<li>Different languages have different ways to concatenate strings: <code>str1 || str2</code>, <code>str1 + str2</code> or <code>CONCAT(str1, str2)</code>.</li>
 </ol>
 <h2 id="output"><a class="markdownIt-Anchor" href="#output"></a> Output</h2>
 <h3 id="where-can-we-redirect-outputs"><a class="markdownIt-Anchor" href="#where-can-we-redirect-outputs"></a> Where can we redirect outputs?</h3>
 <ol>
-<li>We can store query restuls in another table.
+<li>We can store query results in another table.
 <ul>
 <li>That table must not already be defined.</li>
-<li>It will have the same number of columns with the same types as the input.</li>
+<li>It will have the same number of columns and types as the input.</li>
 </ul>
 </li>
-<li>We can also insert tuples from query into another table.
+<li>We can also insert tuples from a query into another table.
 <ul>
 <li>The inner select must generate the same columns as the target table.</li>
-<li>DMBSs have diferent options/syntax on what to do with integrity violations.</li>
+<li>DMBSs have different options/syntax on what to do with integrity violations.</li>
 </ul>
 </li>
 </ol>
@@ -525,19 +525,19 @@
 <li>We can order the output tuples by the values in one or more of their columns with <code>ORDER BY &lt;column*&gt; [ASC|DESC]</code>.</li>
 <li>We can also limit the number of tuples returned in output with <code>LIMIT &lt;count&gt; [OFFSET &lt;count2&gt;]</code>.
 <ul>
-<li>Although this limits the number of output, its execution may still need to compute the whole relation, e.g. to output the top-10 largest numbers still need to sort all numbers.</li>
+<li>Although this limits the number of outputs, its execution may still need to compute the whole relation, e.g., to output the top-10 largest numbers, it still needs to sort all numbers.</li>
 </ul>
 </li>
 </ol>
-<h2 id="what-if-we-need-temporary-relation-in-a-query"><a class="markdownIt-Anchor" href="#what-if-we-need-temporary-relation-in-a-query"></a> What if we need temporary relation in a query?</h2>
+<h2 id="what-if-we-need-a-temporary-relation-in-a-query"><a class="markdownIt-Anchor" href="#what-if-we-need-a-temporary-relation-in-a-query"></a> What if we need a temporary relation in a query?</h2>
 <ol>
 <li>The first solution is nested queries.
 <ul>
-<li>Inner queries can appear almost anywhere in query.</li>
-<li>In <code>WHERE</code> clause, we can perform predicate between the tuples from current relation and result of subqueries.
+<li>Inner queries can appear almost anywhere in a query.</li>
+<li>In the WHERE clause, we can perform a predicate between the tuples from the current relation and the result of the subqueries.
 <ul>
-<li><code>ALL</code> must satisfy expression for all rows in the subquery.</li>
-<li><code>ANY</code> must satisfy expression for at least one row in the subquery.</li>
+<li><code>ALL</code> must satisfy expressions for all rows in the subquery.</li>
+<li><code>ANY</code> must satisfy the expression for at least one row in the subquery.</li>
 <li><code>IN</code> is equivalent to <code>=ANY()</code>.</li>
 <li><code>EXISTS</code> returns true if the relation is not empty.</li>
 <li><code>NOT</code></li>
@@ -545,31 +545,31 @@
 </li>
 </ul>
 </li>
-<li>Another choice is common table expression using <code>WITH cteName AS (query)</code>.
+<li>Another choice is a common table expression using <code>WITH cteName AS (query)</code>.
 <ul>
 <li>It also supports bind/alias output columns to names <code>WITH cteName (col1, ..., coln) AS (query)</code></li>
-<li>In the next one query, we can reference this temporary relation with <code>cteName</code>.</li>
+<li>In the next query, we can reference this temporary relation with <code>cteName</code>.</li>
 <li>We can enable recursive calculation using <code>WITH RECURSIVE</code>.</li>
 </ul>
 </li>
 </ol>
-<h2 id="how-does-window-functions-work"><a class="markdownIt-Anchor" href="#how-does-window-functions-work"></a> How does window functions work?</h2>
+<h2 id="how-do-window-functions-work"><a class="markdownIt-Anchor" href="#how-do-window-functions-work"></a> How do window functions work?</h2>
 <ol>
-<li>Window functions perform a sliding calculation across a set of tuples that are related.</li>
-<li>Like an aggregation, they only appear in <code>SELECT</code> clause. But tuples are not grouped into a single output tuples. Instead, the number of rows of the output is the same as input.</li>
-<li>In <code>SELECT</code> clause, window functions syntax is <code>FUNC-NAME(...) OVER(...)</code>.
+<li>Window functions perform a sliding calculation across a set of related tuples.</li>
+<li>Like an aggregation, they only appear in the <code>SELECT</code> clause. However, tuples are not grouped into a single output tuples. Instead, the number of rows of the output is the same as the input.</li>
+<li>In the SELECT clause, the syntax of the window functions is <code>FUNC-NAME(...) OVER(...)</code>.
 <ul>
 <li>The <code>FUNC-NAME</code> can be aggregation functions or special functions (<code>ROW_NUMBER</code> and <code>RANK</code>)
 <ul>
-<li><code>ROW_NUMBER</code> assigns the nuber of current row in certain order.</li>
+<li><code>ROW_NUMBER</code> assigns the number of the current rows in a certain order.</li>
 <li><code>RANK</code> assigns the order position of the current row.</li>
-<li>When two rows tie, <code>RANK</code> will assign the same number to them and skip the next number while <code>ROW_NUMBER</code> will assign different number.</li>
+<li>When two rows tie, <code>RANK</code> will assign the same number to them and skip the next number, while ROW_NUMBER will assign a different number.</li>
 </ul>
 </li>
-<li>The <code>OVER</code> paramater controls how to slice up data.
+<li>The <code>OVER</code> parameter controls how to slice up data.
 <ul>
-<li>It controls how to group together tuples when computing the window function with <code>PARTITION BY</code>.</li>
-<li>It also controls the order of computing with <code>ORDER BY ... [ASC|DESC]</code>.</li>
+<li>It controls how to group tuples when computing the window function with <code>PARTITION BY</code>.</li>
+<li>It also controls the computing order with <code>ORDER BY ... [ASC|DESC]</code>.</li>
 </ul>
 </li>
 </ul>

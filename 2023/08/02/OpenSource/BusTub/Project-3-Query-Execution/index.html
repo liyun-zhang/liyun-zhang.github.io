@@ -28,7 +28,7 @@
 <meta property="og:description" content="Executors  Overall Scan Modification Aggregation NestedLoopJoin HashJoin Sort &amp; Top-N   Optimizer  Nested loop join Order by Projection Filter      Executors  Overall  The planner for each operat">
 <meta property="og:locale">
 <meta property="article:published_time" content="2023-08-01T16:52:07.000Z">
-<meta property="article:modified_time" content="2023-10-12T05:24:14.417Z">
+<meta property="article:modified_time" content="2024-03-16T15:40:29.033Z">
 <meta property="article:author" content="LiyunZhang">
 <meta property="article:tag" content="Database System">
 <meta property="article:tag" content="Executor">
@@ -153,7 +153,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">62</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -227,7 +227,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-10-12 13:24:14" itemprop="dateModified" datetime="2023-10-12T13:24:14+08:00">2023-10-12</time>
+      <time title="Modified: 2024-03-16 23:40:29" itemprop="dateModified" datetime="2024-03-16T23:40:29+08:00">2024-03-16</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -278,96 +278,96 @@
 <h2 id="overall"><a class="markdownIt-Anchor" href="#overall"></a> Overall</h2>
 <ol>
 <li>The planner for each operation stores the necessary information to calculate the correct output.</li>
-<li>The executor class for each operation stores the corresponding plan and other information for it to determine what tuple will be returned.
+<li>The executor class for each operation stores the corresponding plan and other information to determine what tuple will be returned.
 <ul>
-<li>All executors need to override the <code>Init()</code> and <code>Next(Tuple *tuple, RID *rid)</code>.</li>
+<li>All executors must override the <code>Init()</code> and <code>Next(Tuple *tuple, RID *rid)</code>.</li>
 <li><code>Init()</code> is used to initialize the information to determine what tuple will be returned. It is separated from the constructor because its parent executor may need to fetch the tuples of the current executor several times.</li>
 </ul>
 </li>
-<li>The <code>ExecutorContext</code> in each executor stores the metadata of the database system, including catalog, buffer pool manager.
+<li>The <code>ExecutorContext</code> in each executor stores the metadata of the database system, including catalog and buffer pool manager.
 <ul>
 <li>Catalog maintains the tables and indexes in the current database.</li>
-<li>We can register a new table or index through catalog or acquire metadata of a table (<code>TableInfo</code>) or index (<code>IndexInfo</code>) from catalog.</li>
+<li>We can register a new table or index through a catalog or acquire metadata of a table (TableInfo) or index (IndexInfo) from the catalog.</li>
 </ul>
 </li>
-<li>The <code>TableInfo</code> stores the name, OID, schema of the table, and a pointer of <code>TableHeap</code>.
+<li><code>TableInfo</code> stores the name, OID, schema of the table, and a pointer for <code>TableHeap</code>.
 <ul>
 <li>We can manipulate a table through its <code>TableHeap</code>.</li>
 <li>The <code>TableHeap</code> provides methods to insert or get tuples and update or get tuple metadata.
 <ul>
-<li>To delete a tuple, we just need to mark the <code>is_deleted_</code> flag in its metadata as <code>true</code>.</li>
-<li>To update a tuple, we need to delete it first and insert the new updated tuple into the table again.</li>
-<li>To iterate through the table, <code>TableHeap</code> also provided <code>MakeIterator()</code>.</li>
+<li>We need to mark the <code>is_deleted_</code> flag in its metadata to delete a tuple as <code>true</code>.</li>
+<li>To update a tuple, we need to delete it first and insert the newly updated tuple into the table again.</li>
+<li><code>TableHeap</code> also provides <code>MakeIterator()</code> to iterate through the table.</li>
 </ul>
 </li>
 </ul>
 </li>
-<li>The <code>IndexInfo</code> stores the name and OID of the index, the schema for the index key, the name of the table and a pointer of <code>Index</code>.
+<li>The <code>IndexInfo</code> stores the name and OID of the index, the schema for the index key, the name of the table, and a pointer of the <code>Index</code>.
 <ul>
 <li>We can manipulate an index through its <code>Index</code>.</li>
-<li>The <code>Index</code> provides methods to insert or delete an entry from the index, and get metadata of the index.
+<li>The <code>Index</code> provides methods to insert or delete an entry from the index and get index metadata.
 <ul>
-<li>The metadata includes the names of the index and table, mapping relation between key schema and tuple schema, and the schema of the indexed key.</li>
+<li>The metadata includes the names of the index and table, the mapping relation between the key schema and tuple schema, and the schema of the indexed key.</li>
 <li>The <code>Index</code> is the abstract class of all kinds of index implementations. To use a specific known index implementation, we can <code>dynamic_cast</code> it.</li>
 </ul>
 </li>
 </ul>
 </li>
-<li>This system support <code>ArithmeticExpression</code>, <code>ColumnValueExpression</code>, <code>ComparisonExpression</code>, <code>ConstantValueExpression</code>, <code>LogicExpression</code>, <code>StringExpression</code>.
+<li>This system supports <code>ArithmeticExpression</code>, <code>ColumnValueExpression</code>, <code>ComparisonExpression</code>, <code>ConstantValueExpression</code>, <code>LogicExpression</code>, <code>StringExpression</code>.
 <ul>
-<li>The <code>AbstractExpression</code> provides an <code>Evaluate</code> method to calculate desired <code>Value</code> according to provided one <code>Tuple</code> and <code>Schema</code>.
+<li>The <code>AbstractExpression</code> provides an <code>Evaluate</code> method to calculate the desired <code>Value</code> according to the provided one <code>Tuple</code> and <code>Schema</code>.
 <ul>
 <li>The <code>ArithmeticExpression</code> only supports <code>PLUS</code> and <code>MINUS</code> operation of two <code>Value</code>s.</li>
 <li>The <code>ColumnValueExpression</code> returns the <code>Value</code> of the designated column.</li>
 <li>The <code>ComparisonExpression</code> supports the comparison result of two <code>Values</code>s of <code>equal, not equal, less, less or equal, greater, greater or equal</code>.</li>
 <li>The <code>ConstantValueExpression</code> returns a single constant <code>Value</code>.</li>
 <li>The <code>LogicExpression</code> supports the <code>AND/OR</code> of two <code>Value</code>s.</li>
-<li>The <code>StringExpression</code> converts a string  to lower-case or upper-case.</li>
+<li>The <code>StringExpression</code> converts a string to lower-case or upper-case.</li>
 </ul>
 </li>
-<li>The <code>AbstractExpression</code> also provides an <code>EvaluateJoin</code> method to calculate the join condition of two <code>Tuple</code>s. They support the same functions as <code>Evaluation</code> except that they consider two tuples.</li>
-<li><code>ArithmeticExpression</code>, <code>ComparisonExpression</code>, <code>LogicExpression</code> and <code>LogicExpression</code> may have child-expressions. During evaluation, they will perform child expressions first recursively.</li>
+<li>The <code>AbstractExpression</code> also provides an <code>EvaluateJoin</code> method to calculate the join condition of two <code>Tuple</code>s. They support the same functions as <code>Evaluation</code>, except that they consider two tuples.</li>
+<li><code>ArithmeticExpression</code>, <code>ComparisonExpression</code>, <code>LogicExpression</code>, and <code>LogicExpression</code> may have child-expressions. During evaluation, they will first perform child expressions recursively.</li>
 </ul>
 </li>
 </ol>
 <h2 id="scan"><a class="markdownIt-Anchor" href="#scan"></a> Scan</h2>
 <ol>
-<li>In sequential scan, we only need to know which table to scan.
+<li>In sequential scans, we only need to know which table to scan.
 <ul>
-<li>The object ID and name of the table is stored in the planner.</li>
-<li>In the <code>Init()</code>, the metadata of the table (<code>TableInfo</code>) is fetched from catalog and the corresponding iterator of the table is created.</li>
-<li>In the <code>Next(Tuple *tuple, RID *rid)</code>, as long as the iterator is not at the end, we need to find the first tuple with <code>is_deleted_</code> being <code>false</code> and matching with <code>filter_predicate_</code>.</li>
+<li>The object ID and name of the table are stored in the planner.</li>
+<li>In the <code>Init()</code>, the table metadata (<code>TableInfo</code>) is fetched from the catalog, and the corresponding iterator of the table is created.</li>
+<li>In the <code>Next(Tuple *tuple, RID *rid)</code>, if the iterator is not at the end, we need to find the first tuple with <code>is_deleted_</code> being <code>false</code> and matching with <code>filter_predicate_</code>.</li>
 </ul>
 </li>
 <li>In the index scan, we need to know which index to scan and which table to fetch the tuple.
 <ul>
-<li>The OID of the index is stored in the planner while the name of the table is stored in the <code>IndexInfo</code>.</li>
+<li>The OID of the index is stored in the planner, while the table name is stored in <code>IndexInfo</code>.</li>
 <li>To fetch the iterator of the index, we need to cast the <code>Index</code> into the specific implementation.</li>
-<li>Each iterator points to a paire of the key and the RecordID. We can fetch the tuple with the <code>GetTuple</code> of the <code>TableHeap</code>.</li>
-<li>As long as the iterator is not at the end, we need to find the first tuple with <code>is_deleted_</code> being <code>false</code>.</li>
+<li>Each iterator points to <code>(key, RecordID)</code> pair. We can fetch the tuple with the <code>GetTuple</code> of the <code>TableHeap</code>.</li>
+<li>As long as the iterator is not at the end, we must find the first tuple with <code>is_deleted_</code> being <code>false</code>.</li>
 </ul>
 </li>
 </ol>
 <h2 id="modification"><a class="markdownIt-Anchor" href="#modification"></a> Modification</h2>
 <ol>
-<li>In the modification executors, we will modify the table and all the associated indexes.
+<li>We will modify the table and all the associated indexes in the modification executors.
 <ul>
-<li>The table OIDs are stored in corresponding planner, while we can fetch all indexes of that table with the name of the table in <code>TableInfo</code>.</li>
-<li>The indexed keys can be acquired with the <code>KeyFromTuple</code> method of the <code>Tuple</code>. The stored values are RecordIDs.</li>
+<li>The table OIDs are stored in the corresponding planner, while we can fetch all indexes of that table with the name of the table in <code>TableInfo</code>.</li>
+<li>The indexed keys can be acquired using the <code>KeyFromTuple</code> method of <code>Tuple</code>. The stored values are RecordIDs.</li>
 </ul>
 </li>
-<li>All the modification executors only return one row representing the number of modified tuples. Hence in one <code>Next</code> call, the executor should handle all the modification.
+<li>All the modification executors only return one row representing the number of modified tuples. Hence, the executor should handle all the modifications in one <code>Next</code> call.
 <ul>
 <li>When no modification is performed, we should also return one row of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>.</li>
-<li>To distinguish between no modification and modification already finished in last call, we should have a flag representing whether or not we have already modified the table.</li>
+<li>To distinguish between no modification and modification already finished in the last call, we should have a flag representing whether or not we have already modified the table.</li>
 </ul>
 </li>
-<li>In the insert executor and delete executor, the tuples to insert or delete are acquired from child executor.</li>
-<li>In the update planner, there is a target expression for each output column.
+<li>The tuples to insert or delete are acquired from the child executor in the insert executor and delete executor.</li>
+<li>The update planner has a target expression for each output column.
 <ul>
-<li>After acquired the original tuple from the child executor, we can evaluate each output column with target expressions.</li>
-<li>The expressions can be any kind of expressions here.</li>
-<li>When updating indexes, it needs to first delete the old indexes first before insert updated indexes.</li>
+<li>After acquiring the original tuple from the child executor, we can evaluate each output column with target expressions.</li>
+<li>The expressions can be any expressions here.</li>
+<li>When updating indexes, the old ones must be deleted before insertion.</li>
 </ul>
 </li>
 </ol>
@@ -376,35 +376,35 @@
 <li>The aggregations are implemented with a hash table.
 <ul>
 <li>The hash table hashes the aggregate keys to the aggregate result.</li>
-<li>When insert a tuple into the hash table, it updates the aggregate result in it according to the aggregate function and the aggregate values from the tuple.</li>
-<li>To use <code>std::hash</code>, the key is <code>AggregateKey</code> containing a vector of <code>Value</code> describing the group-by keys while the value is <code>AggregateValue</code> containing another vector of <code>Value</code> describing aggregate values.
+<li>When inserting a tuple into the hash table, it updates the aggregate result according to the aggregate function and the aggregate values from the tuple.</li>
+<li>To use <code>std::hash</code>, the key is <code>AggregateKey</code> containing a vector of <code>Value</code> describing the group-by keys, while the value is <code>AggregateValue</code> containing another vector of <code>Value</code> describing aggregate values.
 <ul>
-<li>The <code>AggregateKey</code> needs to override <code>==</code> operator and provide <code>()</code> operator in <code>struct std::hash&lt;bustub::AggregateKey&gt;</code> to calculate the hash value of <code>AggregateKey</code>.</li>
+<li>The <code>AggregateKey</code> needs to override the <code>==</code> operator and provide the <code>()</code> operator in <code>struct std::hash&lt;bustub::AggregateKey&gt;</code> to calculate the hash value of <code>AggregateKey</code>.</li>
 </ul>
 </li>
 </ul>
 </li>
-<li>Aggregations are pipeline breakers. Hence the build phase could be performed in the <code>Init()</code> where all tuples from child executor are read and inserted into the hash table to calculate the outputs.
+<li>Aggregations are pipeline breakers. Hence, the build phase could be performed in the Init(), where all tuples from the child executor are read and inserted into the hash table to calculate the outputs.
 <ul>
-<li>If no tuple is inserted, the aggregation executor still need to return the default values for each aggregate function.</li>
-<li>The aggregation planner has two vectors of <code>AbstractExpressionRef</code> to fetch the aggregate keys and aggregate values from tuples received from child executor for aggregate computation. They are all <code>ColumnExpression</code>.</li>
+<li>If no tuple is inserted, the aggregation executor must return the default values for each aggregate function.</li>
+<li>The aggregation planner has two vectors of <code>AbstractExpressionRef</code> to fetch the aggregate keys and aggregate values from tuples received from the child executor for aggregate computation. They are all <code>ColumnExpression</code>.</li>
 </ul>
 </li>
-<li>In the <code>Next(Tuple *tuple, RID *rid)</code>, we just need to iterate over the hash table and output a tuple combining the aggregate keys and aggregate results.</li>
+<li>In the <code>Next(Tuple *tuple, RID *rid)</code>, we must iterate over the hash table and output a tuple combining the aggregate keys and results.</li>
 </ol>
 <h2 id="nestedloopjoin"><a class="markdownIt-Anchor" href="#nestedloopjoin"></a> NestedLoopJoin</h2>
 <ol>
 <li>
-<p>The executor needs to iterate over left child executor and right child executor.</p>
+<p>The executor must iterate over the left child executor and the right child executor.</p>
 <ul>
 <li>When the right child executor has emitted all tuples, the join executor will try to fetch a new tuple from the left child executor and re-initialize the right child executor for the following comparison.</li>
-<li>Since we do not always fetch from left child executor when the <code>Next</code> is called, we need to record the current left tuple when it is fetched.</li>
-<li>To distinguish between the status of no more left tuples and have not fetched any left tuples yet, we can fetch the first left tuple in <code>Init()</code>.</li>
-<li>To mark the status of no more left tuples, i.e. no more tuples to emit, we need a flag to record the status of left tuples, which is the returned value of the <code>Next</code> of left child executor.</li>
+<li>Since we do not always fetch from the left child executor when the <code>Next</code> is called, we need to record the current left tuple when it is fetched.</li>
+<li>To distinguish between the status of no more left tuples and those that have not fetched any left tuples yet, we can fetch the first left tuple in <code>Init()</code>.</li>
+<li>To mark the status of no more left tuples, i.e., no more tuples to emit, we need a flag to record the status of left tuples and the returned value of the <code>Next</code> left child executor.</li>
 </ul>
 </li>
 <li>
-<p>For left join, if an outer tuple does not match with any inner tuple, we still need to emit the concatenation of that outer tuple with all-null inner tuple.</p>
+<p>For the left join, if an outer tuple does not match any inner tuple, we still need to emit the concatenation of that outer tuple with an all-null inner tuple.</p>
 </li>
 <li>
 <p>The predicate expression of the executor can be either a <code>LogicExpression</code> or <code>ComparisonExpression</code>.</p>
@@ -412,19 +412,19 @@
 </ol>
 <h2 id="hashjoin"><a class="markdownIt-Anchor" href="#hashjoin"></a> HashJoin</h2>
 <ol>
-<li>Similar with aggregations, we need a hash table for the outer table. We define <code>JoinKey</code> and <code>JoinBucket</code> to hash.
+<li>Similar to aggregations, we need a hash table for the outer table. We define <code>JoinKey</code> and <code>JoinBucket</code> to hash.
 <ul>
-<li>We store all tuples with the same values in the attributes of join condition.</li>
-<li>To support left join, we also need to record whether one tuple is used.
+<li>We store all tuples with the same values in the attributes of the join condition.</li>
+<li>We must also record whether one tuple is used to support left join.
 <ul>
-<li>When a tuple is matched with some inner tuple, all tuples in the same bucket must also matched. Hence we only need to record the usage of each <code>JoinBucket</code>.</li>
-<li>For left join, when there is no more right tuples, the executor still need to iterate through the hash table to see if any bucket is unused.</li>
+<li>When a tuple is matched with some inner tuple, all tuples in the same bucket must also matched. Hence, we only need to record the usage of each <code>JoinBucket</code>.</li>
+<li>For left join, when there are no more right tuples, the executor still needs to iterate through the hash table to see if any bucket is unused.</li>
 </ul>
 </li>
-<li>Similar with aggregation, <code>HashJoin</code> need to build the hash table based on the outer table in <code>Init()</code>.</li>
+<li>Similar to aggregation, <code>HashJoin</code> must build the hash table based on the outer table in <code>Init()</code>.</li>
 </ul>
 </li>
-<li>Different with <code>NestedLoopJoin</code>, the plan of <code>HashJoin</code> only need to know how to fetch columns from each tuples to determine whether those tuples are matched.
+<li>Unlike <code>NestedLoopJoin</code>, the plan of HashJoin only needs to know how to fetch columns from each tuple to determine whether those tuples are matched.
 <ul>
 <li>The expressions of the <code>HashJoin</code> planner are only <code>ColumnValueExpression</code>.</li>
 </ul>
@@ -434,67 +434,67 @@
 <ol>
 <li>The compare function needs specific expressions to fetch designated columns from each tuple.
 <ul>
-<li>Hence we cannot only implement a non-static member function or a function with expressions being one of the parameters.</li>
-<li>We need to implement a structure with override <code>()</code> operator. The expressions are passed to the object in initialization.</li>
+<li>Hence, we cannot implement only a non-static member function or a function with expressions as one of the parameters.</li>
+<li>We need to implement a structure with an override <code>()</code> operator. The expressions are passed to the object in initialization.</li>
 <li>For <code>priority_queue</code>, two nodes will be swapped when the comparison function returns true.</li>
 </ul>
 </li>
-<li>In the <code>Init()</code>, we need to fetch all tuples from child executor and sort them.
+<li>In <code>Init()</code>, we must fetch and sort all tuples from the child executor.
 <ul>
-<li>For Top-N executor, the heap size should not be larger than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span>. The heap after the <code>Init()</code> is the counter-order of the output order, hence we still need a stack to support output in <code>Next</code>.</li>
+<li>For the Top-N executor, the heap size should not be larger than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span>. The heap after the <code>Init()</code> is the counter-order of the output order. Hence, we still need a stack to support output in <code>Next</code>.</li>
 </ul>
 </li>
 </ol>
 <h1 id="optimizer"><a class="markdownIt-Anchor" href="#optimizer"></a> Optimizer</h1>
 <ol>
-<li>When trying to optimize a plan, the root plan is passed to the optimizer and the optimizer will perform a DFS of the plan tree.</li>
-<li>Each optimizer tries to recognize the pattern they need to handle and produce a new plan when it is matched.</li>
+<li>When optimizing a plan, the root plan is passed to the optimizer, and the optimizer will perform a DFS of the plan tree.</li>
+<li>Each optimizer tries to recognize the pattern they must handle and produce a new plan when matched.</li>
 </ol>
 <h2 id="nested-loop-join"><a class="markdownIt-Anchor" href="#nested-loop-join"></a> Nested loop join</h2>
 <ol>
-<li>To optimize nested loop join with hash join, the optimizer need to find a nested loop join and separate all the conditions from <code>LogicExpression</code> into <code>ComparisonExpression</code>.
+<li>To optimize nested loop join with hash join, the optimizer must find a nested loop join and separate all the conditions from <code>LogicExpression</code> into <code>ComparisonExpression</code>.
 <ul>
 <li>If all the <code>ComparisonExpression</code> are <code>ComparisonType::Equal</code>, we can create a new plan of <code>HashJoin</code> with <code>left_key_expressions</code> and <code>right_key_expressions</code> extracted from those <code>ComparisonExpression</code>.</li>
 </ul>
 </li>
-<li>Push down predicates of nested loop join to reduce the output of children of join to reduce the complexity of join.
+<li>Push down predicates of nested loop join to reduce the output of children of join and the complexity of join.
 <ul>
-<li>Only predicates that only involve one side of input of join operator can be pushed down.</li>
-<li>Some predicates need to be pushed into the left child, some are pushed to the right child, while some are remained in the join.</li>
-<li>To push down predicate, we can create a new <code>FilterPlanNode</code> as a child of join and father of original child.</li>
+<li>Only predicates that only involve one side of the input of the join operator can be pushed down.</li>
+<li>Some predicates need to be pushed into the left child, some to the right child, and some remain in the join.</li>
+<li>To push down the predicate, we can create a new FilterPlanNode as a child of join and father of the original child.</li>
 </ul>
 </li>
 <li>Nested loop join can be replaced by hash join when the predicates are all equal conditions.</li>
-<li>If the parent planner of a nested loop join is an aggregation planner and that aggregation planner involves only data from one side, we can push down that aggregation as one of the children of join.
+<li>If the parent planner of a nested loop join is an aggregation planner, and that aggregation planner involves only data from one side, we can push down that aggregation as one of the children of join.
 <ul>
-<li>The insight is that aggregation usually output less rows than its input since aggregation groups rows before sending one row for each group.</li>
-<li>The columns in the mathmatical expressions need to be modified according to the side of aggregation.</li>
+<li>The insight is that aggregation usually outputs fewer rows than input since aggregation groups rows before sending one row for each group.</li>
+<li>The columns in the mathematical expressions need to be modified according to the side of aggregation.</li>
 </ul>
 </li>
 </ol>
 <h2 id="order-by"><a class="markdownIt-Anchor" href="#order-by"></a> Order by</h2>
 <ol>
-<li>To optimize limit followed by sort into top-N, we just need to check whether the child of a limit plan is a sort.</li>
-<li>When sorting the table, instead of exeuting sort algorithms, we may use the existing index to traverse the table.
+<li>To optimize the sorted limit into top-N, we need to check whether the child of a limit plan is a sort.</li>
+<li>When sorting the table, instead of executing sort algorithms, we may use the existing index to traverse the table.
 <ul>
-<li>It can only be used when the desired order is ascending or default and the child of sorting planner is SeqScan planner.</li>
+<li>It can only be used when the desired order is ascending, or default and the child of the sorting planner is the SeqScan planner.</li>
 </ul>
 </li>
 </ol>
 <h2 id="projection"><a class="markdownIt-Anchor" href="#projection"></a> Projection</h2>
 <ol>
-<li><code>SELECT *</code>, aggregations, or renaming the columns in the planner may cauing multiple identical project planner.
+<li><code>SELECT *</code>, aggregations, or renaming the columns in the planner may cause multiple identical project planners.
 <ul>
-<li>The child of projection planner is not required to be a projection.</li>
-<li>We can remove the projection planner as long as it has the same schema as its child except column name.</li>
-<li>Then the output schema of the child is replaced by the output schema of projection.</li>
+<li>The child of the projection planner is not required to be a projection.</li>
+<li>We can remove the projection planner if it has the same schema as its child except for the column name.</li>
+<li>Then, the output schema of the child is replaced by the output schema of the projection.</li>
 </ul>
 </li>
-<li>The child of projection planner may be emitting unnecessary columns.
+<li>The child of the projection planner may be emitting unnecessary columns.
 <ul>
-<li>Besides naive projection, a projection planner could also perform arithmathical expressions.</li>
-<li>If the child is another projection, we can merge them and express the new projection under the column schema of the input schema of the child.</li>
-<li>If the child  is an aggregation planner, it only need to calculate those necessary aggregations.</li>
+<li>Besides the naive projection, a projection planner could also perform arithmetical expressions.</li>
+<li>If the child is another projection, we can merge them and express the new projection under the column schema of the child’s input schema.</li>
+<li>If the child is an aggregation planner, it only needs to calculate those necessary aggregations.</li>
 </ul>
 </li>
 </ol>
@@ -502,7 +502,7 @@
 <ol>
 <li>Always true filters can be eliminated to avoid re-evaluation for every row.</li>
 <li>The filter planner with a child of sequential scan can be merged to reduce the data transmission between executors.</li>
-<li>When the predicate of sequential scan is all equal conditions and there exists a corresponding index, the sequential scan can be replaced by index scan to avoid scanning the entire table.
+<li>When the predicate of sequential scan is all equal conditions, and a corresponding index exists, the sequential scan can be replaced by an index scan to avoid scanning the entire table.
 <ul>
 <li>It needs to modify the <code>IndexScanPlanner</code> and the <code>IndexScanExecutor</code> to support scanning only the row designated by the equal conditions.</li>
 </ul>
