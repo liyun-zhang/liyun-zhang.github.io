@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Consistency  Definition  In a correctly behaved parallel memory hierarchy, reading a location should return the latest value written by any thread. Side-effects of writes are only observable when rea">
+    <meta name="description" content="ConsistencyDefinition In a correctly behaved parallel memory hierarchy, reading a location should return the latest value written by any thread.Side-effects of writes are only observable when reads oc">
 <meta property="og:type" content="article">
 <meta property="og:title" content="11. Memory Consistency">
 <meta property="og:url" content="http://liyun-zhang.github.io/2022/07/10/Courses/CS149/11-Memory-Consistency/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="Consistency  Definition  In a correctly behaved parallel memory hierarchy, reading a location should return the latest value written by any thread. Side-effects of writes are only observable when rea">
+<meta property="og:description" content="ConsistencyDefinition In a correctly behaved parallel memory hierarchy, reading a location should return the latest value written by any thread.Side-effects of writes are only observable when reads oc">
 <meta property="og:locale">
 <meta property="article:published_time" content="2022-07-10T06:07:29.000Z">
 <meta property="article:modified_time" content="2024-03-16T13:22:02.076Z">
@@ -139,7 +139,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#consistency"><span class="nav-number">1.</span> <span class="nav-text"> Consistency</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#definition"><span class="nav-number">1.1.</span> <span class="nav-text"> Definition</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hide-memory-latency"><span class="nav-number">1.2.</span> <span class="nav-text"> Hide memory latency</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#sequential-consistency-sc-model"><span class="nav-number">2.</span> <span class="nav-text"> Sequential consistency (SC) model</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#optimization"><span class="nav-number">3.</span> <span class="nav-text"> Optimization</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Consistency"><span class="nav-number">1.</span> <span class="nav-text">Consistency</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Definition"><span class="nav-number">1.1.</span> <span class="nav-text">Definition</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hide-memory-latency"><span class="nav-number">1.2.</span> <span class="nav-text">Hide memory latency</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Sequential-consistency-SC-model"><span class="nav-number">2.</span> <span class="nav-text">Sequential consistency (SC) model</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Optimization"><span class="nav-number">3.</span> <span class="nav-text">Optimization</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -251,56 +251,38 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h1 id="consistency"><a class="markdownIt-Anchor" href="#consistency"></a> Consistency</h1>
-<h2 id="definition"><a class="markdownIt-Anchor" href="#definition"></a> Definition</h2>
-<ol>
-<li>In a correctly behaved parallel memory hierarchy, reading a location should return the latest value written by any thread.<br />
-Side-effects of writes are only observable when reads occur so that we will focus on the values returned by reads.</li>
-<li>Within a thread, “latest” can be defined by program order. But when it comes across threads, we don’t want it to be physical time because there is no way that the hardware can pull that off. If it takes &gt;10 cycles to communicate between processors, there is no way that processor 0 can know what processor 1 did 2 clock ticks ago.</li>
-<li>Writes from any particular thread must be consistent with program order. Writes across threads must be consistent with valid interleaving of threads.<br />
-We define the memory model as one in which each thread proceeds in program order, and memory accesses interleaved (one at a time) to a single-ported memory while the rate of progress of each thread is unpredictable.<br />
-“Latest” means consistent with some interleaving that matches this model.</li>
+    <div class="post-body" itemprop="articleBody"><h1 id="Consistency"><a href="#Consistency" class="headerlink" title="Consistency"></a>Consistency</h1><h2 id="Definition"><a href="#Definition" class="headerlink" title="Definition"></a>Definition</h2><ol>
+<li>In a correctly behaved parallel memory hierarchy, reading a location should return the latest value written by any thread.<br>Side-effects of writes are only observable when reads occur so that we will focus on the values returned by reads. </li>
+<li>Within a thread, “latest” can be defined by program order. But when it comes across threads, we don’t want it to be physical time because there is no way that the hardware can pull that off. If it takes &gt;10 cycles to communicate between processors, there is no way that processor 0 can know what processor 1 did 2 clock ticks ago. </li>
+<li>Writes from any particular thread must be consistent with program order. Writes across threads must be consistent with valid interleaving of threads.<br>We define the memory model as one in which each thread proceeds in program order, and memory accesses interleaved (one at a time) to a single-ported memory while the rate of progress of each thread is unpredictable.<br>“Latest” means consistent with some interleaving that matches this model.</li>
 </ol>
-<h2 id="hide-memory-latency"><a class="markdownIt-Anchor" href="#hide-memory-latency"></a> Hide memory latency</h2>
-<ol>
+<h2 id="Hide-memory-latency"><a href="#Hide-memory-latency" class="headerlink" title="Hide memory latency"></a>Hide memory latency</h2><ol>
 <li>Idea: overlap memory accesses with other accesses and computation</li>
-<li>“Out of order” pipelining: When an instruction is stuck, perhaps subsequent instructions can be executed.</li>
-<li>We don’t need to wait for a conditional branch to be resolved before proceeding. Just predict the branch outcome and continue executing speculatively. If the prediction is wrong, squash any side effects and restart down the correct path.</li>
-<li>Modern processors fetch and graduate instructions in order but issue out-of-order. So, intra-thread dependencies are preserved, but memory accesses get reordered.</li>
-<li>Hiding write latency is simple in uniprocessors, adding a write buffer. But this affects correctness in multiprocessors.<br />
-In a multiprocessor, a write buffer or write-back cache might cause later writes to write earlier to memory, and accesses issued in order may be observed out of order by other processors.</li>
+<li>“Out of order” pipelining: When an instruction is stuck, perhaps subsequent instructions can be executed. </li>
+<li>We don’t need to wait for a conditional branch to be resolved before proceeding. Just predict the branch outcome and continue executing speculatively. If the prediction is wrong, squash any side effects and restart down the correct path. </li>
+<li>Modern processors fetch and graduate instructions in order but issue out-of-order. So, intra-thread dependencies are preserved, but memory accesses get reordered. </li>
+<li>Hiding write latency is simple in uniprocessors, adding a write buffer. But this affects correctness in multiprocessors.<br>In a multiprocessor, a write buffer or write-back cache might cause later writes to write earlier to memory, and accesses issued in order may be observed out of order by other processors. </li>
 </ol>
-<h1 id="sequential-consistency-sc-model"><a class="markdownIt-Anchor" href="#sequential-consistency-sc-model"></a> Sequential consistency (SC) model</h1>
-<ol>
-<li>Each processor’s access is in program order, and all accesses appear in sequential order. Any order implicitly assumed by the programmer is maintained. Any order implicitly assumed by the programmer is maintained.</li>
-<li>How to implement sequential consistency:<br />
-Implement cache coherence: writes to the same location are observed in the same order by all processors<br />
-For each processor, delay the start of memory access until the previous one is complete. Namely, each processor has only one outstanding memory access at a time.</li>
-<li>A read completes when its return value is bound.<br />
-A write completes when the new value is “visible” to other processors. “Visible” does not mean that other processors have necessarily seen the value yet. The new value is committed to the hypothetical serializable order (HSO).</li>
-<li>The strict requirements of the SC model severely restrict common hardware and compiler optimizations.<br />
-Processor issues access one at a time and stalls for completion, which results in Low processor utilization even with caching.</li>
-<li>Total store ordering (TSO) model: Compared to the SC model, a read operation doesn’t need to stall to wait for an earlier write operation. This is similar to the architecture with a FIFO write buffer.</li>
-<li>Partial store ordering (PSO) model: Compared to the TSO model, even a write operation doesn’t need to stall to wait for an earlier write operation. This architecture has a write buffer that doesn’t have to be FIFO.</li>
+<h1 id="Sequential-consistency-SC-model"><a href="#Sequential-consistency-SC-model" class="headerlink" title="Sequential consistency (SC) model"></a>Sequential consistency (SC) model</h1><ol>
+<li>Each processor’s access is in program order, and all accesses appear in sequential order. Any order implicitly assumed by the programmer is maintained. Any order implicitly assumed by the programmer is maintained. </li>
+<li>How to implement sequential consistency:<br>Implement cache coherence: writes to the same location are observed in the same order by all processors<br>For each processor, delay the start of memory access until the previous one is complete. Namely, each processor has only one outstanding memory access at a time.</li>
+<li>A read completes when its return value is bound.<br>A write completes when the new value is “visible” to other processors. “Visible” does not mean that other processors have necessarily seen the value yet. The new value is committed to the hypothetical serializable order (HSO). </li>
+<li>The strict requirements of the SC model severely restrict common hardware and compiler optimizations.<br>Processor issues access one at a time and stalls for completion, which results in Low processor utilization even with caching. </li>
+<li>Total store ordering (TSO) model: Compared to the SC model, a read operation doesn’t need to stall to wait for an earlier write operation. This is similar to the architecture with a FIFO write buffer. </li>
+<li>Partial store ordering (PSO) model: Compared to the TSO model, even a write operation doesn’t need to stall to wait for an earlier write operation. This architecture has a write buffer that doesn’t have to be FIFO. </li>
 </ol>
-<h1 id="optimization"><a class="markdownIt-Anchor" href="#optimization"></a> Optimization</h1>
-<ol>
-<li>Most programs don’t require strict ordering (all of the time) for correctness. Here, correctness means the same results as sequential consistency.</li>
-<li>Two accesses conflict if they access the same location; at least one is a write.</li>
-<li>We can order accesses by program order (PO) and dependence order (DO). Operation2 is dependent on operation1 if operation2 reads operation1.</li>
-<li>Data Race is two conflicting accesses on different processors, not ordered by intervening accesses.</li>
-<li>Properly synchronized programs are where all synchronizations are explicitly identified, and all data accesses are ordered through synchronization.</li>
-<li>Many parallel programs have mixtures of “private” and “public” parts.  The “private” parts must be protected by synchronization,  like locks and unlocks.<br />
-Between synchronization operations, we can allow memory operations to be reordered as long as intra-thread dependencies are preserved.<br />
-Just before and just after synchronization operations, the thread must wait for all prior operations to complete</li>
-<li>MFENCE does not begin until all prior reads &amp; writes from that thread have completed, and no subsequent read or write from that thread can start until after it finishes. Xchg does this implicitly.<br />
-MFENCE operation does not push values out to other threads. It simply stalls the thread that performs the MFENCE until the write buffer is empty.<br />
-MFENCE operations create partial orderings that are observable across threads.</li>
-<li>In the weak ordering model, we put MFENCEs before the lock operation and after the unlock operation.</li>
-<li>Lock operation: only gains (“acquires”) permission to access data. Unlock operation: only gives away (“releases”) permission to access data.<br />
-The Release Consistency (RC) model ensures that writes before the lock or in the critical section are completed before the exit critical section and that reads/writes in the critical section or after the exit critical section doesn’t access the shared state until the lock is acquired.</li>
-<li>LFENCE serializes only with respect to load operations, and SFENCE serializes only with respect to store operations. In practice, MFENCE and xchg are the most likely used ones.</li>
-<li>Like Peterson’s algorithm, don’t use only normal memory operations for synchronization. Do use either explicit synchronization operations, like xchg (atomic), or fences.</li>
+<h1 id="Optimization"><a href="#Optimization" class="headerlink" title="Optimization"></a>Optimization</h1><ol>
+<li>Most programs don’t require strict ordering (all of the time) for correctness. Here, correctness means the same results as sequential consistency. </li>
+<li>Two accesses conflict if they access the same location; at least one is a write. </li>
+<li>We can order accesses by program order (PO) and dependence order (DO). Operation2 is dependent on operation1 if operation2 reads operation1. </li>
+<li>Data Race is two conflicting accesses on different processors, not ordered by intervening accesses. </li>
+<li>Properly synchronized programs are where all synchronizations are explicitly identified, and all data accesses are ordered through synchronization. </li>
+<li>Many parallel programs have mixtures of “private” and “public” parts.  The “private” parts must be protected by synchronization,  like locks and unlocks.<br>Between synchronization operations, we can allow memory operations to be reordered as long as intra-thread dependencies are preserved.<br>Just before and just after synchronization operations, the thread must wait for all prior operations to complete</li>
+<li>MFENCE does not begin until all prior reads &amp; writes from that thread have completed, and no subsequent read or write from that thread can start until after it finishes. Xchg does this implicitly.<br>MFENCE operation does not push values out to other threads. It simply stalls the thread that performs the MFENCE until the write buffer is empty.<br>MFENCE operations create partial orderings that are observable across threads. </li>
+<li>In the weak ordering model, we put MFENCEs before the lock operation and after the unlock operation. </li>
+<li>Lock operation: only gains (“acquires”) permission to access data. Unlock operation: only gives away (“releases”) permission to access data.<br>The Release Consistency (RC) model ensures that writes before the lock or in the critical section are completed before the exit critical section and that reads/writes in the critical section or after the exit critical section doesn’t access the shared state until the lock is acquired. </li>
+<li>LFENCE serializes only with respect to load operations, and SFENCE serializes only with respect to store operations. In practice, MFENCE and xchg are the most likely used ones. </li>
+<li>Like Peterson’s algorithm, don’t use only normal memory operations for synchronization. Do use either explicit synchronization operations, like xchg (atomic), or fences. </li>
 </ol>
 
     </div>

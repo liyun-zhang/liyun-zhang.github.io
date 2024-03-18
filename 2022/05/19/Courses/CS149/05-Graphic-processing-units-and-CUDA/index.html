@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Graphics  The first step to drawing a graphic on the screen is to describe the manipulated things (key entities), whose surface is represented as a 3D triangle mesh. So, the input of the calculating">
+    <meta name="description" content="Graphics The first step to drawing a graphic on the screen is to describe the manipulated things (key entities), whose surface is represented as a 3D triangle mesh.So, the input of the calculating sys">
 <meta property="og:type" content="article">
 <meta property="og:title" content="05. Graphic processing units and CUDA">
 <meta property="og:url" content="http://liyun-zhang.github.io/2022/05/19/Courses/CS149/05-Graphic-processing-units-and-CUDA/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="Graphics  The first step to drawing a graphic on the screen is to describe the manipulated things (key entities), whose surface is represented as a 3D triangle mesh. So, the input of the calculating">
+<meta property="og:description" content="Graphics The first step to drawing a graphic on the screen is to describe the manipulated things (key entities), whose surface is represented as a 3D triangle mesh.So, the input of the calculating sys">
 <meta property="og:locale">
 <meta property="article:published_time" content="2022-05-19T01:59:09.000Z">
 <meta property="article:modified_time" content="2024-03-16T11:22:24.981Z">
@@ -140,7 +140,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#graphics"><span class="nav-number">1.</span> <span class="nav-text"> Graphics</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#cuda"><span class="nav-number">2.</span> <span class="nav-text"> CUDA</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#grid-block-and-thread"><span class="nav-number">2.1.</span> <span class="nav-text"> Grid, Block, and Thread</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#kernel-function"><span class="nav-number">2.2.</span> <span class="nav-text"> Kernel function</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#memory-model"><span class="nav-number">2.3.</span> <span class="nav-text"> Memory Model</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hardware-implementation"><span class="nav-number">2.4.</span> <span class="nav-text"> Hardware implementation</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Graphics"><span class="nav-number">1.</span> <span class="nav-text">Graphics</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CUDA"><span class="nav-number">2.</span> <span class="nav-text">CUDA</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Grid-Block-and-Thread"><span class="nav-number">2.1.</span> <span class="nav-text">Grid, Block, and Thread</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kernel-function"><span class="nav-number">2.2.</span> <span class="nav-text">Kernel function</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Memory-Model"><span class="nav-number">2.3.</span> <span class="nav-text">Memory Model</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hardware-implementation"><span class="nav-number">2.4.</span> <span class="nav-text">Hardware implementation</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -252,76 +252,45 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h1 id="graphics"><a class="markdownIt-Anchor" href="#graphics"></a> Graphics</h1>
-<ol>
-<li>The first step to drawing a graphic on the screen is to describe the manipulated things (key entities), whose surface is represented as a 3D triangle mesh.<br />
-So, the input of the calculating system is a list of vertices in 3D space and their connectivity to primitives.</li>
-<li>The operations of the system are as follows:<br />
-Given a scene camera position, compute where the vertices lie on the screen<br />
-Group vertices into primitives<br />
-Generate one fragment for each pixel a primitive overlaps<br />
-Compute the color of the primitive for each fragment based on scene lighting and primitive material properties<br />
-Put the color of the “closest fragment” to the camera in the output image</li>
-<li>We can Abstract the process of rendering a picture as a sequence of operations on vertices, primitives, fragments, and pixels.<br />
-GPUs are very fast processors for performing the same computation (shader programs) on large collections of data (streams of vertices, fragments, and pixels), which sounds like data-parallelism.</li>
-<li>To do GPU-based scientific computation, we need to set the OpenGL output image size to the output array size and render two triangles that exactly cover the screen.</li>
+    <div class="post-body" itemprop="articleBody"><h1 id="Graphics"><a href="#Graphics" class="headerlink" title="Graphics"></a>Graphics</h1><ol>
+<li>The first step to drawing a graphic on the screen is to describe the manipulated things (key entities), whose surface is represented as a 3D triangle mesh.<br>So, the input of the calculating system is a list of vertices in 3D space and their connectivity to primitives. </li>
+<li>The operations of the system are as follows:<br>Given a scene camera position, compute where the vertices lie on the screen<br>Group vertices into primitives<br>Generate one fragment for each pixel a primitive overlaps<br>Compute the color of the primitive for each fragment based on scene lighting and primitive material properties<br>Put the color of the “closest fragment” to the camera in the output image</li>
+<li>We can Abstract the process of rendering a picture as a sequence of operations on vertices, primitives, fragments, and pixels.<br>GPUs are very fast processors for performing the same computation (shader programs) on large collections of data (streams of vertices, fragments, and pixels), which sounds like data-parallelism. </li>
+<li>To do GPU-based scientific computation, we need to set the OpenGL output image size to the output array size and render two triangles that exactly cover the screen. </li>
 </ol>
-<h1 id="cuda"><a class="markdownIt-Anchor" href="#cuda"></a> CUDA</h1>
-<h2 id="grid-block-and-thread"><a class="markdownIt-Anchor" href="#grid-block-and-thread"></a> Grid, Block, and Thread</h2>
-<ol>
-<li>CUDA thread IDs can be up to 3-dimensional. Multiple threads make up a block, and multiple blocks make up a grid.<br />
-Each kernel has a grid. All the blocks in a grid form a 3D matrix, and all the threads in a block also form a 3D matrix.<br />
-We can get information about the shape of threads in a block matrix or block in a grid matrix in a block with <code>block_dim</code> and <code>grid_dim</code></li>
-<li>When launching the CUDA threads, we need to specify the size of blocks and threads with <code>kernel_function&lt;&lt;&lt;block_dim, thread_dim&gt;&gt;&gt;(parameters)</code>.<br />
-Here, block_dim and thread_dim can be either a dim3 value or a number of the total number of blocks and threads per block to make the CUDA compiler figure out how to arrange blocks and threads.</li>
-<li>So, the coordinates for declaring or locating a block in a grid or a thread in a block are in 3D. In the CUDA code, we can get information about the current block or thread with <code>blockIdx</code> and <code>threadIdx</code> and their properties <code>x</code>, <code>y</code>, and <code>z</code>.</li>
-<li>The calculation object of CUDA is usually matrices. So, we prefer to cut matrices into blocks. Each CUDA block calculates one block in matrices, and each thread calculates one element in matrices.</li>
-<li>In <code>pthread</code>, there is stack space for the thread, and we need to allocate a control block so OS can schedule the thread.<br />
-Unlike <code>pthread</code>, CUDA controls those instances by thread blocks. If controlled by threads, there will be too many to control.</li>
+<h1 id="CUDA"><a href="#CUDA" class="headerlink" title="CUDA"></a>CUDA</h1><h2 id="Grid-Block-and-Thread"><a href="#Grid-Block-and-Thread" class="headerlink" title="Grid, Block, and Thread"></a>Grid, Block, and Thread</h2><ol>
+<li>CUDA thread IDs can be up to 3-dimensional. Multiple threads make up a block, and multiple blocks make up a grid.<br>Each kernel has a grid. All the blocks in a grid form a 3D matrix, and all the threads in a block also form a 3D matrix.<br>We can get information about the shape of threads in a block matrix or block in a grid matrix in a block with <code>block_dim</code> and <code>grid_dim</code></li>
+<li>When launching the CUDA threads, we need to specify the size of blocks and threads with <code>kernel_function&lt;&lt;&lt;block_dim, thread_dim&gt;&gt;&gt;(parameters)</code>.<br>Here, block_dim and thread_dim can be either a dim3 value or a number of the total number of blocks and threads per block to make the CUDA compiler figure out how to arrange blocks and threads.</li>
+<li>So, the coordinates for declaring or locating a block in a grid or a thread in a block are in 3D. In the CUDA code, we can get information about the current block or thread with <code>blockIdx</code> and <code>threadIdx</code> and their properties <code>x</code>, <code>y</code>, and <code>z</code>. </li>
+<li>The calculation object of CUDA is usually matrices. So, we prefer to cut matrices into blocks. Each CUDA block calculates one block in matrices, and each thread calculates one element in matrices. </li>
+<li>In <code>pthread</code>, there is stack space for the thread, and we need to allocate a control block so OS can schedule the thread.<br>Unlike <code>pthread</code>, CUDA controls those instances by thread blocks. If controlled by threads, there will be too many to control.</li>
 <li>Major CUDA assumption: thread block execution can be carried out in any order (no dependencies between blocks)</li>
 </ol>
-<h2 id="kernel-function"><a class="markdownIt-Anchor" href="#kernel-function"></a> Kernel function</h2>
-<ol>
-<li>“Host” code: serial execution runs as part of normal C/C++ application on CPU<br />
-“CUDA device” code: a kernel function runs on GPU, denoted by <code>__global__</code> before the definition of the kernel function.<br />
-Device function: SPMD execution on GPU, denoted by <code>__device__</code>. Kernels call these functions and don’t generate new threads.<br />
-Kernels and device functions only reference device memory. Host code can only reference host memory but can have pointers to device memory.</li>
-<li>In the kernel function, we need to get the indices of the element a thread is calculating. For a 2D matrix, we usually take <code>x</code> as the column direction and y as the row direction.<br />
-So to access <code>A[i][j]</code>, <code>i = blockIdx.y * blockDim * y + threadIdx.y</code> and <code>j = blockIdx.x * blockDim.x + threadIdx.x</code>.</li>
-<li>The data collection size does not determine the number of kernel invocations. So, normally, we want to do a test before accessing the vector values (array values). The overhead of the test can be ignored, although it does cause some threads not to be used.</li>
-<li><code>__syncthreads()</code> is a barrier that waits for all threads in the block to arrive at this point.<br />
-Atomic operations on global memory and shared memory variables are also provided, but they are costly and should only be used as a last resort.<br />
-There is an implicit barrier across all threads at the return of the kernel.</li>
-<li>A compiled CUDA device binary includes program text (instructions) and information about required resources (how many threads per block, how much space per thread, how much shared-space per thread block)</li>
+<h2 id="Kernel-function"><a href="#Kernel-function" class="headerlink" title="Kernel function"></a>Kernel function</h2><ol>
+<li>“Host” code: serial execution runs as part of normal C/C++ application on CPU<br>“CUDA device” code: a kernel function runs on GPU, denoted by <code>__global__</code> before the definition of the kernel function.<br>Device function: SPMD execution on GPU, denoted by <code>__device__</code>. Kernels call these functions and don’t generate new threads.<br>Kernels and device functions only reference device memory. Host code can only reference host memory but can have pointers to device memory. </li>
+<li>In the kernel function, we need to get the indices of the element a thread is calculating. For a 2D matrix, we usually take <code>x</code> as the column direction and y as the row direction.<br>So to access <code>A[i][j]</code>, <code>i = blockIdx.y * blockDim * y + threadIdx.y</code> and <code>j = blockIdx.x * blockDim.x + threadIdx.x</code>.</li>
+<li>The data collection size does not determine the number of kernel invocations. So, normally, we want to do a test before accessing the vector values (array values). The overhead of the test can be ignored, although it does cause some threads not to be used. </li>
+<li><code>__syncthreads()</code> is a barrier that waits for all threads in the block to arrive at this point.<br>Atomic operations on global memory and shared memory variables are also provided, but they are costly and should only be used as a last resort.<br>There is an implicit barrier across all threads at the return of the kernel. </li>
+<li>A compiled CUDA device binary includes program text (instructions) and information about required resources (how many threads per block, how much space per thread, how much shared-space per thread block) </li>
 </ol>
-<h2 id="memory-model"><a class="markdownIt-Anchor" href="#memory-model"></a> Memory Model</h2>
-<ol>
-<li>The host and device have distinct address spaces, so we need to copy data into CUDA memory before executing.<br />
-<code>cudaMalloc(ptr, size)</code> can allocate CUDA memory, and <code>cudaFree(ptr)</code> can free CUDA memory. The pointer in <code>cudaMalloc</code> can be a host variable, but the pointer in <code>cudaFree</code> must be allocated by <code>cudaMalloc</code>.<br />
-<code>cudaMemcpy(dest, src, size, kind)</code> can copy those data into CUDA memory. The kind of direction of copy can be <code>cudaMemcpyHostToDevice</code> or <code>curdaMemcpyDeviceToHost</code>.</li>
-<li>Three distinct types of memory visible to kernels are per-thread private, per-block shared, and device global memory.</li>
-<li><code>cudaMalloc</code>, <code>cudaMemcpy</code>, and cudaFree operate on the device’s global memory, and those local variables in the kernel function are in per-thread private memory.<br />
-We can declare variables in per-block shared memory with <code>__share__</code>.</li>
-<li>If multiple threads in a block need to access a common memory, they will all read it once. And if that memory is in the global memory, it would be really slow.</li>
-<li>We can copy the common memory into the per-block shared memory to avoid such an efficient decrease. So we only need to access global memory once, and later accesses only in per-block shared memory.<br />
-We need to declare a <code>__share__</code> array and assign it to values in global memory.</li>
-<li>All threads copy data from global memory to per-block shared memory asynchronous, so we better ass a <code>_syncthread()</code> to make sure later operations only start when all data have been copied.</li>
+<h2 id="Memory-Model"><a href="#Memory-Model" class="headerlink" title="Memory Model"></a>Memory Model</h2><ol>
+<li>The host and device have distinct address spaces, so we need to copy data into CUDA memory before executing.<br><code>cudaMalloc(ptr, size)</code> can allocate CUDA memory, and <code>cudaFree(ptr)</code> can free CUDA memory. The pointer in <code>cudaMalloc</code> can be a host variable, but the pointer in <code>cudaFree</code> must be allocated by <code>cudaMalloc</code>.<br><code>cudaMemcpy(dest, src, size, kind)</code> can copy those data into CUDA memory. The kind of direction of copy can be <code>cudaMemcpyHostToDevice</code> or <code>curdaMemcpyDeviceToHost</code>. </li>
+<li>Three distinct types of memory visible to kernels are per-thread private, per-block shared, and device global memory. </li>
+<li><code>cudaMalloc</code>, <code>cudaMemcpy</code>, and cudaFree operate on the device’s global memory, and those local variables in the kernel function are in per-thread private memory.<br>We can declare variables in per-block shared memory with <code>__share__</code>. </li>
+<li>If multiple threads in a block need to access a common memory, they will all read it once. And if that memory is in the global memory, it would be really slow. </li>
+<li>We can copy the common memory into the per-block shared memory to avoid such an efficient decrease. So we only need to access global memory once, and later accesses only in per-block shared memory.<br>We need to declare a <code>__share__</code> array and assign it to values in global memory. </li>
+<li>All threads copy data from global memory to per-block shared memory asynchronous, so we better ass a <code>_syncthread()</code> to make sure later operations only start when all data have been copied. </li>
 </ol>
-<h2 id="hardware-implementation"><a class="markdownIt-Anchor" href="#hardware-implementation"></a> Hardware implementation</h2>
-<ol>
+<h2 id="Hardware-implementation"><a href="#Hardware-implementation" class="headerlink" title="Hardware implementation"></a>Hardware implementation</h2><ol>
 <li>Those synchronizations within a warp and scheduling are done by hardware, and programmers don’t need to worry about these things.</li>
-<li>GPU implementation maps thread blocks (“work”) to cores using a dynamic scheduling policy that respects resource requirements.</li>
-<li>In GPU implementation (not a CUDA abstraction), each SM has multiple groups of warps. However, the number of warp execution contexts is far more than the number of warps.<br />
-There is a warp selector for each warp to choose the instruction to be executed by that warp. Each warp selector usually has two (or more) Fectch/Decoder units.</li>
-<li>Shared per-block memory and L1-cache are inside each SM, but L2-cache is shared by all SMs.<br />
-The device-global memory (GPU memory) only communicates with blocks through the L2 cache.</li>
-<li>For each clock, an SM will choose several warp contexts to fill all warps to use thread-level parallelism, and a warp will choose several instructions to fill all Fetch/Decoder units to use instruction-level parallelism.</li>
-<li>When running a CUDA program, the GPU work scheduler will map one block to multiple warps in the same SM core. CUDA threads are numbered within a block in row-major order.<br />
-Inside a single thread block is SPMD shared address space programming.</li>
+<li>GPU implementation maps thread blocks (“work”) to cores using a dynamic scheduling policy that respects resource requirements. </li>
+<li>In GPU implementation (not a CUDA abstraction), each SM has multiple groups of warps. However, the number of warp execution contexts is far more than the number of warps.<br>There is a warp selector for each warp to choose the instruction to be executed by that warp. Each warp selector usually has two (or more) Fectch/Decoder units. </li>
+<li>Shared per-block memory and L1-cache are inside each SM, but L2-cache is shared by all SMs.<br>The device-global memory (GPU memory) only communicates with blocks through the L2 cache. </li>
+<li>For each clock, an SM will choose several warp contexts to fill all warps to use thread-level parallelism, and a warp will choose several instructions to fill all Fetch/Decoder units to use instruction-level parallelism. </li>
+<li>When running a CUDA program, the GPU work scheduler will map one block to multiple warps in the same SM core. CUDA threads are numbered within a block in row-major order.<br>Inside a single thread block is SPMD shared address space programming. </li>
 <li>When a single warp accesses consecutive memory locations, do block read or write. When single warp accesses separated memory locations, it requires gather (read) or scatter(write)</li>
-<li>One SM core may have multiple blocks, so an SMM core can concurrently execute multiple CUDA thread blocks.<br />
-When all threads in the block are complete, block resources (shared memory allocations, warp execution contexts) become available for the next block.</li>
-<li>The CUDA program is not compiled into SIMD instructions like ISPC gangs. GPU hardware dynamically checks whether 32 independent CUDA threads share an instruction. If true, it executes all 32 threads in a SIMD manner, or performance can suffer due to divergent execution.</li>
+<li>One SM core may have multiple blocks, so an SMM core can concurrently execute multiple CUDA thread blocks.<br>When all threads in the block are complete, block resources (shared memory allocations, warp execution contexts) become available for the next block. </li>
+<li>The CUDA program is not compiled into SIMD instructions like ISPC gangs. GPU hardware dynamically checks whether 32 independent CUDA threads share an instruction. If true, it executes all 32 threads in a SIMD manner, or performance can suffer due to divergent execution. </li>
 </ol>
 
     </div>

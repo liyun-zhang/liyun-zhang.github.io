@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="How does the Key&#x2F;Value server execute a command from the clerk?  How can we take advantage of follower nodes?   How can we prevent re-execution of an executed command? How many kinds of errors could">
+    <meta name="description" content="@[toc] How does the Key&#x2F;Value server execute a command from the clerk? It will call the Start() function of its associated Raft server. It can safely execute the command until the Raft server commits">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Lab 3: Fault-tolerant Key&#x2F;Value Service">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/03/27/OpenSource/6.824/Lab-3-Fault-tolerant-Key-Value-Service/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="How does the Key&#x2F;Value server execute a command from the clerk?  How can we take advantage of follower nodes?   How can we prevent re-execution of an executed command? How many kinds of errors could">
+<meta property="og:description" content="@[toc] How does the Key&#x2F;Value server execute a command from the clerk? It will call the Start() function of its associated Raft server. It can safely execute the command until the Raft server commits">
 <meta property="og:locale">
 <meta property="article:published_time" content="2023-03-27T06:35:11.000Z">
 <meta property="article:modified_time" content="2024-03-17T03:28:16.573Z">
@@ -141,7 +141,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#how-does-the-keyvalue-server-execute-a-command-from-the-clerk"><span class="nav-number">1.</span> <span class="nav-text"> How does the Key&#x2F;Value server execute a command from the clerk?</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-can-we-take-advantage-of-follower-nodes"><span class="nav-number">1.1.</span> <span class="nav-text"> How can we take advantage of follower nodes?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#how-can-we-prevent-re-execution-of-an-executed-command"><span class="nav-number">2.</span> <span class="nav-text"> How can we prevent re-execution of an executed command?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#how-many-kinds-of-errors-could-occur-when-a-client-issues-a-command"><span class="nav-number">3.</span> <span class="nav-text"> How many kinds of errors could occur when a client issues a command?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#what-should-be-stored-in-a-snapshot"><span class="nav-number">4.</span> <span class="nav-text"> What should be stored in a snapshot?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#what-needs-to-be-done-to-recover-the-state-after-a-crash"><span class="nav-number">5.</span> <span class="nav-text"> What needs to be done to recover the state after a crash?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#execution-speed-of-get-operation"><span class="nav-number">6.</span> <span class="nav-text"> Execution speed of Get operation:</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#execution-speed-of-putappend-operation"><span class="nav-number">7.</span> <span class="nav-text"> Execution speed of PutAppend operation:</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#How-does-the-Key-Value-server-execute-a-command-from-the-clerk"><span class="nav-number">1.</span> <span class="nav-text">How does the Key&#x2F;Value server execute a command from the clerk?</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#How-can-we-take-advantage-of-follower-nodes"><span class="nav-number">1.1.</span> <span class="nav-text">How can we take advantage of follower nodes?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#How-can-we-prevent-re-execution-of-an-executed-command"><span class="nav-number">2.</span> <span class="nav-text">How can we prevent re-execution of an executed command?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#How-many-kinds-of-errors-could-occur-when-a-client-issues-a-command"><span class="nav-number">3.</span> <span class="nav-text">How many kinds of errors could occur when a client issues a command?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#What-should-be-stored-in-a-snapshot"><span class="nav-number">4.</span> <span class="nav-text">What should be stored in a snapshot?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#What-needs-to-be-done-to-recover-the-state-after-a-crash"><span class="nav-number">5.</span> <span class="nav-text">What needs to be done to recover the state after a crash?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Execution-speed-of-Get-operation"><span class="nav-number">6.</span> <span class="nav-text">Execution speed of Get operation:</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Execution-speed-of-PutAppend-operation"><span class="nav-number">7.</span> <span class="nav-text">Execution speed of PutAppend operation:</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -253,123 +253,89 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
-<li><a href="#how-does-the-keyvalue-server-execute-a-command-from-the-clerk">How does the Key/Value server execute a command from the clerk?</a>
-<ul>
-<li><a href="#how-can-we-take-advantage-of-follower-nodes">How can we take advantage of follower nodes?</a></li>
-</ul>
-</li>
-<li><a href="#how-can-we-prevent-re-execution-of-an-executed-command">How can we prevent re-execution of an executed command?</a></li>
-<li><a href="#how-many-kinds-of-errors-could-occur-when-a-client-issues-a-command">How many kinds of errors could occur when a client issues a command?</a></li>
-<li><a href="#what-should-be-stored-in-a-snapshot">What should be stored in a snapshot?</a></li>
-<li><a href="#what-needs-to-be-done-to-recover-the-state-after-a-crash">What needs to be done to recover the state after a crash?</a></li>
-<li><a href="#execution-speed-of-get-operation">Execution speed of Get operation:</a></li>
-<li><a href="#execution-speed-of-putappend-operation">Execution speed of PutAppend operation:</a></li>
-</ul>
-</p>
-<h1 id="how-does-the-keyvalue-server-execute-a-command-from-the-clerk"><a class="markdownIt-Anchor" href="#how-does-the-keyvalue-server-execute-a-command-from-the-clerk"></a> How does the Key/Value server execute a command from the clerk?</h1>
-<ol>
-<li>It will call the <code>Start()</code> function of its associated Raft server. It can safely execute the command until the Raft server commits that command.</li>
-<li>Only the KV server associated with the leader Raft server can successfully use Start() to append commands to logs.</li>
-<li>However, there could be a situation in which the network is partitioned, and the clerk connects to a partition leader whose log entry can never be successfully committed. So, we need to set a timeout for each command. The clerk should be informed to find another server if it cannot be committed in time.</li>
+    <div class="post-body" itemprop="articleBody"><p>@[toc]</p>
+<h1 id="How-does-the-Key-Value-server-execute-a-command-from-the-clerk"><a href="#How-does-the-Key-Value-server-execute-a-command-from-the-clerk" class="headerlink" title="How does the Key/Value server execute a command from the clerk?"></a>How does the Key/Value server execute a command from the clerk?</h1><ol>
+<li>It will call the <code>Start()</code> function of its associated Raft server. It can safely execute the command until the Raft server commits that command. </li>
+<li>Only the KV server associated with the leader Raft server can successfully use Start() to append commands to logs. </li>
+<li>However, there could be a situation in which the network is partitioned, and the clerk connects to a partition leader whose log entry can never be successfully committed. So, we need to set a timeout for each command. The clerk should be informed to find another server if it cannot be committed in time. </li>
 </ol>
-<h2 id="how-can-we-take-advantage-of-follower-nodes"><a class="markdownIt-Anchor" href="#how-can-we-take-advantage-of-follower-nodes"></a> How can we take advantage of follower nodes?</h2>
-<ol>
-<li>
-<p>To achieve linearizability, there is no chance for the follower to improve the performance of the Put/Append operation. However, we can allow them to handle read-only requests to enhance the cluster’s throughput.</p>
+<h2 id="How-can-we-take-advantage-of-follower-nodes"><a href="#How-can-we-take-advantage-of-follower-nodes" class="headerlink" title="How can we take advantage of follower nodes?"></a>How can we take advantage of follower nodes?</h2><ol>
+<li><p>To achieve linearizability, there is no chance for the follower to improve the performance of the Put/Append operation. However, we can allow them to handle read-only requests to enhance the cluster’s throughput. </p>
 </li>
-<li>
-<p>The key idea is to make the follower know it is up-to-date to handle the read. To confirm that, we must consult the leader of the current commit index.</p>
+<li><p>The key idea is to make the follower know it is up-to-date to handle the read. To confirm that, we must consult the leader of the current commit index. </p>
 </li>
-<li>
-<p>A case is a partitioned follower and leader when another true leader connects to the majority.</p>
+<li><p>A case is a partitioned follower and leader when another true leader connects to the majority. </p>
 <ul>
-<li>The solution is that the leader must check whether it is a legitimate leader before authorizing the followers to execute the read.</li>
+<li>The solution is that the leader must check whether it is a legitimate leader before authorizing the followers to execute the read. </li>
 </ul>
 </li>
-<li>
-<p>The whole process is as follows:</p>
+<li><p>The whole process is as follows:</p>
 <ul>
-<li>When a follower received a read from the client, it would consult the leader for a <code>readIndex</code>.</li>
-<li>The leader then needs to send heartbeats to all peers in the group to ensure it is still the leader.</li>
-<li>When the leader receives from the majority, the current commit index can be returned to the follower as <code>readIndex</code>.</li>
-<li>The follower can execute the read request if it has at least applied up to <code>readIndex</code>.</li>
+<li>When a follower received a read from the client, it would consult the leader for a <code>readIndex</code>. </li>
+<li>The leader then needs to send heartbeats to all peers in the group to ensure it is still the leader. </li>
+<li>When the leader receives from the majority, the current commit index can be returned to the follower as <code>readIndex</code>. </li>
+<li>The follower can execute the read request if it has at least applied up to <code>readIndex</code>. </li>
 </ul>
 </li>
-<li>
-<p>In the Raft protocol, a leader can only commit the entries appended in its term. Similarly, a leader can only grant <code>ReadIndex</code>, pointing to an entry in its term. Or the result of the reading may become unlinearizable.</p>
+<li><p>In the Raft protocol, a leader can only commit the entries appended in its term. Similarly, a leader can only grant <code>ReadIndex</code>, pointing to an entry in its term. Or the result of the reading may become unlinearizable. </p>
 <ul>
-<li>
-<p>Consider that a leader committed an index of <em>x</em> and granted a ReadIndex of <em>x</em> to its associated KV server. So, the KV server returned the result up to index <em>x</em>.</p>
+<li><p>Consider that a leader committed an index of <em>x</em> and granted a ReadIndex of <em>x</em> to its associated KV server. So, the KV server returned the result up to index <em>x</em>. </p>
 </li>
-<li>
-<p>But it crashed before sending a commit message to other followers. Then, a new leader is elected who receives a request for ReadIndex. It does not know anything about committing entry <em>x</em>, thus granting a ReadIndex lower than <em>x</em>.</p>
+<li><p>But it crashed before sending a commit message to other followers. Then, a new leader is elected who receives a request for ReadIndex. It does not know anything about committing entry <em>x</em>, thus granting a ReadIndex lower than <em>x</em>. </p>
 </li>
-<li>
-<p>Hence, the read will return a result unseeing the execution result of the entry of index x, which violates the linearizability scheme.</p>
+<li><p>Hence, the read will return a result unseeing the execution result of the entry of index x, which violates the linearizability scheme. </p>
 </li>
-<li>
-<p>So, the solution is to append an empty entry to the log if the leader hasn’t appended any entry in its term.</p>
+<li><p>So, the solution is to append an empty entry to the log if the leader hasn’t appended any entry in its term. </p>
 </li>
 </ul>
 </li>
 </ol>
-<h1 id="how-can-we-prevent-re-execution-of-an-executed-command"><a class="markdownIt-Anchor" href="#how-can-we-prevent-re-execution-of-an-executed-command"></a> How can we prevent re-execution of an executed command?</h1>
-<ol>
-<li>Each clerk needs to maintain a monotonically increasing index to mark the command it issued.</li>
-<li>Each Key/Value server needs to track the highest index executed for each clerk.</li>
-<li>When a Key/Value server receives a new command, it compares the new command’s index with that clerk’s highest executed index. If the command’s index is lower, it can know that this is an executed command and return the result directly.</li>
+<h1 id="How-can-we-prevent-re-execution-of-an-executed-command"><a href="#How-can-we-prevent-re-execution-of-an-executed-command" class="headerlink" title="How can we prevent re-execution of an executed command?"></a>How can we prevent re-execution of an executed command?</h1><ol>
+<li>Each clerk needs to maintain a monotonically increasing index to mark the command it issued. </li>
+<li>Each Key/Value server needs to track the highest index executed for each clerk. </li>
+<li>When a Key/Value server receives a new command, it compares the new command’s index with that clerk’s highest executed index. If the command’s index is lower, it can know that this is an executed command and return the result directly. </li>
 </ol>
-<h1 id="how-many-kinds-of-errors-could-occur-when-a-client-issues-a-command"><a class="markdownIt-Anchor" href="#how-many-kinds-of-errors-could-occur-when-a-client-issues-a-command"></a> How many kinds of errors could occur when a client issues a command?</h1>
-<ol>
-<li>For read-only operations, there could be a key error.</li>
-<li>Except for the read-only operation with follower read, the client may connect to a follower who cannot append a command.</li>
-<li>The client may connect to a server in a minority partition of servers.
-<ul>
-<li>The PutAppend command is appended to the log but cannot commit.</li>
-<li>For the read-only operation with follower read, it connects to its leader, but its leader cannot receive a majority response. Hence, it cannot acquire a ReadIndex.</li>
+<h1 id="How-many-kinds-of-errors-could-occur-when-a-client-issues-a-command"><a href="#How-many-kinds-of-errors-could-occur-when-a-client-issues-a-command" class="headerlink" title="How many kinds of errors could occur when a client issues a command?"></a>How many kinds of errors could occur when a client issues a command?</h1><ol>
+<li>For read-only operations, there could be a key error. </li>
+<li>Except for the read-only operation with follower read, the client may connect to a follower who cannot append a command. </li>
+<li>The client may connect to a server in a minority partition of servers. <ul>
+<li>The PutAppend command is appended to the log but cannot commit. </li>
+<li>For the read-only operation with follower read, it connects to its leader, but its leader cannot receive a majority response. Hence, it cannot acquire a ReadIndex. </li>
 </ul>
 </li>
-<li>For read-only operations with follower read,
-<ul>
-<li>The KV Server is associated with a leader, and its leader sets a higher commit index when communicating with the majority. But the Raft leader crashed before committing that entry, leaving the KV server waiting to apply as up-to-date as the ReadIndex.</li>
-<li>The client may connect to a partition without a leader and, hence, cannot acquire ReadIndex.</li>
+<li>For read-only operations with follower read, <ul>
+<li>The KV Server is associated with a leader, and its leader sets a higher commit index when communicating with the majority. But the Raft leader crashed before committing that entry, leaving the KV server waiting to apply as up-to-date as the ReadIndex. </li>
+<li>The client may connect to a partition without a leader and, hence, cannot acquire ReadIndex. </li>
 </ul>
 </li>
 </ol>
-<h1 id="what-should-be-stored-in-a-snapshot"><a class="markdownIt-Anchor" href="#what-should-be-stored-in-a-snapshot"></a> What should be stored in a snapshot?</h1>
-<ol>
-<li>Of course, we need to store the state of all key-value pairs.</li>
-<li>We must also store the last index executed for each client so far to recognize duplicated commands even after a crash.</li>
-<li>The index of the last applied entry is also stored to prevent the first command after recovery is a read-only operation.</li>
+<h1 id="What-should-be-stored-in-a-snapshot"><a href="#What-should-be-stored-in-a-snapshot" class="headerlink" title="What should be stored in a snapshot?"></a>What should be stored in a snapshot?</h1><ol>
+<li>Of course, we need to store the state of all key-value pairs. </li>
+<li>We must also store the last index executed for each client so far to recognize duplicated commands even after a crash. </li>
+<li>The index of the last applied entry is also stored to prevent the first command after recovery is a read-only operation. </li>
 </ol>
-<h1 id="what-needs-to-be-done-to-recover-the-state-after-a-crash"><a class="markdownIt-Anchor" href="#what-needs-to-be-done-to-recover-the-state-after-a-crash"></a> What needs to be done to recover the state after a crash?</h1>
-<ol>
-<li>First, we need to install the latest snapshot persisted.</li>
-<li>But that is not enough if only the KV server crashes while the associated Raft server is still running since there might still be some committed entries not included in the snapshot yet applied before the crash. The KV server needs to acquire those committed entries to truly bring itself back to the state right before the crash.</li>
+<h1 id="What-needs-to-be-done-to-recover-the-state-after-a-crash"><a href="#What-needs-to-be-done-to-recover-the-state-after-a-crash" class="headerlink" title="What needs to be done to recover the state after a crash?"></a>What needs to be done to recover the state after a crash?</h1><ol>
+<li>First, we need to install the latest snapshot persisted. </li>
+<li>But that is not enough if only the KV server crashes while the associated Raft server is still running since there might still be some committed entries not included in the snapshot yet applied before the crash. The KV server needs to acquire those committed entries to truly bring itself back to the state right before the crash. </li>
 </ol>
-<h1 id="execution-speed-of-get-operation"><a class="markdownIt-Anchor" href="#execution-speed-of-get-operation"></a> Execution speed of Get operation:</h1>
-<ol>
-<li>When running the test without enabling snapshot:
-<ul>
-<li>The time spent for each operation of the un-optimized implementation will become slower as the number of operations grows. This is because each Raft server’s log becomes larger and slower to persist.</li>
-<li>When executing the Get operation, the log of optimized implementation won’t increase. Hence, it won’t slow down the execution.</li>
-<li>When executing <em>3000</em> Get operations, the un-optimized implementation needs about <em>50 ms/op</em>, while the optimized implementation only needs <em>1.7 ms/op</em>, about 29 times the speedup.</li>
+<h1 id="Execution-speed-of-Get-operation"><a href="#Execution-speed-of-Get-operation" class="headerlink" title="Execution speed of Get operation:"></a>Execution speed of Get operation:</h1><ol>
+<li>When running the test without enabling snapshot: <ul>
+<li>The time spent for each operation of the un-optimized implementation will become slower as the number of operations grows. This is because each Raft server’s log becomes larger and slower to persist. </li>
+<li>When executing the Get operation, the log of optimized implementation won’t increase. Hence, it won’t slow down the execution. </li>
+<li>When executing <em>3000</em> Get operations, the un-optimized implementation needs about <em>50 ms/op</em>, while the optimized implementation only needs <em>1.7 ms/op</em>, about 29 times the speedup. </li>
 </ul>
 </li>
-<li>When running the test enabling snapshot:
-<ul>
-<li>The time spent on the un-optimized implementation has become stable since the log size has become stable. However, when only executing the Get operation, the optimized implementation does not need the benefit of trimming logs.</li>
-<li>When executing <em>3000</em> Get operations, the un-optimized implementation needs about <em>14.7 ms/op</em>, while the optimized implementation is still <em>1.7 ms/op</em>, about <em>8.6</em> times speedup.</li>
-<li>I think that the speedup of the optimized read-only scheme comes from two parts: follower concurrency that increased the total bandwidth between clients and servers and the persisting time saved by eliminating Get operation entries from logs.</li>
+<li>When running the test enabling snapshot: <ul>
+<li>The time spent on the un-optimized implementation has become stable since the log size has become stable. However, when only executing the Get operation, the optimized implementation does not need the benefit of trimming logs. </li>
+<li>When executing <em>3000</em> Get operations, the un-optimized implementation needs about <em>14.7 ms/op</em>, while the optimized implementation is still <em>1.7 ms/op</em>, about <em>8.6</em> times speedup. </li>
+<li>I think that the speedup of the optimized read-only scheme comes from two parts: follower concurrency that increased the total bandwidth between clients and servers and the persisting time saved by eliminating Get operation entries from logs. </li>
 </ul>
 </li>
 </ol>
-<h1 id="execution-speed-of-putappend-operation"><a class="markdownIt-Anchor" href="#execution-speed-of-putappend-operation"></a> Execution speed of PutAppend operation:</h1>
-<ol>
-<li>When executing <em>1000</em> Put operations without enabling snapshots, both implementations need about <em>29.5 ms/op</em>. Executing Append operations needs about the same amount of time.</li>
-<li>When executing <em>1000</em> Put operations enabling snapshot, both implementations need about <em>13.9 ms/op</em>. Executing Append operations needs about the same amount of time.</li>
-<li>Thus, with snapshot enabled, it can achieve about <em>2.1</em> times speedup. I think the speedup mainly comes from the persisting time saved by shrinking the log.</li>
+<h1 id="Execution-speed-of-PutAppend-operation"><a href="#Execution-speed-of-PutAppend-operation" class="headerlink" title="Execution speed of PutAppend operation:"></a>Execution speed of PutAppend operation:</h1><ol>
+<li>When executing <em>1000</em> Put operations without enabling snapshots, both implementations need about <em>29.5 ms/op</em>. Executing Append operations needs about the same amount of time. </li>
+<li>When executing <em>1000</em> Put operations enabling snapshot, both implementations need about <em>13.9 ms/op</em>. Executing Append operations needs about the same amount of time. </li>
+<li>Thus, with snapshot enabled, it can achieve about <em>2.1</em> times speedup. I think the speedup mainly comes from the persisting time saved by shrinking the log. </li>
 </ol>
 
     </div>

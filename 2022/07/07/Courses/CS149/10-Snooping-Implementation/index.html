@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Building with an atomic bus  Transaction  There is a bus controller to do arbitration. If a processor wants to communicate on the bus, it has to make a request. If there are simultaneous requests fro">
+    <meta name="description" content="Building with an atomic busTransaction There is a bus controller to do arbitration. If a processor wants to communicate on the bus, it has to make a request. If there are simultaneous requests from mu">
 <meta property="og:type" content="article">
 <meta property="og:title" content="10. Snooping Implementation">
 <meta property="og:url" content="http://liyun-zhang.github.io/2022/07/07/Courses/CS149/10-Snooping-Implementation/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="Building with an atomic bus  Transaction  There is a bus controller to do arbitration. If a processor wants to communicate on the bus, it has to make a request. If there are simultaneous requests fro">
+<meta property="og:description" content="Building with an atomic busTransaction There is a bus controller to do arbitration. If a processor wants to communicate on the bus, it has to make a request. If there are simultaneous requests from mu">
 <meta property="og:locale">
 <meta property="article:published_time" content="2022-07-07T02:24:14.000Z">
 <meta property="article:modified_time" content="2024-03-16T13:07:27.284Z">
@@ -139,7 +139,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#building-with-an-atomic-bus"><span class="nav-number">1.</span> <span class="nav-text"> Building with an atomic bus</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#transaction"><span class="nav-number">1.1.</span> <span class="nav-text"> Transaction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#read-miss"><span class="nav-number">1.2.</span> <span class="nav-text"> Read miss</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#write-back"><span class="nav-number">1.3.</span> <span class="nav-text"> Write back</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#race-conditions"><span class="nav-number">1.4.</span> <span class="nav-text"> Race conditions</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#building-with-non-atomic-bus"><span class="nav-number">2.</span> <span class="nav-text"> Building with non-atomic bus</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#read-miss-2"><span class="nav-number">2.1.</span> <span class="nav-text"> Read miss</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#phase-1"><span class="nav-number">2.1.1.</span> <span class="nav-text"> Phase 1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#phase-2"><span class="nav-number">2.1.2.</span> <span class="nav-text"> Phase 2</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#pipelined-transactions"><span class="nav-number">2.2.</span> <span class="nav-text"> Pipelined transactions</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Building-with-an-atomic-bus"><span class="nav-number">1.</span> <span class="nav-text">Building with an atomic bus</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Transaction"><span class="nav-number">1.1.</span> <span class="nav-text">Transaction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Read-miss"><span class="nav-number">1.2.</span> <span class="nav-text">Read miss</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Write-back"><span class="nav-number">1.3.</span> <span class="nav-text">Write back</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Race-conditions"><span class="nav-number">1.4.</span> <span class="nav-text">Race conditions</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Building-with-non-atomic-bus"><span class="nav-number">2.</span> <span class="nav-text">Building with non-atomic bus</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Read-miss-1"><span class="nav-number">2.1.</span> <span class="nav-text">Read miss</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Phase-1"><span class="nav-number">2.1.1.</span> <span class="nav-text">Phase 1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Phase-2"><span class="nav-number">2.1.2.</span> <span class="nav-text">Phase 2</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pipelined-transactions"><span class="nav-number">2.2.</span> <span class="nav-text">Pipelined transactions</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -251,89 +251,64 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h1 id="building-with-an-atomic-bus"><a class="markdownIt-Anchor" href="#building-with-an-atomic-bus"></a> Building with an atomic bus</h1>
-<h2 id="transaction"><a class="markdownIt-Anchor" href="#transaction"></a> Transaction</h2>
-<ol>
-<li>There is a bus controller to do arbitration. If a processor wants to communicate on the bus, it has to make a request. If there are simultaneous requests from multiple processors, the arbiter will only grant one of them.</li>
-<li>A transaction on an atomic bus generally needs four steps.<br />
-The client is granted bus access (the result of arbitration). The client places command on the bus (may also place data on the bus).<br />
-Response to command by another bus client placed on the bus. Next, the client obtains bus access (arbitration)</li>
-<li>In a multi-processor with an atomic bus scenario, no other bus transactions are allowed between issuing addresses and receiving data when one processor wants to read. Also, when flush occurs, address and data are sent simultaneously and received by memory before any other transaction is allowed.</li>
-<li>Both requests from the processor and bus require to look the tag on the cache.<br />
-If the bus receives priority during the bus transaction, the processor is locked out of its cache.<br />
-If the processor receives priority during processor cache accesses, the cache cannot respond with its snoop result. So, it delays other processors even if no sharing of any form is present.</li>
-<li>We can alleviate contention to allow simultaneous access by processor-side and snoop controllers through cache duplicate tags or multi-ported tag memory. In either case, the additional performance cost is additional hardware resources.<br />
-Tags must stay in sync for correctness, so tag updates by one controller will still need to block the other controller, but modifying tags is infrequent compared to checking them.</li>
+    <div class="post-body" itemprop="articleBody"><h1 id="Building-with-an-atomic-bus"><a href="#Building-with-an-atomic-bus" class="headerlink" title="Building with an atomic bus"></a>Building with an atomic bus</h1><h2 id="Transaction"><a href="#Transaction" class="headerlink" title="Transaction"></a>Transaction</h2><ol>
+<li>There is a bus controller to do arbitration. If a processor wants to communicate on the bus, it has to make a request. If there are simultaneous requests from multiple processors, the arbiter will only grant one of them. </li>
+<li>A transaction on an atomic bus generally needs four steps.<br>The client is granted bus access (the result of arbitration). The client places command on the bus (may also place data on the bus).<br>Response to command by another bus client placed on the bus. Next, the client obtains bus access (arbitration)</li>
+<li>In a multi-processor with an atomic bus scenario, no other bus transactions are allowed between issuing addresses and receiving data when one processor wants to read. Also, when flush occurs, address and data are sent simultaneously and received by memory before any other transaction is allowed. </li>
+<li>Both requests from the processor and bus require to look the tag on the cache.<br>If the bus receives priority during the bus transaction, the processor is locked out of its cache.<br>If the processor receives priority during processor cache accesses, the cache cannot respond with its snoop result. So, it delays other processors even if no sharing of any form is present. </li>
+<li>We can alleviate contention to allow simultaneous access by processor-side and snoop controllers through cache duplicate tags or multi-ported tag memory. In either case, the additional performance cost is additional hardware resources.<br>Tags must stay in sync for correctness, so tag updates by one controller will still need to block the other controller, but modifying tags is infrequent compared to checking them. </li>
 </ol>
-<h2 id="read-miss"><a class="markdownIt-Anchor" href="#read-miss"></a> Read miss</h2>
-<ol>
-<li>Memory needs to know what to do when a cache read miss occurs. If the line is dirty, memory should not respond. And the loading cache needs to know what to do. If the line is shared, the cache should load into the S state, not E.</li>
-<li>If one cache controller finds that the line is shared in its cache, it will send a message through the “shared” wire on the bus. If that line is dirty, the controller will send a message through the “dirty” wire on the bus.<br />
-Every time a processor responds to a snoop, the value in the “snoop-pending” wire will be lower and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> value indicates that all processors have reacted.</li>
+<h2 id="Read-miss"><a href="#Read-miss" class="headerlink" title="Read miss"></a>Read miss</h2><ol>
+<li>Memory needs to know what to do when a cache read miss occurs. If the line is dirty, memory should not respond. And the loading cache needs to know what to do. If the line is shared, the cache should load into the S state, not E. </li>
+<li>If one cache controller finds that the line is shared in its cache, it will send a message through the “shared” wire on the bus. If that line is dirty, the controller will send a message through the “dirty” wire on the bus.<br>Every time a processor responds to a snoop, the value in the “snoop-pending” wire will be lower and $0$ value indicates that all processors have reacted. </li>
 <li>The memory controller could immediately start accessing DRAM but not respond (squelch response). If a snoop result from another cache indicates it has a copy of the most recent data, then the cache should provide data, not memory. The memory could assume one of the caches will service request until the snoop results are valid. If snoop indicates no cache has data, then memory must respond.</li>
 </ol>
-<h2 id="write-back"><a class="markdownIt-Anchor" href="#write-back"></a> Write back</h2>
-<ol>
-<li>Write-backs involve two bus transactions: incoming line (line requested by the processor) and outgoing line (evicted dirty line in the cache that must be flushed).<br />
-Ideally, we would like the processor to continue as soon as possible; it shouldn’t have to wait for the flush to complete.</li>
-<li>The solution is a write-back buffer.<br />
-The stick line is to be flushed in a write-back buffer. Immediately load the requested line to allow the processor to continue. Flush contents of the write-back buffer at a later time.</li>
-<li>If a request from another processor for the data address in the write-back buffer appears on the bus, the snoop controller must check the write-back buffer addresses and cache tags.<br />
-If there is a write-back buffer match, the controller will respond with data from the write-back buffer rather than cache and cancel the outstanding bus access requests.</li>
-<li>A write commits when a read-exclusive transaction appears on the bus and is acknowledged by all other caches. All future reads will reflect the value of this write, even if data from P has not yet been written to P’s dirty cache line or memory.<br />
-The order of transactions on the bus defines the global order of writes in the parallel program.</li>
+<h2 id="Write-back"><a href="#Write-back" class="headerlink" title="Write back"></a>Write back</h2><ol>
+<li>Write-backs involve two bus transactions: incoming line (line requested by the processor) and outgoing line (evicted dirty line in the cache that must be flushed).<br>Ideally, we would like the processor to continue as soon as possible; it shouldn’t have to wait for the flush to complete. </li>
+<li>The solution is a write-back buffer.<br>The stick line is to be flushed in a write-back buffer. Immediately load the requested line to allow the processor to continue. Flush contents of the write-back buffer at a later time. </li>
+<li>If a request from another processor for the data address in the write-back buffer appears on the bus, the snoop controller must check the write-back buffer addresses and cache tags.<br>If there is a write-back buffer match, the controller will respond with data from the write-back buffer rather than cache and cancel the outstanding bus access requests. </li>
+<li>A write commits when a read-exclusive transaction appears on the bus and is acknowledged by all other caches. All future reads will reflect the value of this write, even if data from P has not yet been written to P’s dirty cache line or memory.<br>The order of transactions on the bus defines the global order of writes in the parallel program. </li>
 <li>“Commit” is not “complete”. A write completes when the updated value is in the cache line.</li>
 </ol>
-<h2 id="race-conditions"><a class="markdownIt-Anchor" href="#race-conditions"></a> Race conditions</h2>
-<ol>
-<li>Coherence protocol state transition diagrams assumed that transitions between states were atomic. However, in practice, state transitions are not atomic.</li>
-<li>We’ve assumed the bus transaction itself is atomic, but all the operations the system performs as a result of a memory operation are not.</li>
-<li>The processor, cache, and bus are all resources operating in parallel. They often contend for shared resources: processor and bus contend for cache, while caches contend for bus access.</li>
-<li>The cache must be able to handle requests while waiting to acquire the bus AND be able to modify its outstanding requests.</li>
-<li>To avoid deadlock, the processor must be able to service incoming transactions while waiting to issue requests.</li>
-<li>To avoid livelock, a write that obtains exclusive ownership must be allowed to complete before exclusive ownership is relinquished.</li>
-<li>Multiple processors competing for bus access must be careful to avoid (or minimize the likelihood of) starvation.</li>
-<li>Performance optimization often entails splitting operations into several smaller transactions. Splitting costs in more hardware is needed to exploit additional parallelism, and care is needed to ensure abstractions still hold.</li>
+<h2 id="Race-conditions"><a href="#Race-conditions" class="headerlink" title="Race conditions"></a>Race conditions</h2><ol>
+<li>Coherence protocol state transition diagrams assumed that transitions between states were atomic. However, in practice, state transitions are not atomic. </li>
+<li>We’ve assumed the bus transaction itself is atomic, but all the operations the system performs as a result of a memory operation are not. </li>
+<li>The processor, cache, and bus are all resources operating in parallel. They often contend for shared resources: processor and bus contend for cache, while caches contend for bus access. </li>
+<li>The cache must be able to handle requests while waiting to acquire the bus AND be able to modify its outstanding requests. </li>
+<li>To avoid deadlock, the processor must be able to service incoming transactions while waiting to issue requests. </li>
+<li>To avoid livelock, a write that obtains exclusive ownership must be allowed to complete before exclusive ownership is relinquished. </li>
+<li>Multiple processors competing for bus access must be careful to avoid (or minimize the likelihood of) starvation. </li>
+<li>Performance optimization often entails splitting operations into several smaller transactions. Splitting costs in more hardware is needed to exploit additional parallelism, and care is needed to ensure abstractions still hold. </li>
 </ol>
-<h1 id="building-with-non-atomic-bus"><a class="markdownIt-Anchor" href="#building-with-non-atomic-bus"></a> Building with non-atomic bus</h1>
-<ol>
-<li>Problem with atomic bus: the bus is idle while the response is pending, which decreases effective bus bandwidth. The interconnect is a limited, shared resource in a multi-processor system. So it is important to use it as efficiently as possible.</li>
-<li>Bus transactions are split into two transactions: the request and the response. Other transactions can intervene between a transaction’s request and response.</li>
-<li>Basic design:<br />
-Up to eight outstanding requests at a time (system-wide)<br />
-Responses need not occur in the same order as requests. However, the request order establishes the total order for the system.<br />
-Flow control via negative acknowledgments (NACKs). The client can NACK a transaction when a buffer is full, causing a retry.</li>
-<li>We can think of a split-transaction bus as two separate buses, a request bus, and a response bus.<br />
-The request bus has lines for command and address. The response bus has lines for data and response tags. Response tag has 3 bits to represent 8 requests.</li>
+<h1 id="Building-with-non-atomic-bus"><a href="#Building-with-non-atomic-bus" class="headerlink" title="Building with non-atomic bus"></a>Building with non-atomic bus</h1><ol>
+<li>Problem with atomic bus: the bus is idle while the response is pending, which decreases effective bus bandwidth. The interconnect is a limited, shared resource in a multi-processor system. So it is important to use it as efficiently as possible. </li>
+<li>Bus transactions are split into two transactions: the request and the response. Other transactions can intervene between a transaction’s request and response. </li>
+<li>Basic design:<br>Up to eight outstanding requests at a time (system-wide)<br>Responses need not occur in the same order as requests. However, the request order establishes the total order for the system.<br>Flow control via negative acknowledgments (NACKs). The client can NACK a transaction when a buffer is full, causing a retry.</li>
+<li>We can think of a split-transaction bus as two separate buses, a request bus, and a response bus.<br>The request bus has lines for command and address. The response bus has lines for data and response tags. Response tag has 3 bits to represent 8 requests. </li>
 </ol>
-<h2 id="read-miss-2"><a class="markdownIt-Anchor" href="#read-miss-2"></a> Read miss</h2>
-<h3 id="phase-1"><a class="markdownIt-Anchor" href="#phase-1"></a> Phase 1</h3>
-<ol>
+<h2 id="Read-miss-1"><a href="#Read-miss-1" class="headerlink" title="Read miss"></a>Read miss</h2><h3 id="Phase-1"><a href="#Phase-1" class="headerlink" title="Phase 1"></a>Phase 1</h3><ol>
 <li>Request arbitration: cache controllers present a request for address to bus (many caches may be doing so in the same cycle)</li>
-<li>Request resolution: address bus arbiter grants access to one of the requestors. Request table entry allocated for the request. Special arbitration lines indicate the tag assigned to the request.</li>
-<li>The bus “winner” places the command/address on the bus.</li>
+<li>Request resolution: address bus arbiter grants access to one of the requestors. Request table entry allocated for the request. Special arbitration lines indicate the tag assigned to the request. </li>
+<li>The bus “winner” places the command/address on the bus. </li>
 <li>Caches perform snoop: look up tags, update cache state, etc. Memory operation commits here. (no bus traffic)</li>
-<li>Caches acknowledge this snoop result is ready or signal they could not complete it in time here.</li>
+<li>Caches acknowledge this snoop result is ready or signal they could not complete it in time here. </li>
 </ol>
-<h3 id="phase-2"><a class="markdownIt-Anchor" href="#phase-2"></a> Phase 2</h3>
-<ol>
+<h3 id="Phase-2"><a href="#Phase-2" class="headerlink" title="Phase 2"></a>Phase 2</h3><ol>
 <li>Data response arbitration: responder presents intent to respond to request with tag T. (many caches or memory may be doing so in the same cycle)</li>
-<li>Data bus arbiter grants one responder bus access.</li>
+<li>Data bus arbiter grants one responder bus access. </li>
 <li>The original requestor signals readiness to receive a response (or lack thereof: the requestor may be busy at this time)</li>
-<li>Then, in phase 3, the Responder places response data on the data bus. Caches present snoop results for requests with the data. The request table entry is freed. Those 3 actions can happen in parallel.</li>
+<li>Then, in phase 3, the Responder places response data on the data bus. Caches present snoop results for requests with the data. The request table entry is freed. Those 3 actions can happen in parallel. </li>
 </ol>
-<h2 id="pipelined-transactions"><a class="markdownIt-Anchor" href="#pipelined-transactions"></a> Pipelined transactions</h2>
-<ol>
-<li>The request bus and response bus can run parallel. So, the response to the last transaction and the request for the next transaction can happen simultaneously. Pipelining may cause out-of-order completion.</li>
-<li>Write-backs and BusUpg transactions do not have a response component. Write-backs acquire access to the request address and data bus as part of the “request” phase. BusUpg does not need any acknowledgment or data.</li>
-<li>Avoid conflicting requests by disallowing them. Each cache has a copy of the request table. Caches do not make requests that conflict with requests in the request table.</li>
-<li>Caches/memory have buffers for receiving data off the bus. If the buffer fills, the client NACKs relevant requests or responses.</li>
-<li>In a parallel system, we use queues to accommodate variable (unpredictable) production and consumption rates. As long as workers, on average, produce and consume at the same rate, all workers can run at full rate. Otherwise, some will stall, waiting for others to accept or produce new input.</li>
-<li>We have queues to track requests and responses between the L1 and L2 caches and between the L2 cache and bus. One queue is for requests and responses from closer (to processor) to farther (L1 to L2 or L2 to bus), and the other is from farther to closer (L2 to L1 or bus to L2).</li>
+<h2 id="Pipelined-transactions"><a href="#Pipelined-transactions" class="headerlink" title="Pipelined transactions"></a>Pipelined transactions</h2><ol>
+<li>The request bus and response bus can run parallel. So, the response to the last transaction and the request for the next transaction can happen simultaneously. Pipelining may cause out-of-order completion. </li>
+<li>Write-backs and BusUpg transactions do not have a response component. Write-backs acquire access to the request address and data bus as part of the “request” phase. BusUpg does not need any acknowledgment or data. </li>
+<li>Avoid conflicting requests by disallowing them. Each cache has a copy of the request table. Caches do not make requests that conflict with requests in the request table. </li>
+<li>Caches/memory have buffers for receiving data off the bus. If the buffer fills, the client NACKs relevant requests or responses. </li>
+<li>In a parallel system, we use queues to accommodate variable (unpredictable) production and consumption rates. As long as workers, on average, produce and consume at the same rate, all workers can run at full rate. Otherwise, some will stall, waiting for others to accept or produce new input. </li>
+<li>We have queues to track requests and responses between the L1 and L2 caches and between the L2 cache and bus. One queue is for requests and responses from closer (to processor) to farther (L1 to L2 or L2 to bus), and the other is from farther to closer (L2 to L1 or bus to L2). </li>
 <li>This may cause deadlock due to a full queue. Outgoing read requests (initiated by the processor) and incoming read requests (due to another cache) both requests generate responses that require space in the other queue (circular dependency)</li>
-<li>Sizing all buffers to accommodate the maximum number of outstanding requests on the bus is one solution to avoiding deadlock. But a costly one.</li>
-<li>Avoid buffer deadlock with separate request/response queues. Namely, we distinguish whether it is a request or a response.<br />
-Responses can be completed without generating further transactions. Requests increase queue length, But responses reduce queue length. While attempting to send a stalled request, the cache must be able to service responses. Responses will make progress, eventually freeing up resources for requests.</li>
+<li>Sizing all buffers to accommodate the maximum number of outstanding requests on the bus is one solution to avoiding deadlock. But a costly one. </li>
+<li>Avoid buffer deadlock with separate request/response queues. Namely, we distinguish whether it is a request or a response.<br>Responses can be completed without generating further transactions. Requests increase queue length, But responses reduce queue length. While attempting to send a stalled request, the cache must be able to service responses. Responses will make progress, eventually freeing up resources for requests. </li>
 </ol>
 
     </div>

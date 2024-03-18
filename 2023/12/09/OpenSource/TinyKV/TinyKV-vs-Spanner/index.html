@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Organization  What is the structure of TinyKV? How to execute a command from a client?   Time Representation  How does Raft represent time? What events are scheduled in peers? How do transactions rep">
+    <meta name="description" content="@[toc] OrganizationWhat is the structure of TinyKV? Each machine has a Server with a certain object that implements a Storage interface to store Key&#x2F;Value pairs.  The Storage interface only requires t">
 <meta property="og:type" content="article">
 <meta property="og:title" content="TinyKV v.s. Spanner">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/12/09/OpenSource/TinyKV/TinyKV-vs-Spanner/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="Organization  What is the structure of TinyKV? How to execute a command from a client?   Time Representation  How does Raft represent time? What events are scheduled in peers? How do transactions rep">
+<meta property="og:description" content="@[toc] OrganizationWhat is the structure of TinyKV? Each machine has a Server with a certain object that implements a Storage interface to store Key&#x2F;Value pairs.  The Storage interface only requires t">
 <meta property="og:locale">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/TiKV/exec.png">
 <meta property="article:published_time" content="2023-12-09T09:38:00.000Z">
@@ -143,7 +143,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#organization"><span class="nav-number">1.</span> <span class="nav-text"> Organization</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-the-structure-of-tinykv"><span class="nav-number">1.1.</span> <span class="nav-text"> What is the structure of TinyKV?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-execute-a-command-from-a-client"><span class="nav-number">1.2.</span> <span class="nav-text"> How to execute a command from a client?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#time-representation"><span class="nav-number">2.</span> <span class="nav-text"> Time Representation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-does-raft-represent-time"><span class="nav-number">2.1.</span> <span class="nav-text"> How does Raft represent time?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-events-are-scheduled-in-peers"><span class="nav-number">2.2.</span> <span class="nav-text"> What events are scheduled in peers?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-do-transactions-represent-timestamps"><span class="nav-number">2.3.</span> <span class="nav-text"> How do transactions represent timestamps?</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Organization"><span class="nav-number">1.</span> <span class="nav-text">Organization</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#What-is-the-structure-of-TinyKV"><span class="nav-number">1.1.</span> <span class="nav-text">What is the structure of TinyKV?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-execute-a-command-from-a-client"><span class="nav-number">1.2.</span> <span class="nav-text">How to execute a command from a client?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Time-Representation"><span class="nav-number">2.</span> <span class="nav-text">Time Representation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#How-does-Raft-represent-time"><span class="nav-number">2.1.</span> <span class="nav-text">How does Raft represent time?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-events-are-scheduled-in-peers"><span class="nav-number">2.2.</span> <span class="nav-text">What events are scheduled in peers?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-do-transactions-represent-timestamps"><span class="nav-number">2.3.</span> <span class="nav-text">How do transactions represent timestamps?</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -255,103 +255,72 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
-<li><a href="#organization">Organization</a>
-<ul>
-<li><a href="#what-is-the-structure-of-tinykv">What is the structure of TinyKV?</a></li>
-<li><a href="#how-to-execute-a-command-from-a-client">How to execute a command from a client?</a></li>
+    <div class="post-body" itemprop="articleBody"><p>@[toc]</p>
+<h1 id="Organization"><a href="#Organization" class="headerlink" title="Organization"></a>Organization</h1><h2 id="What-is-the-structure-of-TinyKV"><a href="#What-is-the-structure-of-TinyKV" class="headerlink" title="What is the structure of TinyKV?"></a>What is the structure of TinyKV?</h2><ol>
+<li>Each machine has a <code>Server</code> with a certain object that implements a <code>Storage</code> interface to store Key/Value pairs. <ul>
+<li>The <code>Storage</code> interface only requires the provision of <code>Read</code> and <code>Write</code> APIs. The way they implement these methods decided this <code>Server</code> can provide the service. </li>
+<li>Suppose that <code>Storage</code> is simply using <code>badger.DB</code> that directly writes data, the <code>Server</code> only provides a standalone database service. </li>
+<li>If that <code>Storage</code> is <code>RaftStorage</code> that completes these methods by interacting with Raft groups, it can provide a distributed fault-tolerance database. </li>
 </ul>
 </li>
-<li><a href="#time-representation">Time Representation</a>
-<ul>
-<li><a href="#how-does-raft-represent-time">How does Raft represent time?</a></li>
-<li><a href="#what-events-are-scheduled-in-peers">What events are scheduled in peers?</a></li>
-<li><a href="#how-do-transactions-represent-timestamps">How do transactions represent timestamps?</a></li>
+<li>Inside <code>RaftStorage</code>, there is a <code>RaftStore</code> that controls all <code>peer</code>s. Each peer is a peer in a raft group. <ul>
+<li>When multi-raft is enabled, several peers in the same <code>RaftStore</code> may manage different shards. </li>
 </ul>
 </li>
-</ul>
-</p>
-<h1 id="organization"><a class="markdownIt-Anchor" href="#organization"></a> Organization</h1>
-<h2 id="what-is-the-structure-of-tinykv"><a class="markdownIt-Anchor" href="#what-is-the-structure-of-tinykv"></a> What is the structure of TinyKV?</h2>
-<ol>
-<li>Each machine has a <code>Server</code> with a certain object that implements a <code>Storage</code> interface to store Key/Value pairs.
-<ul>
-<li>The <code>Storage</code> interface only requires the provision of <code>Read</code> and <code>Write</code> APIs. The way they implement these methods decided this <code>Server</code> can provide the service.</li>
-<li>Suppose that <code>Storage</code> is simply using <code>badger.DB</code> that directly writes data, the <code>Server</code> only provides a standalone database service.</li>
-<li>If that <code>Storage</code> is <code>RaftStorage</code> that completes these methods by interacting with Raft groups, it can provide a distributed fault-tolerance database.</li>
-</ul>
-</li>
-<li>Inside <code>RaftStorage</code>, there is a <code>RaftStore</code> that controls all <code>peer</code>s. Each peer is a peer in a raft group.
-<ul>
-<li>When multi-raft is enabled, several peers in the same <code>RaftStore</code> may manage different shards.</li>
-</ul>
-</li>
-<li>Overall, a <code>RaftStorage</code> is responsible for an entire key space. All peers in the same key space, though may be in charge of incontinuous shards, must communicate with clients through this <code>RaftStorage</code>.
-<ul>
-<li>If another key space exists, e.g., another database, a separate <code>RaftStorage</code> must be created.</li>
+<li>Overall, a <code>RaftStorage</code> is responsible for an entire key space. All peers in the same key space, though may be in charge of incontinuous shards, must communicate with clients through this <code>RaftStorage</code>. <ul>
+<li>If another key space exists, e.g., another database, a separate <code>RaftStorage</code> must be created. </li>
 </ul>
 </li>
 </ol>
-<h2 id="how-to-execute-a-command-from-a-client"><a class="markdownIt-Anchor" href="#how-to-execute-a-command-from-a-client"></a> How to execute a command from a client?</h2>
-<ol>
-<li>The following is a diagram of the execution flow.</li>
-<li>Clients give commands through the APIs provided by the <code>Server</code>. Those APIs will execute <code>Read</code> or <code>Write</code> provided by <code>Storage</code>.</li>
-<li><code>RaftStorage</code> will send a message of <code>raft_cmdpb.Request</code> to <code>RaftStore</code> through <code>RaftRouter</code>. The request contains <code>regionId</code> and <code>peerId</code> information for the router to locate the destination.</li>
-<li>The <code>RaftRouter</code> will send the request to the <code>RaftWorker</code> of <code>RaftStore</code>. When the <code>RaftWorker</code> receives messages, it will initiate a <code>peerMsgHandler</code> for each message individually.
-<ul>
-<li><code>RaftWorker</code> will start the next <code>peerMsgHandler</code> until the last one is finished instead of creating goroutines to process them in parallel.</li>
-<li>Raft peers will only receive commands and messages from <code>RaftWorker</code>. Hence, only one Raft thread in the entire <code>RaftStore</code> processes messages rather than handling them in parallel.</li>
+<h2 id="How-to-execute-a-command-from-a-client"><a href="#How-to-execute-a-command-from-a-client" class="headerlink" title="How to execute a command from a client?"></a>How to execute a command from a client?</h2><ol>
+<li>The following is a diagram of the execution flow. </li>
+<li>Clients give commands through the APIs provided by the <code>Server</code>. Those APIs will execute <code>Read</code> or <code>Write</code> provided by <code>Storage</code>. </li>
+<li><code>RaftStorage</code> will send a message of <code>raft_cmdpb.Request</code> to <code>RaftStore</code> through <code>RaftRouter</code>. The request contains <code>regionId</code> and <code>peerId</code> information for the router to locate the destination. </li>
+<li>The <code>RaftRouter</code> will send the request to the <code>RaftWorker</code> of <code>RaftStore</code>. When the <code>RaftWorker</code> receives messages, it will initiate a <code>peerMsgHandler</code> for each message individually. <ul>
+<li><code>RaftWorker</code> will start the next <code>peerMsgHandler</code> until the last one is finished instead of creating goroutines to process them in parallel. </li>
+<li>Raft peers will only receive commands and messages from <code>RaftWorker</code>. Hence, only one Raft thread in the entire <code>RaftStore</code> processes messages rather than handling them in parallel. </li>
 </ul>
 </li>
-<li><code>peerMsgHandle</code> will ask <code>RaftGroup</code> to handle the message by <code>Step</code>.</li>
-<li>After all read messages are handled, all peers that have received messages are asked to handle <code>raft.Ready</code> one be one. Applied commands will be executed; persisted states will be written into <code>PeerStorage</code>.</li>
+<li><code>peerMsgHandle</code> will ask <code>RaftGroup</code> to handle the message by <code>Step</code>. </li>
+<li>After all read messages are handled, all peers that have received messages are asked to handle <code>raft.Ready</code> one be one. Applied commands will be executed; persisted states will be written into <code>PeerStorage</code>. </li>
 </ol>
-<img src="/imgs/TiKV/exec.png">
-<h1 id="time-representation"><a class="markdownIt-Anchor" href="#time-representation"></a> Time Representation</h1>
-<h2 id="how-does-raft-represent-time"><a class="markdownIt-Anchor" href="#how-does-raft-represent-time"></a> How does Raft represent time?</h2>
-<ol>
-<li>Instead of using a TrueTime API to represent time like Spanner, TinyKV uses a logical time to control workflows.</li>
+<p><img src="/imgs/TiKV/exec.png"></p>
+<h1 id="Time-Representation"><a href="#Time-Representation" class="headerlink" title="Time Representation"></a>Time Representation</h1><h2 id="How-does-Raft-represent-time"><a href="#How-does-Raft-represent-time" class="headerlink" title="How does Raft represent time?"></a>How does Raft represent time?</h2><ol>
+<li>Instead of using a TrueTime API to represent time like Spanner, TinyKV uses a logical time to control workflows. </li>
 <li></li>
-<li>All peers in the same store should register on <code>tickDriver</code> so that it will know which peers it needs to send messages to when events are triggered.</li>
-<li>Each store has a store ticker, while each peer has a peer ticker. The store ticker is the driver of the entire store; it represents the logical time of this machine. The peer tickers are simply for scheduling peer events.</li>
-<li>When the store ticker received from <code>time.Tick(baseTickInterval)</code>,
-<ul>
-<li>A <code>MsgTypeTick</code> will be sent to all known peers. Each peer will check whether their schedule is up.</li>
-<li>Then, the <code>tick</code> is increased by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> and <code>tickDriver</code> checks the store’s schedule. If a schedule is up, the driver will send a message of <code>MsgTypeStoreTick</code> to the store.</li>
+<li>All peers in the same store should register on <code>tickDriver</code> so that it will know which peers it needs to send messages to when events are triggered. </li>
+<li>Each store has a store ticker, while each peer has a peer ticker. The store ticker is the driver of the entire store; it represents the logical time of this machine. The peer tickers are simply for scheduling peer events. </li>
+<li>When the store ticker received from <code>time.Tick(baseTickInterval)</code>, <ul>
+<li>A <code>MsgTypeTick</code> will be sent to all known peers. Each peer will check whether their schedule is up. </li>
+<li>Then, the <code>tick</code> is increased by $1$ and <code>tickDriver</code> checks the store’s schedule. If a schedule is up, the driver will send a message of <code>MsgTypeStoreTick</code> to the store. </li>
 </ul>
 </li>
 </ol>
-<h2 id="what-events-are-scheduled-in-peers"><a class="markdownIt-Anchor" href="#what-events-are-scheduled-in-peers"></a> What events are scheduled in peers?</h2>
-<ol>
-<li>When the <code>tickDrive</code> of <code>RaftStore</code> sends a <code>MsgTypeTick</code> to <code>RaftWorker</code>, the <code>peerMsgHandler</code> will check several schedules.</li>
-<li>When <code>PeerTickRaft</code> is up, the Raft node ticker is moved forward.</li>
-<li>When <code>PeerTickRaftLogGC</code> is up, and existing applied entries are more than the limit, it will propose a Raft command with an administrator request to compact the Raft log to the applied index when this request is made.
-<ul>
-<li>The compaction is only executed when this request is committed.</li>
-<li>The Raft node and peer storage modify their state according to the compact index and term. Then, a garbage collection task is sent to the <code>raftLogGCWorker</code>, which will remove compacted entries from <code>RaftDB</code>.</li>
+<h2 id="What-events-are-scheduled-in-peers"><a href="#What-events-are-scheduled-in-peers" class="headerlink" title="What events are scheduled in peers?"></a>What events are scheduled in peers?</h2><ol>
+<li>When the <code>tickDrive</code> of <code>RaftStore</code> sends a <code>MsgTypeTick</code> to <code>RaftWorker</code>, the <code>peerMsgHandler</code> will check several schedules. </li>
+<li>When <code>PeerTickRaft</code> is up, the Raft node ticker is moved forward. </li>
+<li>When <code>PeerTickRaftLogGC</code> is up, and existing applied entries are more than the limit, it will propose a Raft command with an administrator request to compact the Raft log to the applied index when this request is made. <ul>
+<li>The compaction is only executed when this request is committed. </li>
+<li>The Raft node and peer storage modify their state according to the compact index and term. Then, a garbage collection task is sent to the <code>raftLogGCWorker</code>, which will remove compacted entries from <code>RaftDB</code>. </li>
 </ul>
 </li>
-<li>When <code>PeerTickSchedulerHeartbeat</code> is up, a <code>SchedulerRegionHeartbeatTask</code> is sent to <code>schedulerWorker</code>.</li>
+<li>When <code>PeerTickSchedulerHeartbeat</code> is up, a <code>SchedulerRegionHeartbeatTask</code> is sent to <code>schedulerWorker</code>. </li>
 </ol>
-<h2 id="how-do-transactions-represent-timestamps"><a class="markdownIt-Anchor" href="#how-do-transactions-represent-timestamps"></a> How do transactions represent timestamps?</h2>
-<ol>
-<li>The placement driver is also responsible for assigning client timestamps for transaction events.
-<ul>
-<li>The placement driver is another Raft group powered by etcd. Only the leader can assign timestamps. When the physical timestamp is changed, the leader will save a timestamp seconds later than the new one.</li>
-<li>When a new leader is elected, it will read from the etcd files to sync its timestamp with the last saved timestamp. The new leader needs to wait until the time of the read timestamp comes before it can assign any new timestamp.</li>
-<li>We can induct that the timestamp assigned by the PD group is unique and monotonously increasing. Therefore, the TiKV did not take the TrueTime API in Spanner.</li>
+<h2 id="How-do-transactions-represent-timestamps"><a href="#How-do-transactions-represent-timestamps" class="headerlink" title="How do transactions represent timestamps?"></a>How do transactions represent timestamps?</h2><ol>
+<li>The placement driver is also responsible for assigning client timestamps for transaction events. <ul>
+<li>The placement driver is another Raft group powered by etcd. Only the leader can assign timestamps. When the physical timestamp is changed, the leader will save a timestamp seconds later than the new one. </li>
+<li>When a new leader is elected, it will read from the etcd files to sync its timestamp with the last saved timestamp. The new leader needs to wait until the time of the read timestamp comes before it can assign any new timestamp. </li>
+<li>We can induct that the timestamp assigned by the PD group is unique and monotonously increasing. Therefore, the TiKV did not take the TrueTime API in Spanner. </li>
 </ul>
 </li>
-<li>A transaction timestamp is an <code>uint64</code> that consists of two parts:
-<ul>
-<li>The high bits are the physical time with units of milliseconds. The lower bits are the logical time to distinguish the events in the same millisecond.</li>
-<li>It is reset to zero every time the physical time is updated to prevent logical time from becoming too large.</li>
+<li>A transaction timestamp is an <code>uint64</code> that consists of two parts: <ul>
+<li>The high bits are the physical time with units of milliseconds. The lower bits are the logical time to distinguish the events in the same millisecond. </li>
+<li>It is reset to zero every time the physical time is updated to prevent logical time from becoming too large. </li>
 </ul>
 </li>
-<li>The server will check whether need to update the physical timestamp every <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>50</mn><mtext> </mtext><mi>m</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">50\ ms</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">5</span><span class="mord">0</span><span class="mspace"> </span><span class="mord mathnormal">m</span><span class="mord mathnormal">s</span></span></span></span>, instead of every millisecond.
-<ul>
-<li>The physical timestamp will sync with the current time when it has not been updated for over <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>150</mn><mtext> </mtext><mi>m</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">150\ ms</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">5</span><span class="mord">0</span><span class="mspace"> </span><span class="mord mathnormal">m</span><span class="mord mathnormal">s</span></span></span></span>.</li>
-<li>When used over half of the logical timestamp, the physical timestamp will add <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mtext> </mtext><mi>m</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">1\ ms</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mspace"> </span><span class="mord mathnormal">m</span><span class="mord mathnormal">s</span></span></span></span> and reset the logical timestamp.</li>
+<li>The server will check whether need to update the physical timestamp every $50\ ms$, instead of every millisecond. <ul>
+<li>The physical timestamp will sync with the current time when it has not been updated for over $150\ ms$. </li>
+<li>When used over half of the logical timestamp, the physical timestamp will add $1\ ms$ and reset the logical timestamp. </li>
 </ul>
 </li>
 </ol>

@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Paper: The Design of a Practical System for Fault-Tolerance Virtual Machines  Purpose Model  FT design  Primary-backup structure  What is the usual way to implement fault tolerance via a primary&#x2F;backu">
+    <meta name="description" content="Paper: The Design of a Practical System for Fault-Tolerance Virtual Machines @[toc] Purpose Contribution This paper implemented a system providing fault tolerance virtual machine (VM) based on replica">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Fault Tolerance VM">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/Fault-Tolerance-VM/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="Paper: The Design of a Practical System for Fault-Tolerance Virtual Machines  Purpose Model  FT design  Primary-backup structure  What is the usual way to implement fault tolerance via a primary&#x2F;backu">
+<meta property="og:description" content="Paper: The Design of a Practical System for Fault-Tolerance Virtual Machines @[toc] Purpose Contribution This paper implemented a system providing fault tolerance virtual machine (VM) based on replica">
 <meta property="og:locale">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/FTVM/01.png">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/FTVM/02.png">
@@ -144,7 +144,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#purpose"><span class="nav-number">1.</span> <span class="nav-text"> Purpose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#model"><span class="nav-number">2.</span> <span class="nav-text"> Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ft-design"><span class="nav-number">2.1.</span> <span class="nav-text"> FT design</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#primary-backup-structure"><span class="nav-number">2.1.1.</span> <span class="nav-text"> Primary-backup structure</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-usual-way-to-implement-fault-tolerance-via-a-primarybackup-approach"><span class="nav-number">2.1.1.1.</span> <span class="nav-text"> What is the usual way to implement fault tolerance via a primary&#x2F;backup approach?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-difference-between-physical-servers-and-vms-at-the-state-machine-level"><span class="nav-number">2.1.1.2.</span> <span class="nav-text"> What is the difference between physical servers and VMs at the state machine level?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-basic-structure-of-ft-vms"><span class="nav-number">2.1.1.3.</span> <span class="nav-text"> What is the basic structure of FT VMs?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ft-protocol"><span class="nav-number">2.1.2.</span> <span class="nav-text"> FT protocol</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-vmware-backup-vm-replay"><span class="nav-number">2.1.2.1.</span> <span class="nav-text"> How does VMware backup VM replay?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-if-the-backup-vm-executes-in-a-way-different-from-the-primary-vm"><span class="nav-number">2.1.2.2.</span> <span class="nav-text"> What if the backup VM executes in a way different from the primary VM?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#will-the-output-rule-affect-the-vm-eg-stop-its-execution"><span class="nav-number">2.1.2.3.</span> <span class="nav-text"> Will the Output Rule affect the VM, e.g., stop its execution?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-are-the-subtleties-of-executing-disk-reads-on-the-backup-vm"><span class="nav-number">2.1.2.4.</span> <span class="nav-text"> What are the subtleties of executing disk reads on the backup VM?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#detecting-and-responding-to-failure"><span class="nav-number">2.1.3.</span> <span class="nav-text"> Detecting and responding to failure</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-handle-duplicate-outputs"><span class="nav-number">2.1.3.1.</span> <span class="nav-text"> How to handle duplicate outputs?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-handle-backup-vm-failure"><span class="nav-number">2.1.3.2.</span> <span class="nav-text"> How to handle backup VM failure?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-handle-primary-vm-failure"><span class="nav-number">2.1.3.3.</span> <span class="nav-text"> How to handle primary VM failure?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#after-a-failover-how-will-the-new-primary-vm-communicate-with-the-external-world"><span class="nav-number">2.1.3.4.</span> <span class="nav-text"> After a failover, how will the new primary VM communicate with the external world?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-detect-failure-of-primary-or-backup-vms"><span class="nav-number">2.1.3.5.</span> <span class="nav-text"> How to detect failure of primary or backup VMs?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-avoid-split-brain-problems"><span class="nav-number">2.1.3.6.</span> <span class="nav-text"> How to avoid split-brain problems?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#alternative-non-shared-disk"><span class="nav-number">2.1.4.</span> <span class="nav-text"> Alternative: Non-shared disk</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-difference-between-non-shared-disks-and-shared-disks"><span class="nav-number">2.1.4.1.</span> <span class="nav-text"> What is the difference between non-shared disks and shared disks?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#in-what-case-will-a-non-shared-disk-be-useful"><span class="nav-number">2.1.4.2.</span> <span class="nav-text"> In what case will a non-shared disk be useful?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-disadvantage-of-non-shared-disks"><span class="nav-number">2.1.4.3.</span> <span class="nav-text"> What is the disadvantage of non-shared disks?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-solve-the-split-brain-situation"><span class="nav-number">2.1.4.4.</span> <span class="nav-text"> How to solve the split-brain situation?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#implementation"><span class="nav-number">2.2.</span> <span class="nav-text"> Implementation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#starting-and-restarting"><span class="nav-number">2.2.1.</span> <span class="nav-text"> Starting and restarting</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#what-requirements-need-to-be-satisfied-by-the-startup-mechanism"><span class="nav-number">2.2.1.1.</span> <span class="nav-text"> What requirements need to be satisfied by the startup mechanism?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-implement-the-startup-mechanism"><span class="nav-number">2.2.1.2.</span> <span class="nav-text"> How to implement the startup mechanism?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-choose-a-server-on-which-to-run-the-backup-vm"><span class="nav-number">2.2.1.3.</span> <span class="nav-text"> How to choose a server on which to run the backup VM?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#logging-channel"><span class="nav-number">2.2.2.</span> <span class="nav-text"> Logging channel</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-control-primary-sending-log-entries-and-backup-receiving-entries"><span class="nav-number">2.2.2.1.</span> <span class="nav-text"> How to control primary sending log entries and backup receiving entries?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-if-the-primary-log-buffer-is-full"><span class="nav-number">2.2.2.2.</span> <span class="nav-text"> What if the primary log buffer is full?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#what-is-the-main-cause-of-the-buffer-of-primary-being-full"><span class="nav-number">2.2.2.3.</span> <span class="nav-text"> What is the main cause of the buffer of primary being full?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-prevent-the-backup-vm-from-getting-too-far-behind-the-primary"><span class="nav-number">2.2.2.4.</span> <span class="nav-text"> How to prevent the backup VM from getting too far behind the primary?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#special-operations"><span class="nav-number">2.2.3.</span> <span class="nav-text"> Special operations</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-deal-with-control-operations"><span class="nav-number">2.2.3.1.</span> <span class="nav-text"> How to deal with control operations?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-implement-the-vmotion-for-primary-and-backup-vms"><span class="nav-number">2.2.3.2.</span> <span class="nav-text"> How to implement the VMotion for primary and backup VMs?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#issues-for-disk-ios"><span class="nav-number">2.2.4.</span> <span class="nav-text"> Issues for disk IOs</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-many-kinds-of-races-may-occur"><span class="nav-number">2.2.4.1.</span> <span class="nav-text"> How many kinds of races may occur?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-solve-the-non-determinism-caused-by-several-io-operations"><span class="nav-number">2.2.4.2.</span> <span class="nav-text"> How to solve the non-determinism caused by several IO operations?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-solve-the-non-determinism-caused-by-io-operations-and-applicationos"><span class="nav-number">2.2.4.3.</span> <span class="nav-text"> How to solve the non-determinism caused by IO operations and application&#x2F;OS?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-does-the-newly-promoted-primary-vm-handle-those-outstanding-ios"><span class="nav-number">2.2.4.4.</span> <span class="nav-text"> How does the newly-promoted primary VM handle those outstanding IOs?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#issues-for-network-io"><span class="nav-number">2.2.5.</span> <span class="nav-text"> Issues for network IO</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#how-to-solve-the-non-determinism-caused-by-asynchronous-updates"><span class="nav-number">2.2.5.1.</span> <span class="nav-text"> How to solve the non-determinism caused by asynchronous updates?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#how-can-we-optimize-the-network-performance-while-running-ft"><span class="nav-number">2.2.5.2.</span> <span class="nav-text"> How can we optimize the network performance while running FT?</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#experiments-and-results"><span class="nav-number">3.</span> <span class="nav-text"> Experiments and results</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Purpose"><span class="nav-number">1.</span> <span class="nav-text">Purpose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Model"><span class="nav-number">2.</span> <span class="nav-text">Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#FT-design"><span class="nav-number">2.1.</span> <span class="nav-text">FT design</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Primary-backup-structure"><span class="nav-number">2.1.1.</span> <span class="nav-text">Primary-backup structure</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#What-is-the-usual-way-to-implement-fault-tolerance-via-a-primary-backup-approach"><span class="nav-number">2.1.1.1.</span> <span class="nav-text">What is the usual way to implement fault tolerance via a primary&#x2F;backup approach?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#What-is-the-difference-between-physical-servers-and-VMs-at-the-state-machine-level"><span class="nav-number">2.1.1.2.</span> <span class="nav-text">What is the difference between physical servers and VMs at the state machine level?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#What-is-the-basic-structure-of-FT-VMs"><span class="nav-number">2.1.1.3.</span> <span class="nav-text">What is the basic structure of FT VMs?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FT-protocol"><span class="nav-number">2.1.2.</span> <span class="nav-text">FT protocol</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#How-does-VMware-backup-VM-replay"><span class="nav-number">2.1.2.1.</span> <span class="nav-text">How does VMware backup VM replay?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#What-if-the-backup-VM-executes-in-a-way-different-from-the-primary-VM"><span class="nav-number">2.1.2.2.</span> <span class="nav-text">What if the backup VM executes in a way different from the primary VM?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Will-the-Output-Rule-affect-the-VM-e-g-stop-its-execution"><span class="nav-number">2.1.2.3.</span> <span class="nav-text">Will the Output Rule affect the VM, e.g., stop its execution?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#What-are-the-subtleties-of-executing-disk-reads-on-the-backup-VM"><span class="nav-number">2.1.2.4.</span> <span class="nav-text">What are the subtleties of executing disk reads on the backup VM?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Detecting-and-responding-to-failure"><span class="nav-number">2.1.3.</span> <span class="nav-text">Detecting and responding to failure</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-handle-duplicate-outputs"><span class="nav-number">2.1.3.1.</span> <span class="nav-text">How to handle duplicate outputs?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-handle-backup-VM-failure"><span class="nav-number">2.1.3.2.</span> <span class="nav-text">How to handle backup VM failure?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-handle-primary-VM-failure"><span class="nav-number">2.1.3.3.</span> <span class="nav-text">How to handle primary VM failure?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#After-a-failover-how-will-the-new-primary-VM-communicate-with-the-external-world"><span class="nav-number">2.1.3.4.</span> <span class="nav-text">After a failover, how will the new primary VM communicate with the external world?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-detect-failure-of-primary-or-backup-VMs"><span class="nav-number">2.1.3.5.</span> <span class="nav-text">How to detect failure of primary or backup VMs?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-avoid-split-brain-problems"><span class="nav-number">2.1.3.6.</span> <span class="nav-text">How to avoid split-brain problems?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Alternative-Non-shared-disk"><span class="nav-number">2.1.4.</span> <span class="nav-text">Alternative: Non-shared disk</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#What-is-the-difference-between-non-shared-disks-and-shared-disks"><span class="nav-number">2.1.4.1.</span> <span class="nav-text">What is the difference between non-shared disks and shared disks?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#In-what-case-will-a-non-shared-disk-be-useful"><span class="nav-number">2.1.4.2.</span> <span class="nav-text">In what case will a non-shared disk be useful?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#What-is-the-disadvantage-of-non-shared-disks"><span class="nav-number">2.1.4.3.</span> <span class="nav-text">What is the disadvantage of non-shared disks?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-solve-the-split-brain-situation"><span class="nav-number">2.1.4.4.</span> <span class="nav-text">How to solve the split-brain situation?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Implementation"><span class="nav-number">2.2.</span> <span class="nav-text">Implementation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Starting-and-restarting"><span class="nav-number">2.2.1.</span> <span class="nav-text">Starting and restarting</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#What-requirements-need-to-be-satisfied-by-the-startup-mechanism"><span class="nav-number">2.2.1.1.</span> <span class="nav-text">What requirements need to be satisfied by the startup mechanism?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-implement-the-startup-mechanism"><span class="nav-number">2.2.1.2.</span> <span class="nav-text">How to implement the startup mechanism?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-choose-a-server-on-which-to-run-the-backup-VM"><span class="nav-number">2.2.1.3.</span> <span class="nav-text">How to choose a server on which to run the backup VM?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Logging-channel"><span class="nav-number">2.2.2.</span> <span class="nav-text">Logging channel</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-control-primary-sending-log-entries-and-backup-receiving-entries"><span class="nav-number">2.2.2.1.</span> <span class="nav-text">How to control primary sending log entries and backup receiving entries?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#What-if-the-primary-log-buffer-is-full"><span class="nav-number">2.2.2.2.</span> <span class="nav-text">What if the primary log buffer is full?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#What-is-the-main-cause-of-the-buffer-of-primary-being-full"><span class="nav-number">2.2.2.3.</span> <span class="nav-text">What is the main cause of the buffer of primary being full?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-prevent-the-backup-VM-from-getting-too-far-behind-the-primary"><span class="nav-number">2.2.2.4.</span> <span class="nav-text">How to prevent the backup VM from getting too far behind the primary?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Special-operations"><span class="nav-number">2.2.3.</span> <span class="nav-text">Special operations</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-deal-with-control-operations"><span class="nav-number">2.2.3.1.</span> <span class="nav-text">How to deal with control operations?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-implement-the-VMotion-for-primary-and-backup-VMs"><span class="nav-number">2.2.3.2.</span> <span class="nav-text">How to implement the VMotion for primary and backup VMs?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Issues-for-disk-IOs"><span class="nav-number">2.2.4.</span> <span class="nav-text">Issues for disk IOs</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#How-many-kinds-of-races-may-occur"><span class="nav-number">2.2.4.1.</span> <span class="nav-text">How many kinds of races may occur?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-solve-the-non-determinism-caused-by-several-IO-operations"><span class="nav-number">2.2.4.2.</span> <span class="nav-text">How to solve the non-determinism caused by several IO operations?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-solve-the-non-determinism-caused-by-IO-operations-and-application-OS"><span class="nav-number">2.2.4.3.</span> <span class="nav-text">How to solve the non-determinism caused by IO operations and application&#x2F;OS?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#How-does-the-newly-promoted-primary-VM-handle-those-outstanding-IOs"><span class="nav-number">2.2.4.4.</span> <span class="nav-text">How does the newly-promoted primary VM handle those outstanding IOs?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Issues-for-network-IO"><span class="nav-number">2.2.5.</span> <span class="nav-text">Issues for network IO</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-solve-the-non-determinism-caused-by-asynchronous-updates"><span class="nav-number">2.2.5.1.</span> <span class="nav-text">How to solve the non-determinism caused by asynchronous updates?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#How-can-we-optimize-the-network-performance-while-running-FT"><span class="nav-number">2.2.5.2.</span> <span class="nav-text">How can we optimize the network performance while running FT?</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Experiments-and-results"><span class="nav-number">3.</span> <span class="nav-text">Experiments and results</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -257,498 +257,302 @@
     
     
     <div class="post-body" itemprop="articleBody"><p>Paper: <a target="_blank" rel="noopener" href="http://nil.csail.mit.edu/6.824/2020/papers/vm-ft.pdf">The Design of a Practical System for Fault-Tolerance Virtual Machines</a></p>
-<p><ul class="markdownIt-TOC">
-<li><a href="#purpose">Purpose</a></li>
-<li><a href="#model">Model</a>
-<ul>
-<li><a href="#ft-design">FT design</a>
-<ul>
-<li><a href="#primary-backup-structure">Primary-backup structure</a>
-<ul>
-<li><a href="#what-is-the-usual-way-to-implement-fault-tolerance-via-a-primarybackup-approach">What is the usual way to implement fault tolerance via a primary/backup approach?</a></li>
-<li><a href="#what-is-the-difference-between-physical-servers-and-vms-at-the-state-machine-level">What is the difference between physical servers and VMs at the state machine level?</a></li>
-<li><a href="#what-is-the-basic-structure-of-ft-vms">What is the basic structure of FT VMs?</a></li>
+<p>@[toc]</p>
+<h1 id="Purpose"><a href="#Purpose" class="headerlink" title="Purpose"></a>Purpose</h1><ol>
+<li>Contribution<ul>
+<li>This paper implemented a system providing fault tolerance virtual machine (VM) based on replicating the execution of a primary VM vis a backup VM on another server. The system automatically restores redundancy after failure. </li>
+<li>It reduces the performance of real applications by less than 10%. The data bandwidth needed to keep the primary and secondary VM executing in lockstep is less than 20 Mb/s for several real applications, which allows for implementing fault tolerance over a longer distance. </li>
+<li>The system automatically restores redundancy after a failure by starting a new backup virtual machine on any available server in the local cluster. </li>
 </ul>
 </li>
-<li><a href="#ft-protocol">FT protocol</a>
-<ul>
-<li><a href="#how-does-vmware-backup-vm-replay">How does VMware backup VM replay?</a></li>
-<li><a href="#what-if-the-backup-vm-executes-in-a-way-different-from-the-primary-vm">What if the backup VM executes in a way different from the primary VM?</a></li>
-<li><a href="#will-the-output-rule-affect-the-vm-eg-stop-its-execution">Will the Output Rule affect the VM, e.g., stop its execution?</a></li>
-<li><a href="#what-are-the-subtleties-of-executing-disk-reads-on-the-backup-vm">What are the subtleties of executing disk reads on the backup VM?</a></li>
+<li>Limitation<ul>
+<li>Only support uni-processor VMs. Recording and replaying the execution of a multi-processor VM have significant performance issues because nearly every access to shared memory can be a non-deterministic operation. </li>
+<li>Only attempt to deal with fail-stop failure, which are server failures that can be detected before the failing server causes an incorrect externally visible action. </li>
 </ul>
 </li>
-<li><a href="#detecting-and-responding-to-failure">Detecting and responding to failure</a>
-<ul>
-<li><a href="#how-to-handle-duplicate-outputs">How to handle duplicate outputs?</a></li>
-<li><a href="#how-to-handle-backup-vm-failure">How to handle backup VM failure?</a></li>
-<li><a href="#how-to-handle-primary-vm-failure">How to handle primary VM failure?</a></li>
-<li><a href="#after-a-failover-how-will-the-new-primary-vm-communicate-with-the-external-world">After a failover, how will the new primary VM communicate with the external world?</a></li>
-<li><a href="#how-to-detect-failure-of-primary-or-backup-vms">How to detect failure of primary or backup VMs?</a></li>
-<li><a href="#how-to-avoid-split-brain-problems">How to avoid split-brain problems?</a></li>
-</ul>
-</li>
-<li><a href="#alternative-non-shared-disk">Alternative: Non-shared disk</a>
-<ul>
-<li><a href="#what-is-the-difference-between-non-shared-disks-and-shared-disks">What is the difference between non-shared disks and shared disks?</a></li>
-<li><a href="#in-what-case-will-a-non-shared-disk-be-useful">In what case will a non-shared disk be useful?</a></li>
-<li><a href="#what-is-the-disadvantage-of-non-shared-disks">What is the disadvantage of non-shared disks?</a></li>
-<li><a href="#how-to-solve-the-split-brain-situation">How to solve the split-brain situation?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#implementation">Implementation</a>
-<ul>
-<li><a href="#starting-and-restarting">Starting and restarting</a>
-<ul>
-<li><a href="#what-requirements-need-to-be-satisfied-by-the-startup-mechanism">What requirements need to be satisfied by the startup mechanism?</a></li>
-<li><a href="#how-to-implement-the-startup-mechanism">How to implement the startup mechanism?</a></li>
-<li><a href="#how-to-choose-a-server-on-which-to-run-the-backup-vm">How to choose a server on which to run the backup VM?</a></li>
-</ul>
-</li>
-<li><a href="#logging-channel">Logging channel</a>
-<ul>
-<li><a href="#how-to-control-primary-sending-log-entries-and-backup-receiving-entries">How to control primary sending log entries and backup receiving entries?</a></li>
-<li><a href="#what-if-the-primary-log-buffer-is-full">What if the primary log buffer is full?</a></li>
-<li><a href="#what-is-the-main-cause-of-the-buffer-of-primary-being-full">What is the main cause of the buffer of primary being full?</a></li>
-<li><a href="#how-to-prevent-the-backup-vm-from-getting-too-far-behind-the-primary">How to prevent the backup VM from getting too far behind the primary?</a></li>
-</ul>
-</li>
-<li><a href="#special-operations">Special operations</a>
-<ul>
-<li><a href="#how-to-deal-with-control-operations">How to deal with control operations?</a></li>
-<li><a href="#how-to-implement-the-vmotion-for-primary-and-backup-vms">How to implement the VMotion for primary and backup VMs?</a></li>
-</ul>
-</li>
-<li><a href="#issues-for-disk-ios">Issues for disk IOs</a>
-<ul>
-<li><a href="#how-many-kinds-of-races-may-occur">How many kinds of races may occur?</a></li>
-<li><a href="#how-to-solve-the-non-determinism-caused-by-several-io-operations">How to solve the non-determinism caused by several IO operations?</a></li>
-<li><a href="#how-to-solve-the-non-determinism-caused-by-io-operations-and-applicationos">How to solve the non-determinism caused by IO operations and application/OS?</a></li>
-<li><a href="#how-does-the-newly-promoted-primary-vm-handle-those-outstanding-ios">How does the newly-promoted primary VM handle those outstanding IOs?</a></li>
-</ul>
-</li>
-<li><a href="#issues-for-network-io">Issues for network IO</a>
-<ul>
-<li><a href="#how-to-solve-the-non-determinism-caused-by-asynchronous-updates">How to solve the non-determinism caused by asynchronous updates?</a></li>
-<li><a href="#how-can-we-optimize-the-network-performance-while-running-ft">How can we optimize the network performance while running FT?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#experiments-and-results">Experiments and results</a></li>
-</ul>
-</p>
-<h1 id="purpose"><a class="markdownIt-Anchor" href="#purpose"></a> Purpose</h1>
-<ol>
-<li>Contribution
-<ul>
-<li>This paper implemented a system providing fault tolerance virtual machine (VM) based on replicating the execution of a primary VM vis a backup VM on another server. The system automatically restores redundancy after failure.</li>
-<li>It reduces the performance of real applications by less than 10%. The data bandwidth needed to keep the primary and secondary VM executing in lockstep is less than 20 Mb/s for several real applications, which allows for implementing fault tolerance over a longer distance.</li>
-<li>The system automatically restores redundancy after a failure by starting a new backup virtual machine on any available server in the local cluster.</li>
-</ul>
-</li>
-<li>Limitation
-<ul>
-<li>Only support uni-processor VMs. Recording and replaying the execution of a multi-processor VM have significant performance issues because nearly every access to shared memory can be a non-deterministic operation.</li>
-<li>Only attempt to deal with fail-stop failure, which are server failures that can be detected before the failing server causes an incorrect externally visible action.</li>
-</ul>
-</li>
-<li>Challenges
-<ul>
-<li>Correctly capturing all the input and non-determinism necessary to ensure deterministic execution of a backup virtual machine.</li>
-<li>Correctly applying the inputs and non-determinism to the backup virtual machine.</li>
-<li>Doing so in a manner that doesn’t degrade performance.</li>
+<li>Challenges<ul>
+<li>Correctly capturing all the input and non-determinism necessary to ensure deterministic execution of a backup virtual machine. </li>
+<li>Correctly applying the inputs and non-determinism to the backup virtual machine. </li>
+<li>Doing so in a manner that doesn’t degrade performance. </li>
 </ul>
 </li>
 </ol>
-<h1 id="model"><a class="markdownIt-Anchor" href="#model"></a> Model</h1>
-<h2 id="ft-design"><a class="markdownIt-Anchor" href="#ft-design"></a> FT design</h2>
-<h3 id="primary-backup-structure"><a class="markdownIt-Anchor" href="#primary-backup-structure"></a> Primary-backup structure</h3>
-<h4 id="what-is-the-usual-way-to-implement-fault-tolerance-via-a-primarybackup-approach"><a class="markdownIt-Anchor" href="#what-is-the-usual-way-to-implement-fault-tolerance-via-a-primarybackup-approach"></a> What is the usual way to implement fault tolerance via a primary/backup approach?</h4>
-<ol>
-<li>
-<p>The backup server can always take over if the primary server fails.</p>
+<h1 id="Model"><a href="#Model" class="headerlink" title="Model"></a>Model</h1><h2 id="FT-design"><a href="#FT-design" class="headerlink" title="FT design"></a>FT design</h2><h3 id="Primary-backup-structure"><a href="#Primary-backup-structure" class="headerlink" title="Primary-backup structure"></a>Primary-backup structure</h3><h4 id="What-is-the-usual-way-to-implement-fault-tolerance-via-a-primary-backup-approach"><a href="#What-is-the-usual-way-to-implement-fault-tolerance-via-a-primary-backup-approach" class="headerlink" title="What is the usual way to implement fault tolerance via a primary/backup approach?"></a>What is the usual way to implement fault tolerance via a primary/backup approach?</h4><ol>
+<li><p>The backup server can always take over if the primary server fails. </p>
 <ul>
-<li>The problem is that the state of the backup server must be kept nearly identical to the primary server at all times. We say that the two VMs are in virtual lock-step.</li>
+<li>The problem is that the state of the backup server must be kept nearly identical to the primary server at all times. We say that the two VMs are in virtual lock-step. </li>
 </ul>
 </li>
-<li>
-<p>One way is to ship changes to all states of the primary. The bandwidth needed to send can be very large.</p>
+<li><p>One way is to ship changes to all states of the primary. The bandwidth needed to send can be very large. </p>
 </li>
-<li>
-<p>Another method is the state-machine approach.</p>
+<li><p>Another method is the state-machine approach. </p>
 <ul>
-<li>
-<p>The idea is to model the servers as deterministic state machines that are kept in sync by starting them from the same initial state and ensuring that they receive the same input requests in the same order.</p>
+<li><p>The idea is to model the servers as deterministic state machines that are kept in sync by starting them from the same initial state and ensuring that they receive the same input requests in the same order. </p>
 </li>
-<li>
-<p>Some operations are not deterministic. Extra coordination must be used to ensure that they receive a primary and backup are kept in sync.</p>
+<li><p>Some operations are not deterministic. Extra coordination must be used to ensure that they receive a primary and backup are kept in sync. </p>
 </li>
-<li>
-<p>The extra information is far less than the state (mainly memory updates) changing in the primary.</p>
+<li><p>The extra information is far less than the state (mainly memory updates) changing in the primary. </p>
 </li>
 </ul>
 </li>
 </ol>
-<h4 id="what-is-the-difference-between-physical-servers-and-vms-at-the-state-machine-level"><a class="markdownIt-Anchor" href="#what-is-the-difference-between-physical-servers-and-vms-at-the-state-machine-level"></a> What is the difference between physical servers and VMs at the state machine level?</h4>
-<ol>
-<li>
-<p>Implementing coordination to ensure deterministic execution of physical servers is challenging, particularly as processor frequencies increase.</p>
+<h4 id="What-is-the-difference-between-physical-servers-and-VMs-at-the-state-machine-level"><a href="#What-is-the-difference-between-physical-servers-and-VMs-at-the-state-machine-level" class="headerlink" title="What is the difference between physical servers and VMs at the state machine level?"></a>What is the difference between physical servers and VMs at the state machine level?</h4><ol>
+<li><p>Implementing coordination to ensure deterministic execution of physical servers is challenging, particularly as processor frequencies increase. </p>
 </li>
-<li>
-<p>VM running on a hypervisor can be considered a well-defined state machine.</p>
+<li><p>VM running on a hypervisor can be considered a well-defined state machine. </p>
 </li>
-<li>
-<p>VMs still have non-deterministic operations. The hypervisor can capture all the necessary information about non-deterministic operations on the primary VM and replay these operations correctly on the backup VM.</p>
+<li><p>VMs still have non-deterministic operations. The hypervisor can capture all the necessary information about non-deterministic operations on the primary VM and replay these operations correctly on the backup VM. </p>
 </li>
 </ol>
-<h4 id="what-is-the-basic-structure-of-ft-vms"><a class="markdownIt-Anchor" href="#what-is-the-basic-structure-of-ft-vms"></a> What is the basic structure of FT VMs?</h4>
-<ol>
-<li>
-<p>The virtual disks for the VMs are on shared storage and accessible to the primary and backup VM for input and output.</p>
-</li>
-<li>
-<p>Only the primary VM advertises its presence on the network, so all network inputs come to the primary VM. So do all other inputs.</p>
-</li>
-<li>
-<p>All inputs, including incoming network packets, disk reads, keyboard, and mouse, only come to the primary VM. The primary VM sends all inputs it receives to the backup VM via a network connection known as the logging channel.</p>
-<img src="/imgs/Distributed/FTVM/01.png" style="zoom:33%;" />
+<h4 id="What-is-the-basic-structure-of-FT-VMs"><a href="#What-is-the-basic-structure-of-FT-VMs" class="headerlink" title="What is the basic structure of FT VMs?"></a>What is the basic structure of FT VMs?</h4><ol>
+<li>The virtual disks for the VMs are on shared storage and accessible to the primary and backup VM for input and output. </li>
+<li>Only the primary VM advertises its presence on the network, so all network inputs come to the primary VM. So do all other inputs. </li>
+<li><p>All inputs, including incoming network packets, disk reads, keyboard, and mouse, only come to the primary VM. The primary VM sends all inputs it receives to the backup VM via a network connection known as the logging channel. </p>
+<p><img src="/imgs/Distributed/FTVM/01.png" style="zoom:33%;" /></p>
 </li>
 </ol>
-<h3 id="ft-protocol"><a class="markdownIt-Anchor" href="#ft-protocol"></a> FT protocol</h3>
-<h4 id="how-does-vmware-backup-vm-replay"><a class="markdownIt-Anchor" href="#how-does-vmware-backup-vm-replay"></a> How does VMware backup VM replay?</h4>
-<ol>
-<li>VMware deterministic replay records the inputs of a VM and all possible non-determinism associated with the VM execution in a stream of log entries written to a log file.</li>
-<li>For non-deterministic operations, sufficient information is logged to allow the operation to be reproduced with the same state change and output.</li>
-<li>The exact instruction at which the event occurred is also recorded for non-deterministic events such as timer or IO completion interrupts. The event is delivered at the same point in the instruction stream during replay.</li>
-<li>VMware deterministic replay does not need to use epochs where non-deterministic events are only delivered at the end. Each interrupt is recorded as it occurs and efficiently delivered with the appropriate instruction while being replayed.</li>
-<li>Instead of writing the log entries to disk, we send them to the backup VM via the logging channel. The backup VM replays the entries in real-time.</li>
+<h3 id="FT-protocol"><a href="#FT-protocol" class="headerlink" title="FT protocol"></a>FT protocol</h3><h4 id="How-does-VMware-backup-VM-replay"><a href="#How-does-VMware-backup-VM-replay" class="headerlink" title="How does VMware backup VM replay?"></a>How does VMware backup VM replay?</h4><ol>
+<li>VMware deterministic replay records the inputs of a VM and all possible non-determinism associated with the VM execution in a stream of log entries written to a log file. </li>
+<li>For non-deterministic operations, sufficient information is logged to allow the operation to be reproduced with the same state change and output. </li>
+<li>The exact instruction at which the event occurred is also recorded for non-deterministic events such as timer or IO completion interrupts. The event is delivered at the same point in the instruction stream during replay. </li>
+<li>VMware deterministic replay does not need to use epochs where non-deterministic events are only delivered at the end. Each interrupt is recorded as it occurs and efficiently delivered with the appropriate instruction while being replayed. </li>
+<li>Instead of writing the log entries to disk, we send them to the backup VM via the logging channel. The backup VM replays the entries in real-time. </li>
 </ol>
-<h4 id="what-if-the-backup-vm-executes-in-a-way-different-from-the-primary-vm"><a class="markdownIt-Anchor" href="#what-if-the-backup-vm-executes-in-a-way-different-from-the-primary-vm"></a> What if the backup VM executes in a way different from the primary VM?</h4>
-<ol>
-<li>
-<p>The <em>Output Requirement</em>: if the backup VM ever takes over after a primary failure, the backup VM will continue executing in a way that is entirely consistent with all outputs that the primary VM has sent to the external world.</p>
+<h4 id="What-if-the-backup-VM-executes-in-a-way-different-from-the-primary-VM"><a href="#What-if-the-backup-VM-executes-in-a-way-different-from-the-primary-VM" class="headerlink" title="What if the backup VM executes in a way different from the primary VM?"></a>What if the backup VM executes in a way different from the primary VM?</h4><ol>
+<li><p>The <em>Output Requirement</em>: if the backup VM ever takes over after a primary failure, the backup VM will continue executing in a way that is entirely consistent with all outputs that the primary VM has sent to the external world. </p>
 </li>
-<li>
-<p>The Output Requirement can be ensured by</p>
+<li><p>The Output Requirement can be ensured by </p>
 <ul>
-<li>
-<p>Delaying any external output (typically a network packet) until the backup VM has received all information will allow it to replay execution at least to the point of that output operation.</p>
+<li><p>Delaying any external output (typically a network packet) until the backup VM has received all information will allow it to replay execution at least to the point of that output operation. </p>
 </li>
-<li>
-<p>One necessary condition is that the backup VM must have received all log entries generated before the output operation.</p>
+<li><p>One necessary condition is that the backup VM must have received all log entries generated before the output operation. </p>
 </li>
 </ul>
 </li>
-<li>
-<p>Suppose we create a special log entry at each output operation. Then, the Output Requirement may be enforced by the Output Rule.</p>
+<li><p>Suppose we create a special log entry at each output operation. Then, the Output Requirement may be enforced by the Output Rule. </p>
 <ul>
-<li><em>Output Rule</em>: the primary VM may not send an output to the external world until the backup VM has received and acknowledged the log entry associated with the operation producing the output.</li>
+<li><em>Output Rule</em>: the primary VM may not send an output to the external world until the backup VM has received and acknowledged the log entry associated with the operation producing the output. </li>
 </ul>
 </li>
 </ol>
-<h4 id="will-the-output-rule-affect-the-vm-eg-stop-its-execution"><a class="markdownIt-Anchor" href="#will-the-output-rule-affect-the-vm-eg-stop-its-execution"></a> Will the Output Rule affect the VM, e.g., stop its execution?</h4>
-<ol>
-<li>It does not say anything about stopping the execution of the primary VM. We need only delay the sending of the output, but the VM itself can continue execution.</li>
-<li>Since operating systems do non-blocking network and disk outputs with asynchronous interrupts to indicate completion, the VM can easily continue execution and will not necessarily be immediately affected by the delay in the output.</li>
+<h4 id="Will-the-Output-Rule-affect-the-VM-e-g-stop-its-execution"><a href="#Will-the-Output-Rule-affect-the-VM-e-g-stop-its-execution" class="headerlink" title="Will the Output Rule affect the VM, e.g., stop its execution?"></a>Will the Output Rule affect the VM, e.g., stop its execution?</h4><ol>
+<li>It does not say anything about stopping the execution of the primary VM. We need only delay the sending of the output, but the VM itself can continue execution. </li>
+<li>Since operating systems do non-blocking network and disk outputs with asynchronous interrupts to indicate completion, the VM can easily continue execution and will not necessarily be immediately affected by the delay in the output. </li>
 </ol>
-<h4 id="what-are-the-subtleties-of-executing-disk-reads-on-the-backup-vm"><a class="markdownIt-Anchor" href="#what-are-the-subtleties-of-executing-disk-reads-on-the-backup-vm"></a> What are the subtleties of executing disk reads on the backup VM?</h4>
-<ol>
-<li>
-<p>By default, the primary VM will send the results of the disk read to the backup VM via the logging channel.</p>
+<h4 id="What-are-the-subtleties-of-executing-disk-reads-on-the-backup-VM"><a href="#What-are-the-subtleties-of-executing-disk-reads-on-the-backup-VM" class="headerlink" title="What are the subtleties of executing disk reads on the backup VM?"></a>What are the subtleties of executing disk reads on the backup VM?</h4><ol>
+<li><p>By default, the primary VM will send the results of the disk read to the backup VM via the logging channel. </p>
 </li>
-<li>
-<p>Executing disk reads on the backup VM can greatly reduce the traffic on the logging channel for workloads that do a lot of disk reads. It may also slow down the backup VM’s execution.</p>
+<li><p>Executing disk reads on the backup VM can greatly reduce the traffic on the logging channel for workloads that do a lot of disk reads. It may also slow down the backup VM’s execution. </p>
 </li>
-<li>
-<p>Some extra work must be done to deal with failed disk read operations.</p>
+<li><p>Some extra work must be done to deal with failed disk read operations. </p>
 <ul>
-<li>
-<p>If the primary succeeds while the backup fails, the backup must keep retrying until success.</p>
+<li><p>If the primary succeeds while the backup fails, the backup must keep retrying until success. </p>
 </li>
-<li>
-<p>Suppose the backup succeeds while the primary fails. In that case, the contents of the target memory must be sent to the backup via the logging channel since the contents of the memory will be undetermined and not necessarily replicated by a successful disk read by the backup VM.</p>
+<li><p>Suppose the backup succeeds while the primary fails. In that case, the contents of the target memory must be sent to the backup via the logging channel since the contents of the memory will be undetermined and not necessarily replicated by a successful disk read by the backup VM. </p>
 </li>
 </ul>
 </li>
-<li>
-<p>If the primary VM does a read to a particular disk location, followed pretty soon by a write to the exact disk location, then the disk write must be delayed until the backup VM has executed the first disk read.</p>
+<li><p>If the primary VM does a read to a particular disk location, followed pretty soon by a write to the exact disk location, then the disk write must be delayed until the backup VM has executed the first disk read. </p>
 </li>
 </ol>
-<h3 id="detecting-and-responding-to-failure"><a class="markdownIt-Anchor" href="#detecting-and-responding-to-failure"></a> Detecting and responding to failure</h3>
-<h4 id="how-to-handle-duplicate-outputs"><a class="markdownIt-Anchor" href="#how-to-handle-duplicate-outputs"></a> How to handle duplicate outputs?</h4>
-<ol>
-<li>We cannot guarantee that all outputs are produced exactly once in a failover situation.</li>
-<li>The network infrastructure (e.g., TCP) is designed to deal with lost packets and duplicate packets.</li>
+<h3 id="Detecting-and-responding-to-failure"><a href="#Detecting-and-responding-to-failure" class="headerlink" title="Detecting and responding to failure"></a>Detecting and responding to failure</h3><h4 id="How-to-handle-duplicate-outputs"><a href="#How-to-handle-duplicate-outputs" class="headerlink" title="How to handle duplicate outputs?"></a>How to handle duplicate outputs?</h4><ol>
+<li>We cannot guarantee that all outputs are produced exactly once in a failover situation. </li>
+<li>The network infrastructure (e.g., TCP) is designed to deal with lost packets and duplicate packets. </li>
 </ol>
-<h4 id="how-to-handle-backup-vm-failure"><a class="markdownIt-Anchor" href="#how-to-handle-backup-vm-failure"></a> How to handle backup VM failure?</h4>
-<p>The primary VM will go live, i.e., leave recording mode, stop sending entries on the logging channel, and start executing normally.</p>
-<h4 id="how-to-handle-primary-vm-failure"><a class="markdownIt-Anchor" href="#how-to-handle-primary-vm-failure"></a> How to handle primary VM failure?</h4>
-<ol>
-<li>The backup VM will continue replaying its execution from the log entries until it has consumed the last log entry.</li>
-<li>The backup VM will stop replaying mode and execute as a regular VM. The backup VM has been promoted to the primary VM and is now missing a backup VM.</li>
+<h4 id="How-to-handle-backup-VM-failure"><a href="#How-to-handle-backup-VM-failure" class="headerlink" title="How to handle backup VM failure?"></a>How to handle backup VM failure?</h4><p>The primary VM will go live, i.e., leave recording mode, stop sending entries on the logging channel, and start executing normally. </p>
+<h4 id="How-to-handle-primary-VM-failure"><a href="#How-to-handle-primary-VM-failure" class="headerlink" title="How to handle primary VM failure?"></a>How to handle primary VM failure?</h4><ol>
+<li>The backup VM will continue replaying its execution from the log entries until it has consumed the last log entry. </li>
+<li>The backup VM will stop replaying mode and execute as a regular VM. The backup VM has been promoted to the primary VM and is now missing a backup VM. </li>
 </ol>
-<h4 id="after-a-failover-how-will-the-new-primary-vm-communicate-with-the-external-world"><a class="markdownIt-Anchor" href="#after-a-failover-how-will-the-new-primary-vm-communicate-with-the-external-world"></a> After a failover, how will the new primary VM communicate with the external world?</h4>
-<ol>
-<li>VMware FT automatically advertises the MAC address of the new primary VM on the network so that physical network switches will know on what server that new primary VM is located.</li>
-<li>The newly promoted primary VM may need to reissue some disk IOs.</li>
+<h4 id="After-a-failover-how-will-the-new-primary-VM-communicate-with-the-external-world"><a href="#After-a-failover-how-will-the-new-primary-VM-communicate-with-the-external-world" class="headerlink" title="After a failover, how will the new primary VM communicate with the external world?"></a>After a failover, how will the new primary VM communicate with the external world?</h4><ol>
+<li>VMware FT automatically advertises the MAC address of the new primary VM on the network so that physical network switches will know on what server that new primary VM is located. </li>
+<li>The newly promoted primary VM may need to reissue some disk IOs. </li>
 </ol>
-<h4 id="how-to-detect-failure-of-primary-or-backup-vms"><a class="markdownIt-Anchor" href="#how-to-detect-failure-of-primary-or-backup-vms"></a> How to detect failure of primary or backup VMs?</h4>
-<ol>
-<li>VMware FT uses UDP heartbeating between servers running fault-tolerant VMs to detect when a server may have crashed.</li>
-<li>In addition, VMware FT monitors the logging traffic sent from the primary to the backup VM and the acknowledgments sent from the backup VM to the primary VM. Because of regular timer interrupts, the logging traffic should be regular and never stop for a functioning guest OS.</li>
+<h4 id="How-to-detect-failure-of-primary-or-backup-VMs"><a href="#How-to-detect-failure-of-primary-or-backup-VMs" class="headerlink" title="How to detect failure of primary or backup VMs?"></a>How to detect failure of primary or backup VMs?</h4><ol>
+<li>VMware FT uses UDP heartbeating between servers running fault-tolerant VMs to detect when a server may have crashed. </li>
+<li>In addition, VMware FT monitors the logging traffic sent from the primary to the backup VM and the acknowledgments sent from the backup VM to the primary VM. Because of regular timer interrupts, the logging traffic should be regular and never stop for a functioning guest OS. </li>
 </ol>
-<h4 id="how-to-avoid-split-brain-problems"><a class="markdownIt-Anchor" href="#how-to-avoid-split-brain-problems"></a> How to avoid split-brain problems?</h4>
-<ol>
-<li>When a primary or backup VM wants to go live, it executes an atomic test-and-set operation on the shared virtual disk.</li>
-<li>If the operation succeeds, the VM is allowed to go live.</li>
-<li>If the operation fails, the other VM must have already gone live, so the current VM halts itself (“commits suicide”).</li>
+<h4 id="How-to-avoid-split-brain-problems"><a href="#How-to-avoid-split-brain-problems" class="headerlink" title="How to avoid split-brain problems?"></a>How to avoid split-brain problems?</h4><ol>
+<li>When a primary or backup VM wants to go live, it executes an atomic test-and-set operation on the shared virtual disk. </li>
+<li>If the operation succeeds, the VM is allowed to go live. </li>
+<li>If the operation fails, the other VM must have already gone live, so the current VM halts itself (“commits suicide”). </li>
 </ol>
-<h3 id="alternative-non-shared-disk"><a class="markdownIt-Anchor" href="#alternative-non-shared-disk"></a> Alternative: Non-shared disk</h3>
-<h4 id="what-is-the-difference-between-non-shared-disks-and-shared-disks"><a class="markdownIt-Anchor" href="#what-is-the-difference-between-non-shared-disks-and-shared-disks"></a> What is the difference between non-shared disks and shared disks?</h4>
-<ol>
-<li>In a shared disk, any write to the shared disk is considered a communication to the external world. Writes to the shared disk must be delayed.</li>
-<li>In non-shared disks, the virtual disks are essentially considered part of the internal state of each VM. Disk writes of the primary do not have to be delayed according to the Output Rule.</li>
+<h3 id="Alternative-Non-shared-disk"><a href="#Alternative-Non-shared-disk" class="headerlink" title="Alternative: Non-shared disk"></a>Alternative: Non-shared disk</h3><h4 id="What-is-the-difference-between-non-shared-disks-and-shared-disks"><a href="#What-is-the-difference-between-non-shared-disks-and-shared-disks" class="headerlink" title="What is the difference between non-shared disks and shared disks?"></a>What is the difference between non-shared disks and shared disks?</h4><ol>
+<li>In a shared disk, any write to the shared disk is considered a communication to the external world. Writes to the shared disk must be delayed. </li>
+<li>In non-shared disks, the virtual disks are essentially considered part of the internal state of each VM. Disk writes of the primary do not have to be delayed according to the Output Rule. </li>
 </ol>
-<h4 id="in-what-case-will-a-non-shared-disk-be-useful"><a class="markdownIt-Anchor" href="#in-what-case-will-a-non-shared-disk-be-useful"></a> In what case will a non-shared disk be useful?</h4>
-<ol>
-<li>Shared storage is not accessible to the primary and backup VMs.</li>
-<li>This may be because shared storage is unavailable, too expensive, or because the servers running the primary and backup VMs are far apart.</li>
+<h4 id="In-what-case-will-a-non-shared-disk-be-useful"><a href="#In-what-case-will-a-non-shared-disk-be-useful" class="headerlink" title="In what case will a non-shared disk be useful?"></a>In what case will a non-shared disk be useful?</h4><ol>
+<li>Shared storage is not accessible to the primary and backup VMs. </li>
+<li>This may be because shared storage is unavailable, too expensive, or because the servers running the primary and backup VMs are far apart. </li>
 </ol>
-<h4 id="what-is-the-disadvantage-of-non-shared-disks"><a class="markdownIt-Anchor" href="#what-is-the-disadvantage-of-non-shared-disks"></a> What is the disadvantage of non-shared disks?</h4>
-<ol>
-<li>The two copies of the virtual disks must be explicitly synced up in some manner when fault tolerance is first enabled.</li>
-<li>The disks can get out of sync after a failure, so they must be explicitly resynced when the backup VM is restarted after a failure.</li>
+<h4 id="What-is-the-disadvantage-of-non-shared-disks"><a href="#What-is-the-disadvantage-of-non-shared-disks" class="headerlink" title="What is the disadvantage of non-shared disks?"></a>What is the disadvantage of non-shared disks?</h4><ol>
+<li>The two copies of the virtual disks must be explicitly synced up in some manner when fault tolerance is first enabled. </li>
+<li>The disks can get out of sync after a failure, so they must be explicitly resynced when the backup VM is restarted after a failure. </li>
 </ol>
-<h4 id="how-to-solve-the-split-brain-situation"><a class="markdownIt-Anchor" href="#how-to-solve-the-split-brain-situation"></a> How to solve the split-brain situation?</h4>
-<ol>
-<li>
-<p>There may be no shared storage to use for dealing with it. The system could use some other external tiebreaker.</p>
+<h4 id="How-to-solve-the-split-brain-situation"><a href="#How-to-solve-the-split-brain-situation" class="headerlink" title="How to solve the split-brain situation?"></a>How to solve the split-brain situation?</h4><ol>
+<li><p>There may be no shared storage to use for dealing with it. The system could use some other external tiebreaker. </p>
 <ul>
-<li>A third-party server that both servers can talk to.</li>
+<li>A third-party server that both servers can talk to. </li>
 </ul>
 </li>
-<li>
-<p>If the servers are part of a cluster with more than two nodes, the system could use a majority algorithm alternatively.</p>
+<li><p>If the servers are part of a cluster with more than two nodes, the system could use a majority algorithm alternatively. </p>
 <ul>
-<li>A VM would only be allowed to go live if it runs on a server that is part of a communication sub-cluster containing most of the original nodes.</li>
+<li>A VM would only be allowed to go live if it runs on a server that is part of a communication sub-cluster containing most of the original nodes. </li>
 </ul>
 </li>
 </ol>
-<h2 id="implementation"><a class="markdownIt-Anchor" href="#implementation"></a> Implementation</h2>
-<h3 id="starting-and-restarting"><a class="markdownIt-Anchor" href="#starting-and-restarting"></a> Starting and restarting</h3>
-<h4 id="what-requirements-need-to-be-satisfied-by-the-startup-mechanism"><a class="markdownIt-Anchor" href="#what-requirements-need-to-be-satisfied-by-the-startup-mechanism"></a> What requirements need to be satisfied by the startup mechanism?</h4>
-<ol>
-<li>We also want to use it to restart a backup VM after a failure. Hence, this mechanism must be usable for a running primary VM in an arbitrary state.</li>
-<li>We prefer that the mechanism does not significantly disrupt the execution of the primary VM.</li>
+<h2 id="Implementation"><a href="#Implementation" class="headerlink" title="Implementation"></a>Implementation</h2><h3 id="Starting-and-restarting"><a href="#Starting-and-restarting" class="headerlink" title="Starting and restarting"></a>Starting and restarting</h3><h4 id="What-requirements-need-to-be-satisfied-by-the-startup-mechanism"><a href="#What-requirements-need-to-be-satisfied-by-the-startup-mechanism" class="headerlink" title="What requirements need to be satisfied by the startup mechanism?"></a>What requirements need to be satisfied by the startup mechanism?</h4><ol>
+<li>We also want to use it to restart a backup VM after a failure. Hence, this mechanism must be usable for a running primary VM in an arbitrary state. </li>
+<li>We prefer that the mechanism does not significantly disrupt the execution of the primary VM. </li>
 </ol>
-<h4 id="how-to-implement-the-startup-mechanism"><a class="markdownIt-Anchor" href="#how-to-implement-the-startup-mechanism"></a> How to implement the startup mechanism?</h4>
-<ol>
-<li>VMware FT adapted a modified VMware VMotion that allows the migration of a running VM from one server to another with minimal disruption. However, after migration, the VMotion will destroy the local VM.</li>
-<li>The FT VMotion clones a VM to a remote host rather than migrating it without destroying the local VM.</li>
-<li>The FT VMotion also sets up a logging channel and causes the source VM to enter logging mode as the primary and the destination VM to enter replay mode as the new backup.</li>
+<h4 id="How-to-implement-the-startup-mechanism"><a href="#How-to-implement-the-startup-mechanism" class="headerlink" title="How to implement the startup mechanism?"></a>How to implement the startup mechanism?</h4><ol>
+<li>VMware FT adapted a modified VMware VMotion that allows the migration of a running VM from one server to another with minimal disruption. However, after migration, the VMotion will destroy the local VM. </li>
+<li>The FT VMotion clones a VM to a remote host rather than migrating it without destroying the local VM. </li>
+<li>The FT VMotion also sets up a logging channel and causes the source VM to enter logging mode as the primary and the destination VM to enter replay mode as the new backup. </li>
 </ol>
-<h4 id="how-to-choose-a-server-on-which-to-run-the-backup-vm"><a class="markdownIt-Anchor" href="#how-to-choose-a-server-on-which-to-run-the-backup-vm"></a> How to choose a server on which to run the backup VM?</h4>
-<ol>
-<li>The primary VM informs the clustering service that it needs a new backup.</li>
-<li>The clustering service determines the best server to run the backup VM based on resource usage and other constraints and invokes an FT VMotion to create the new backup VM.</li>
-<li>VMware FT typically can re-establish VM redundancy within minutes of a server failure, all without any noticeable interruption in executing a fault-tolerant VM.</li>
+<h4 id="How-to-choose-a-server-on-which-to-run-the-backup-VM"><a href="#How-to-choose-a-server-on-which-to-run-the-backup-VM" class="headerlink" title="How to choose a server on which to run the backup VM?"></a>How to choose a server on which to run the backup VM?</h4><ol>
+<li>The primary VM informs the clustering service that it needs a new backup. </li>
+<li>The clustering service determines the best server to run the backup VM based on resource usage and other constraints and invokes an FT VMotion to create the new backup VM. </li>
+<li>VMware FT typically can re-establish VM redundancy within minutes of a server failure, all without any noticeable interruption in executing a fault-tolerant VM. </li>
 </ol>
-<h3 id="logging-channel"><a class="markdownIt-Anchor" href="#logging-channel"></a> Logging channel</h3>
-<h4 id="how-to-control-primary-sending-log-entries-and-backup-receiving-entries"><a class="markdownIt-Anchor" href="#how-to-control-primary-sending-log-entries-and-backup-receiving-entries"></a> How to control primary sending log entries and backup receiving entries?</h4>
-<ol>
-<li>The hypervisors maintain a large buffer for logging entries for the primary and backup VMs.</li>
-<li>The contents of the primary’s log buffer are flushed out to the logging channel as soon as possible, and log entries are read into the backup’s log buffer from the logging channel as soon as they arrive.</li>
-<li>The backup sends acknowledgments back to the primary each time that it reads some log entries from the network into its log buffer.</li>
+<h3 id="Logging-channel"><a href="#Logging-channel" class="headerlink" title="Logging channel"></a>Logging channel</h3><h4 id="How-to-control-primary-sending-log-entries-and-backup-receiving-entries"><a href="#How-to-control-primary-sending-log-entries-and-backup-receiving-entries" class="headerlink" title="How to control primary sending log entries and backup receiving entries?"></a>How to control primary sending log entries and backup receiving entries?</h4><ol>
+<li>The hypervisors maintain a large buffer for logging entries for the primary and backup VMs. </li>
+<li>The contents of the primary’s log buffer are flushed out to the logging channel as soon as possible, and log entries are read into the backup’s log buffer from the logging channel as soon as they arrive. </li>
+<li>The backup sends acknowledgments back to the primary each time that it reads some log entries from the network into its log buffer. </li>
 </ol>
-<h4 id="what-if-the-primary-log-buffer-is-full"><a class="markdownIt-Anchor" href="#what-if-the-primary-log-buffer-is-full"></a> What if the primary log buffer is full?</h4>
-<ol>
-<li>It must stop execution until log entries can be flushed out.</li>
-<li>This stop in execution is a natural flow-control mechanism that slows down the primary VM when it produces log entries at a rate that is too fast.</li>
-<li>This pause can affect VM clients, and we must minimize the possibility that the primary log buffer fills up.</li>
+<h4 id="What-if-the-primary-log-buffer-is-full"><a href="#What-if-the-primary-log-buffer-is-full" class="headerlink" title="What if the primary log buffer is full?"></a>What if the primary log buffer is full?</h4><ol>
+<li>It must stop execution until log entries can be flushed out. </li>
+<li>This stop in execution is a natural flow-control mechanism that slows down the primary VM when it produces log entries at a rate that is too fast. </li>
+<li>This pause can affect VM clients, and we must minimize the possibility that the primary log buffer fills up. </li>
 </ol>
-<h4 id="what-is-the-main-cause-of-the-buffer-of-primary-being-full"><a class="markdownIt-Anchor" href="#what-is-the-main-cause-of-the-buffer-of-primary-being-full"></a> What is the main cause of the buffer of primary being full?</h4>
-<ol>
-<li>One of the biggest reasons is that the backup VM is executing too slowly and consuming log entries too slowly.</li>
-<li>In general, the backup VM must be able to replay an execution at roughly the same speed as the primary VM recording the execution.</li>
-<li>The overhead of recording and replaying in VMware deterministic replay is roughly the same.</li>
-<li>Suppose the server hosting the backup VM is heavily loaded with other VMs (and hence overcommitted on resources). In that case, the backup VM may not get enough CPU and memory resources to execute as fast as the primary VM.</li>
+<h4 id="What-is-the-main-cause-of-the-buffer-of-primary-being-full"><a href="#What-is-the-main-cause-of-the-buffer-of-primary-being-full" class="headerlink" title="What is the main cause of the buffer of primary being full?"></a>What is the main cause of the buffer of primary being full?</h4><ol>
+<li>One of the biggest reasons is that the backup VM is executing too slowly and consuming log entries too slowly. </li>
+<li>In general, the backup VM must be able to replay an execution at roughly the same speed as the primary VM recording the execution. </li>
+<li>The overhead of recording and replaying in VMware deterministic replay is roughly the same. </li>
+<li>Suppose the server hosting the backup VM is heavily loaded with other VMs (and hence overcommitted on resources). In that case, the backup VM may not get enough CPU and memory resources to execute as fast as the primary VM. </li>
 </ol>
-<h4 id="how-to-prevent-the-backup-vm-from-getting-too-far-behind-the-primary"><a class="markdownIt-Anchor" href="#how-to-prevent-the-backup-vm-from-getting-too-far-behind-the-primary"></a> How to prevent the backup VM from getting too far behind the primary?</h4>
-<ol>
-<li>When sending acknowledgments, we also send additional information to determine the real-time execution lag between the primary and backup VMs.</li>
-<li>Typically, the execution lag is less than 100 milliseconds.</li>
-<li>If the backup VM starts having a significant execution lag (e.g., more than 1 second), VMware FT starts slowing down the primary VM by informing the scheduler to give it a slightly small amount of CPU.</li>
-<li>Such slowdowns are rare and typically happen only when the system is under extreme stress.</li>
+<h4 id="How-to-prevent-the-backup-VM-from-getting-too-far-behind-the-primary"><a href="#How-to-prevent-the-backup-VM-from-getting-too-far-behind-the-primary" class="headerlink" title="How to prevent the backup VM from getting too far behind the primary?"></a>How to prevent the backup VM from getting too far behind the primary?</h4><ol>
+<li>When sending acknowledgments, we also send additional information to determine the real-time execution lag between the primary and backup VMs. </li>
+<li>Typically, the execution lag is less than 100 milliseconds. </li>
+<li>If the backup VM starts having a significant execution lag (e.g., more than 1 second), VMware FT starts slowing down the primary VM by informing the scheduler to give it a slightly small amount of CPU. </li>
+<li>Such slowdowns are rare and typically happen only when the system is under extreme stress. </li>
 </ol>
-<h3 id="special-operations"><a class="markdownIt-Anchor" href="#special-operations"></a> Special operations</h3>
-<h4 id="how-to-deal-with-control-operations"><a class="markdownIt-Anchor" href="#how-to-deal-with-control-operations"></a> How to deal with control operations?</h4>
-<ol>
-<li>
-<p>Most control operations should be applied to both machines.</p>
+<h3 id="Special-operations"><a href="#Special-operations" class="headerlink" title="Special operations"></a>Special operations</h3><h4 id="How-to-deal-with-control-operations"><a href="#How-to-deal-with-control-operations" class="headerlink" title="How to deal with control operations?"></a>How to deal with control operations?</h4><ol>
+<li><p>Most control operations should be applied to both machines. </p>
 <ul>
-<li>
-<p>If the primary VM is explicitly powered off, the backup VM should also be stopped and not attempted to go live.</p>
+<li><p>If the primary VM is explicitly powered off, the backup VM should also be stopped and not attempted to go live. </p>
 </li>
-<li>
-<p>Any resource management change on the primary should be applied to the backup.</p>
+<li><p>Any resource management change on the primary should be applied to the backup. </p>
 </li>
 </ul>
 </li>
-<li>
-<p>VMotion is the only operation that can be done independently on the primary and backup VMs.</p>
+<li><p>VMotion is the only operation that can be done independently on the primary and backup VMs. </p>
 <ul>
-<li>
-<p>The primary and backup VMs can be VMotioned independently to other hosts.</p>
+<li><p>The primary and backup VMs can be VMotioned independently to other hosts. </p>
 </li>
-<li>
-<p>VMware FT ensures that neither VM is moved to the server where the other VM is.</p>
+<li><p>VMware FT ensures that neither VM is moved to the server where the other VM is. </p>
 </li>
 </ul>
 </li>
 </ol>
-<h4 id="how-to-implement-the-vmotion-for-primary-and-backup-vms"><a class="markdownIt-Anchor" href="#how-to-implement-the-vmotion-for-primary-and-backup-vms"></a> How to implement the VMotion for primary and backup VMs?</h4>
-<ol>
-<li>
-<p>A normal VMotion requires that all outstanding disk IOs be quiesced just as the final switchover on the VMotion occurs.</p>
+<h4 id="How-to-implement-the-VMotion-for-primary-and-backup-VMs"><a href="#How-to-implement-the-VMotion-for-primary-and-backup-VMs" class="headerlink" title="How to implement the VMotion for primary and backup VMs?"></a>How to implement the VMotion for primary and backup VMs?</h4><ol>
+<li><p>A normal VMotion requires that all outstanding disk IOs be quiesced just as the final switchover on the VMotion occurs. </p>
 </li>
-<li>
-<p>For a primary VM,</p>
+<li><p>For a primary VM, </p>
 <ul>
-<li>
-<p>The quiescing is easily handled by waiting until the physical IOs are complete and delivering these completions to the VM.</p>
+<li><p>The quiescing is easily handled by waiting until the physical IOs are complete and delivering these completions to the VM. </p>
 </li>
-<li>
-<p>The backup VM must disconnect from the source primary and re-connect to the destination primary at the appropriate time.</p>
+<li><p>The backup VM must disconnect from the source primary and re-connect to the destination primary at the appropriate time. </p>
 </li>
 </ul>
 </li>
-<li>
-<p>For a backup VM,</p>
+<li><p>For a backup VM, </p>
 <ul>
-<li>
-<p>There is no easy way to cause all IOs to be completed at any required point since the backup VM must replay the primary VM’s execution and complete IOs at the same execution point.</p>
+<li><p>There is no easy way to cause all IOs to be completed at any required point since the backup VM must replay the primary VM’s execution and complete IOs at the same execution point. </p>
 </li>
-<li>
-<p>When a backup VM is at the final switchover point for a VMotion, it requests via the logging channel that the primary VM temporarily quiesce all its IOs.</p>
+<li><p>When a backup VM is at the final switchover point for a VMotion, it requests via the logging channel that the primary VM temporarily quiesce all its IOs. </p>
 </li>
 </ul>
 </li>
 </ol>
-<h3 id="issues-for-disk-ios"><a class="markdownIt-Anchor" href="#issues-for-disk-ios"></a> Issues for disk IOs</h3>
-<h4 id="how-many-kinds-of-races-may-occur"><a class="markdownIt-Anchor" href="#how-many-kinds-of-races-may-occur"></a> How many kinds of races may occur?</h4>
-<ol>
-<li>
-<p>The first kind is caused by several IO operations.</p>
+<h3 id="Issues-for-disk-IOs"><a href="#Issues-for-disk-IOs" class="headerlink" title="Issues for disk IOs"></a>Issues for disk IOs</h3><h4 id="How-many-kinds-of-races-may-occur"><a href="#How-many-kinds-of-races-may-occur" class="headerlink" title="How many kinds of races may occur?"></a>How many kinds of races may occur?</h4><ol>
+<li><p>The first kind is caused by several IO operations. </p>
 <ul>
-<li>
-<p>One reason is that disk operations are non-blocking and can execute in parallel. Simultaneous disk operations access the same disk location, causing races.</p>
+<li><p>One reason is that disk operations are non-blocking and can execute in parallel. Simultaneous disk operations access the same disk location, causing races. </p>
 </li>
-<li>
-<p>The other reason is that DMA is directly to/from the VM’s memory. Simultaneous disk operations access the same memory pages.</p>
+<li><p>The other reason is that DMA is directly to/from the VM’s memory. Simultaneous disk operations access the same memory pages. </p>
 </li>
 </ul>
 </li>
-<li>
-<p>The second kind is caused by IO operations and non-IO operations.</p>
+<li><p>The second kind is caused by IO operations and non-IO operations. </p>
 <ul>
-<li>The disk operations directly access the memory of a VM via DMA. Hence, a disk operation accesses the same memory pages as an application or OS in a VM, causing races.</li>
+<li>The disk operations directly access the memory of a VM via DMA. Hence, a disk operation accesses the same memory pages as an application or OS in a VM, causing races. </li>
 </ul>
 </li>
 </ol>
-<h4 id="how-to-solve-the-non-determinism-caused-by-several-io-operations"><a class="markdownIt-Anchor" href="#how-to-solve-the-non-determinism-caused-by-several-io-operations"></a> How to solve the non-determinism caused by several IO operations?</h4>
-<p>We should detect any such IO races and force such racing disk operations to execute sequentially in the same way on the primary and backup.</p>
-<h4 id="how-to-solve-the-non-determinism-caused-by-io-operations-and-applicationos"><a class="markdownIt-Anchor" href="#how-to-solve-the-non-determinism-caused-by-io-operations-and-applicationos"></a> How to solve the non-determinism caused by IO operations and application/OS?</h4>
-<ol>
-<li>
-<p>We need to temporarily set up page protection on pages that are targets of disk operations.</p>
+<h4 id="How-to-solve-the-non-determinism-caused-by-several-IO-operations"><a href="#How-to-solve-the-non-determinism-caused-by-several-IO-operations" class="headerlink" title="How to solve the non-determinism caused by several IO operations?"></a>How to solve the non-determinism caused by several IO operations?</h4><p>We should detect any such IO races and force such racing disk operations to execute sequentially in the same way on the primary and backup. </p>
+<h4 id="How-to-solve-the-non-determinism-caused-by-IO-operations-and-application-OS"><a href="#How-to-solve-the-non-determinism-caused-by-IO-operations-and-application-OS" class="headerlink" title="How to solve the non-determinism caused by IO operations and application/OS?"></a>How to solve the non-determinism caused by IO operations and application/OS?</h4><ol>
+<li><p>We need to temporarily set up page protection on pages that are targets of disk operations. </p>
 </li>
-<li>
-<p>The page protections result in a trap if the VM happens to access a page that is also the target of an outstanding disk operation, and the VM can be paused until the disk operation completes.</p>
+<li><p>The page protections result in a trap if the VM happens to access a page that is also the target of an outstanding disk operation, and the VM can be paused until the disk operation completes. </p>
 </li>
-<li>
-<p>Changing MMU protections on pages is expensive; we use bounce buffers.</p>
+<li><p>Changing MMU protections on pages is expensive; we use bounce buffers. </p>
 <ul>
-<li>
-<p>A bounce buffer is a temporary buffer that is the same size as the memory accessed by a disk operation.</p>
+<li><p>A bounce buffer is a temporary buffer that is the same size as the memory accessed by a disk operation. </p>
 </li>
-<li>
-<p>A disk read operation is modified to read the specified data to the bounce buffer, and the data is copied to guest memory only as the IO completion is delivered.</p>
+<li><p>A disk read operation is modified to read the specified data to the bounce buffer, and the data is copied to guest memory only as the IO completion is delivered. </p>
 </li>
-<li>
-<p>For a disk write operation, the data to be sent is first copied to the bounce buffer, and the disk write is modified to write data from the bounce buffer.</p>
+<li><p>For a disk write operation, the data to be sent is first copied to the bounce buffer, and the disk write is modified to write data from the bounce buffer. </p>
 </li>
 </ul>
 </li>
-<li>
-<p>The bounce buffer can slow down disk operations, but a noticeable performance loss is not seen.</p>
+<li><p>The bounce buffer can slow down disk operations, but a noticeable performance loss is not seen. </p>
 </li>
 </ol>
-<h4 id="how-does-the-newly-promoted-primary-vm-handle-those-outstanding-ios"><a class="markdownIt-Anchor" href="#how-does-the-newly-promoted-primary-vm-handle-those-outstanding-ios"></a> How does the newly-promoted primary VM handle those outstanding IOs?</h4>
-<ol>
-<li>There is no way for the newly-promoted primary VM to be sure if the disk IOs were issued to the disk or completed successfully.</li>
-<li>We could send an error completion that indicates that each IO failed since it is acceptable to return an error even if the IO was completed successfully. However, the guest OS might not respond well to errors from its local disk.</li>
-<li>We can re-issue the pending IOs during the backup VM go-live process. Because we have eliminated all races and all IOs specify directly which memory and disk blocks are accessed, these disk operations can be re-issued even if they have already been completed successfully.</li>
+<h4 id="How-does-the-newly-promoted-primary-VM-handle-those-outstanding-IOs"><a href="#How-does-the-newly-promoted-primary-VM-handle-those-outstanding-IOs" class="headerlink" title="How does the newly-promoted primary VM handle those outstanding IOs?"></a>How does the newly-promoted primary VM handle those outstanding IOs?</h4><ol>
+<li>There is no way for the newly-promoted primary VM to be sure if the disk IOs were issued to the disk or completed successfully. </li>
+<li>We could send an error completion that indicates that each IO failed since it is acceptable to return an error even if the IO was completed successfully. However, the guest OS might not respond well to errors from its local disk. </li>
+<li>We can re-issue the pending IOs during the backup VM go-live process. Because we have eliminated all races and all IOs specify directly which memory and disk blocks are accessed, these disk operations can be re-issued even if they have already been completed successfully. </li>
 </ol>
-<h3 id="issues-for-network-io"><a class="markdownIt-Anchor" href="#issues-for-network-io"></a> Issues for network IO</h3>
-<h4 id="how-to-solve-the-non-determinism-caused-by-asynchronous-updates"><a class="markdownIt-Anchor" href="#how-to-solve-the-non-determinism-caused-by-asynchronous-updates"></a> How to solve the non-determinism caused by asynchronous updates?</h4>
-<ol>
-<li>
-<p>In a normal VM, the hypervisor asynchronously updates the state of the virtual machine’s network device.</p>
+<h3 id="Issues-for-network-IO"><a href="#Issues-for-network-IO" class="headerlink" title="Issues for network IO"></a>Issues for network IO</h3><h4 id="How-to-solve-the-non-determinism-caused-by-asynchronous-updates"><a href="#How-to-solve-the-non-determinism-caused-by-asynchronous-updates" class="headerlink" title="How to solve the non-determinism caused by asynchronous updates?"></a>How to solve the non-determinism caused by asynchronous updates?</h4><ol>
+<li><p>In a normal VM, the hypervisor asynchronously updates the state of the virtual machine’s network device. </p>
 </li>
-<li>
-<p>For FT</p>
+<li><p>For FT</p>
 <ul>
-<li>
-<p>The code that asynchronously updates VM ring buffers with incoming packets has been modified to force the guest to trap them in the hypervisor, which can log the updates and then apply them to the VM.</p>
+<li><p>The code that asynchronously updates VM ring buffers with incoming packets has been modified to force the guest to trap them in the hypervisor, which can log the updates and then apply them to the VM. </p>
 </li>
-<li>
-<p>The code that typically pulls packets out of transmit queues asynchronously is disabled, and instead, transmits are done through a trap to the hypervisor.</p>
+<li><p>The code that typically pulls packets out of transmit queues asynchronously is disabled, and instead, transmits are done through a trap to the hypervisor. </p>
 </li>
 </ul>
 </li>
 </ol>
-<h4 id="how-can-we-optimize-the-network-performance-while-running-ft"><a class="markdownIt-Anchor" href="#how-can-we-optimize-the-network-performance-while-running-ft"></a> How can we optimize the network performance while running FT?</h4>
-<ol>
-<li>
-<p>Reduce VM traps and interrupts with clustering optimizations.</p>
+<h4 id="How-can-we-optimize-the-network-performance-while-running-FT"><a href="#How-can-we-optimize-the-network-performance-while-running-FT" class="headerlink" title="How can we optimize the network performance while running FT?"></a>How can we optimize the network performance while running FT?</h4><ol>
+<li><p>Reduce VM traps and interrupts with clustering optimizations. </p>
 <ul>
-<li>
-<p>When the VM is streaming data at a sufficient bit rate, the hypervisor can do one transmit trap per group of packets and, in the best case, zero traps since it can transmit the packets as part of receiving new packets.</p>
+<li><p>When the VM is streaming data at a sufficient bit rate, the hypervisor can do one transmit trap per group of packets and, in the best case, zero traps since it can transmit the packets as part of receiving new packets. </p>
 </li>
-<li>
-<p>The hypervisor can reduce the number of interrupts to the VM for incoming packets by only posting the interrupt for a group of packets.</p>
+<li><p>The hypervisor can reduce the number of interrupts to the VM for incoming packets by only posting the interrupt for a group of packets. </p>
 </li>
 </ul>
 </li>
-<li>
-<p>Reduce the delay for transmitted packets.</p>
+<li><p>Reduce the delay for transmitted packets. </p>
 <ul>
-<li>
-<p>The key is to reduce the time required to send a log message to the backup and get an acknowledgment.</p>
+<li><p>The key is to reduce the time required to send a log message to the backup and get an acknowledgment. </p>
 </li>
-<li>
-<p>It is ensured that sending and receiving log entries and acknowledgments can all be done without any thread context switch.</p>
+<li><p>It is ensured that sending and receiving log entries and acknowledgments can all be done without any thread context switch. </p>
 </li>
-<li>
-<p>The VMware vSphere hypervisor allows functions to be registered with the TCP stack that will be called from a deferred execution context (similar to a tasklet in Linux) whenever TCP data is received.</p>
+<li><p>The VMware vSphere hypervisor allows functions to be registered with the TCP stack that will be called from a deferred execution context (similar to a tasklet in Linux) whenever TCP data is received. </p>
 </li>
-<li>
-<p>When the primary VM enqueues a packet to be transmitted, we force an immediate log flush of the associated output log entry by scheduling a deferred execution context to do the flush.</p>
+<li><p>When the primary VM enqueues a packet to be transmitted, we force an immediate log flush of the associated output log entry by scheduling a deferred execution context to do the flush. </p>
 </li>
 </ul>
 </li>
 </ol>
-<h1 id="experiments-and-results"><a class="markdownIt-Anchor" href="#experiments-and-results"></a> Experiments and results</h1>
-<p>One important benchmark is the performance ratio between non-FT and FT systems and logging bandwidth between primary and backup. The performance ratio can show how efficient the FT protocol is, and logging bandwidth is usually a system bottleneck. The author measured them all in the following table. We can see that the FT protocol only decreases the performance by less than 10%</p>
-<img src="/imgs/Distributed/FTVM/02.png" style="zoom:30%;" />
-<p>The typical idle logging bandwidth is 0.5-1.5 Mbits/sec. The idle bandwidth primarily results from recording the delivery of timer interrupts. For a VM with an active workload, the logging bandwidth is dominated by the network and disk inputs that must be sent to the backup - the network packets received and the disk blocks read from the disk. Hence, the logging bandwidth can be much higher than those measured in the table for applications with high network receive or disk read bandwidth. For these kinds of applications, the bandwidth of the logging channel could be a bottleneck.</p>
-<p>The author also measured the bandwidth of logging channels with different capacities, as shown below. When FT is enabled to receive workloads, the logging bandwidth is very large since all incoming network packets must be sent to the logging channel. The logging bandwidth is much lower when FT is enabled for transmit workloads. Overall, FT can limit network bandwidths significantly at very high transmit and receive rates, but high absolute rates are still achievable.</p>
-<img src="/imgs/Distributed/FTVM/03.png" style="zoom:30%;" />
+<h1 id="Experiments-and-results"><a href="#Experiments-and-results" class="headerlink" title="Experiments and results"></a>Experiments and results</h1><p>One important benchmark is the performance ratio between non-FT and FT systems and logging bandwidth between primary and backup. The performance ratio can show how efficient the FT protocol is, and logging bandwidth is usually a system bottleneck. The author measured them all in the following table. We can see that the FT protocol only decreases the performance by less than 10%</p>
+<p><img src="/imgs/Distributed/FTVM/02.png" style="zoom:30%;" /></p>
+<p>The typical idle logging bandwidth is 0.5-1.5 Mbits/sec. The idle bandwidth primarily results from recording the delivery of timer interrupts. For a VM with an active workload, the logging bandwidth is dominated by the network and disk inputs that must be sent to the backup - the network packets received and the disk blocks read from the disk. Hence, the logging bandwidth can be much higher than those measured in the table for applications with high network receive or disk read bandwidth. For these kinds of applications, the bandwidth of the logging channel could be a bottleneck. </p>
+<p>The author also measured the bandwidth of logging channels with different capacities, as shown below. When FT is enabled to receive workloads, the logging bandwidth is very large since all incoming network packets must be sent to the logging channel. The logging bandwidth is much lower when FT is enabled for transmit workloads. Overall, FT can limit network bandwidths significantly at very high transmit and receive rates, but high absolute rates are still achievable. </p>
+<p><img src="/imgs/Distributed/FTVM/03.png" style="zoom:30%;" /></p>
 
     </div>
 

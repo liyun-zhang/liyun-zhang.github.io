@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Paper: ZooKeeper: Wait-free coordination for Internet-scale systems  Purpose Model  ZooKeeper service overview  How does the client interact with the ZooKeeper server? What are the flags of znodes? Wh">
+    <meta name="description" content="Paper: ZooKeeper: Wait-free coordination for Internet-scale systems @[toc] Purpose Contribution Moved away from implementing specific primitives on the server side Opted for exposing an API that enabl">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Zookeeper">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/Zookeeper/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="Paper: ZooKeeper: Wait-free coordination for Internet-scale systems  Purpose Model  ZooKeeper service overview  How does the client interact with the ZooKeeper server? What are the flags of znodes? Wh">
+<meta property="og:description" content="Paper: ZooKeeper: Wait-free coordination for Internet-scale systems @[toc] Purpose Contribution Moved away from implementing specific primitives on the server side Opted for exposing an API that enabl">
 <meta property="og:locale">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/ZooKeeper/Throughput.png">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/Distributed/ZooKeeper/AtomicBroadcast.png">
@@ -146,7 +146,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#purpose"><span class="nav-number">1.</span> <span class="nav-text"> Purpose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#model"><span class="nav-number">2.</span> <span class="nav-text"> Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#zookeeper-service-overview"><span class="nav-number">2.1.</span> <span class="nav-text"> ZooKeeper service overview</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-client-interact-with-the-zookeeper-server"><span class="nav-number">2.1.1.</span> <span class="nav-text"> How does the client interact with the ZooKeeper server?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-are-the-flags-of-znodes"><span class="nav-number">2.1.2.</span> <span class="nav-text"> What are the flags of znodes?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-are-the-differences-between-znodes-and-files-in-a-file-system"><span class="nav-number">2.1.3.</span> <span class="nav-text"> What are the differences between znodes and files in a file system?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-does-zookeeper-guarantee"><span class="nav-number">2.1.4.</span> <span class="nav-text"> What does ZooKeeper guarantee?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-change-the-configuration"><span class="nav-number">2.1.5.</span> <span class="nav-text"> How to change the configuration?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-should-a-client-read-configurations"><span class="nav-number">2.1.6.</span> <span class="nav-text"> How should a client read configurations?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#implement-primitives"><span class="nav-number">2.2.</span> <span class="nav-text"> Implement primitives</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-zookeeper-manage-configuration"><span class="nav-number">2.2.1.</span> <span class="nav-text"> How does ZooKeeper manage configuration?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-zookeeper-manage-rendezvous"><span class="nav-number">2.2.2.</span> <span class="nav-text"> How does ZooKeeper manage rendezvous?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-zookeeper-manage-group-membership"><span class="nav-number">2.2.3.</span> <span class="nav-text"> How does ZooKeeper manage group membership?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-zookeeper-manage-mini-transactions"><span class="nav-number">2.2.4.</span> <span class="nav-text"> How does ZooKeeper manage mini-transactions?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-zookeeper-implement-simple-locks"><span class="nav-number">2.2.5.</span> <span class="nav-text"> How does ZooKeeper implement simple locks?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-zookeeper-implement-simple-locks-without-herd-effect"><span class="nav-number">2.2.6.</span> <span class="nav-text"> How does ZooKeeper implement simple locks without herd effect?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-zookeeper-implement-readwrite-locks"><span class="nav-number">2.2.7.</span> <span class="nav-text"> How does ZooKeeper implement Read&#x2F;Write locks?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-difference-between-zookeeper-locks-and-thread-mutex-locks"><span class="nav-number">2.2.8.</span> <span class="nav-text"> What is the difference between ZooKeeper locks and thread mutex locks?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-zookeeper-implement-a-double-barrier"><span class="nav-number">2.2.9.</span> <span class="nav-text"> How does ZooKeeper implement a double barrier?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#implementation-of-zookeeper"><span class="nav-number">2.3.</span> <span class="nav-text"> Implementation of ZooKeeper</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-zookeeper-serve-requests"><span class="nav-number">2.3.1.</span> <span class="nav-text"> How does ZooKeeper serve requests?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-zookeeper-manage-the-database"><span class="nav-number">2.3.2.</span> <span class="nav-text"> How does ZooKeeper manage the database?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-the-request-processor-handle-write-requests"><span class="nav-number">2.3.3.</span> <span class="nav-text"> How does the request processor handle write requests?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-do-servers-reach-an-agreement"><span class="nav-number">2.3.4.</span> <span class="nav-text"> How do servers reach an agreement?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-zookeeper-take-a-snapshot"><span class="nav-number">2.3.5.</span> <span class="nav-text"> How does ZooKeeper take a snapshot?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-zookeeper-handle-sync"><span class="nav-number">2.3.6.</span> <span class="nav-text"> How does ZooKeeper handle sync()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-zookeeper-ensure-to-serve-data-at-least-as-updated-as-the-last-server-served-that-data"><span class="nav-number">2.3.7.</span> <span class="nav-text"> How does ZooKeeper ensure to serve data at least as updated as the last server served that data?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-detect-client-session-failures"><span class="nav-number">2.3.8.</span> <span class="nav-text"> How to detect client session failures?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#evaluation-and-results"><span class="nav-number">3.</span> <span class="nav-text"> Evaluation and results</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Purpose"><span class="nav-number">1.</span> <span class="nav-text">Purpose</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Model"><span class="nav-number">2.</span> <span class="nav-text">Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ZooKeeper-service-overview"><span class="nav-number">2.1.</span> <span class="nav-text">ZooKeeper service overview</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-the-client-interact-with-the-ZooKeeper-server"><span class="nav-number">2.1.1.</span> <span class="nav-text">How does the client interact with the ZooKeeper server?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-are-the-flags-of-znodes"><span class="nav-number">2.1.2.</span> <span class="nav-text">What are the flags of znodes?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-are-the-differences-between-znodes-and-files-in-a-file-system"><span class="nav-number">2.1.3.</span> <span class="nav-text">What are the differences between znodes and files in a file system?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-does-ZooKeeper-guarantee"><span class="nav-number">2.1.4.</span> <span class="nav-text">What does ZooKeeper guarantee?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-to-change-the-configuration"><span class="nav-number">2.1.5.</span> <span class="nav-text">How to change the configuration?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-should-a-client-read-configurations"><span class="nav-number">2.1.6.</span> <span class="nav-text">How should a client read configurations?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Implement-primitives"><span class="nav-number">2.2.</span> <span class="nav-text">Implement primitives</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-ZooKeeper-manage-configuration"><span class="nav-number">2.2.1.</span> <span class="nav-text">How does ZooKeeper manage configuration?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-ZooKeeper-manage-rendezvous"><span class="nav-number">2.2.2.</span> <span class="nav-text">How does ZooKeeper manage rendezvous?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-ZooKeeper-manage-group-membership"><span class="nav-number">2.2.3.</span> <span class="nav-text">How does ZooKeeper manage group membership?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-ZooKeeper-manage-mini-transactions"><span class="nav-number">2.2.4.</span> <span class="nav-text">How does ZooKeeper manage mini-transactions?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-ZooKeeper-implement-simple-locks"><span class="nav-number">2.2.5.</span> <span class="nav-text">How does ZooKeeper implement simple locks?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-ZooKeeper-implement-simple-locks-without-herd-effect"><span class="nav-number">2.2.6.</span> <span class="nav-text">How does ZooKeeper implement simple locks without herd effect?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-ZooKeeper-implement-Read-Write-locks"><span class="nav-number">2.2.7.</span> <span class="nav-text">How does ZooKeeper implement Read&#x2F;Write locks?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-is-the-difference-between-ZooKeeper-locks-and-thread-mutex-locks"><span class="nav-number">2.2.8.</span> <span class="nav-text">What is the difference between ZooKeeper locks and thread mutex locks?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-ZooKeeper-implement-a-double-barrier"><span class="nav-number">2.2.9.</span> <span class="nav-text">How does ZooKeeper implement a double barrier?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Implementation-of-ZooKeeper"><span class="nav-number">2.3.</span> <span class="nav-text">Implementation of ZooKeeper</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-ZooKeeper-serve-requests"><span class="nav-number">2.3.1.</span> <span class="nav-text">How does ZooKeeper serve requests?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-ZooKeeper-manage-the-database"><span class="nav-number">2.3.2.</span> <span class="nav-text">How does ZooKeeper manage the database?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-the-request-processor-handle-write-requests"><span class="nav-number">2.3.3.</span> <span class="nav-text">How does the request processor handle write requests?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-do-servers-reach-an-agreement"><span class="nav-number">2.3.4.</span> <span class="nav-text">How do servers reach an agreement?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-ZooKeeper-take-a-snapshot"><span class="nav-number">2.3.5.</span> <span class="nav-text">How does ZooKeeper take a snapshot?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-ZooKeeper-handle-sync"><span class="nav-number">2.3.6.</span> <span class="nav-text">How does ZooKeeper handle sync()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-ZooKeeper-ensure-to-serve-data-at-least-as-updated-as-the-last-server-served-that-data"><span class="nav-number">2.3.7.</span> <span class="nav-text">How does ZooKeeper ensure to serve data at least as updated as the last server served that data?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-to-detect-client-session-failures"><span class="nav-number">2.3.8.</span> <span class="nav-text">How to detect client session failures?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Evaluation-and-results"><span class="nav-number">3.</span> <span class="nav-text">Evaluation and results</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -259,438 +259,304 @@
     
     
     <div class="post-body" itemprop="articleBody"><p>Paper: <a target="_blank" rel="noopener" href="http://nil.csail.mit.edu/6.824/2020/papers/zookeeper.pdf">ZooKeeper: Wait-free coordination for Internet-scale systems</a></p>
-<p><ul class="markdownIt-TOC">
-<li><a href="#purpose">Purpose</a></li>
-<li><a href="#model">Model</a>
-<ul>
-<li><a href="#zookeeper-service-overview">ZooKeeper service overview</a>
-<ul>
-<li><a href="#how-does-the-client-interact-with-the-zookeeper-server">How does the client interact with the ZooKeeper server?</a></li>
-<li><a href="#what-are-the-flags-of-znodes">What are the flags of znodes?</a></li>
-<li><a href="#what-are-the-differences-between-znodes-and-files-in-a-file-system">What are the differences between znodes and files in a file system?</a></li>
-<li><a href="#what-does-zookeeper-guarantee">What does ZooKeeper guarantee?</a></li>
-<li><a href="#how-to-change-the-configuration">How to change the configuration?</a></li>
-<li><a href="#how-should-a-client-read-configurations">How should a client read configurations?</a></li>
+<p>@[toc]</p>
+<h1 id="Purpose"><a href="#Purpose" class="headerlink" title="Purpose"></a>Purpose</h1><ol>
+<li>Contribution<ul>
+<li>Moved away from implementing specific primitives on the server side<ul>
+<li>Opted for exposing an API that enables application developers to implement their primitives. </li>
+<li>It enables new primitives without requiring changes to the service core. </li>
 </ul>
 </li>
-<li><a href="#implement-primitives">Implement primitives</a>
-<ul>
-<li><a href="#how-does-zookeeper-manage-configuration">How does ZooKeeper manage configuration?</a></li>
-<li><a href="#how-does-zookeeper-manage-rendezvous">How does ZooKeeper manage rendezvous?</a></li>
-<li><a href="#how-does-zookeeper-manage-group-membership">How does ZooKeeper manage group membership?</a></li>
-<li><a href="#how-does-zookeeper-manage-mini-transactions">How does ZooKeeper manage mini-transactions?</a></li>
-<li><a href="#how-does-zookeeper-implement-simple-locks">How does ZooKeeper implement simple locks?</a></li>
-<li><a href="#how-does-zookeeper-implement-simple-locks-without-herd-effect">How does ZooKeeper implement simple locks without herd effect?</a></li>
-<li><a href="#how-does-zookeeper-implement-readwrite-locks">How does ZooKeeper implement Read/Write locks?</a></li>
-<li><a href="#what-is-the-difference-between-zookeeper-locks-and-thread-mutex-locks">What is the difference between ZooKeeper locks and thread mutex locks?</a></li>
-<li><a href="#how-does-zookeeper-implement-a-double-barrier">How does ZooKeeper implement a double barrier?</a></li>
+<li>Moved away from blocking primitives. <ul>
+<li>Manipulate simple wait-free data objects organized hierarchically as in file systems. </li>
 </ul>
 </li>
-<li><a href="#implementation-of-zookeeper">Implementation of ZooKeeper</a>
-<ul>
-<li><a href="#how-does-zookeeper-serve-requests">How does ZooKeeper serve requests?</a></li>
-<li><a href="#how-does-zookeeper-manage-the-database">How does ZooKeeper manage the database?</a></li>
-<li><a href="#how-does-the-request-processor-handle-write-requests">How does the request processor handle write requests?</a></li>
-<li><a href="#how-do-servers-reach-an-agreement">How do servers reach an agreement?</a></li>
-<li><a href="#how-does-zookeeper-take-a-snapshot">How does ZooKeeper take a snapshot?</a></li>
-<li><a href="#how-does-zookeeper-handle-sync">How does ZooKeeper handle sync()</a></li>
-<li><a href="#how-does-zookeeper-ensure-to-serve-data-at-least-as-updated-as-the-last-server-served-that-data">How does ZooKeeper ensure to serve data at least as updated as the last server served that data?</a></li>
-<li><a href="#how-to-detect-client-session-failures">How to detect client session failures?</a></li>
+<li>Provide a per-client guarantee of FIFO execution of requests and linearizability for all writes. <ul>
+<li>Read requests are satisfied by local servers. </li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#evaluation-and-results">Evaluation and results</a></li>
-</ul>
-</p>
-<h1 id="purpose"><a class="markdownIt-Anchor" href="#purpose"></a> Purpose</h1>
-<ol>
-<li>Contribution
-<ul>
-<li>Moved away from implementing specific primitives on the server side
-<ul>
-<li>Opted for exposing an API that enables application developers to implement their primitives.</li>
-<li>It enables new primitives without requiring changes to the service core.</li>
-</ul>
-</li>
-<li>Moved away from blocking primitives.
-<ul>
-<li>Manipulate simple wait-free data objects organized hierarchically as in file systems.</li>
-</ul>
-</li>
-<li>Provide a per-client guarantee of FIFO execution of requests and linearizability for all writes.
-<ul>
-<li>Read requests are satisfied by local servers.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Features
-<ul>
-<li>Provide a simple and high-performance kernel for building more complex coordination primitives at the client.</li>
-<li>Incorporate elements from group messaging, shared registers, and distributed lock services in a replicated centralized service.</li>
-<li>It has the wait-free aspects of shared registers with an event-driven mechanism.</li>
-<li>A simple pipelined architecture allows us to have hundreds or thousands of requests outstanding while still achieving low latency.</li>
-<li>With asynchronous operations, a client can have multiple outstanding operations simultaneously.</li>
-<li>Enables caching data on the client side with ZooKeeper watches to avoid the problem of delayed updates caused by slow or faulty clients.</li>
+<li>Features<ul>
+<li>Provide a simple and high-performance kernel for building more complex coordination primitives at the client. </li>
+<li>Incorporate elements from group messaging, shared registers, and distributed lock services in a replicated centralized service. </li>
+<li>It has the wait-free aspects of shared registers with an event-driven mechanism. </li>
+<li>A simple pipelined architecture allows us to have hundreds or thousands of requests outstanding while still achieving low latency. </li>
+<li>With asynchronous operations, a client can have multiple outstanding operations simultaneously. </li>
+<li>Enables caching data on the client side with ZooKeeper watches to avoid the problem of delayed updates caused by slow or faulty clients. </li>
 </ul>
 </li>
 </ol>
-<h1 id="model"><a class="markdownIt-Anchor" href="#model"></a> Model</h1>
-<h2 id="zookeeper-service-overview"><a class="markdownIt-Anchor" href="#zookeeper-service-overview"></a> ZooKeeper service overview</h2>
-<p>Znode: an in-memory data node in the ZooKeeper data<br />
-Data tree: a hierarchical namespace to organize znodes</p>
-<h3 id="how-does-the-client-interact-with-the-zookeeper-server"><a class="markdownIt-Anchor" href="#how-does-the-client-interact-with-the-zookeeper-server"></a> How does the client interact with the ZooKeeper server?</h3>
-<ol>
-<li>
-<p>Clients submit requests to ZooKeeper through a client API using a ZooKeeper client library.</p>
+<h1 id="Model"><a href="#Model" class="headerlink" title="Model"></a>Model</h1><h2 id="ZooKeeper-service-overview"><a href="#ZooKeeper-service-overview" class="headerlink" title="ZooKeeper service overview"></a>ZooKeeper service overview</h2><p>Znode: an in-memory data node in the ZooKeeper data<br>Data tree: a hierarchical namespace to organize znodes</p>
+<h3 id="How-does-the-client-interact-with-the-ZooKeeper-server"><a href="#How-does-the-client-interact-with-the-ZooKeeper-server" class="headerlink" title="How does the client interact with the ZooKeeper server?"></a>How does the client interact with the ZooKeeper server?</h3><ol>
+<li><p>Clients submit requests to ZooKeeper through a client API using a ZooKeeper client library. </p>
 <ul>
 <li><code>create(path, data, flags)</code>: returns the name of the new znode</li>
-<li><code>delete(path, version)</code>: Deletes the znode path if that znode is at the expected version.</li>
-<li><code>exists(path, watch)</code>: The watch flag enables a client to set a watch on the znode.</li>
-<li><code>getData(path, watch)</code>: Returns the data and meta-data, such as version information, associated with the znode. ZooKeeper does not set the watch if the znode does not exist.</li>
-<li><code>setData(path, data, version)</code>: Writes data[] to znode path if the version number is the current znode version.</li>
+<li><code>delete(path, version)</code>: Deletes the znode path if that znode is at the expected version. </li>
+<li><code>exists(path, watch)</code>: The watch flag enables a client to set a watch on the znode. </li>
+<li><code>getData(path, watch)</code>: Returns the data and meta-data, such as version information, associated with the znode. ZooKeeper does not set the watch if the znode does not exist. </li>
+<li><code>setData(path, data, version)</code>: Writes data[] to znode path if the version number is the current znode version. </li>
 <li><code>getChildren(path, watch)</code></li>
-<li><code>sync(path)</code>: Waits for all updates pending at the start of the operation to propagate to the server the client is connected to. The path is currently ignored.</li>
+<li><code>sync(path)</code>: Waits for all updates pending at the start of the operation to propagate to the server the client is connected to. The path is currently ignored. </li>
 </ul>
 </li>
-<li>
-<p>All methods have synchronous and asynchronous versions available through the API.</p>
+<li><p>All methods have synchronous and asynchronous versions available through the API. </p>
 </li>
-<li>
-<p>If the actual version number of the znode does not match the expected version number the update fails with an unexpected version error.<br />
-If the version number is −1, it does not perform version checking.</p>
+<li><p>If the actual version number of the znode does not match the expected version number the update fails with an unexpected version error.<br> If the version number is −1, it does not perform version checking.</p>
 </li>
-<li>
-<p>The client library also manages the network connections between the client and ZooKeeper servers.</p>
+<li><p>The client library also manages the network connections between the client and ZooKeeper servers.</p>
 </li>
 </ol>
-<h3 id="what-are-the-flags-of-znodes"><a class="markdownIt-Anchor" href="#what-are-the-flags-of-znodes"></a> What are the flags of znodes?</h3>
-<ol>
+<h3 id="What-are-the-flags-of-znodes"><a href="#What-are-the-flags-of-znodes" class="headerlink" title="What are the flags of znodes?"></a>What are the flags of znodes?</h3><ol>
 <li><em>Regular</em>: Clients manipulate regular znodes by creating and deleting them explicitly</li>
 <li><em>Ephemeral</em>: Clients create such znodes, and they either delete them explicitly or let the system remove them automatically when the session that makes them terminates</li>
-<li><em>Sequential</em>: Those znodes in the same parent znode have a monotonically increasing counter appended to their name. The newer znode has a larger sequence value.</li>
-<li><em>Watch</em>
-<ul>
-<li>A read operation with a watch flag set completes normally, except the server promises to notify the client when the information returned has changed.</li>
-<li>Watches are one-time triggers associated with a session; they are unregistered once triggered, or the session closes.</li>
-<li>Watches indicate a change has happened but do not provide the change.</li>
-<li>Session events, such as connection loss events, are also sent to watch callbacks so that clients know that watch events may be delayed.</li>
+<li><em>Sequential</em>: Those znodes in the same parent znode have a monotonically increasing counter appended to their name. The newer znode has a larger sequence value. </li>
+<li><em>Watch</em><ul>
+<li>A read operation with a watch flag set completes normally, except the server promises to notify the client when the information returned has changed. </li>
+<li>Watches are one-time triggers associated with a session; they are unregistered once triggered, or the session closes. </li>
+<li>Watches indicate a change has happened but do not provide the change. </li>
+<li>Session events, such as connection loss events, are also sent to watch callbacks so that clients know that watch events may be delayed. </li>
 </ul>
 </li>
 </ol>
-<h3 id="what-are-the-differences-between-znodes-and-files-in-a-file-system"><a class="markdownIt-Anchor" href="#what-are-the-differences-between-znodes-and-files-in-a-file-system"></a> What are the differences between znodes and files in a file system?</h3>
-<ol>
-<li>
-<p>Znodes map to abstractions of the client application, typically corresponding to meta-data used for coordination purposes.</p>
+<h3 id="What-are-the-differences-between-znodes-and-files-in-a-file-system"><a href="#What-are-the-differences-between-znodes-and-files-in-a-file-system" class="headerlink" title="What are the differences between znodes and files in a file system?"></a>What are the differences between znodes and files in a file system?</h3><ol>
+<li><p>Znodes map to abstractions of the client application, typically corresponding to meta-data used for coordination purposes. </p>
 </li>
-<li>
-<p>Znodes allow clients to store information that can be used for meta-data or configuration in a distributed computation, such as the leadership of a replica group, which can be stored in a known location.</p>
+<li><p>Znodes allow clients to store information that can be used for meta-data or configuration in a distributed computation, such as the leadership of a replica group, which can be stored in a known location. </p>
 </li>
-<li>
-<p>ZooKeeper does not use handles to access znodes. Instead, each request includes the full path on which the znode is being operated.</p>
+<li><p>ZooKeeper does not use handles to access znodes. Instead, each request includes the full path on which the znode is being operated. </p>
 <ul>
-<li>
-<p>It simplifies the API (no <code>open()</code> or <code>close()</code> methods)</p>
+<li><p>It simplifies the API (no <code>open()</code> or <code>close()</code> methods)</p>
 </li>
-<li>
-<p>It also eliminates the extra state that the server would need to maintain.</p>
+<li><p>It also eliminates the extra state that the server would need to maintain. </p>
 </li>
 </ul>
 </li>
 </ol>
-<h3 id="what-does-zookeeper-guarantee"><a class="markdownIt-Anchor" href="#what-does-zookeeper-guarantee"></a> What does ZooKeeper guarantee?</h3>
-<ol>
-<li>
-<p>This definition of its linearizability is called A-linearizability (asynchronous linearizability), which allows a client to have multiple outstanding operations.</p>
+<h3 id="What-does-ZooKeeper-guarantee"><a href="#What-does-ZooKeeper-guarantee" class="headerlink" title="What does ZooKeeper guarantee?"></a>What does ZooKeeper guarantee?</h3><ol>
+<li><p>This definition of its linearizability is called A-linearizability (asynchronous linearizability), which allows a client to have multiple outstanding operations. </p>
 <ul>
-<li>
-<p><em>Linearizable writes</em>: all requests that update the state of ZooKeeper are serializable and respect precedence.</p>
+<li><p><em>Linearizable writes</em>: all requests that update the state of ZooKeeper are serializable and respect precedence. </p>
 </li>
-<li>
-<p><em>FIFO client order</em>: all requests from a given client are executed in the order that the client sent them.</p>
+<li><p><em>FIFO client order</em>: all requests from a given client are executed in the order that the client sent them. </p>
 </li>
 </ul>
 </li>
-<li>
-<p>A-linearizability can guarantee no specific order for outstanding operations of the same client or a FIFO order.</p>
+<li><p>A-linearizability can guarantee no specific order for outstanding operations of the same client or a FIFO order. </p>
 </li>
-<li>
-<p>A system that satisfies A-linearizability also satisfies linearizability. Because only update requests are A-linearizable, ZooKeeper processes read requests locally at each replica.</p>
+<li><p>A system that satisfies A-linearizability also satisfies linearizability. Because only update requests are A-linearizable, ZooKeeper processes read requests locally at each replica. </p>
 </li>
 </ol>
-<h3 id="how-to-change-the-configuration"><a class="markdownIt-Anchor" href="#how-to-change-the-configuration"></a> How to change the configuration?</h3>
-<ol>
-<li>
-<p>Two requirements:</p>
+<h3 id="How-to-change-the-configuration"><a href="#How-to-change-the-configuration" class="headerlink" title="How to change the configuration?"></a>How to change the configuration?</h3><ol>
+<li><p>Two requirements:</p>
 <ul>
-<li>As the new leader starts making changes, we do not want other processes to start using the configuration that is being changed.</li>
-<li>If the new leader dies before the configuration has been fully updated, we do not want the processes to use this partial configuration.</li>
+<li>As the new leader starts making changes, we do not want other processes to start using the configuration that is being changed. </li>
+<li>If the new leader dies before the configuration has been fully updated, we do not want the processes to use this partial configuration. </li>
 </ul>
 </li>
-<li>
-<p>The new leader can designate a path as the ready znode; other processes will only use the configuration when that znode exists.</p>
+<li><p>The new leader can designate a path as the ready znode; other processes will only use the configuration when that znode exists. </p>
 <ul>
-<li>The new leader changes the configuration by deleting ready, updating the configuration znodes, and creating ready.</li>
-<li>Given the FIFO client order guarantee, these changes can be pipelined and issued asynchronously to update the configuration state quickly.</li>
+<li>The new leader changes the configuration by deleting ready, updating the configuration znodes, and creating ready. </li>
+<li>Given the FIFO client order guarantee, these changes can be pipelined and issued asynchronously to update the configuration state quickly. </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-should-a-client-read-configurations"><a class="markdownIt-Anchor" href="#how-should-a-client-read-configurations"></a> How should a client read configurations?</h3>
-<ol>
-<li>
-<p>If a client sees the ready exists before the new leader starts to make a change, it could read the partial configuration in progress and cannot notice anything.</p>
+<h3 id="How-should-a-client-read-configurations"><a href="#How-should-a-client-read-configurations" class="headerlink" title="How should a client read configurations?"></a>How should a client read configurations?</h3><ol>
+<li><p>If a client sees the ready exists before the new leader starts to make a change, it could read the partial configuration in progress and cannot notice anything. </p>
 <ul>
-<li>The client needs to set the watch flag when they check the existence of the ready znode.</li>
-<li>Then, it will see a notification informing the client of the change before it can read any of the new configurations.</li>
+<li>The client needs to set the watch flag when they check the existence of the ready znode. </li>
+<li>Then, it will see a notification informing the client of the change before it can read any of the new configurations. </li>
 </ul>
 </li>
-<li>
-<p>If A changes the shared configuration in ZooKeeper and tells B of the change through the shared communication channel, B would expect to see the change when it re-reads the configuration.</p>
+<li><p>If A changes the shared configuration in ZooKeeper and tells B of the change through the shared communication channel, B would expect to see the change when it re-reads the configuration.</p>
 <ul>
-<li>If B’s ZooKeeper replica is slightly behind A’s, the new configuration may not be visible.</li>
-<li>B can ensure it sees the most up-to-date information by issuing a write before re-reading the configuration.</li>
-<li><code>sync</code> causes a server to apply all pending write requests before processing the read without the overhead of a full write.</li>
+<li>If B’s ZooKeeper replica is slightly behind A’s, the new configuration may not be visible. </li>
+<li>B can ensure it sees the most up-to-date information by issuing a write before re-reading the configuration. </li>
+<li><code>sync</code> causes a server to apply all pending write requests before processing the read without the overhead of a full write. </li>
 </ul>
 </li>
 </ol>
-<h2 id="implement-primitives"><a class="markdownIt-Anchor" href="#implement-primitives"></a> Implement primitives</h2>
-<h3 id="how-does-zookeeper-manage-configuration"><a class="markdownIt-Anchor" href="#how-does-zookeeper-manage-configuration"></a> How does ZooKeeper manage configuration?</h3>
-<ol>
-<li>Configuration is stored in a znode, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">z_c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
-<li>Processes start up with the full pathname of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">z_c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>. Starting processes obtain their configuration by reading zc with the watch flag set to true.</li>
-<li>If the configuration in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">z_c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is ever updated, the processes are notified, and the new configuration is read, again setting the watch flag to true.</li>
+<h2 id="Implement-primitives"><a href="#Implement-primitives" class="headerlink" title="Implement primitives"></a>Implement primitives</h2><h3 id="How-does-ZooKeeper-manage-configuration"><a href="#How-does-ZooKeeper-manage-configuration" class="headerlink" title="How does ZooKeeper manage configuration?"></a>How does ZooKeeper manage configuration?</h3><ol>
+<li>Configuration is stored in a znode, $z_c$. </li>
+<li>Processes start up with the full pathname of $z_c$. Starting processes obtain their configuration by reading zc with the watch flag set to true. </li>
+<li>If the configuration in $z_c$ is ever updated, the processes are notified, and the new configuration is read, again setting the watch flag to true. </li>
 </ol>
-<h3 id="how-does-zookeeper-manage-rendezvous"><a class="markdownIt-Anchor" href="#how-does-zookeeper-manage-rendezvous"></a> How does ZooKeeper manage rendezvous?</h3>
-<ol>
-<li>Use a rendezvous znode, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">z_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, which is a node created by the client.</li>
-<li>The client passes the full pathname of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">z_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> as a startup parameter of the master and worker processes.</li>
-<li>When the master starts, it fills in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">z_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> with information about addresses and ports it is using.</li>
-<li>When workers start, they read <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">z_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> with the watch set to true.
-<ul>
-<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">z_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> has not been filled in yet, the worker waits to be notified when <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">z_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is updated.</li>
-<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">z_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is an ephemeral node, master and worker processes can watch for <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">z_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> to be deleted and cleaned up when the client ends.</li>
+<h3 id="How-does-ZooKeeper-manage-rendezvous"><a href="#How-does-ZooKeeper-manage-rendezvous" class="headerlink" title="How does ZooKeeper manage rendezvous?"></a>How does ZooKeeper manage rendezvous?</h3><ol>
+<li>Use a rendezvous znode, $z_r$, which is a node created by the client. </li>
+<li>The client passes the full pathname of $z_r$ as a startup parameter of the master and worker processes. </li>
+<li>When the master starts, it fills in $z_r$ with information about addresses and ports it is using. </li>
+<li>When workers start, they read $z_r$ with the watch set to true. <ul>
+<li>If $z_r$ has not been filled in yet, the worker waits to be notified when $z_r$ is updated. </li>
+<li>If $z_r$ is an ephemeral node, master and worker processes can watch for $z_r$ to be deleted and cleaned up when the client ends. </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-does-zookeeper-manage-group-membership"><a class="markdownIt-Anchor" href="#how-does-zookeeper-manage-group-membership"></a> How does ZooKeeper manage group membership?</h3>
-<ol>
-<li>
-<p>Designate a znode, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>g</mi></msub></mrow><annotation encoding="application/x-tex">z_g</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.716668em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">g</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> to represent the group.</p>
+<h3 id="How-does-ZooKeeper-manage-group-membership"><a href="#How-does-ZooKeeper-manage-group-membership" class="headerlink" title="How does ZooKeeper manage group membership?"></a>How does ZooKeeper manage group membership?</h3><ol>
+<li><p>Designate a znode, $z_g$ to represent the group. </p>
 </li>
-<li>
-<p>When a process member of the group starts, it creates an <code>ephemeral</code> child znode under <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>g</mi></msub></mrow><annotation encoding="application/x-tex">z_g</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.716668em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">g</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span>. Processes may put process information in the data of the child znode.</p>
+<li><p>When a process member of the group starts, it creates an <code>ephemeral</code> child znode under $z_g$. Processes may put process information in the data of the child znode. </p>
 </li>
-<li>
-<p>If each process has a unique name or identifier, that name is used as the name of the child znode; otherwise, the process creates the znode with the <code>SEQUENTIAL</code> flag to obtain a unique name assignment.</p>
+<li><p>If each process has a unique name or identifier, that name is used as the name of the child znode; otherwise, the process creates the znode with the <code>SEQUENTIAL</code> flag to obtain a unique name assignment. </p>
 </li>
 </ol>
-<h3 id="how-does-zookeeper-manage-mini-transactions"><a class="markdownIt-Anchor" href="#how-does-zookeeper-manage-mini-transactions"></a> How does ZooKeeper manage mini-transactions?</h3>
-<ol>
-<li>In a mini-transaction, we want the <code>getData</code> and <code>setData</code> to be atomic.</li>
-<li>ZooKeeper can support mini-transactions using version numbers.</li>
+<h3 id="How-does-ZooKeeper-manage-mini-transactions"><a href="#How-does-ZooKeeper-manage-mini-transactions" class="headerlink" title="How does ZooKeeper manage mini-transactions?"></a>How does ZooKeeper manage mini-transactions?</h3><ol>
+<li>In a mini-transaction, we want the <code>getData</code> and <code>setData</code> to be atomic. </li>
+<li>ZooKeeper can support mini-transactions using version numbers. </li>
 </ol>
 <figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> <span class="literal">true</span>:</span><br><span class="line">	X, v = <span class="title function_ invoke__">getData</span>(K)</span><br><span class="line">  <span class="keyword">if</span> <span class="title function_ invoke__">setData</span>(K, X+<span class="number">1</span>, v):</span><br><span class="line">		<span class="keyword">break</span></span><br></pre></td></tr></table></figure>
-<h3 id="how-does-zookeeper-implement-simple-locks"><a class="markdownIt-Anchor" href="#how-does-zookeeper-implement-simple-locks"></a> How does ZooKeeper implement simple locks?</h3>
-<ol>
-<li>
-<p>The lock is represented by a znode. To acquire a lock, a client tries to create the designated znode with the <code>EPHEMERAL</code> flag.</p>
+<h3 id="How-does-ZooKeeper-implement-simple-locks"><a href="#How-does-ZooKeeper-implement-simple-locks" class="headerlink" title="How does ZooKeeper implement simple locks?"></a>How does ZooKeeper implement simple locks?</h3><ol>
+<li><p>The lock is represented by a znode. To acquire a lock, a client tries to create the designated znode with the <code>EPHEMERAL</code> flag. </p>
 </li>
-<li>
-<p>If the creation succeeds, the client holds the lock. Otherwise, the client can read the znode with the watch flag set to be notified if the current leader dies.</p>
+<li><p>If the creation succeeds, the client holds the lock. Otherwise, the client can read the znode with the watch flag set to be notified if the current leader dies. </p>
 </li>
-<li>
-<p>A client releases the lock when it dies or explicitly deletes the znode.</p>
+<li><p>A client releases the lock when it dies or explicitly deletes the znode. </p>
 </li>
-<li>
-<p>Other clients waiting for a lock try again to acquire one once they observe the znode being deleted.</p>
+<li><p>Other clients waiting for a lock try again to acquire one once they observe the znode being deleted.</p>
 </li>
 </ol>
-<h3 id="how-does-zookeeper-implement-simple-locks-without-herd-effect"><a class="markdownIt-Anchor" href="#how-does-zookeeper-implement-simple-locks-without-herd-effect"></a> How does ZooKeeper implement simple locks without herd effect?</h3>
-<ol>
-<li>
-<p>Herd effect of simple locks: If many clients are waiting to acquire a lock, they will all vie for it when it is released, even though only one client can.</p>
+<h3 id="How-does-ZooKeeper-implement-simple-locks-without-herd-effect"><a href="#How-does-ZooKeeper-implement-simple-locks-without-herd-effect" class="headerlink" title="How does ZooKeeper implement simple locks without herd effect?"></a>How does ZooKeeper implement simple locks without herd effect?</h3><ol>
+<li><p>Herd effect of simple locks: If many clients are waiting to acquire a lock, they will all vie for it when it is released, even though only one client can. </p>
 </li>
-<li>
-<p>Define a lock znode l to implement such locks. Line up all the clients requesting the lock, and each obtains the lock to request arrival.</p>
+<li><p>Define a lock znode l to implement such locks. Line up all the clients requesting the lock, and each obtains the lock to request arrival. </p>
 <ul>
-<li>Use the <code>SEQUENTIAL</code> flag to order the client’s attempt to acquire the lock with respect to all other attempts.</li>
-<li>The client holds the lock if the client’s znode has the lowest sequence number.</li>
-<li>Otherwise, the client waits for deletion of the znode that either has the lock or will receive the lock before this client’s znode.</li>
+<li>Use the <code>SEQUENTIAL</code> flag to order the client’s attempt to acquire the lock with respect to all other attempts. </li>
+<li>The client holds the lock if the client’s znode has the lowest sequence number. </li>
+<li>Otherwise, the client waits for deletion of the znode that either has the lock or will receive the lock before this client’s znode. </li>
 </ul>
 </li>
-<li>
-<p>By only watching the znode that precedes the client’s znode, the herd effect can be avoided by only waking up one process when a lock is released or a lock request is abandoned.</p>
-</li>
-<li>
-<p>Once the znode being watched by the client goes away, the client must check if it now holds the lock.</p>
-<ul>
-<li>The previous lock request may have been abandoned and there is a znode with a lower sequence number still waiting for or holding the lock.</li>
+<li>By only watching the znode that precedes the client’s znode, the herd effect can be avoided by only waking up one process when a lock is released or a lock request is abandoned. </li>
+<li>Once the znode being watched by the client goes away, the client must check if it now holds the lock. <ul>
+<li>The previous lock request may have been abandoned and there is a znode with a lower sequence number still waiting for or holding the lock. </li>
 </ul>
 </li>
-<li>
-<p>Releasing a lock is as simple as deleting the znode n that represents the lock request.</p>
-</li>
-<li>
-<p>By browsing the ZooKeeper data, we can see the amount of lock contention, break locks, and debug locking problems.</p>
+<li>Releasing a lock is as simple as deleting the znode n that represents the lock request. </li>
+<li><p>By browsing the ZooKeeper data, we can see the amount of lock contention, break locks, and debug locking problems. </p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Lock</span></span><br><span class="line">n = create(l + “/lock-”, EPHEMERAL|SEQUENTIAL)</span><br><span class="line">C = getChildren(l, <span class="literal">false</span>)</span><br><span class="line"><span class="keyword">if</span> n is lowest znode in C, <span class="built_in">exit</span></span><br><span class="line">p = znode in C ordered just before n</span><br><span class="line"><span class="keyword">if</span> exists(p, <span class="literal">true</span>) wait <span class="keyword">for</span> watch event</span><br><span class="line"><span class="keyword">goto</span> <span class="number">2</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//Unlock</span></span><br><span class="line">delete(n)</span><br></pre></td></tr></table></figure>
 </li>
 </ol>
-<h3 id="how-does-zookeeper-implement-readwrite-locks"><a class="markdownIt-Anchor" href="#how-does-zookeeper-implement-readwrite-locks"></a> How does ZooKeeper implement Read/Write locks?</h3>
-<ol>
-<li>
-<p>The write locks are similar to simple ones since they are all exclusive.</p>
-</li>
-<li>
-<p>Since read locks may be shared, and only earlier write lock znodes prevent the client from obtaining a read lock, read locks only need to check that no lower write znode.</p>
+<h3 id="How-does-ZooKeeper-implement-Read-Write-locks"><a href="#How-does-ZooKeeper-implement-Read-Write-locks" class="headerlink" title="How does ZooKeeper implement Read/Write locks?"></a>How does ZooKeeper implement Read/Write locks?</h3><ol>
+<li>The write locks are similar to simple ones since they are all exclusive. </li>
+<li><p>Since read locks may be shared, and only earlier write lock znodes prevent the client from obtaining a read lock, read locks only need to check that no lower write znode. </p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Write lock</span></span><br><span class="line">n = create(l + “/write-”, EPHEMERAL|SEQUENTIAL)</span><br><span class="line">C = getChildren(l, <span class="literal">false</span>)</span><br><span class="line"><span class="keyword">if</span> n is lowest znode in C, <span class="built_in">exit</span></span><br><span class="line">p = znode in C ordered just before n</span><br><span class="line"><span class="keyword">if</span> exists(p, <span class="literal">true</span>) wait <span class="keyword">for</span> event</span><br><span class="line"><span class="keyword">goto</span> <span class="number">2</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Read Lock</span></span><br><span class="line">n = create(l + “/read-”, EPHEMERAL|SEQUENTIAL)</span><br><span class="line">C = getChildren(l, <span class="literal">false</span>)</span><br><span class="line"><span class="keyword">if</span> no write znodes lower than n in C, <span class="built_in">exit</span></span><br><span class="line">p = write znode in C ordered just before n</span><br><span class="line"><span class="keyword">if</span> exists(p, <span class="literal">true</span>) wait <span class="keyword">for</span> event</span><br><span class="line"><span class="keyword">goto</span> <span class="number">3</span></span><br></pre></td></tr></table></figure>
 </li>
 </ol>
-<h3 id="what-is-the-difference-between-zookeeper-locks-and-thread-mutex-locks"><a class="markdownIt-Anchor" href="#what-is-the-difference-between-zookeeper-locks-and-thread-mutex-locks"></a> What is the difference between ZooKeeper locks and thread mutex locks?</h3>
-<ol>
-<li>In ZooKeeper lock, the system automatically releases the locks if the lock holder fails. So, locks do not enforce the atomicity of other activities.</li>
-<li>To make writes atomic, use the “ready” trick or mini-transactions.</li>
-<li>For the master/leader election, a new leader must inspect the state and clean up.</li>
-<li>Or use soft locks like MapReduce for performance but not correctness. Only one worker will do each task, which is OK to be done twice.</li>
+<h3 id="What-is-the-difference-between-ZooKeeper-locks-and-thread-mutex-locks"><a href="#What-is-the-difference-between-ZooKeeper-locks-and-thread-mutex-locks" class="headerlink" title="What is the difference between ZooKeeper locks and thread mutex locks?"></a>What is the difference between ZooKeeper locks and thread mutex locks?</h3><ol>
+<li>In ZooKeeper lock, the system automatically releases the locks if the lock holder fails. So, locks do not enforce the atomicity of other activities. </li>
+<li>To make writes atomic, use the “ready” trick or mini-transactions. </li>
+<li>For the master/leader election, a new leader must inspect the state and clean up. </li>
+<li>Or use soft locks like MapReduce for performance but not correctness. Only one worker will do each task, which is OK to be done twice. </li>
 </ol>
-<h3 id="how-does-zookeeper-implement-a-double-barrier"><a class="markdownIt-Anchor" href="#how-does-zookeeper-implement-a-double-barrier"></a> How does ZooKeeper implement a double barrier?</h3>
-<ol>
-<li>Double barriers enable clients to synchronize a computation’s beginning and end.
-<ul>
-<li>Enter barrier: At the beginning, a client must wait until the number of waiting clients exceeds the threshold before executing the computation.</li>
-<li>Leave barrier: At the end, a client must wait until the number of finished clients exceeds the threshold before it can exit.</li>
+<h3 id="How-does-ZooKeeper-implement-a-double-barrier"><a href="#How-does-ZooKeeper-implement-a-double-barrier" class="headerlink" title="How does ZooKeeper implement a double barrier?"></a>How does ZooKeeper implement a double barrier?</h3><ol>
+<li>Double barriers enable clients to synchronize a computation’s beginning and end. <ul>
+<li>Enter barrier: At the beginning, a client must wait until the number of waiting clients exceeds the threshold before executing the computation. </li>
+<li>Leave barrier: At the end, a client must wait until the number of finished clients exceeds the threshold before it can exit. </li>
 </ul>
 </li>
-<li>Represent a barrier in ZooKeeper with a znode, referred to as <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span>.</li>
-<li>Every process <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi></mrow><annotation encoding="application/x-tex">p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">p</span></span></span></span> registers with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span> on entry by creating a znode as a child of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span>, and unregisters when it is ready to leave by removing the child.
-<ul>
-<li>Processes can enter the barrier when the number of child znodes of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span> exceeds the barrier threshold.</li>
-<li>Processes can leave the barrier when all of the processes have removed their children.</li>
+<li>Represent a barrier in ZooKeeper with a znode, referred to as $b$. </li>
+<li>Every process $p$ registers with $b$ on entry by creating a znode as a child of $b$, and unregisters when it is ready to leave by removing the child. <ul>
+<li>Processes can enter the barrier when the number of child znodes of $b$ exceeds the barrier threshold. </li>
+<li>Processes can leave the barrier when all of the processes have removed their children. </li>
 </ul>
 </li>
-<li>We use watches to wait for enter and exit conditions to be satisfied efficiently.
-<ul>
-<li>To enter, processes watch for a ready child, created by the process that causes the number of children to exceed the barrier threshold.</li>
-<li>To leave, processes watch for a particular child to disappear and only check the exit condition once that znode has been removed.</li>
+<li>We use watches to wait for enter and exit conditions to be satisfied efficiently. <ul>
+<li>To enter, processes watch for a ready child, created by the process that causes the number of children to exceed the barrier threshold. </li>
+<li>To leave, processes watch for a particular child to disappear and only check the exit condition once that znode has been removed. </li>
 </ul>
 </li>
 </ol>
-<h2 id="implementation-of-zookeeper"><a class="markdownIt-Anchor" href="#implementation-of-zookeeper"></a> Implementation of ZooKeeper</h2>
-<h3 id="how-does-zookeeper-serve-requests"><a class="markdownIt-Anchor" href="#how-does-zookeeper-serve-requests"></a> How does ZooKeeper serve requests?</h3>
-<ol>
-<li>Upon receiving a request, a server prepares it for execution in the request processor.</li>
-<li>If a write request requires coordination among the servers, they use atomic broadcast to reach an agreement. Finally, servers commit changes to the ZooKeeper database that are fully replicated across all ensemble servers.
-<ul>
-<li>When a server processes a write request, it sends and clears notifications relative to any watch corresponding to that update.</li>
-<li>Only the server that a client is connected to tracks and triggers notifications for that client.</li>
-<li>Servers process writes in order and does not concurrently process other writes or reads. This ensures a strict succession of notifications.</li>
+<h2 id="Implementation-of-ZooKeeper"><a href="#Implementation-of-ZooKeeper" class="headerlink" title="Implementation of ZooKeeper"></a>Implementation of ZooKeeper</h2><h3 id="How-does-ZooKeeper-serve-requests"><a href="#How-does-ZooKeeper-serve-requests" class="headerlink" title="How does ZooKeeper serve requests?"></a>How does ZooKeeper serve requests?</h3><ol>
+<li>Upon receiving a request, a server prepares it for execution in the request processor. </li>
+<li>If a write request requires coordination among the servers, they use atomic broadcast to reach an agreement. Finally, servers commit changes to the ZooKeeper database that are fully replicated across all ensemble servers. <ul>
+<li>When a server processes a write request, it sends and clears notifications relative to any watch corresponding to that update. </li>
+<li>Only the server that a client is connected to tracks and triggers notifications for that client. </li>
+<li>Servers process writes in order and does not concurrently process other writes or reads. This ensures a strict succession of notifications. </li>
 </ul>
 </li>
-<li>In the case of read requests, a server reads the state of the local database and generates a response to the request.
-<ul>
-<li>Each read request is processed and tagged with a <em>zxid</em> that corresponds to the last transaction seen by the server.</li>
-<li><em>Zxid</em> defines the partial order of the read requests concerning the write requests.</li>
-<li>For applications that require ZooKeeper not to serve stale data, they can call <code>sync()</code> followed by the read operation.</li>
+<li>In the case of read requests, a server reads the state of the local database and generates a response to the request. <ul>
+<li>Each read request is processed and tagged with a <em>zxid</em> that corresponds to the last transaction seen by the server. </li>
+<li><em>Zxid</em> defines the partial order of the read requests concerning the write requests. </li>
+<li>For applications that require ZooKeeper not to serve stale data, they can call <code>sync()</code> followed by the read operation. </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-does-zookeeper-manage-the-database"><a class="markdownIt-Anchor" href="#how-does-zookeeper-manage-the-database"></a> How does ZooKeeper manage the database?</h3>
-<ol>
-<li>The replicated database is an in-memory database containing the entire data tree.</li>
-<li>Each znode in the tree stores a maximum of 1MB of data by default, but this maximum value is a configuration parameter that can be changed in specific cases.</li>
-<li>For recoverability,
-<ul>
-<li>Efficiently log updates to disk, and we force writes to be on the disk media before they are applied to the in-memory database.</li>
-<li>A replay log (a write-ahead log) of committed operations is kept and periodically generates snapshots of the in-memory database.</li>
+<h3 id="How-does-ZooKeeper-manage-the-database"><a href="#How-does-ZooKeeper-manage-the-database" class="headerlink" title="How does ZooKeeper manage the database?"></a>How does ZooKeeper manage the database?</h3><ol>
+<li>The replicated database is an in-memory database containing the entire data tree. </li>
+<li>Each znode in the tree stores a maximum of 1MB of data by default, but this maximum value is a configuration parameter that can be changed in specific cases. </li>
+<li>For recoverability,<ul>
+<li>Efficiently log updates to disk, and we force writes to be on the disk media before they are applied to the in-memory database. </li>
+<li>A replay log (a write-ahead log) of committed operations is kept and periodically generates snapshots of the in-memory database. </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-does-the-request-processor-handle-write-requests"><a class="markdownIt-Anchor" href="#how-does-the-request-processor-handle-write-requests"></a> How does the request processor handle write requests?</h3>
-<ol>
-<li>When the leader receives a write request, it calculates the state of the system when the write is applied and transforms it into a transaction that captures this new state.</li>
-<li>The future state must be calculated because there may be outstanding transactions that have not yet been applied to the database.</li>
+<h3 id="How-does-the-request-processor-handle-write-requests"><a href="#How-does-the-request-processor-handle-write-requests" class="headerlink" title="How does the request processor handle write requests?"></a>How does the request processor handle write requests?</h3><ol>
+<li>When the leader receives a write request, it calculates the state of the system when the write is applied and transforms it into a transaction that captures this new state. </li>
+<li>The future state must be calculated because there may be outstanding transactions that have not yet been applied to the database. </li>
 </ol>
-<h3 id="how-do-servers-reach-an-agreement"><a class="markdownIt-Anchor" href="#how-do-servers-reach-an-agreement"></a> How do servers reach an agreement?</h3>
-<ol>
-<li>All requests that update ZooKeeper state are forwarded to the leader.</li>
-<li>The leader executes the request and broadcasts the change to the ZooKeeper state through Zab.
-<ul>
-<li>Zab uses, by default, simple majority quorums to decide on a proposal, so Zab and ZooKeeper can only work if a majority of servers are correct.</li>
-<li>Zab guarantees that changes broadcast by a leader are delivered in the order they were sent. All changes from previous leaders are delivered to an established leader before it broadcasts them.</li>
-<li>Because idempotent transactions are used, multiple delivery is acceptable as long as they are delivered in order.</li>
-<li>ZooKeeper requires Zab to redeliver at least all messages delivered after the last snapshot starts.</li>
+<h3 id="How-do-servers-reach-an-agreement"><a href="#How-do-servers-reach-an-agreement" class="headerlink" title="How do servers reach an agreement?"></a>How do servers reach an agreement?</h3><ol>
+<li>All requests that update ZooKeeper state are forwarded to the leader. </li>
+<li>The leader executes the request and broadcasts the change to the ZooKeeper state through Zab. <ul>
+<li>Zab uses, by default, simple majority quorums to decide on a proposal, so Zab and ZooKeeper can only work if a majority of servers are correct. </li>
+<li>Zab guarantees that changes broadcast by a leader are delivered in the order they were sent. All changes from previous leaders are delivered to an established leader before it broadcasts them. </li>
+<li>Because idempotent transactions are used, multiple delivery is acceptable as long as they are delivered in order. </li>
+<li>ZooKeeper requires Zab to redeliver at least all messages delivered after the last snapshot starts. </li>
 </ul>
 </li>
-<li>The server that receives the client request responds to the client when it delivers the corresponding state change.</li>
-<li>Use TCP for transport so message order is maintained by the network.</li>
+<li>The server that receives the client request responds to the client when it delivers the corresponding state change. </li>
+<li>Use TCP for transport so message order is maintained by the network. </li>
 </ol>
-<h3 id="how-does-zookeeper-take-a-snapshot"><a class="markdownIt-Anchor" href="#how-does-zookeeper-take-a-snapshot"></a> How does ZooKeeper take a snapshot?</h3>
-<ol>
-<li>ZooKeeper snapshots are called fuzzy snapshots since we do not lock the ZooKeeper state to take the snapshot.<br />
-Instead, we do a depth first scan of the tree atomically reading each znode’s data and meta-data and writing them to disk.</li>
-<li>Since the resulting fuzzy snapshot may have applied some subset of the state changes delivered during the snapshot generation, the result may not correspond to the state of ZooKeeper at any time.</li>
-<li>However, since state changes are idempotent, we can apply them twice as long as we apply the state changes in order.</li>
+<h3 id="How-does-ZooKeeper-take-a-snapshot"><a href="#How-does-ZooKeeper-take-a-snapshot" class="headerlink" title="How does ZooKeeper take a snapshot?"></a>How does ZooKeeper take a snapshot?</h3><ol>
+<li>ZooKeeper snapshots are called fuzzy snapshots since we do not lock the ZooKeeper state to take the snapshot.<br>Instead, we do a depth first scan of the tree atomically reading each znode’s data and meta-data and writing them to disk. </li>
+<li>Since the resulting fuzzy snapshot may have applied some subset of the state changes delivered during the snapshot generation, the result may not correspond to the state of ZooKeeper at any time. </li>
+<li>However, since state changes are idempotent, we can apply them twice as long as we apply the state changes in order. </li>
 </ol>
-<h3 id="how-does-zookeeper-handle-sync"><a class="markdownIt-Anchor" href="#how-does-zookeeper-handle-sync"></a> How does ZooKeeper handle sync()</h3>
-<ol>
-<li>It does not need to atomically broadcast sync as using a leader-based algorithm, and it simply places the <code>sync</code> operation at the end of the queue of requests between the leader and the server executing the call to sync.</li>
-<li>The follower must be sure that the leader is still the leader.
-<ul>
-<li>If pending transactions are committed, then the server does not suspect the leader.</li>
-<li>If the pending queue is empty, the leader must issue a null transaction to commit and order the <code>sync</code> after that transaction.</li>
-<li>Hence, no extra broadcast traffic is generated when the leader is under load.</li>
-<li>Timeouts are set so leaders realize they are not leaders before followers abandon them, so it does not issue the null transaction.</li>
+<h3 id="How-does-ZooKeeper-handle-sync"><a href="#How-does-ZooKeeper-handle-sync" class="headerlink" title="How does ZooKeeper handle sync()"></a>How does ZooKeeper handle sync()</h3><ol>
+<li>It does not need to atomically broadcast sync as using a leader-based algorithm, and it simply places the <code>sync</code> operation at the end of the queue of requests between the leader and the server executing the call to sync. </li>
+<li>The follower must be sure that the leader is still the leader.<ul>
+<li>If pending transactions are committed, then the server does not suspect the leader. </li>
+<li>If the pending queue is empty, the leader must issue a null transaction to commit and order the <code>sync</code> after that transaction. </li>
+<li>Hence, no extra broadcast traffic is generated when the leader is under load. </li>
+<li>Timeouts are set so leaders realize they are not leaders before followers abandon them, so it does not issue the null transaction. </li>
 </ul>
 </li>
 </ol>
-<h3 id="how-does-zookeeper-ensure-to-serve-data-at-least-as-updated-as-the-last-server-served-that-data"><a class="markdownIt-Anchor" href="#how-does-zookeeper-ensure-to-serve-data-at-least-as-updated-as-the-last-server-served-that-data"></a> How does ZooKeeper ensure to serve data at least as updated as the last server served that data?</h3>
-<ol>
-<li>Check the client’s last zxid against its last zxid.</li>
-<li>If the client has a more recent view than the server, the server does not reestablish the session with the client until the server has caught up.</li>
+<h3 id="How-does-ZooKeeper-ensure-to-serve-data-at-least-as-updated-as-the-last-server-served-that-data"><a href="#How-does-ZooKeeper-ensure-to-serve-data-at-least-as-updated-as-the-last-server-served-that-data" class="headerlink" title="How does ZooKeeper ensure to serve data at least as updated as the last server served that data?"></a>How does ZooKeeper ensure to serve data at least as updated as the last server served that data?</h3><ol>
+<li>Check the client’s last zxid against its last zxid. </li>
+<li>If the client has a more recent view than the server, the server does not reestablish the session with the client until the server has caught up. </li>
 </ol>
-<h3 id="how-to-detect-client-session-failures"><a class="markdownIt-Anchor" href="#how-to-detect-client-session-failures"></a> How to detect client session failures?</h3>
-<ol>
-<li>The leader determines that there has been a failure if no other server receives anything from a client session within the session timeout.</li>
-<li>If the client sends requests frequently enough, then sending any other message is unnecessary.<br />
-Otherwise, the client sends heartbeat messages during periods of low activity.</li>
-<li>If the client cannot communicate with a server to send a request or heartbeat, it connects to a different ZooKeeper server to re-establish its session.</li>
-<li>To prevent the session from timing out, the ZooKeeper client library sends a heartbeat after the session has been idle for <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi mathvariant="normal">/</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">s/3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">s</span><span class="mord">/</span><span class="mord">3</span></span></span></span> ms and switch to a new server if it has not heard from a server for <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>s</mi><mi mathvariant="normal">/</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">2s/3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mord mathnormal">s</span><span class="mord">/</span><span class="mord">3</span></span></span></span> ms, where <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi></mrow><annotation encoding="application/x-tex">s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">s</span></span></span></span> is the session timeout in milliseconds.</li>
+<h3 id="How-to-detect-client-session-failures"><a href="#How-to-detect-client-session-failures" class="headerlink" title="How to detect client session failures?"></a>How to detect client session failures?</h3><ol>
+<li>The leader determines that there has been a failure if no other server receives anything from a client session within the session timeout. </li>
+<li>If the client sends requests frequently enough, then sending any other message is unnecessary.<br>Otherwise, the client sends heartbeat messages during periods of low activity. </li>
+<li>If the client cannot communicate with a server to send a request or heartbeat, it connects to a different ZooKeeper server to re-establish its session. </li>
+<li>To prevent the session from timing out, the ZooKeeper client library sends a heartbeat after the session has been idle for $s/3$ ms and switch to a new server if it has not heard from a server for $2s/3$ ms, where $s$ is the session timeout in milliseconds. </li>
 </ol>
-<h1 id="evaluation-and-results"><a class="markdownIt-Anchor" href="#evaluation-and-results"></a> Evaluation and results</h1>
-<ol>
-<li>
-<p>To show the system’s scalability, the author varied the number of servers that make up the ZooKeeper service but always kept the number of clients the same.</p>
-<p>The throughput performance of a saturated system varies as the ratio of reads to writes is shown below.</p>
-<img src="/imgs/Distributed/ZooKeeper/Throughput.png">
+<h1 id="Evaluation-and-results"><a href="#Evaluation-and-results" class="headerlink" title="Evaluation and results"></a>Evaluation and results</h1><ol>
+<li><p>To show the system’s scalability, the author varied the number of servers that make up the ZooKeeper service but always kept the number of clients the same. </p>
+<p>The throughput performance of a saturated system varies as the ratio of reads to writes is shown below. </p>
+<p><img src="/imgs/Distributed/ZooKeeper/Throughput.png"></p>
 </li>
-<li>
-<p>There are two reasons why write requests take longer than read requests.</p>
+<li><p>There are two reasons why write requests take longer than read requests. </p>
 <ul>
-<li>First, write requests must go through atomic broadcast, which requires extra processing and adds latency to requests.</li>
-<li>The other reason for the longer processing of write requests is that servers must ensure that transactions are logged to a non-volatile store before sending acknowledgments back to the leader.</li>
+<li>First, write requests must go through atomic broadcast, which requires extra processing and adds latency to requests. </li>
+<li>The other reason for the longer processing of write requests is that servers must ensure that transactions are logged to a non-volatile store before sending acknowledgments back to the leader. </li>
 </ul>
 </li>
-<li>
-<p>The atomic broadcast protocol does most of the system’s work and thus limits the performance of ZooKeeper more than any other component.</p>
-<p>To benchmark its performance, the author simulates clients by generating transactions directly at the leader, so there are no client connections, requests, or replies.</p>
+<li><p>The atomic broadcast protocol does most of the system’s work and thus limits the performance of ZooKeeper more than any other component. </p>
+<p>To benchmark its performance, the author simulates clients by generating transactions directly at the leader, so there are no client connections, requests, or replies. </p>
 <p>The result is as shown below:</p>
-<img src="/imgs/Distributed/ZooKeeper/AtomicBroadcast.png">
+<p><img src="/imgs/Distributed/ZooKeeper/AtomicBroadcast.png"></p>
 </li>
-<li>
-<p>The author also tested the system’s throughput when different failure events occurred.</p>
-<p>The events are ① Failure and recovery of a follower; ② Failure and recovery of a different follower; ③ Failure of the leader; ④Failure of two followers (a, b) in the first two marks, and recovery at the third mark ©; ⑤ Failure of the leader; ⑥Recovery of the leader.</p>
-<img src="/imgs/Distributed/ZooKeeper/Failures.png">
+<li><p>The author also tested the system’s throughput when different failure events occurred. </p>
+<p>The events are ① Failure and recovery of a follower; ② Failure and recovery of a different follower; ③ Failure of the leader; ④Failure of two followers (a, b) in the first two marks, and recovery at the third mark (c); ⑤ Failure of the leader; ⑥Recovery of the leader. </p>
+<p><img src="/imgs/Distributed/ZooKeeper/Failures.png"></p>
 </li>
-<li>
-<p>To assess the latency of requests, the author creates a worker process that sends a create, waits for it to finish, sends an asynchronous delete of the new node, and then starts the next create.</p>
-<p>Then, the throughput can be calculated by dividing the number of create requests completed by the total time it took all the workers to complete them.</p>
-<img src="/imgs/Distributed/ZooKeeper/Latency.png">
+<li><p>To assess the latency of requests, the author creates a worker process that sends a create, waits for it to finish, sends an asynchronous delete of the new node, and then starts the next create. </p>
+<p>Then, the throughput can be calculated by dividing the number of create requests completed by the total time it took all the workers to complete them. </p>
+<p><img src="/imgs/Distributed/ZooKeeper/Latency.png"></p>
 </li>
-<li>
-<p>The author also measured the performance of primitives implemented with ZooKeeper. They measured the performance of barriers.</p>
+<li><p>The author also measured the performance of primitives implemented with ZooKeeper. They measured the performance of barriers. </p>
 <p>The time to process all barriers increases roughly linearly with the number of barriers, showing that concurrent access to the same part of the data tree did not produce any unexpected delay.</p>
-<p>Latency increases proportionally to the number of clients. This is a consequence of not saturating the ZooKeeper service due to clients waiting on other clients.</p>
-<img src="/imgs/Distributed/ZooKeeper/Barrier.png">
+<p>Latency increases proportionally to the number of clients. This is a consequence of not saturating the ZooKeeper service due to clients waiting on other clients. </p>
+<p><img src="/imgs/Distributed/ZooKeeper/Barrier.png"></p>
 </li>
 </ol>
 

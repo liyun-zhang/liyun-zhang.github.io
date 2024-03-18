@@ -1818,6 +1818,15 @@ pre code {
   top: 0;
   width: 100%;
 }
+.post-body a:not(.category-list-link):not(.btn) {
+  color: #4169e1;
+  text-decoration: underline;
+  border-bottom: none;
+}
+.post-body a:not(.category-list-link):not(.btn):hover {
+  color: #00f;
+  font-weight: bold;
+}
 .post-gallery {
   display: flex;
   min-height: 200px;
@@ -2650,7 +2659,7 @@ header.header {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #582f83;
+  background: #141836;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);

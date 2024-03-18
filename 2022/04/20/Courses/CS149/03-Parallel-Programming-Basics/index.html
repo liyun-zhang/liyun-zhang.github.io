@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Decomposition   Decomposition: The problem to solve is usually a chunk of work. So the first step we need to do is to decomposite them into subproblems (a.k.a tasks, work to do)   We usually want the">
+    <meta name="description" content="Decomposition Decomposition: The problem to solve is usually a chunk of work. So the first step we need to do is to decomposite them into subproblems (a.k.a tasks, work to do)  We usually want the num">
 <meta property="og:type" content="article">
 <meta property="og:title" content="03. Parallel Programming Basics">
 <meta property="og:url" content="http://liyun-zhang.github.io/2022/04/20/Courses/CS149/03-Parallel-Programming-Basics/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="Decomposition   Decomposition: The problem to solve is usually a chunk of work. So the first step we need to do is to decomposite them into subproblems (a.k.a tasks, work to do)   We usually want the">
+<meta property="og:description" content="Decomposition Decomposition: The problem to solve is usually a chunk of work. So the first step we need to do is to decomposite them into subproblems (a.k.a tasks, work to do)  We usually want the num">
 <meta property="og:locale">
 <meta property="article:published_time" content="2022-04-20T06:27:45.000Z">
 <meta property="article:modified_time" content="2024-03-16T10:45:17.324Z">
@@ -139,7 +139,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#decomposition"><span class="nav-number">1.</span> <span class="nav-text"> Decomposition</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#assignment"><span class="nav-number">2.</span> <span class="nav-text"> Assignment</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#orchestration"><span class="nav-number">3.</span> <span class="nav-text"> Orchestration</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#mapping"><span class="nav-number">4.</span> <span class="nav-text"> Mapping</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Decomposition"><span class="nav-number">1.</span> <span class="nav-text">Decomposition</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Assignment"><span class="nav-number">2.</span> <span class="nav-text">Assignment</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Orchestration"><span class="nav-number">3.</span> <span class="nav-text">Orchestration</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Mapping"><span class="nav-number">4.</span> <span class="nav-text">Mapping</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -251,89 +251,52 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h1 id="decomposition"><a class="markdownIt-Anchor" href="#decomposition"></a> Decomposition</h1>
-<ol>
-<li>
-<p>Decomposition: The problem to solve is usually a chunk of work. So the first step we need to do is to decomposite them into subproblems (a.k.a tasks, work to do)</p>
+    <div class="post-body" itemprop="articleBody"><h1 id="Decomposition"><a href="#Decomposition" class="headerlink" title="Decomposition"></a>Decomposition</h1><ol>
+<li><p>Decomposition: The problem to solve is usually a chunk of work. So the first step we need to do is to decomposite them into subproblems (a.k.a tasks, work to do)</p>
 </li>
-<li>
-<p>We usually want the number of subproblems to be at least as many as processors.</p>
+<li><p>We usually want the number of subproblems to be at least as many as processors.</p>
 </li>
-<li>
-<p>The key aspect of decomposition is to identify dependencies. We want subproblems to be independent so that they can be paralleled.</p>
+<li><p>The key aspect of decomposition is to identify dependencies. We want subproblems to be independent so that they can be paralleled. </p>
 </li>
-<li>
-<p>Amdahl’s Law: dependencies limit maximum speedup due to parallelism<br />
-Let S = the fraction of sequential execution that is inherently sequential (dependencies prevent parallel execution). The maximum speedup due to parallel execution ≤ 1/S.</p>
-<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>s</mi><mi>p</mi><mi>e</mi><mi>e</mi><mi>d</mi><mi>u</mi><mi>p</mi><mo>≤</mo><mfrac><mi>t</mi><mrow><mi>s</mi><mi>t</mi><mo>+</mo><mfrac><mrow><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>s</mi><mo stretchy="false">)</mo><mi>t</mi></mrow><mi>p</mi></mfrac></mrow></mfrac><mo>=</mo><mfrac><mn>1</mn><mrow><mi>s</mi><mo>+</mo><mfrac><mrow><mn>1</mn><mo>−</mo><mi>s</mi></mrow><mi>p</mi></mfrac></mrow></mfrac></mrow><annotation encoding="application/x-tex">speedup \le\frac{t}{st+\frac{(1-s)t}{p}}=\frac1{s+\frac{1-s}{p}} 
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">s</span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal">e</span><span class="mord mathnormal">d</span><span class="mord mathnormal">u</span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.6731879999999997em;vertical-align:-1.381108em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.29208em;"><span style="top:-2.11em;"><span class="pstrut" style="height:3.01em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.01em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.485em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mtight">1</span><span class="mbin mtight">−</span><span class="mord mathnormal mtight">s</span><span class="mclose mtight">)</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.481108em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span><span style="top:-3.2399999999999998em;"><span class="pstrut" style="height:3.01em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.687em;"><span class="pstrut" style="height:3.01em;"></span><span class="mord"><span class="mord mathnormal">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.381108em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.537656em;vertical-align:-1.216216em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.32144em;"><span style="top:-2.264892em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mbin mtight">−</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.481108em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord">1</span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.216216em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<li><p>Amdahl’s Law: dependencies limit maximum speedup due to parallelism<br>Let S = the fraction of sequential execution that is inherently sequential (dependencies prevent parallel execution). The maximum speedup due to parallel execution ≤ 1/S. </p>
+<script type="math/tex; mode=display">speedup \le\frac{t}{st+\frac{(1-s)t}{p}}=\frac1{s+\frac{1-s}{p}}</script></li>
+<li><p>In most cases, the programmer is responsible for performing decomposition. </p>
 </li>
-<li>
-<p>In most cases, the programmer is responsible for performing decomposition.</p>
-</li>
-<li>
-<p>When doing the decomposition, it is better to think of partitioning computation instead of data.</p>
+<li><p>When doing the decomposition, it is better to think of partitioning computation instead of data. </p>
 </li>
 </ol>
-<h1 id="assignment"><a class="markdownIt-Anchor" href="#assignment"></a> Assignment</h1>
-<ol>
-<li>
-<p>Assignment: When the subproblems are more than processors, we will group them to form a larger chunk of work and assign the grouped tasks to parallel threads.</p>
+<h1 id="Assignment"><a href="#Assignment" class="headerlink" title="Assignment"></a>Assignment</h1><ol>
+<li><p>Assignment: When the subproblems are more than processors, we will group them to form a larger chunk of work and assign the grouped tasks to parallel threads. </p>
 </li>
-<li>
-<p>One goal is to balance the workload so that each processor finishes their work almost simultaneously.<br />
-Another goal is to reduce communication costs. Getting data from another processor is nontrivial expensive, either cache miss or waiting for a message.<br />
-These two goals are at odds with each other.</p>
+<li><p>One goal is to balance the workload so that each processor finishes their work almost simultaneously.<br>Another goal is to reduce communication costs. Getting data from another processor is nontrivial expensive, either cache miss or waiting for a message.<br>These two goals are at odds with each other. </p>
 </li>
-<li>
-<p>This step can be performed statically or dynamically during the execution<br />
-Static way: Before the processors begin the work, we have already decided how to divide things.<br />
-Dynamic way: We work out how to divide on the way as processing.</p>
+<li><p>This step can be performed statically or dynamically during the execution<br>Static way: Before the processors begin the work, we have already decided how to divide things.<br>Dynamic way: We work out how to divide on the way as processing. </p>
 </li>
-<li>
-<p>We can choose the static way with the programCount and programIndex assignment or pthread</p>
+<li><p>We can choose the static way with the programCount and programIndex assignment or pthread</p>
 </li>
-<li>
-<p>We can choose the dynamic way with foreach if the system chooses the dynamic way or the queue.<br />
-In the queue way, we arrange all tasks in a queue, and when a processor has done its job, it will grab another task from the queue. This is an excellent way to balance the workload, but maintaining the queue and acquiring tasks from it might cost some performance.</p>
+<li><p>We can choose the dynamic way with foreach if the system chooses the dynamic way or the queue.<br>In the queue way, we arrange all tasks in a queue, and when a processor has done its job, it will grab another task from the queue. This is an excellent way to balance the workload, but maintaining the queue and acquiring tasks from it might cost some performance. </p>
 </li>
 </ol>
-<h1 id="orchestration"><a class="markdownIt-Anchor" href="#orchestration"></a> Orchestration</h1>
-<ol>
-<li>
-<p>Orchestration: When parallel threads are running, they may need to cooperate. So, we need to let them communicate correctly.</p>
+<h1 id="Orchestration"><a href="#Orchestration" class="headerlink" title="Orchestration"></a>Orchestration</h1><ol>
+<li><p>Orchestration: When parallel threads are running, they may need to cooperate. So, we need to let them communicate correctly. </p>
 </li>
-<li>
-<p>We will worry about things like structure communication, synchronization, organizing data structure in memory, and scheduling tasks.</p>
+<li><p>We will worry about things like structure communication, synchronization, organizing data structure in memory, and scheduling tasks.</p>
 </li>
-<li>
-<p>The goal is to reduce the costs of communication/sync, preserve the locality of data reference, reduce the overhead of synchronization or communication, etc.</p>
+<li><p>The goal is to reduce the costs of communication/sync, preserve the locality of data reference, reduce the overhead of synchronization or communication, etc.</p>
 </li>
-<li>
-<p>In the shared address space model, lock/unlock is commonly used for preserving atomicity, and barriers can divide computation into phases. When threads execute to barriers, they will stop and wait. Until enough threads hit the barrier, those stalled threads can execute rest codes.</p>
+<li><p>In the shared address space model, lock/unlock is commonly used for preserving atomicity, and barriers can divide computation into phases. When threads execute to barriers, they will stop and wait. Until enough threads hit the barrier, those stalled threads can execute rest codes. </p>
 </li>
-<li>
-<p>A commonly used optimization strategy is fewer locks/unlocks and barriers.<br />
-Every time we operate a shared variable, we must use the lock/unlock to keep atomicity. We could operate on partial variables locally and then merge the partial results.<br />
-When we use a barrier to keep a shared variable valid when it might be changed at the next phase, we can use different shared variables in successive phases. This is to trade off footprint for removing dependencies.</p>
+<li><p>A commonly used optimization strategy is fewer locks/unlocks and barriers.<br>Every time we operate a shared variable, we must use the lock/unlock to keep atomicity. We could operate on partial variables locally and then merge the partial results.<br>When we use a barrier to keep a shared variable valid when it might be changed at the next phase, we can use different shared variables in successive phases. This is to trade off footprint for removing dependencies. </p>
 </li>
 </ol>
-<h1 id="mapping"><a class="markdownIt-Anchor" href="#mapping"></a> Mapping</h1>
-<ol>
-<li>
-<p>Mapping: Finally, we need to map each thread to physical hardware.</p>
+<h1 id="Mapping"><a href="#Mapping" class="headerlink" title="Mapping"></a>Mapping</h1><ol>
+<li><p>Mapping: Finally, we need to map each thread to physical hardware. </p>
 </li>
-<li>
-<p>When we map pthreads to hardware execution context on a CPU core, this is done by the operating system.<br />
-When we map ISPC program instances to vector instruction lanes, this is done by the compiler.<br />
-When we map CUDA thread blocks to GPU cores, this is done by the hardware.</p>
+<li><p>When we map pthreads to hardware execution context on a CPU core, this is done by the operating system.<br>When we map ISPC program instances to vector instruction lanes, this is done by the compiler.<br>When we map CUDA thread blocks to GPU cores, this is done by the hardware.</p>
 </li>
-<li>
-<p>Place related threads (cooperating threads) on the same processor to maximize locality data sharing and minimize costs of comm/sync.<br />
-Place unrelated threads on the same processor (one might be bandwidth-limited, and another might be compute-limited) to use the machine more efficiently.</p>
+<li><p>Place related threads (cooperating threads) on the same processor to maximize locality data sharing and minimize costs of comm/sync.<br>Place unrelated threads on the same processor (one might be bandwidth-limited, and another might be compute-limited) to use the machine more efficiently.</p>
 </li>
-<li>
-<p>Normally, we just let the OS do the mapping as it wants. But sometimes we still want to control the way of mapping.</p>
+<li><p>Normally, we just let the OS do the mapping as it wants. But sometimes we still want to control the way of mapping.</p>
 </li>
 </ol>
 

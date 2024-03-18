@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="How to shard key-value pairs? How to install a new configuration? How to reduce the pauses for clients when installing new configurations? How does garbage collect past configurations?    How to shar">
+    <meta name="description" content="@[toc] How to shard key-value pairs? The total number of shards is fixed to be NShards. The keys are mapped into shards by a hash function mod by NShards.  Each KV group in the cluster needs to be res">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Lab 4: ShardKV">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/03/27/OpenSource/6.824/Lab-4-ShardKV/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="How to shard key-value pairs? How to install a new configuration? How to reduce the pauses for clients when installing new configurations? How does garbage collect past configurations?    How to shar">
+<meta property="og:description" content="@[toc] How to shard key-value pairs? The total number of shards is fixed to be NShards. The keys are mapped into shards by a hash function mod by NShards.  Each KV group in the cluster needs to be res">
 <meta property="og:locale">
 <meta property="article:published_time" content="2023-03-27T06:35:51.000Z">
 <meta property="article:modified_time" content="2024-03-17T03:28:55.591Z">
@@ -141,7 +141,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#how-to-shard-key-value-pairs"><span class="nav-number">1.</span> <span class="nav-text"> How to shard key-value pairs?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#how-to-install-a-new-configuration"><span class="nav-number">2.</span> <span class="nav-text"> How to install a new configuration?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#how-to-reduce-the-pauses-for-clients-when-installing-new-configurations"><span class="nav-number">3.</span> <span class="nav-text"> How to reduce the pauses for clients when installing new configurations?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#how-does-garbage-collect-past-configurations"><span class="nav-number">4.</span> <span class="nav-text"> How does garbage collect past configurations?</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#How-to-shard-key-value-pairs"><span class="nav-number">1.</span> <span class="nav-text">How to shard key-value pairs?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#How-to-install-a-new-configuration"><span class="nav-number">2.</span> <span class="nav-text">How to install a new configuration?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#How-to-reduce-the-pauses-for-clients-when-installing-new-configurations"><span class="nav-number">3.</span> <span class="nav-text">How to reduce the pauses for clients when installing new configurations?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#How-does-garbage-collect-past-configurations"><span class="nav-number">4.</span> <span class="nav-text">How does garbage collect past configurations?</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -253,70 +253,54 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
-<li><a href="#how-to-shard-key-value-pairs">How to shard key-value pairs?</a></li>
-<li><a href="#how-to-install-a-new-configuration">How to install a new configuration?</a></li>
-<li><a href="#how-to-reduce-the-pauses-for-clients-when-installing-new-configurations">How to reduce the pauses for clients when installing new configurations?</a></li>
-<li><a href="#how-does-garbage-collect-past-configurations">How does garbage collect past configurations?</a></li>
-</ul>
-</p>
-<h1 id="how-to-shard-key-value-pairs"><a class="markdownIt-Anchor" href="#how-to-shard-key-value-pairs"></a> How to shard key-value pairs?</h1>
-<ol>
-<li>The total number of shards is fixed to be <code>NShards</code>. The keys are mapped into shards by a hash function mod by <code>NShards</code>.</li>
-<li>Each KV group in the cluster needs to be responsible for some shards. An additional Raft group named Shard Controller is responsible for the cluster configurations.
-<ul>
-<li>Each KV group would acquire the latest configuration from the Shard Controller.</li>
-<li>When a new configuration is found, it will be proposed to the Raft group. It is installed until it has been committed.</li>
+    <div class="post-body" itemprop="articleBody"><p>@[toc]</p>
+<h1 id="How-to-shard-key-value-pairs"><a href="#How-to-shard-key-value-pairs" class="headerlink" title="How to shard key-value pairs?"></a>How to shard key-value pairs?</h1><ol>
+<li>The total number of shards is fixed to be <code>NShards</code>. The keys are mapped into shards by a hash function mod by <code>NShards</code>. </li>
+<li>Each KV group in the cluster needs to be responsible for some shards. An additional Raft group named Shard Controller is responsible for the cluster configurations. <ul>
+<li>Each KV group would acquire the latest configuration from the Shard Controller. </li>
+<li>When a new configuration is found, it will be proposed to the Raft group. It is installed until it has been committed. </li>
 </ul>
 </li>
-<li>Administrators can modify the configuration of the Raft groups in the cluster by giving commands to the Shard Controllers. <code>Leave</code>, <code>Join</code>, and <code>Move</code> are provided.
-<ul>
-<li>When a command comes from administrators, a Raft entry is proposed. A new configuration will only be created when that entry is committed.</li>
-<li>When creating new configurations, <code>Leave</code> and <code>Join</code> will try to rebalance the distribution of shards as evenly as possible or move as few shards as possible.</li>
+<li>Administrators can modify the configuration of the Raft groups in the cluster by giving commands to the Shard Controllers. <code>Leave</code>, <code>Join</code>, and <code>Move</code> are provided. <ul>
+<li>When a command comes from administrators, a Raft entry is proposed. A new configuration will only be created when that entry is committed. </li>
+<li>When creating new configurations, <code>Leave</code> and <code>Join</code> will try to rebalance the distribution of shards as evenly as possible or move as few shards as possible. </li>
 </ul>
 </li>
 </ol>
-<h1 id="how-to-install-a-new-configuration"><a class="markdownIt-Anchor" href="#how-to-install-a-new-configuration"></a> How to install a new configuration?</h1>
-<ol>
-<li>For the shards in the last config, not in the new config, we cannot simply discard them. When we give up a shard, some other group must be responsible for it, and they do not have it now. Therefore, we need to transmit the data to them.
-<ul>
-<li>One way is to push the data to the new owner of the shards. However, they may not be online now; they are partitioned from this node, or they may not have installed this new configuration, causing waste RPC flows.</li>
-<li>Another way is to keep all data from past configurations and separate them from the current configuration data, waiting for other nodes to pull the shards they want.</li>
+<h1 id="How-to-install-a-new-configuration"><a href="#How-to-install-a-new-configuration" class="headerlink" title="How to install a new configuration?"></a>How to install a new configuration?</h1><ol>
+<li>For the shards in the last config, not in the new config, we cannot simply discard them. When we give up a shard, some other group must be responsible for it, and they do not have it now. Therefore, we need to transmit the data to them. <ul>
+<li>One way is to push the data to the new owner of the shards. However, they may not be online now; they are partitioned from this node, or they may not have installed this new configuration, causing waste RPC flows. </li>
+<li>Another way is to keep all data from past configurations and separate them from the current configuration data, waiting for other nodes to pull the shards they want. </li>
 </ul>
 </li>
-<li>We must acquire the shards in the new configuration and not in the last configuration from somewhere.
-<ul>
-<li>As aforementioned, when a new configuration is installed, this peer will issue an RPC to pull the missing shards from other groups.</li>
-<li>To avoid that the target host of missing shards only executes part of commands of the last config causing missing values, a host is allowed to transmit shards only if it has installed the next configuration of the requested configuration.</li>
+<li>We must acquire the shards in the new configuration and not in the last configuration from somewhere. <ul>
+<li>As aforementioned, when a new configuration is installed, this peer will issue an RPC to pull the missing shards from other groups. </li>
+<li>To avoid that the target host of missing shards only executes part of commands of the last config causing missing values, a host is allowed to transmit shards only if it has installed the next configuration of the requested configuration. </li>
 </ul>
 </li>
-<li>The executed index records also need to be separated between configurations to prevent lagged groups from rejecting to execute commands from clients.</li>
-<li>When installing a new configuration from a snapshot, remember to initiate the goroutines to fetch the missing shards from the snapshot.</li>
+<li>The executed index records also need to be separated between configurations to prevent lagged groups from rejecting to execute commands from clients. </li>
+<li>When installing a new configuration from a snapshot, remember to initiate the goroutines to fetch the missing shards from the snapshot. </li>
 </ol>
-<h1 id="how-to-reduce-the-pauses-for-clients-when-installing-new-configurations"><a class="markdownIt-Anchor" href="#how-to-reduce-the-pauses-for-clients-when-installing-new-configurations"></a> How to reduce the pauses for clients when installing new configurations?</h1>
-<ol>
-<li>In the naive schema, we must wait until all shards are received before executing any client commands. However, receiving all shards could take a long time.</li>
-<li>Executing the commands that only need the received shards is reasonable, even if some shards remain missing.</li>
-<li>We can add a data structure to record the state of each shard in a configuration. If the state is received, we can execute the commands on that shard.</li>
-<li>To execute the commands in commit order, we will still be stalled by the commands requesting missing shards.</li>
-<li>Nevertheless, this schema can push the process forward as much as possible and parallel executing commands of received shards and waiting for missing shards.</li>
+<h1 id="How-to-reduce-the-pauses-for-clients-when-installing-new-configurations"><a href="#How-to-reduce-the-pauses-for-clients-when-installing-new-configurations" class="headerlink" title="How to reduce the pauses for clients when installing new configurations?"></a>How to reduce the pauses for clients when installing new configurations?</h1><ol>
+<li>In the naive schema, we must wait until all shards are received before executing any client commands. However, receiving all shards could take a long time. </li>
+<li>Executing the commands that only need the received shards is reasonable, even if some shards remain missing. </li>
+<li>We can add a data structure to record the state of each shard in a configuration. If the state is received, we can execute the commands on that shard. </li>
+<li>To execute the commands in commit order, we will still be stalled by the commands requesting missing shards. </li>
+<li>Nevertheless, this schema can push the process forward as much as possible and parallel executing commands of received shards and waiting for missing shards. </li>
 </ol>
-<h1 id="how-does-garbage-collect-past-configurations"><a class="markdownIt-Anchor" href="#how-does-garbage-collect-past-configurations"></a> How does garbage collect past configurations?</h1>
-<ol>
-<li>In the naive schema, the redundant data would grow larger and larger since we cannot delete data from past configurations.</li>
-<li>We can notice that a shard in the past configuration can be deleted when it is received by the group that needs to request it.
-<ul>
-<li>A peer can ask the corresponding peers whether they have received the shards. Similar to why we do not push shards, it will waste a lot of RPC flows.</li>
-<li>When a peer receives a shard, whether requesting from another group or installing a snapshot, it will inform the groups that host shards from the previous configuration.</li>
-<li>The shard can be deleted from the host of the last configuration when all peers who host a shard in the next configuration have received it.</li>
+<h1 id="How-does-garbage-collect-past-configurations"><a href="#How-does-garbage-collect-past-configurations" class="headerlink" title="How does garbage collect past configurations?"></a>How does garbage collect past configurations?</h1><ol>
+<li>In the naive schema, the redundant data would grow larger and larger since we cannot delete data from past configurations. </li>
+<li>We can notice that a shard in the past configuration can be deleted when it is received by the group that needs to request it. <ul>
+<li>A peer can ask the corresponding peers whether they have received the shards. Similar to why we do not push shards, it will waste a lot of RPC flows. </li>
+<li>When a peer receives a shard, whether requesting from another group or installing a snapshot, it will inform the groups that host shards from the previous configuration. </li>
+<li>The shard can be deleted from the host of the last configuration when all peers who host a shard in the next configuration have received it. </li>
 </ul>
 </li>
-<li>A garbage collection goroutine is initiated when the next configuration is installed.</li>
-<li>A snapshot must persist before informing other groups of receiving shards to prevent recovery from a snapshot without shards while the host has already deleted due to received acknowledgment.</li>
-<li>When a shard can be deleted, snapshot installation becomes more tricky.
-<ul>
-<li>We should not copy the deleted shards and deleted configurations from the snapshot. We can also delete the shads that are deleted in the snapshot.</li>
-<li>When a new configuration is created from a snapshot, a garbage collection of the former configuration needs to be started.</li>
+<li>A garbage collection goroutine is initiated when the next configuration is installed. </li>
+<li>A snapshot must persist before informing other groups of receiving shards to prevent recovery from a snapshot without shards while the host has already deleted due to received acknowledgment. </li>
+<li>When a shard can be deleted, snapshot installation becomes more tricky. <ul>
+<li>We should not copy the deleted shards and deleted configurations from the snapshot. We can also delete the shads that are deleted in the snapshot. </li>
+<li>When a new configuration is created from a snapshot, a garbage collection of the former configuration needs to be started. </li>
 </ul>
 </li>
 </ol>
