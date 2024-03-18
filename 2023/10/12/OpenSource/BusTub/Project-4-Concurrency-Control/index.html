@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="@[toc] LockManagerLocks LockManager is used to protect the data in the database. According to the lock granularities, the lock information is stored in table_lock_map_ and row_lock_map_.  The interfac">
+    <meta name="description" content="LockManager  Locks Lock  Before granting locks Grant locks   UnlockTable   Concurrent query execution  SeqScan Executor Insert, Delete, and Update Executors Transaction manager      LockManager  Lock">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Project #4: Concurrency Control">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/10/12/OpenSource/BusTub/Project-4-Concurrency-Control/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="@[toc] LockManagerLocks LockManager is used to protect the data in the database. According to the lock granularities, the lock information is stored in table_lock_map_ and row_lock_map_.  The interfac">
+<meta property="og:description" content="LockManager  Locks Lock  Before granting locks Grant locks   UnlockTable   Concurrent query execution  SeqScan Executor Insert, Delete, and Update Executors Transaction manager      LockManager  Lock">
 <meta property="og:locale">
 <meta property="article:published_time" content="2023-10-12T05:26:44.000Z">
 <meta property="article:modified_time" content="2024-03-16T15:46:29.200Z">
@@ -140,7 +140,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#LockManager"><span class="nav-number">1.</span> <span class="nav-text">LockManager</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Locks"><span class="nav-number">1.1.</span> <span class="nav-text">Locks</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Lock"><span class="nav-number">1.2.</span> <span class="nav-text">Lock</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Before-granting-locks"><span class="nav-number">1.2.1.</span> <span class="nav-text">Before granting locks</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Grant-locks"><span class="nav-number">1.2.2.</span> <span class="nav-text">Grant locks</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UnlockTable"><span class="nav-number">1.3.</span> <span class="nav-text">UnlockTable</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Concurrent-query-execution"><span class="nav-number">2.</span> <span class="nav-text">Concurrent query execution</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#SeqScan-Executor"><span class="nav-number">2.1.</span> <span class="nav-text">SeqScan Executor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Insert-Delete-and-Update-Executors"><span class="nav-number">2.2.</span> <span class="nav-text">Insert, Delete, and Update Executors</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Transaction-manager"><span class="nav-number">2.3.</span> <span class="nav-text">Transaction manager</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#lockmanager"><span class="nav-number">1.</span> <span class="nav-text"> LockManager</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#locks"><span class="nav-number">1.1.</span> <span class="nav-text"> Locks</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#lock"><span class="nav-number">1.2.</span> <span class="nav-text"> Lock</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#before-granting-locks"><span class="nav-number">1.2.1.</span> <span class="nav-text"> Before granting locks</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#grant-locks"><span class="nav-number">1.2.2.</span> <span class="nav-text"> Grant locks</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#unlocktable"><span class="nav-number">1.3.</span> <span class="nav-text"> UnlockTable</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#concurrent-query-execution"><span class="nav-number">2.</span> <span class="nav-text"> Concurrent query execution</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#seqscan-executor"><span class="nav-number">2.1.</span> <span class="nav-text"> SeqScan Executor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#insert-delete-and-update-executors"><span class="nav-number">2.2.</span> <span class="nav-text"> Insert, Delete, and Update Executors</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#transaction-manager"><span class="nav-number">2.3.</span> <span class="nav-text"> Transaction manager</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -252,71 +252,108 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>@[toc]</p>
-<h1 id="LockManager"><a href="#LockManager" class="headerlink" title="LockManager"></a>LockManager</h1><h2 id="Locks"><a href="#Locks" class="headerlink" title="Locks"></a>Locks</h2><ol>
-<li><code>LockManager</code> is used to protect the data in the database. According to the lock granularities, the lock information is stored in <code>table_lock_map_</code> and <code>row_lock_map_</code>. </li>
-<li>The interface of <code>LockManager</code> may be executed concurrently by each transaction. Hence <code>table_lock_map_latch_</code> and <code>row_lock_map_latch_</code> are necessary to protect the data of <code>LockManager</code>. </li>
-<li>The information of each object is stored in <code>LockRequestQueue</code>, where all requests are stored, including both granted and waiting requests. Each queue has a <code>latch_</code> to protect its data and as the lock of the condition variable. </li>
-<li>The <code>table_lock_map_latch_</code> or <code>row_lock_map_latch_</code> can be released once the <code>latch_</code> of the corresponding queue is acquired to support better throughput of processing lock requests. </li>
-</ol>
-<h2 id="Lock"><a href="#Lock" class="headerlink" title="Lock"></a>Lock</h2><h3 id="Before-granting-locks"><a href="#Before-granting-locks" class="headerlink" title="Before granting locks"></a>Before granting locks</h3><ol>
-<li>Check whether this transaction allows the acquisition of this lock based on its isolation level and current state. </li>
-<li>Check whether this transaction is upgrading its lock. <ul>
-<li>If so, check whether there is another transaction that is upgrading. </li>
-<li>If not, check whether it can upgrade to this new lock mode. </li>
-<li>If can, set the <code>upgrading_</code> of this queue, remove the recording of the currently holding lock from the transaction, update the lock_mode_ and granted_ of the request in the queue, and use this request as the request to be granted. </li>
+    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
+<li><a href="#lockmanager">LockManager</a>
+<ul>
+<li><a href="#locks">Locks</a></li>
+<li><a href="#lock">Lock</a>
+<ul>
+<li><a href="#before-granting-locks">Before granting locks</a></li>
+<li><a href="#grant-locks">Grant locks</a></li>
 </ul>
 </li>
-<li>If this is not an upgrade, create a new request and insert it into the queue. </li>
-<li>When locking a row, we must also ensure that appropriate locks are held in the table. </li>
-</ol>
-<h3 id="Grant-locks"><a href="#Grant-locks" class="headerlink" title="Grant locks"></a>Grant locks</h3><ol>
-<li>If the transaction is not aborted, try to grant the lock. If failed, sleep the process with the condition variable. </li>
-<li>The rules for granting locks are as follows:<ul>
-<li>If there are granted locks and they are compatible with all granted locks, grant the lock. </li>
-<li>If there is no granted lock,<ul>
-<li>If there is an upgrading request, when this is the upgrading request, or this is compatible with the upgrading request, grant the lock. </li>
-<li>If there is no upgrading request, grant the lock when this is the first request on the waiting list or this is compatible with the first request. </li>
+<li><a href="#unlocktable">UnlockTable</a></li>
+</ul>
+</li>
+<li><a href="#concurrent-query-execution">Concurrent query execution</a>
+<ul>
+<li><a href="#seqscan-executor">SeqScan Executor</a></li>
+<li><a href="#insert-delete-and-update-executors">Insert, Delete, and Update Executors</a></li>
+<li><a href="#transaction-manager">Transaction manager</a></li>
 </ul>
 </li>
 </ul>
-</li>
-<li>If the loop of trying to grant the lock due to the transaction is aborted, its request needs to be deleted from the queue. Otherwise, add the record of the holding the lock to the transaction. </li>
+</p>
+<h1 id="lockmanager"><a class="markdownIt-Anchor" href="#lockmanager"></a> LockManager</h1>
+<h2 id="locks"><a class="markdownIt-Anchor" href="#locks"></a> Locks</h2>
+<ol>
+<li><code>LockManager</code> is used to protect the data in the database. According to the lock granularities, the lock information is stored in <code>table_lock_map_</code> and <code>row_lock_map_</code>.</li>
+<li>The interface of <code>LockManager</code> may be executed concurrently by each transaction. Hence <code>table_lock_map_latch_</code> and <code>row_lock_map_latch_</code> are necessary to protect the data of <code>LockManager</code>.</li>
+<li>The information of each object is stored in <code>LockRequestQueue</code>, where all requests are stored, including both granted and waiting requests. Each queue has a <code>latch_</code> to protect its data and as the lock of the condition variable.</li>
+<li>The <code>table_lock_map_latch_</code> or <code>row_lock_map_latch_</code> can be released once the <code>latch_</code> of the corresponding queue is acquired to support better throughput of processing lock requests.</li>
 </ol>
-<h2 id="UnlockTable"><a href="#UnlockTable" class="headerlink" title="UnlockTable"></a>UnlockTable</h2><ol>
-<li>The transaction should not have any record of holding locks of rows of this table. </li>
-<li>Find the request for this transaction, remove it from the queue, update the transaction state according to the isolation level, unlock the lock, and remove the recording from the transaction. </li>
-<li>When unlocking a table, we need to ensure that no lock of rows in that table is held. </li>
-</ol>
-<h1 id="Concurrent-query-execution"><a href="#Concurrent-query-execution" class="headerlink" title="Concurrent query execution"></a>Concurrent query execution</h1><h2 id="SeqScan-Executor"><a href="#SeqScan-Executor" class="headerlink" title="SeqScan Executor"></a>SeqScan Executor</h2><ol>
-<li>The concurrency control of deletion depends on the <code>SeqScan</code> executor. In <code>Init()</code>, we need to determine the lock type according to <code>exec_ctx_-&gt;IsDelete()</code>. <ul>
-<li>If this scan is for future deletion, we must acquire an exclusive lock on rows and an intension-exclusive lock on the table. </li>
-<li>Otherwise, we lock the table with an intension-shared lock if the isolation level is not <code>READ_UNCOMMITED</code>. </li>
+<h2 id="lock"><a class="markdownIt-Anchor" href="#lock"></a> Lock</h2>
+<h3 id="before-granting-locks"><a class="markdownIt-Anchor" href="#before-granting-locks"></a> Before granting locks</h3>
+<ol>
+<li>Check whether this transaction allows the acquisition of this lock based on its isolation level and current state.</li>
+<li>Check whether this transaction is upgrading its lock.
+<ul>
+<li>If so, check whether there is another transaction that is upgrading.</li>
+<li>If not, check whether it can upgrade to this new lock mode.</li>
+<li>If can, set the <code>upgrading_</code> of this queue, remove the recording of the currently holding lock from the transaction, update the lock_mode_ and granted_ of the request in the queue, and use this request as the request to be granted.</li>
 </ul>
 </li>
-<li>In <code>Next</code>, if shared locks are on the previous row and the isolation level is <code>READ_COMMITTED</code>, we must first release the shared lock. Hence, we can only execute <code>++(*iter_)</code> at the beginning instead of right after fetching the row. <ul>
-<li>Also, when reading tuples, we always acquire a lock first. If, after reading, the tuple does not match the predicate, we should force unlock the lock despite the lock mode. </li>
+<li>If this is not an upgrade, create a new request and insert it into the queue.</li>
+<li>When locking a row, we must also ensure that appropriate locks are held in the table.</li>
+</ol>
+<h3 id="grant-locks"><a class="markdownIt-Anchor" href="#grant-locks"></a> Grant locks</h3>
+<ol>
+<li>If the transaction is not aborted, try to grant the lock. If failed, sleep the process with the condition variable.</li>
+<li>The rules for granting locks are as follows:
+<ul>
+<li>If there are granted locks and they are compatible with all granted locks, grant the lock.</li>
+<li>If there is no granted lock,
+<ul>
+<li>If there is an upgrading request, when this is the upgrading request, or this is compatible with the upgrading request, grant the lock.</li>
+<li>If there is no upgrading request, grant the lock when this is the first request on the waiting list or this is compatible with the first request.</li>
 </ul>
 </li>
-<li>A corner case for this is that some transactions may execute a deletion before another sequential scan. Then, the later sequential scan should only acquire a shared lock while the first deletion has already acquired an exclusive lock. </li>
-<li>When there is no more tuple to emit, we should unlock the shared lock this executor locks on the table. </li>
-</ol>
-<h2 id="Insert-Delete-and-Update-Executors"><a href="#Insert-Delete-and-Update-Executors" class="headerlink" title="Insert, Delete, and Update Executors"></a>Insert, Delete, and Update Executors</h2><ol>
-<li>As aforementioned, the concurrency control of deletion depends on <code>SeqScan</code>. Therefore, we do not need to do anything extra in the <code>Delete</code> executor. </li>
-<li>For insert and update, we need to acquire an intension-exclusive lock on the table in the <code>Init</code>. </li>
-<li>Insert needs to acquire an exclusive lock on the inserted row, but only after the row is generated. </li>
-<li>The update can use an in-place update and needs an exclusive lock before that. </li>
-</ol>
-<h2 id="Transaction-manager"><a href="#Transaction-manager" class="headerlink" title="Transaction manager"></a>Transaction manager</h2><ol>
-<li>On abort, the transaction manager needs to restore the changes made by this transaction. The first is to restore the changes made to tables directly. <ul>
-<li>The reversion must be performed in the opposite order as the modification. </li>
-<li>If the transaction inserted or deleted some tuples, we must reverse the <code>is_deleted_</code> flag in metadata. </li>
-<li>If the transaction updated some tuples without in-place update optimization, we need to insert a delete and an insert record. </li>
-<li>If the transaction uses in-place update optimization, we must keep the old tuples and their meta in the record to restore when aborted. </li>
-<li>Modification to indexes needs to be reverted similarly. </li>
 </ul>
 </li>
-<li>After reverted modifications in abort or entered commit, all locks held by the transaction must be released. We only need to check the lock sets in a transaction. </li>
+<li>If the loop of trying to grant the lock due to the transaction is aborted, its request needs to be deleted from the queue. Otherwise, add the record of the holding the lock to the transaction.</li>
+</ol>
+<h2 id="unlocktable"><a class="markdownIt-Anchor" href="#unlocktable"></a> UnlockTable</h2>
+<ol>
+<li>The transaction should not have any record of holding locks of rows of this table.</li>
+<li>Find the request for this transaction, remove it from the queue, update the transaction state according to the isolation level, unlock the lock, and remove the recording from the transaction.</li>
+<li>When unlocking a table, we need to ensure that no lock of rows in that table is held.</li>
+</ol>
+<h1 id="concurrent-query-execution"><a class="markdownIt-Anchor" href="#concurrent-query-execution"></a> Concurrent query execution</h1>
+<h2 id="seqscan-executor"><a class="markdownIt-Anchor" href="#seqscan-executor"></a> SeqScan Executor</h2>
+<ol>
+<li>The concurrency control of deletion depends on the <code>SeqScan</code> executor. In <code>Init()</code>, we need to determine the lock type according to <code>exec_ctx_-&gt;IsDelete()</code>.
+<ul>
+<li>If this scan is for future deletion, we must acquire an exclusive lock on rows and an intension-exclusive lock on the table.</li>
+<li>Otherwise, we lock the table with an intension-shared lock if the isolation level is not <code>READ_UNCOMMITED</code>.</li>
+</ul>
+</li>
+<li>In <code>Next</code>, if shared locks are on the previous row and the isolation level is <code>READ_COMMITTED</code>, we must first release the shared lock. Hence, we can only execute <code>++(*iter_)</code> at the beginning instead of right after fetching the row.
+<ul>
+<li>Also, when reading tuples, we always acquire a lock first. If, after reading, the tuple does not match the predicate, we should force unlock the lock despite the lock mode.</li>
+</ul>
+</li>
+<li>A corner case for this is that some transactions may execute a deletion before another sequential scan. Then, the later sequential scan should only acquire a shared lock while the first deletion has already acquired an exclusive lock.</li>
+<li>When there is no more tuple to emit, we should unlock the shared lock this executor locks on the table.</li>
+</ol>
+<h2 id="insert-delete-and-update-executors"><a class="markdownIt-Anchor" href="#insert-delete-and-update-executors"></a> Insert, Delete, and Update Executors</h2>
+<ol>
+<li>As aforementioned, the concurrency control of deletion depends on <code>SeqScan</code>. Therefore, we do not need to do anything extra in the <code>Delete</code> executor.</li>
+<li>For insert and update, we need to acquire an intension-exclusive lock on the table in the <code>Init</code>.</li>
+<li>Insert needs to acquire an exclusive lock on the inserted row, but only after the row is generated.</li>
+<li>The update can use an in-place update and needs an exclusive lock before that.</li>
+</ol>
+<h2 id="transaction-manager"><a class="markdownIt-Anchor" href="#transaction-manager"></a> Transaction manager</h2>
+<ol>
+<li>On abort, the transaction manager needs to restore the changes made by this transaction. The first is to restore the changes made to tables directly.
+<ul>
+<li>The reversion must be performed in the opposite order as the modification.</li>
+<li>If the transaction inserted or deleted some tuples, we must reverse the <code>is_deleted_</code> flag in metadata.</li>
+<li>If the transaction updated some tuples without in-place update optimization, we need to insert a delete and an insert record.</li>
+<li>If the transaction uses in-place update optimization, we must keep the old tuples and their meta in the record to restore when aborted.</li>
+<li>Modification to indexes needs to be reverted similarly.</li>
+</ul>
+</li>
+<li>After reverted modifications in abort or entered commit, all locks held by the transaction must be released. We only need to check the lock sets in a transaction.</li>
 </ol>
 
     </div>

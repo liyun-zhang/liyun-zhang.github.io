@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="@[toc] Before-or-After AtomicityWhat is before-or-after atomicity? The before-or-after property states that several actions that concurrently operate on the same data should not interfere with one ano">
+    <meta name="description" content="Before-or-After Atomicity  What is before-or-after atomicity? What is the problem of before-or-after atomicity? What kind of coordination is correct?   Locking disciplines  Simple locking  What are t">
 <meta property="og:type" content="article">
 <meta property="og:title" content="2-Phase Commit">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/09/26/Paper/Distributed/2-Phase-Commit/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="@[toc] Before-or-After AtomicityWhat is before-or-after atomicity? The before-or-after property states that several actions that concurrently operate on the same data should not interfere with one ano">
+<meta property="og:description" content="Before-or-After Atomicity  What is before-or-after atomicity? What is the problem of before-or-after atomicity? What kind of coordination is correct?   Locking disciplines  Simple locking  What are t">
 <meta property="og:locale">
 <meta property="article:published_time" content="2023-09-26T05:45:59.000Z">
 <meta property="article:modified_time" content="2024-03-15T08:54:46.660Z">
@@ -140,7 +140,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Before-or-After-Atomicity"><span class="nav-number">1.</span> <span class="nav-text">Before-or-After Atomicity</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#What-is-before-or-after-atomicity"><span class="nav-number">1.1.</span> <span class="nav-text">What is before-or-after atomicity?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-is-the-problem-of-before-or-after-atomicity"><span class="nav-number">1.2.</span> <span class="nav-text">What is the problem of before-or-after atomicity?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-kind-of-coordination-is-correct"><span class="nav-number">1.3.</span> <span class="nav-text">What kind of coordination is correct?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Locking-disciplines"><span class="nav-number">2.</span> <span class="nav-text">Locking disciplines</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Simple-locking"><span class="nav-number">2.1.</span> <span class="nav-text">Simple locking</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#What-are-the-rules-of-simple-locking"><span class="nav-number">2.1.1.</span> <span class="nav-text">What are the rules of simple locking?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-is-the-lock-point-and-lock-set-of-a-transaction"><span class="nav-number">2.1.2.</span> <span class="nav-text">What is the lock point and lock set of a transaction?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-can-we-implement-a-lock-manager"><span class="nav-number">2.1.3.</span> <span class="nav-text">How can we implement a lock manager?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-to-argue-the-correctness-of-simple-locking"><span class="nav-number">2.1.4.</span> <span class="nav-text">How to argue the correctness of simple locking?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Two-phase-locking"><span class="nav-number">2.2.</span> <span class="nav-text">Two-phase locking</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#What-are-the-rules-of-two-phase-locking"><span class="nav-number">2.2.1.</span> <span class="nav-text">What are the rules of two-phase locking?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-can-we-implement-the-lock-manager"><span class="nav-number">2.2.2.</span> <span class="nav-text">How can we implement the lock manager?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-do-locks-interact-with-log-based-recovery"><span class="nav-number">2.2.3.</span> <span class="nav-text">How do locks interact with log-based recovery?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Distributed-two-phase-commit"><span class="nav-number">2.3.</span> <span class="nav-text">Distributed two-phase commit</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#What-is-correct-in-multi-site-transactions"><span class="nav-number">2.3.1.</span> <span class="nav-text">What is correct in multi-site transactions?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-is-the-problem-of-multi-site-transactions"><span class="nav-number">2.3.2.</span> <span class="nav-text">What is the problem of multi-site transactions?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-are-the-steps-of-the-distributed-two-phase-commit-protocol"><span class="nav-number">2.3.3.</span> <span class="nav-text">What are the steps of the distributed two-phase commit protocol?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-to-handle-the-lost-delayed-or-duplicated-message-problem"><span class="nav-number">2.3.4.</span> <span class="nav-text">How to handle the lost, delayed, or duplicated message problem?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-a-worker-site-recover-from-crashes"><span class="nav-number">2.3.5.</span> <span class="nav-text">How does a worker site recover from crashes?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-can-we-optimize-the-protocol"><span class="nav-number">2.3.6.</span> <span class="nav-text">How can we optimize the protocol?</span></a></li></ol></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#before-or-after-atomicity"><span class="nav-number">1.</span> <span class="nav-text"> Before-or-After Atomicity</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-before-or-after-atomicity"><span class="nav-number">1.1.</span> <span class="nav-text"> What is before-or-after atomicity?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-the-problem-of-before-or-after-atomicity"><span class="nav-number">1.2.</span> <span class="nav-text"> What is the problem of before-or-after atomicity?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-kind-of-coordination-is-correct"><span class="nav-number">1.3.</span> <span class="nav-text"> What kind of coordination is correct?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#locking-disciplines"><span class="nav-number">2.</span> <span class="nav-text"> Locking disciplines</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#simple-locking"><span class="nav-number">2.1.</span> <span class="nav-text"> Simple locking</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-are-the-rules-of-simple-locking"><span class="nav-number">2.1.1.</span> <span class="nav-text"> What are the rules of simple locking?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-lock-point-and-lock-set-of-a-transaction"><span class="nav-number">2.1.2.</span> <span class="nav-text"> What is the lock point and lock set of a transaction?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-can-we-implement-a-lock-manager"><span class="nav-number">2.1.3.</span> <span class="nav-text"> How can we implement a lock manager?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-argue-the-correctness-of-simple-locking"><span class="nav-number">2.1.4.</span> <span class="nav-text"> How to argue the correctness of simple locking?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#two-phase-locking"><span class="nav-number">2.2.</span> <span class="nav-text"> Two-phase locking</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-are-the-rules-of-two-phase-locking"><span class="nav-number">2.2.1.</span> <span class="nav-text"> What are the rules of two-phase locking?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-can-we-implement-the-lock-manager"><span class="nav-number">2.2.2.</span> <span class="nav-text"> How can we implement the lock manager?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-do-locks-interact-with-log-based-recovery"><span class="nav-number">2.2.3.</span> <span class="nav-text"> How do locks interact with log-based recovery?</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#distributed-two-phase-commit"><span class="nav-number">2.3.</span> <span class="nav-text"> Distributed two-phase commit</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-correct-in-multi-site-transactions"><span class="nav-number">2.3.1.</span> <span class="nav-text"> What is correct in multi-site transactions?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-is-the-problem-of-multi-site-transactions"><span class="nav-number">2.3.2.</span> <span class="nav-text"> What is the problem of multi-site transactions?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#what-are-the-steps-of-the-distributed-two-phase-commit-protocol"><span class="nav-number">2.3.3.</span> <span class="nav-text"> What are the steps of the distributed two-phase commit protocol?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-handle-the-lost-delayed-or-duplicated-message-problem"><span class="nav-number">2.3.4.</span> <span class="nav-text"> How to handle the lost, delayed, or duplicated message problem?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-does-a-worker-site-recover-from-crashes"><span class="nav-number">2.3.5.</span> <span class="nav-text"> How does a worker site recover from crashes?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-can-we-optimize-the-protocol"><span class="nav-number">2.3.6.</span> <span class="nav-text"> How can we optimize the protocol?</span></a></li></ol></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -252,155 +252,238 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>@[toc]</p>
-<h1 id="Before-or-After-Atomicity"><a href="#Before-or-After-Atomicity" class="headerlink" title="Before-or-After Atomicity"></a>Before-or-After Atomicity</h1><h2 id="What-is-before-or-after-atomicity"><a href="#What-is-before-or-after-atomicity" class="headerlink" title="What is before-or-after atomicity?"></a>What is before-or-after atomicity?</h2><ol>
-<li><p>The before-or-after property states that several actions that concurrently operate on the same data should not interfere with one another. </p>
+    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
+<li><a href="#before-or-after-atomicity">Before-or-After Atomicity</a>
+<ul>
+<li><a href="#what-is-before-or-after-atomicity">What is before-or-after atomicity?</a></li>
+<li><a href="#what-is-the-problem-of-before-or-after-atomicity">What is the problem of before-or-after atomicity?</a></li>
+<li><a href="#what-kind-of-coordination-is-correct">What kind of coordination is correct?</a></li>
+</ul>
 </li>
-<li><p>Concurrent actions have the before-or-after property if their effect from the point of view of their invokers is the same as if the actions occurred either completely before or completely after one another.</p>
+<li><a href="#locking-disciplines">Locking disciplines</a>
+<ul>
+<li><a href="#simple-locking">Simple locking</a>
+<ul>
+<li><a href="#what-are-the-rules-of-simple-locking">What are the rules of simple locking?</a></li>
+<li><a href="#what-is-the-lock-point-and-lock-set-of-a-transaction">What is the lock point and lock set of a transaction?</a></li>
+<li><a href="#how-can-we-implement-a-lock-manager">How can we implement a lock manager?</a></li>
+<li><a href="#how-to-argue-the-correctness-of-simple-locking">How to argue the correctness of simple locking?</a></li>
+</ul>
+</li>
+<li><a href="#two-phase-locking">Two-phase locking</a>
+<ul>
+<li><a href="#what-are-the-rules-of-two-phase-locking">What are the rules of two-phase locking?</a></li>
+<li><a href="#how-can-we-implement-the-lock-manager">How can we implement the lock manager?</a></li>
+<li><a href="#how-do-locks-interact-with-log-based-recovery">How do locks interact with log-based recovery?</a></li>
+</ul>
+</li>
+<li><a href="#distributed-two-phase-commit">Distributed two-phase commit</a>
+<ul>
+<li><a href="#what-is-correct-in-multi-site-transactions">What is correct in multi-site transactions?</a></li>
+<li><a href="#what-is-the-problem-of-multi-site-transactions">What is the problem of multi-site transactions?</a></li>
+<li><a href="#what-are-the-steps-of-the-distributed-two-phase-commit-protocol">What are the steps of the distributed two-phase commit protocol?</a></li>
+<li><a href="#how-to-handle-the-lost-delayed-or-duplicated-message-problem">How to handle the lost, delayed, or duplicated message problem?</a></li>
+<li><a href="#how-does-a-worker-site-recover-from-crashes">How does a worker site recover from crashes?</a></li>
+<li><a href="#how-can-we-optimize-the-protocol">How can we optimize the protocol?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="before-or-after-atomicity"><a class="markdownIt-Anchor" href="#before-or-after-atomicity"></a> Before-or-After Atomicity</h1>
+<h2 id="what-is-before-or-after-atomicity"><a class="markdownIt-Anchor" href="#what-is-before-or-after-atomicity"></a> What is before-or-after atomicity?</h2>
+<ol>
+<li>
+<p>The before-or-after property states that several actions that concurrently operate on the same data should not interfere with one another.</p>
+</li>
+<li>
+<p>Concurrent actions have the before-or-after property if their effect from the point of view of their invokers is the same as if the actions occurred either completely before or completely after one another.</p>
 </li>
 </ol>
-<h2 id="What-is-the-problem-of-before-or-after-atomicity"><a href="#What-is-the-problem-of-before-or-after-atomicity" class="headerlink" title="What is the problem of before-or-after atomicity?"></a>What is the problem of before-or-after atomicity?</h2><ol>
-<li>The programmer does not necessarily know the identities of all the other actions that might touch the shared vari­able. </li>
-<li>This lack of knowledge can make coordinating actions by explicit program steps problematic. </li>
+<h2 id="what-is-the-problem-of-before-or-after-atomicity"><a class="markdownIt-Anchor" href="#what-is-the-problem-of-before-or-after-atomicity"></a> What is the problem of before-or-after atomicity?</h2>
+<ol>
+<li>The programmer does not necessarily know the identities of all the other actions that might touch the shared vari­able.</li>
+<li>This lack of knowledge can make coordinating actions by explicit program steps problematic.</li>
 <li>Instead, the programmer needs an automatic, implicit mechanism that ensures proper handling of every shared variable.</li>
 </ol>
-<h2 id="What-kind-of-coordination-is-correct"><a href="#What-kind-of-coordination-is-correct" class="headerlink" title="What kind of coordination is correct?"></a>What kind of coordination is correct?</h2><ol>
-<li>Coordination among concurrent actions can be considered correct if every result is guaranteed to be one that could have been obtained by some purely serial application of those same actions. </li>
-<li>As long as the intermediate states are not visible above the implementing layer, and the system is guaranteed to end up in one of the acceptable final states, we can declare the coordination correct. </li>
+<h2 id="what-kind-of-coordination-is-correct"><a class="markdownIt-Anchor" href="#what-kind-of-coordination-is-correct"></a> What kind of coordination is correct?</h2>
+<ol>
+<li>Coordination among concurrent actions can be considered correct if every result is guaranteed to be one that could have been obtained by some purely serial application of those same actions.</li>
+<li>As long as the intermediate states are not visible above the implementing layer, and the system is guaranteed to end up in one of the acceptable final states, we can declare the coordination correct.</li>
 </ol>
-<h1 id="Locking-disciplines"><a href="#Locking-disciplines" class="headerlink" title="Locking disciplines"></a>Locking disciplines</h1><h2 id="Simple-locking"><a href="#Simple-locking" class="headerlink" title="Simple locking"></a>Simple locking</h2><h3 id="What-are-the-rules-of-simple-locking"><a href="#What-are-the-rules-of-simple-locking" class="headerlink" title="What are the rules of simple locking?"></a>What are the rules of simple locking?</h3><ol>
-<li>Each transaction must acquire a lock for every shared data object it intends to read or write before doing any actual reading and writing. </li>
-<li>It may release its locks only after the transaction installs its last update and commits or completely restores the data and aborts. </li>
-<li>Applications that discover which objects need to be read by reading other shared data objects have no alter­ native but to lock every object that they might need to read. </li>
+<h1 id="locking-disciplines"><a class="markdownIt-Anchor" href="#locking-disciplines"></a> Locking disciplines</h1>
+<h2 id="simple-locking"><a class="markdownIt-Anchor" href="#simple-locking"></a> Simple locking</h2>
+<h3 id="what-are-the-rules-of-simple-locking"><a class="markdownIt-Anchor" href="#what-are-the-rules-of-simple-locking"></a> What are the rules of simple locking?</h3>
+<ol>
+<li>Each transaction must acquire a lock for every shared data object it intends to read or write before doing any actual reading and writing.</li>
+<li>It may release its locks only after the transaction installs its last update and commits or completely restores the data and aborts.</li>
+<li>Applications that discover which objects need to be read by reading other shared data objects have no alter­ native but to lock every object that they might need to read.</li>
 </ol>
-<h3 id="What-is-the-lock-point-and-lock-set-of-a-transaction"><a href="#What-is-the-lock-point-and-lock-set-of-a-transaction" class="headerlink" title="What is the lock point and lock set of a transaction?"></a>What is the lock point and lock set of a transaction?</h3><ol>
-<li><em>Lock point</em>: the first instant at which it acquired all its locks. </li>
-<li><em>Lock set</em>: The collection of locks it has acquired when it reaches its lock point. </li>
+<h3 id="what-is-the-lock-point-and-lock-set-of-a-transaction"><a class="markdownIt-Anchor" href="#what-is-the-lock-point-and-lock-set-of-a-transaction"></a> What is the lock point and lock set of a transaction?</h3>
+<ol>
+<li><em>Lock point</em>: the first instant at which it acquired all its locks.</li>
+<li><em>Lock set</em>: The collection of locks it has acquired when it reaches its lock point.</li>
 </ol>
-<h3 id="How-can-we-implement-a-lock-manager"><a href="#How-can-we-implement-a-lock-manager" class="headerlink" title="How can we implement a lock manager?"></a>How can we implement a lock manager?</h3><ol>
-<li><p>Acquire locks</p>
+<h3 id="how-can-we-implement-a-lock-manager"><a class="markdownIt-Anchor" href="#how-can-we-implement-a-lock-manager"></a> How can we implement a lock manager?</h3>
+<ol>
+<li>
+<p>Acquire locks</p>
 <ul>
-<li>Each transaction supplies its intended lock set as an argu­ment to the <strong>begin_transaction</strong> operation, which acquires all locks of the lock set, if necessary, waiting for them to become available. </li>
+<li>
+<p>Each transaction supplies its intended lock set as an argu­ment to the <strong>begin_transaction</strong> operation, which acquires all locks of the lock set, if necessary, waiting for them to become available.</p>
+<ul>
+<li>Interpose itself on all calls to read data and log changes, and verify that they refer to variables in the lock set.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Release locks</p>
+<ul>
+<li>Intercept the call to <em>commit</em> or <em>abort</em> (or, if the application uses roll-forward recovery, to log an <em>END</em> record), at which time it auto­matically releases all of the locks of the lock set.</li>
 </ul>
 </li>
 </ol>
-<pre><code>  - Interpose itself on all calls to read data and log changes, and verify that they refer to variables in the lock set. 
-</code></pre><ol>
-<li>Release locks<ul>
-<li>Intercept the call to <em>commit</em> or <em>abort</em> (or, if the application uses roll-forward recovery, to log an <em>END</em> record), at which time it auto­matically releases all of the locks of the lock set. </li>
-</ul>
-</li>
-</ol>
-<h3 id="How-to-argue-the-correctness-of-simple-locking"><a href="#How-to-argue-the-correctness-of-simple-locking" class="headerlink" title="How to argue the correctness of simple locking?"></a>How to argue the correctness of simple locking?</h3><ol>
-<li>Imagine that an all-seeing outside observer maintains an ordered list to which it adds each transaction identifier as soon as the transaction reaches its lock point and removes it from the list when it begins to release its locks. </li>
-<li>Each transaction has agreed not to read or write anything until that transaction has been added to the observer’s list. </li>
+<h3 id="how-to-argue-the-correctness-of-simple-locking"><a class="markdownIt-Anchor" href="#how-to-argue-the-correctness-of-simple-locking"></a> How to argue the correctness of simple locking?</h3>
+<ol>
+<li>Imagine that an all-seeing outside observer maintains an ordered list to which it adds each transaction identifier as soon as the transaction reaches its lock point and removes it from the list when it begins to release its locks.</li>
+<li>Each transaction has agreed not to read or write anything until that transaction has been added to the observer’s list.</li>
 <li>Since no data object can appear in the lock sets of two transactions, no data object in any transaction’s lock set appears in the lock set of the transaction preceding it in the list and by induction to any transaction earlier in the list.</li>
-<li>Thus, all of this transaction’s input values are the same as they will be when the preceding transaction in the list commits or aborts. </li>
-<li>The same argument applies to the transaction before the preceding one, so all inputs to any trans­ action are identical to the inputs that would be available if all the transactions ahead of it in the list ran serially, in the order of the list. </li>
-<li>Thus, the simple locking discipline ensures that this transaction runs completely after the preceding one and completely before the next. </li>
+<li>Thus, all of this transaction’s input values are the same as they will be when the preceding transaction in the list commits or aborts.</li>
+<li>The same argument applies to the transaction before the preceding one, so all inputs to any trans­ action are identical to the inputs that would be available if all the transactions ahead of it in the list ran serially, in the order of the list.</li>
+<li>Thus, the simple locking discipline ensures that this transaction runs completely after the preceding one and completely before the next.</li>
 <li>Concurrent transactions will produce results as if they had been serialized in the order that they reached their lock points.</li>
 </ol>
-<h2 id="Two-phase-locking"><a href="#Two-phase-locking" class="headerlink" title="Two-phase locking"></a>Two-phase locking</h2><h3 id="What-are-the-rules-of-two-phase-locking"><a href="#What-are-the-rules-of-two-phase-locking" class="headerlink" title="What are the rules of two-phase locking?"></a>What are the rules of two-phase locking?</h3><ol>
-<li>It avoids the requirement that a transaction must know which locks to acquire in advance. </li>
-<li>The two-phase locking discipline allows a transaction to acquire locks as it proceeds, and the trans­ action may read or write a data object as soon as it acquires a lock on that object. </li>
-<li>The primary constraint is that the transaction may not release any locks until it passes its lock point. </li>
-<li>The transaction can release a lock on an object that it only reads after it reaches its lock point if it will never need to read that object again, even to abort. </li>
+<h2 id="two-phase-locking"><a class="markdownIt-Anchor" href="#two-phase-locking"></a> Two-phase locking</h2>
+<h3 id="what-are-the-rules-of-two-phase-locking"><a class="markdownIt-Anchor" href="#what-are-the-rules-of-two-phase-locking"></a> What are the rules of two-phase locking?</h3>
+<ol>
+<li>It avoids the requirement that a transaction must know which locks to acquire in advance.</li>
+<li>The two-phase locking discipline allows a transaction to acquire locks as it proceeds, and the trans­ action may read or write a data object as soon as it acquires a lock on that object.</li>
+<li>The primary constraint is that the transaction may not release any locks until it passes its lock point.</li>
+<li>The transaction can release a lock on an object that it only reads after it reaches its lock point if it will never need to read that object again, even to abort.</li>
 </ol>
-<h3 id="How-can-we-implement-the-lock-manager"><a href="#How-can-we-implement-the-lock-manager" class="headerlink" title="How can we implement the lock manager?"></a>How can we implement the lock manager?</h3><ol>
-<li>Intercept all calls to read and write data; it acquires a lock (perhaps having to wait) on the first use of each shared variable. </li>
-<li>As with simple locking, it then holds the locks until it intercepts the call to <em>commit</em>, <em>abort</em>, or log the <em>END</em> record of the transaction, at which time it releases them all at once. </li>
+<h3 id="how-can-we-implement-the-lock-manager"><a class="markdownIt-Anchor" href="#how-can-we-implement-the-lock-manager"></a> How can we implement the lock manager?</h3>
+<ol>
+<li>Intercept all calls to read and write data; it acquires a lock (perhaps having to wait) on the first use of each shared variable.</li>
+<li>As with simple locking, it then holds the locks until it intercepts the call to <em>commit</em>, <em>abort</em>, or log the <em>END</em> record of the transaction, at which time it releases them all at once.</li>
 </ol>
-<h3 id="How-do-locks-interact-with-log-based-recovery"><a href="#How-do-locks-interact-with-log-based-recovery" class="headerlink" title="How do locks interact with log-based recovery?"></a>How do locks interact with log-based recovery?</h3><ol>
-<li><p>Whether locks themselves are data objects for which changes should be logged? </p>
+<h3 id="how-do-locks-interact-with-log-based-recovery"><a class="markdownIt-Anchor" href="#how-do-locks-interact-with-log-based-recovery"></a> How do locks interact with log-based recovery?</h3>
+<ol>
+<li>
+<p>Whether locks themselves are data objects for which changes should be logged?</p>
 <ul>
-<li><p>After crash recovery, there should be no pending transactions because the recovery procedure should have rolled back any pending transactions at the time of the crash, and recov­ery does not allow any new transactions to begin until it completes. </p>
+<li>
+<p>After crash recovery, there should be no pending transactions because the recovery procedure should have rolled back any pending transactions at the time of the crash, and recov­ery does not allow any new transactions to begin until it completes.</p>
 </li>
-<li><p>Since locks exist only to coordinate pending transactions, it would be an error if locks were still set when crash recovery is complete. </p>
+<li>
+<p>Since locks exist only to coordinate pending transactions, it would be an error if locks were still set when crash recovery is complete.</p>
 </li>
-<li><p>Locks belong in vol­atile storage, where they will automatically disappear on a crash, rather than in non­-volatile storage, where the recovery procedure would have to hunt them down to release them. </p>
+<li>
+<p>Locks belong in vol­atile storage, where they will automatically disappear on a crash, rather than in non­-volatile storage, where the recovery procedure would have to hunt them down to release them.</p>
 </li>
 </ul>
 </li>
-<li><p>Will the log-based recovery algorithm construct a correct system state? </p>
+<li>
+<p>Will the log-based recovery algorithm construct a correct system state?</p>
 <ul>
-<li>The incomplete transactions at the instant of the crash had nonoverlapping lock sets when the lock values vanished. </li>
-<li>Those actions can safely be redone or undone without con­ cern for before-or-after atomicity during recovery. </li>
-<li>The locks created a particular transaction serialization, and the log captured that serialization. </li>
-<li>Since <em>RECOVER</em> performs <em>UNDO</em> actions in reverse order as specified in the log, and it per­ forms <em>REDO</em> actions in forward order, again as specified in the log, <em>RECOVER</em> reconstructs exactly that same serialization. </li>
+<li>The incomplete transactions at the instant of the crash had nonoverlapping lock sets when the lock values vanished.</li>
+<li>Those actions can safely be redone or undone without con­ cern for before-or-after atomicity during recovery.</li>
+<li>The locks created a particular transaction serialization, and the log captured that serialization.</li>
+<li>Since <em>RECOVER</em> performs <em>UNDO</em> actions in reverse order as specified in the log, and it per­ forms <em>REDO</em> actions in forward order, again as specified in the log, <em>RECOVER</em> reconstructs exactly that same serialization.</li>
 </ul>
 </li>
 </ol>
-<h2 id="Distributed-two-phase-commit"><a href="#Distributed-two-phase-commit" class="headerlink" title="Distributed two-phase commit"></a>Distributed two-phase commit</h2><h3 id="What-is-correct-in-multi-site-transactions"><a href="#What-is-correct-in-multi-site-transactions" class="headerlink" title="What is correct in multi-site transactions?"></a>What is correct in multi-site transactions?</h3><ol>
-<li>Correctness of the multiple-site ato­micity protocol will be achieved if all the sites commit or if all the sites abort. </li>
-<li>It fails if some sites commit their part of a multiple-site transaction while others abort their part of that same transaction. </li>
+<h2 id="distributed-two-phase-commit"><a class="markdownIt-Anchor" href="#distributed-two-phase-commit"></a> Distributed two-phase commit</h2>
+<h3 id="what-is-correct-in-multi-site-transactions"><a class="markdownIt-Anchor" href="#what-is-correct-in-multi-site-transactions"></a> What is correct in multi-site transactions?</h3>
+<ol>
+<li>Correctness of the multiple-site ato­micity protocol will be achieved if all the sites commit or if all the sites abort.</li>
+<li>It fails if some sites commit their part of a multiple-site transaction while others abort their part of that same transaction.</li>
 </ol>
-<h3 id="What-is-the-problem-of-multi-site-transactions"><a href="#What-is-the-problem-of-multi-site-transactions" class="headerlink" title="What is the problem of multi-site transactions?"></a>What is the problem of multi-site transactions?</h3><ol>
-<li>The coordinator has created a higher-layer transaction, and each worker is to perform a transaction nested in the higher-layer transaction. </li>
-<li>The complication is that the coordinator and workers cannot reliably communicate. </li>
-<li>The problem thus reduces to constructing a reliable distributed version of the two-phase commit protocol. We can do that by applying persistent senders and duplicate suppression. </li>
+<h3 id="what-is-the-problem-of-multi-site-transactions"><a class="markdownIt-Anchor" href="#what-is-the-problem-of-multi-site-transactions"></a> What is the problem of multi-site transactions?</h3>
+<ol>
+<li>The coordinator has created a higher-layer transaction, and each worker is to perform a transaction nested in the higher-layer transaction.</li>
+<li>The complication is that the coordinator and workers cannot reliably communicate.</li>
+<li>The problem thus reduces to constructing a reliable distributed version of the two-phase commit protocol. We can do that by applying persistent senders and duplicate suppression.</li>
 </ol>
-<h3 id="What-are-the-steps-of-the-distributed-two-phase-commit-protocol"><a href="#What-are-the-steps-of-the-distributed-two-phase-commit-protocol" class="headerlink" title="What are the steps of the distributed two-phase commit protocol?"></a>What are the steps of the distributed two-phase commit protocol?</h3><ol>
-<li><p>Beginning</p>
+<h3 id="what-are-the-steps-of-the-distributed-two-phase-commit-protocol"><a class="markdownIt-Anchor" href="#what-are-the-steps-of-the-distributed-two-phase-commit-protocol"></a> What are the steps of the distributed two-phase commit protocol?</h3>
+<ol>
+<li>
+<p>Beginning</p>
 <ul>
-<li><p>The coordinator creates a top-layer outcome record for the overall transaction. </p>
+<li>
+<p>The coordinator creates a top-layer outcome record for the overall transaction.</p>
 </li>
-<li><p>It persistently sends the content of sub-transactions to each site, referring to the same transaction, respectively. </p>
+<li>
+<p>It persistently sends the content of sub-transactions to each site, referring to the same transaction, respectively.</p>
 </li>
-<li><p>Upon receiving a request, a worker site checks for duplicates and then creates a transaction of its own. Still, it makes the transaction nested, with its superior being the coordinator’s original transaction. </p>
+<li>
+<p>Upon receiving a request, a worker site checks for duplicates and then creates a transaction of its own. Still, it makes the transaction nested, with its superior being the coordinator’s original transaction.</p>
 </li>
-<li><p>Then, the worker site does the pre-commit part of the requested action, reporting back to the coordinator that this has gone well. </p>
+<li>
+<p>Then, the worker site does the pre-commit part of the requested action, reporting back to the coordinator that this has gone well.</p>
 </li>
 </ul>
 </li>
-<li><p>Two-phase commit</p>
+<li>
+<p>Two-phase commit</p>
 <ul>
-<li>Phase one:<ul>
-<li>Upon collecting a complete set of such responses, the coordinator then moves to the two-phase commit part of the transaction by sending <code>PREPARE</code> messages to each worker site. </li>
-<li>Upon receiving this message, each worker site commits—but only tentatively—or aborts. </li>
-<li>Having created durable tentative versions (or logged to journal storage its planned updates) and having recorded an outcome record saying that it is <code>PREPARED</code> either to commit or abort, worker sites persistently send a response to the coordinator of commit or abort. </li>
-<li>If all workers send PREPARED messages, phase one of the two-phase commit is complete. </li>
-<li>Suppose any worker responds with an abort message or doesn’t respond at all. In that case, the coordinator can abort the entire transaction or try a different worker site to carry out that component transaction. </li>
+<li>Phase one:
+<ul>
+<li>Upon collecting a complete set of such responses, the coordinator then moves to the two-phase commit part of the transaction by sending <code>PREPARE</code> messages to each worker site.</li>
+<li>Upon receiving this message, each worker site commits—but only tentatively—or aborts.</li>
+<li>Having created durable tentative versions (or logged to journal storage its planned updates) and having recorded an outcome record saying that it is <code>PREPARED</code> either to commit or abort, worker sites persistently send a response to the coordinator of commit or abort.</li>
+<li>If all workers send PREPARED messages, phase one of the two-phase commit is complete.</li>
+<li>Suppose any worker responds with an abort message or doesn’t respond at all. In that case, the coordinator can abort the entire transaction or try a different worker site to carry out that component transaction.</li>
 </ul>
 </li>
-<li>Phase two:<ul>
-<li>The coordinator commits the entire transaction by marking its outcome record as <code>COMMITTED</code>. </li>
-<li>It sends a completion message back to each worker site. </li>
-<li>Upon receiving such a message, each worker site changes its state from <code>PREPARED</code> to <code>COM­MITTED</code>, performs any needed post-commit actions, and exits. </li>
+<li>Phase two:
+<ul>
+<li>The coordinator commits the entire transaction by marking its outcome record as <code>COMMITTED</code>.</li>
+<li>It sends a completion message back to each worker site.</li>
+<li>Upon receiving such a message, each worker site changes its state from <code>PREPARED</code> to <code>COM­MITTED</code>, performs any needed post-commit actions, and exits.</li>
 </ul>
 </li>
-</ul>
-</li>
-</ol>
-<h3 id="How-to-handle-the-lost-delayed-or-duplicated-message-problem"><a href="#How-to-handle-the-lost-delayed-or-duplicated-message-problem" class="headerlink" title="How to handle the lost, delayed, or duplicated message problem?"></a>How to handle the lost, delayed, or duplicated message problem?</h3><ol>
-<li>Suppose the coordinator doesn’t receive a response to a ready message of some sub-transaction request from one or more of the workers in a reasonable time. In that case, she resends the message to the non-responding workers as often as necessary to elicit a response. </li>
-<li>If a worker site receives a duplicate request of <code>PREPARE</code> from the coordinator, its persistent sender sends back a duplicate of the <code>PREPARED</code> or <code>ABORTED</code> response. </li>
-<li>If the coordinator goes down before the coordinator sends the final COMMITTED message in phase two, all of the workers must wait until it recovers; in this protocol, the coordinator is a single point of failure. </li>
-<li>The coordinator must remem­ ber, reliably and for an indefinite time, the outcome of this transaction. <ul>
-<li>If a completion message does not arrive in a reasonable period, the persistent sender at the worker site will resend its <code>PREPARED</code> message. </li>
-<li>Whenever the coordinator receives a duplicate <code>PREPARED</code> message, it simply sends back the current state of the outcome record for the named transaction. </li>
 </ul>
 </li>
 </ol>
-<h3 id="How-does-a-worker-site-recover-from-crashes"><a href="#How-does-a-worker-site-recover-from-crashes" class="headerlink" title="How does a worker site recover from crashes?"></a>How does a worker site recover from crashes?</h3><ol>
-<li>It must classify any <code>PREPARED</code> transaction as a tentative win­ner that it should restore to the <code>PREPARED</code> state. </li>
-<li>If the worker uses locks for before-or-after atomicity, the recovery procedure must reacquire any locks the PREPARED transaction held at the time of the failure. </li>
-<li>The recovery procedure must restart the persistent sender to learn the current status of the higher-layer transaction. </li>
-<li>If the worker site uses version histories, only the last step, restarting the persistent sender, is required. </li>
+<h3 id="how-to-handle-the-lost-delayed-or-duplicated-message-problem"><a class="markdownIt-Anchor" href="#how-to-handle-the-lost-delayed-or-duplicated-message-problem"></a> How to handle the lost, delayed, or duplicated message problem?</h3>
+<ol>
+<li>Suppose the coordinator doesn’t receive a response to a ready message of some sub-transaction request from one or more of the workers in a reasonable time. In that case, she resends the message to the non-responding workers as often as necessary to elicit a response.</li>
+<li>If a worker site receives a duplicate request of <code>PREPARE</code> from the coordinator, its persistent sender sends back a duplicate of the <code>PREPARED</code> or <code>ABORTED</code> response.</li>
+<li>If the coordinator goes down before the coordinator sends the final COMMITTED message in phase two, all of the workers must wait until it recovers; in this protocol, the coordinator is a single point of failure.</li>
+<li>The coordinator must remem­ ber, reliably and for an indefinite time, the outcome of this transaction.
+<ul>
+<li>If a completion message does not arrive in a reasonable period, the persistent sender at the worker site will resend its <code>PREPARED</code> message.</li>
+<li>Whenever the coordinator receives a duplicate <code>PREPARED</code> message, it simply sends back the current state of the outcome record for the named transaction.</li>
+</ul>
+</li>
+</ol>
+<h3 id="how-does-a-worker-site-recover-from-crashes"><a class="markdownIt-Anchor" href="#how-does-a-worker-site-recover-from-crashes"></a> How does a worker site recover from crashes?</h3>
+<ol>
+<li>It must classify any <code>PREPARED</code> transaction as a tentative win­ner that it should restore to the <code>PREPARED</code> state.</li>
+<li>If the worker uses locks for before-or-after atomicity, the recovery procedure must reacquire any locks the PREPARED transaction held at the time of the failure.</li>
+<li>The recovery procedure must restart the persistent sender to learn the current status of the higher-layer transaction.</li>
+<li>If the worker site uses version histories, only the last step, restarting the persistent sender, is required.</li>
 <li>Other servers will commit if the worker site crashes after sending PREPARED before receiving COMMIT. So we want server recovery as <code>PREPARED</code>. So before sending <code>PREPARED</code>, servers need to make their log durable.</li>
 </ol>
-<h3 id="How-can-we-optimize-the-protocol"><a href="#How-can-we-optimize-the-protocol" class="headerlink" title="How can we optimize the protocol?"></a>How can we optimize the protocol?</h3><ol>
-<li>The initial RPC request and response could also carry the PREPARE and PREPARED messages. <ul>
-<li>Once a worker sends a <code>PREPARED</code> message, it loses the ability to abort unilaterally, and it must remain on the knife edge, awaiting instructions from the coordinator. </li>
-<li>To minimize this wait, delaying the PREPARE/PREPARED message pair is usually preferable until the coordinator knows that the other workers seem to be in a position to do their parts. </li>
+<h3 id="how-can-we-optimize-the-protocol"><a class="markdownIt-Anchor" href="#how-can-we-optimize-the-protocol"></a> How can we optimize the protocol?</h3>
+<ol>
+<li>The initial RPC request and response could also carry the PREPARE and PREPARED messages.
+<ul>
+<li>Once a worker sends a <code>PREPARED</code> message, it loses the ability to abort unilaterally, and it must remain on the knife edge, awaiting instructions from the coordinator.</li>
+<li>To minimize this wait, delaying the PREPARE/PREPARED message pair is usually preferable until the coordinator knows that the other workers seem to be in a position to do their parts.</li>
 </ul>
 </li>
-<li>Have a fourth acknowl­edgment message from the worker sites to the coordinator. <ul>
-<li>Once all acknowledgments are in, the coordinator can then safely discard its outcome record since every worker site is known to have gotten the word. </li>
+<li>Have a fourth acknowl­edgment message from the worker sites to the coordinator.
+<ul>
+<li>Once all acknowledgments are in, the coordinator can then safely discard its outcome record since every worker site is known to have gotten the word.</li>
 </ul>
 </li>
-<li>Presumed commit: The coordi­nator answers any inquiry about a non-existent outcome record by sending a <code>COMMITTED</code> response. <ul>
-<li>The coordinator commits by destroying the out­come record, so a fourth acknowledgment message from every worker is unnecessary. </li>
-<li>The coor­dinator can persistently ask for acknowledgment of aborted transactions and discard the outcome record after all these acknowledgments are in. </li>
+<li>Presumed commit: The coordi­nator answers any inquiry about a non-existent outcome record by sending a <code>COMMITTED</code> response.
+<ul>
+<li>The coordinator commits by destroying the out­come record, so a fourth acknowledgment message from every worker is unnecessary.</li>
+<li>The coor­dinator can persistently ask for acknowledgment of aborted transactions and discard the outcome record after all these acknowledgments are in.</li>
 </ul>
 </li>
 </ol>

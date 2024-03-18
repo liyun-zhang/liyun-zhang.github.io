@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Transactional memory Declarative programming is when the programmer states what to do, not how to do it. The system implements synchronization as necessary to ensure atomicity.  In transaction memory,">
+    <meta name="description" content="Transactional memory   Declarative programming is when the programmer states what to do, not how to do it. The system implements synchronization as necessary to ensure atomicity.   In transaction mem">
 <meta property="og:type" content="article">
 <meta property="og:title" content="15. Transactional Memory">
 <meta property="og:url" content="http://liyun-zhang.github.io/2022/07/21/Courses/CS149/15-Transactional-Memory/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="Transactional memory Declarative programming is when the programmer states what to do, not how to do it. The system implements synchronization as necessary to ensure atomicity.  In transaction memory,">
+<meta property="og:description" content="Transactional memory   Declarative programming is when the programmer states what to do, not how to do it. The system implements synchronization as necessary to ensure atomicity.   In transaction mem">
 <meta property="og:locale">
 <meta property="article:published_time" content="2022-07-21T14:53:19.000Z">
 <meta property="article:modified_time" content="2024-03-16T14:58:55.205Z">
@@ -139,7 +139,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Transactional-memory"><span class="nav-number">1.</span> <span class="nav-text">Transactional memory</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Implementing-transactional-memory"><span class="nav-number">2.</span> <span class="nav-text">Implementing transactional memory</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Data-versioning"><span class="nav-number">2.1.</span> <span class="nav-text">Data versioning</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conflict-detection-and-resolution"><span class="nav-number">2.2.</span> <span class="nav-text">Conflict detection and resolution</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hardware-transactional-memory"><span class="nav-number">2.3.</span> <span class="nav-text">Hardware transactional memory</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#transactional-memory"><span class="nav-number">1.</span> <span class="nav-text"> Transactional memory</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#implementing-transactional-memory"><span class="nav-number">2.</span> <span class="nav-text"> Implementing transactional memory</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#data-versioning"><span class="nav-number">2.1.</span> <span class="nav-text"> Data versioning</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#conflict-detection-and-resolution"><span class="nav-number">2.2.</span> <span class="nav-text"> Conflict detection and resolution</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hardware-transactional-memory"><span class="nav-number">2.3.</span> <span class="nav-text"> Hardware transactional memory</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -251,43 +251,103 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h1 id="Transactional-memory"><a href="#Transactional-memory" class="headerlink" title="Transactional memory"></a>Transactional memory</h1><ol>
-<li>Declarative programming is when the programmer states what to do, not how to do it. The system implements synchronization as necessary to ensure atomicity. </li>
-<li><p>In transaction memory, the atomic construct is declarative, which means that the programmer states what to do, not how to do it. The system implements synchronization as necessary to ensure atomicity.<br>The system could implement <code>atomic&#123;&#125;</code> using a lock. However, the programmer has no explicit use or management of locks. </p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Traditional method</span></span><br><span class="line"><span class="built_in">lock</span>(mutex);</span><br><span class="line"><span class="comment">//critical code</span></span><br><span class="line"><span class="built_in">unlock</span>(mutex);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Transaction memory</span></span><br><span class="line">atomic &#123;</span><br><span class="line">  <span class="comment">// critical code</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-<li>Memory transaction is an atomic and isolated sequence of memory accesses inspired by database transactions.<br>Atomicity requires that upon transaction commit, all memory writes in the transaction take effect at once, and on transaction abort, none of the writes appear to take effect as if the transaction never happened.<br>Isolation means that no other processor can observe writes before committing the transaction.<br>Serializability is that transactions appear to commit in a single serial order, but transaction semantics does not guarantee the exact order of commits. </li>
-<li>Load-linked, store conditional (LL/SC) is a light version of transactional memory. It has a pair of corresponding instructions (not a single atomic instruction)<br><code>load_linked(x)</code>: load value from address<br><code>store_conditional(x, value)</code>: store value to x, if x hasn’t been written to since<br>corresponding LL</li>
-<li>Two read operations won’t cause true contention. In TM, we can allow the parallelism between two read operations. However, serialization must be ensured when at least one write operation occurs. </li>
-<li>The transactional memory system is also responsible for processing exceptions, decreasing the complexity of manually using try-catch statements to catch exceptions.<br>When an exception inside the atomic block occurs, the transaction is aborted, and memory updates are undone. </li>
-<li><p>A transactional memory system needs composable locks.<br>Composing lock-based code can be tricky, requiring system-wide policies to get correct, and can break software modularity.<br>The following code can end up in a deadlock. TM system should be able to compose the two synchronizations together to avoid the possible deadlock. A programmer can use an <code>atomic&#123;&#125;</code> to correctly represent the two <code>synchronized &#123;&#125;</code> structures. </p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">function</span><span class="params">(A, B)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">synchronized</span>(A)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">synchronized</span>(B)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="comment">// critical code</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 0</span></span><br><span class="line"><span class="built_in">function</span>(x, y);</span><br><span class="line"></span><br><span class="line"><span class="comment">//thread 1</span></span><br><span class="line"><span class="built_in">function</span>(y, x);</span><br></pre></td></tr></table></figure></li>
-<li><code>Atomic&#123;&#125;</code> is not the same as <code>lock()/unlock()</code>. Atomic is a high-level declaration of atomicity, which does not specify the implementation of atomicity. The lock is a low-level blocking primitive that does not provide atomicity or isolation on its own.<br>Locks can be used to implement an atomic block. Also, locks can be used for purposes beyond atomicity. Namely, we cannot replace all uses of locks with atomic regions.<br>Atomic eliminates many data races, but programming with atomic blocks can still suffer from atomicity violations. </li>
-<li>Atomicity violation due to programmer error: Logically, the atomic code sequence is erroneously separated into two atomic blocks. </li>
+    <div class="post-body" itemprop="articleBody"><h1 id="transactional-memory"><a class="markdownIt-Anchor" href="#transactional-memory"></a> Transactional memory</h1>
+<ol>
+<li>
+<p>Declarative programming is when the programmer states what to do, not how to do it. The system implements synchronization as necessary to ensure atomicity.</p>
+</li>
+<li>
+<p>In transaction memory, the atomic construct is declarative, which means that the programmer states what to do, not how to do it. The system implements synchronization as necessary to ensure atomicity.<br />
+The system could implement <code>atomic&#123;&#125;</code> using a lock. However, the programmer has no explicit use or management of locks.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Traditional method</span></span><br><span class="line"><span class="built_in">lock</span>(mutex);</span><br><span class="line"><span class="comment">//critical code</span></span><br><span class="line"><span class="built_in">unlock</span>(mutex);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Transaction memory</span></span><br><span class="line">atomic &#123;</span><br><span class="line">  <span class="comment">// critical code</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>Memory transaction is an atomic and isolated sequence of memory accesses inspired by database transactions.<br />
+Atomicity requires that upon transaction commit, all memory writes in the transaction take effect at once, and on transaction abort, none of the writes appear to take effect as if the transaction never happened.<br />
+Isolation means that no other processor can observe writes before committing the transaction.<br />
+Serializability is that transactions appear to commit in a single serial order, but transaction semantics does not guarantee the exact order of commits.</p>
+</li>
+<li>
+<p>Load-linked, store conditional (LL/SC) is a light version of transactional memory. It has a pair of corresponding instructions (not a single atomic instruction)<br />
+<code>load_linked(x)</code>: load value from address<br />
+<code>store_conditional(x, value)</code>: store value to x, if x hasn’t been written to since<br />
+corresponding LL</p>
+</li>
+<li>
+<p>Two read operations won’t cause true contention. In TM, we can allow the parallelism between two read operations. However, serialization must be ensured when at least one write operation occurs.</p>
+</li>
+<li>
+<p>The transactional memory system is also responsible for processing exceptions, decreasing the complexity of manually using try-catch statements to catch exceptions.<br />
+When an exception inside the atomic block occurs, the transaction is aborted, and memory updates are undone.</p>
+</li>
+<li>
+<p>A transactional memory system needs composable locks.<br />
+Composing lock-based code can be tricky, requiring system-wide policies to get correct, and can break software modularity.<br />
+The following code can end up in a deadlock. TM system should be able to compose the two synchronizations together to avoid the possible deadlock. A programmer can use an <code>atomic&#123;&#125;</code> to correctly represent the two <code>synchronized &#123;&#125;</code> structures.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">function</span><span class="params">(A, B)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">synchronized</span>(A)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">synchronized</span>(B)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="comment">// critical code</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 0</span></span><br><span class="line"><span class="built_in">function</span>(x, y);</span><br><span class="line"></span><br><span class="line"><span class="comment">//thread 1</span></span><br><span class="line"><span class="built_in">function</span>(y, x);</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p><code>Atomic&#123;&#125;</code> is not the same as <code>lock()/unlock()</code>. Atomic is a high-level declaration of atomicity, which does not specify the implementation of atomicity. The lock is a low-level blocking primitive that does not provide atomicity or isolation on its own.<br />
+Locks can be used to implement an atomic block. Also, locks can be used for purposes beyond atomicity. Namely, we cannot replace all uses of locks with atomic regions.<br />
+Atomic eliminates many data races, but programming with atomic blocks can still suffer from atomicity violations.</p>
+</li>
+<li>
+<p>Atomicity violation due to programmer error: Logically, the atomic code sequence is erroneously separated into two atomic blocks.</p>
+</li>
 </ol>
-<h1 id="Implementing-transactional-memory"><a href="#Implementing-transactional-memory" class="headerlink" title="Implementing transactional memory"></a>Implementing transactional memory</h1><h2 id="Data-versioning"><a href="#Data-versioning" class="headerlink" title="Data versioning"></a>Data versioning</h2><ol>
-<li>Data versioning manages uncommitted (new) and previously committed (old) versions of data for concurrent transactions. This is used to allow transaction abort. </li>
-<li>Eager versioning updates memory immediately and maintains “undo log” in case of abort.<br>When a write happens, the old value is pushed into the undo log, and the new value is to memory.<br>When a transaction is aborted, we can search the undo log to recover the corresponding state.<br>When the transaction is committed, we can discard the undo log of those committed contents. </li>
-<li>Lazy versioning is a deferred update. Namely, it logs memory updates in the transaction write buffer and flushes the buffer on commit.<br>When a write happens, the new value is pushed into the write buffer, and we don’t write the new value in memory.<br>When a transaction is aborted, we discard the write buffer, and there is no need to modify the memory since we haven’t written anything to it yet.<br>When a transaction is committed, we write the data in the write buffer to memory and discard the write buffer. </li>
-<li>Eager versioning is faster in commit since data is already in memory. But it is slower in aborts and has fault tolerance issues (crashes in the middle of a transaction). It writes to memory immediately, hoping the transaction won’t abort, but deals with aborts when necessary. </li>
-<li>Lazy versioning is faster in abort, clears the log, and has no fault tolerance issues. But it is slower in commits. It only writes to memory when you have to. </li>
+<h1 id="implementing-transactional-memory"><a class="markdownIt-Anchor" href="#implementing-transactional-memory"></a> Implementing transactional memory</h1>
+<h2 id="data-versioning"><a class="markdownIt-Anchor" href="#data-versioning"></a> Data versioning</h2>
+<ol>
+<li>Data versioning manages uncommitted (new) and previously committed (old) versions of data for concurrent transactions. This is used to allow transaction abort.</li>
+<li>Eager versioning updates memory immediately and maintains “undo log” in case of abort.<br />
+When a write happens, the old value is pushed into the undo log, and the new value is to memory.<br />
+When a transaction is aborted, we can search the undo log to recover the corresponding state.<br />
+When the transaction is committed, we can discard the undo log of those committed contents.</li>
+<li>Lazy versioning is a deferred update. Namely, it logs memory updates in the transaction write buffer and flushes the buffer on commit.<br />
+When a write happens, the new value is pushed into the write buffer, and we don’t write the new value in memory.<br />
+When a transaction is aborted, we discard the write buffer, and there is no need to modify the memory since we haven’t written anything to it yet.<br />
+When a transaction is committed, we write the data in the write buffer to memory and discard the write buffer.</li>
+<li>Eager versioning is faster in commit since data is already in memory. But it is slower in aborts and has fault tolerance issues (crashes in the middle of a transaction). It writes to memory immediately, hoping the transaction won’t abort, but deals with aborts when necessary.</li>
+<li>Lazy versioning is faster in abort, clears the log, and has no fault tolerance issues. But it is slower in commits. It only writes to memory when you have to.</li>
 </ol>
-<h2 id="Conflict-detection-and-resolution"><a href="#Conflict-detection-and-resolution" class="headerlink" title="Conflict detection and resolution"></a>Conflict detection and resolution</h2><ol>
-<li>This is to decide when to abort. It must detect and handle transaction conflicts, including read-write and write-write conflicts. The system must track a transaction’s read set and write set. </li>
-<li>Pessimistic detection checks for conflicts during loads or stores. A hardware implementation will check for conflicts through coherent actions.<br>The philosophy is, “I suspect conflicts might happen, so let’s always check to see if one has occurred after each memory operation… if I’m going to have to roll back, might as well do it now to avoid wasted work.” </li>
-<li>The contention manager decides to stall or abort the transaction when a conflict is detected. A conflict can be stalled when detected before executing (early detection). When a conflict is detected after execution, then it can only restart.<br>When two writes cause the conflict, it may raise a livelock if both threads restart before the other one has finished. </li>
-<li>Optimistic detection detects conflicts when a transaction attempts to commit. Hardware validates the write set using coherence actions and gets exclusive access to cache lines in the write set.<br>The intuition is, “Let’s hope for the best and sort out all the conflicts only when the transaction tries to commit.”<br>In a conflict, it gives priority to committing the transactions. Other transactions may be aborted later on. In conflicts between committing transactions, use the contention manager to decide priorities. Optimistic detection won’t cause livelock. </li>
-<li>We can use optimistic and pessimistic schemes together. Several STM systems use optimistic for reads and pessimistic for writes. </li>
-<li>Pessimistic conflict detection (“eager”) can detect conflicts early and thus undo less work, turning some aborts into stalls. It has no forward progress guarantees, and there are more aborts in some cases. Also, fine-grained communication is required to check on each load/store.<br>Bad: detection on the critical path</li>
-<li>Optimistic conflict detection (“lazy” or “commit”) has forward progress guarantees. It requires bulk communication and conflict detection. It detects conflicts late and can still have fairness problems. </li>
-<li>Conflict detection granularity<br>Object granularity is a software-based technique. It reduces time and space overhead and is close to the programmer’s reasoning. But there might be false sharing on large objects.<br>Machine word granularity can minimize false sharing but increases the overhead of time and space.<br>Cache-line granularity is a compromise between an object and a word. </li>
+<h2 id="conflict-detection-and-resolution"><a class="markdownIt-Anchor" href="#conflict-detection-and-resolution"></a> Conflict detection and resolution</h2>
+<ol>
+<li>This is to decide when to abort. It must detect and handle transaction conflicts, including read-write and write-write conflicts. The system must track a transaction’s read set and write set.</li>
+<li>Pessimistic detection checks for conflicts during loads or stores. A hardware implementation will check for conflicts through coherent actions.<br />
+The philosophy is, &quot;I suspect conflicts might happen, so let’s always check to see if one has occurred after each memory operation… if I’m going to have to roll back, might as well do it now to avoid wasted work.”</li>
+<li>The contention manager decides to stall or abort the transaction when a conflict is detected. A conflict can be stalled when detected before executing (early detection). When a conflict is detected after execution, then it can only restart.<br />
+When two writes cause the conflict, it may raise a livelock if both threads restart before the other one has finished.</li>
+<li>Optimistic detection detects conflicts when a transaction attempts to commit. Hardware validates the write set using coherence actions and gets exclusive access to cache lines in the write set.<br />
+The intuition is, “Let’s hope for the best and sort out all the conflicts only when the transaction tries to commit.”<br />
+In a conflict, it gives priority to committing the transactions. Other transactions may be aborted later on. In conflicts between committing transactions, use the contention manager to decide priorities. Optimistic detection won’t cause livelock.</li>
+<li>We can use optimistic and pessimistic schemes together. Several STM systems use optimistic for reads and pessimistic for writes.</li>
+<li>Pessimistic conflict detection (“eager”) can detect conflicts early and thus undo less work, turning some aborts into stalls. It has no forward progress guarantees, and there are more aborts in some cases. Also, fine-grained communication is required to check on each load/store.<br />
+Bad: detection on the critical path</li>
+<li>Optimistic conflict detection (“lazy” or “commit”) has forward progress guarantees. It requires bulk communication and conflict detection. It detects conflicts late and can still have fairness problems.</li>
+<li>Conflict detection granularity<br />
+Object granularity is a software-based technique. It reduces time and space overhead and is close to the programmer’s reasoning. But there might be false sharing on large objects.<br />
+Machine word granularity can minimize false sharing but increases the overhead of time and space.<br />
+Cache-line granularity is a compromise between an object and a word.</li>
 </ol>
-<h2 id="Hardware-transactional-memory"><a href="#Hardware-transactional-memory" class="headerlink" title="Hardware transactional memory"></a>Hardware transactional memory</h2><ol>
-<li>Data versioning is implemented in caches. Cache the write buffer or the undo log. And add new cache line metadata to track transaction read and write sets.<br>Conflict detection is implemented through cache coherence protocol. Coherence lookups detect conflicts between transactions. It works with snooping and directory coherence. </li>
-<li>Register checkpoint must also be taken at the transaction begins to restore the execution context state on abort. </li>
-<li>Cache lines need extra bits to track the read set and write set.<br><strong>R bit</strong> indicates data read by transaction and is set on loads, while <strong>W bit</strong> indicates data written by transaction and is set on stores. R/W bits gang-cleared on transaction commit or abort.<br>R/W bits can be a work or cache-line granularity.<br>We need a 2nd cache write for the undo log for eager versioning. </li>
-<li>Coherence requests check R/W bits to detect conflicts.<br>Observing shared requests to W-word is a read-write conflict.<br>Observing exclusive (intent to write) requests to R-word is a write-read conflict.<br>Observing exclusive (intent to write) requests to W-word is a write-write conflict. </li>
-<li>Fast two-phase commit<br>Validate: request RdX access to write set lines (if needed)<br>Commit: gang-reset R and W bits, turns to write set data to valid (dirty) data. </li>
-<li>Fast conflict detection and abort<br>Check: lookup exclusive requests in the read set and write set<br>Abort: invalidate write set, gang-reset R and W bits, restore to register checkpoint</li>
+<h2 id="hardware-transactional-memory"><a class="markdownIt-Anchor" href="#hardware-transactional-memory"></a> Hardware transactional memory</h2>
+<ol>
+<li>Data versioning is implemented in caches. Cache the write buffer or the undo log. And add new cache line metadata to track transaction read and write sets.<br />
+Conflict detection is implemented through cache coherence protocol. Coherence lookups detect conflicts between transactions. It works with snooping and directory coherence.</li>
+<li>Register checkpoint must also be taken at the transaction begins to restore the execution context state on abort.</li>
+<li>Cache lines need extra bits to track the read set and write set.<br />
+<strong>R bit</strong> indicates data read by transaction and is set on loads, while <strong>W bit</strong> indicates data written by transaction and is set on stores. R/W bits gang-cleared on transaction commit or abort.<br />
+R/W bits can be a work or cache-line granularity.<br />
+We need a 2nd cache write for the undo log for eager versioning.</li>
+<li>Coherence requests check R/W bits to detect conflicts.<br />
+Observing shared requests to W-word is a read-write conflict.<br />
+Observing exclusive (intent to write) requests to R-word is a write-read conflict.<br />
+Observing exclusive (intent to write) requests to W-word is a write-write conflict.</li>
+<li>Fast two-phase commit<br />
+Validate: request RdX access to write set lines (if needed)<br />
+Commit: gang-reset R and W bits, turns to write set data to valid (dirty) data.</li>
+<li>Fast conflict detection and abort<br />
+Check: lookup exclusive requests in the read set and write set<br />
+Abort: invalidate write set, gang-reset R and W bits, restore to register checkpoint</li>
 </ol>
 
     </div>

@@ -20,19 +20,19 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="@[toc] Multi-version logicWhat does multi-version mean? The DBMS maintains multiple physical versions of a single logical object in the database.   When a transaction writes to an object, the DBMS cre">
+    <meta name="description" content="Multi-version logic  What does multi-version mean? How to maintain multi-version logically? What isolation can MVCC support?   Design decisions  What concurrency control protocol can be used? How are">
 <meta property="og:type" content="article">
 <meta property="og:title" content="12 Multi-Version Concurrency Control">
 <meta property="og:url" content="http://liyun-zhang.github.io/2023/08/22/Courses/15445/12-Multi-Version-Concurrency-Control/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="@[toc] Multi-version logicWhat does multi-version mean? The DBMS maintains multiple physical versions of a single logical object in the database.   When a transaction writes to an object, the DBMS cre">
+<meta property="og:description" content="Multi-version logic  What does multi-version mean? How to maintain multi-version logically? What isolation can MVCC support?   Design decisions  What concurrency control protocol can be used? How are">
 <meta property="og:locale">
 <meta property="article:published_time" content="2023-08-22T07:34:19.000Z">
 <meta property="article:modified_time" content="2024-03-16T08:02:14.896Z">
 <meta property="article:author" content="LiyunZhang">
+<meta property="article:tag" content="Concurrency Control">
 <meta property="article:tag" content="Database System">
 <meta property="article:tag" content="Transaction">
-<meta property="article:tag" content="Concurrency Control">
 <meta name="twitter:card" content="summary">
 
 
@@ -141,7 +141,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Multi-version-logic"><span class="nav-number">1.</span> <span class="nav-text">Multi-version logic</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#What-does-multi-version-mean"><span class="nav-number">1.1.</span> <span class="nav-text">What does multi-version mean?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-maintain-multi-version-logically"><span class="nav-number">1.2.</span> <span class="nav-text">How to maintain multi-version logically?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-isolation-can-MVCC-support"><span class="nav-number">1.3.</span> <span class="nav-text">What isolation can MVCC support?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Design-decisions"><span class="nav-number">2.</span> <span class="nav-text">Design decisions</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#What-concurrency-control-protocol-can-be-used"><span class="nav-number">2.1.</span> <span class="nav-text">What concurrency control protocol can be used?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-are-versions-stored"><span class="nav-number">2.2.</span> <span class="nav-text">How are versions stored?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-perform-garbage-collection"><span class="nav-number">2.3.</span> <span class="nav-text">How to perform garbage collection?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-manage-indexes"><span class="nav-number">2.4.</span> <span class="nav-text">How to manage indexes?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-delete-a-tuple"><span class="nav-number">2.5.</span> <span class="nav-text">How to delete a tuple?</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#multi-version-logic"><span class="nav-number">1.</span> <span class="nav-text"> Multi-version logic</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-does-multi-version-mean"><span class="nav-number">1.1.</span> <span class="nav-text"> What does multi-version mean?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-maintain-multi-version-logically"><span class="nav-number">1.2.</span> <span class="nav-text"> How to maintain multi-version logically?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-isolation-can-mvcc-support"><span class="nav-number">1.3.</span> <span class="nav-text"> What isolation can MVCC support?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#design-decisions"><span class="nav-number">2.</span> <span class="nav-text"> Design decisions</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-concurrency-control-protocol-can-be-used"><span class="nav-number">2.1.</span> <span class="nav-text"> What concurrency control protocol can be used?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-are-versions-stored"><span class="nav-number">2.2.</span> <span class="nav-text"> How are versions stored?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-perform-garbage-collection"><span class="nav-number">2.3.</span> <span class="nav-text"> How to perform garbage collection?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-manage-indexes"><span class="nav-number">2.4.</span> <span class="nav-text"> How to manage indexes?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-delete-a-tuple"><span class="nav-number">2.5.</span> <span class="nav-text"> How to delete a tuple?</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -253,111 +253,159 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>@[toc]</p>
-<h1 id="Multi-version-logic"><a href="#Multi-version-logic" class="headerlink" title="Multi-version logic"></a>Multi-version logic</h1><h2 id="What-does-multi-version-mean"><a href="#What-does-multi-version-mean" class="headerlink" title="What does multi-version mean?"></a>What does multi-version mean?</h2><ol>
-<li><p>The DBMS maintains multiple physical versions of a single logical object in the database. </p>
+    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
+<li><a href="#multi-version-logic">Multi-version logic</a>
 <ul>
-<li><p>When a transaction writes to an object, the DBMS creates a new version of that object. </p>
+<li><a href="#what-does-multi-version-mean">What does multi-version mean?</a></li>
+<li><a href="#how-to-maintain-multi-version-logically">How to maintain multi-version logically?</a></li>
+<li><a href="#what-isolation-can-mvcc-support">What isolation can MVCC support?</a></li>
+</ul>
 </li>
-<li><p>When a transaction reads an object, it reads the newest version that existed when it started. </p>
+<li><a href="#design-decisions">Design decisions</a>
+<ul>
+<li><a href="#what-concurrency-control-protocol-can-be-used">What concurrency control protocol can be used?</a></li>
+<li><a href="#how-are-versions-stored">How are versions stored?</a></li>
+<li><a href="#how-to-perform-garbage-collection">How to perform garbage collection?</a></li>
+<li><a href="#how-to-manage-indexes">How to manage indexes?</a></li>
+<li><a href="#how-to-delete-a-tuple">How to delete a tuple?</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="multi-version-logic"><a class="markdownIt-Anchor" href="#multi-version-logic"></a> Multi-version logic</h1>
+<h2 id="what-does-multi-version-mean"><a class="markdownIt-Anchor" href="#what-does-multi-version-mean"></a> What does multi-version mean?</h2>
+<ol>
+<li>
+<p>The DBMS maintains multiple physical versions of a single logical object in the database.</p>
+<ul>
+<li>
+<p>When a transaction writes to an object, the DBMS creates a new version of that object.</p>
+</li>
+<li>
+<p>When a transaction reads an object, it reads the newest version that existed when it started.</p>
 </li>
 </ul>
 </li>
-<li><p>Writers do not block readers, and readers do not block writers. </p>
+<li>
+<p>Writers do not block readers, and readers do not block writers.</p>
 </li>
-<li><p>Read-only transactions can read a consistent snapshot without acquiring locks using timestamps to determine visibility. </p>
+<li>
+<p>Read-only transactions can read a consistent snapshot without acquiring locks using timestamps to determine visibility.</p>
 </li>
-<li><p>Multi-version can easily support time-travel queries on a snapshot version of the database. </p>
+<li>
+<p>Multi-version can easily support time-travel queries on a snapshot version of the database.</p>
 </li>
 </ol>
-<h2 id="How-to-maintain-multi-version-logically"><a href="#How-to-maintain-multi-version-logically" class="headerlink" title="How to maintain multi-version logically?"></a>How to maintain multi-version logically?</h2><ol>
-<li>Each version describes the current version number, the value for this version, and the lifetime range, i.e., the beginning and end timestamps. </li>
-<li>The end timestamp is marked infinity for the newest version. </li>
-<li>When a transaction writes an object: <ul>
-<li>First, it creates a new entry with a new version number and sets its begin timestamp as its timestamp and end timestamp as infinity. </li>
-<li>Then, it marks the end timestamp of the last version as its timestamp. </li>
-<li>Physically, this transaction should modify the last version to point to this new version. Hence, it must wait for the transaction that has created the previous version to commit before beginning its commit phase. </li>
+<h2 id="how-to-maintain-multi-version-logically"><a class="markdownIt-Anchor" href="#how-to-maintain-multi-version-logically"></a> How to maintain multi-version logically?</h2>
+<ol>
+<li>Each version describes the current version number, the value for this version, and the lifetime range, i.e., the beginning and end timestamps.</li>
+<li>The end timestamp is marked infinity for the newest version.</li>
+<li>When a transaction writes an object:
+<ul>
+<li>First, it creates a new entry with a new version number and sets its begin timestamp as its timestamp and end timestamp as infinity.</li>
+<li>Then, it marks the end timestamp of the last version as its timestamp.</li>
+<li>Physically, this transaction should modify the last version to point to this new version. Hence, it must wait for the transaction that has created the previous version to commit before beginning its commit phase.</li>
 </ul>
 </li>
 </ol>
-<h2 id="What-isolation-can-MVCC-support"><a href="#What-isolation-can-MVCC-support" class="headerlink" title="What isolation can MVCC support?"></a>What isolation can MVCC support?</h2><ol>
-<li><code>SNAPSHOT ISOLATION</code> is another isolation supported by Oracle. <ul>
+<h2 id="what-isolation-can-mvcc-support"><a class="markdownIt-Anchor" href="#what-isolation-can-mvcc-support"></a> What isolation can MVCC support?</h2>
+<ol>
+<li><code>SNAPSHOT ISOLATION</code> is another isolation supported by Oracle.
+<ul>
 <li>It guarantees that all reads made in a transaction see a consistent snapshot of the database when the transaction started.</li>
 <li>A transaction will commit only if its writes do not conflict with any concurrent updates made since that snapshot.</li>
 </ul>
 </li>
-<li>It is susceptible to write skew anomaly. <ul>
-<li>Two concurrent transactions modify different objects, resulting in race conditions. </li>
-<li>If a transaction wants to modify all values to $1$ while another transaction wants to modify all values to $0$. The first transaction changes all $0$s, and the second transaction changes all $1$s. When their result merges with the database, it would be the $1$s and $0$s are flipped instead of all being $1$s or $0$s. </li>
+<li>It is susceptible to write skew anomaly.
+<ul>
+<li>Two concurrent transactions modify different objects, resulting in race conditions.</li>
+<li>If a transaction wants to modify all values to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> while another transaction wants to modify all values to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>. The first transaction changes all <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>s, and the second transaction changes all <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>s. When their result merges with the database, it would be the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>s and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>s are flipped instead of all being <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>s or <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>s.</li>
 </ul>
 </li>
 </ol>
-<h1 id="Design-decisions"><a href="#Design-decisions" class="headerlink" title="Design decisions"></a>Design decisions</h1><h2 id="What-concurrency-control-protocol-can-be-used"><a href="#What-concurrency-control-protocol-can-be-used" class="headerlink" title="What concurrency control protocol can be used?"></a>What concurrency control protocol can be used?</h2><ol>
-<li>All aforementioned protocols can be used in MVCC. </li>
-<li>Timestamp ordering assigns transaction timestamps to determine what they can see. </li>
-<li>Optimistic concurrency control uses a private workspace for new versions. </li>
-<li>Two-phase locking requires transactions to acquire an appropriate lock on a physical version before they can read/write a logical tuple. </li>
+<h1 id="design-decisions"><a class="markdownIt-Anchor" href="#design-decisions"></a> Design decisions</h1>
+<h2 id="what-concurrency-control-protocol-can-be-used"><a class="markdownIt-Anchor" href="#what-concurrency-control-protocol-can-be-used"></a> What concurrency control protocol can be used?</h2>
+<ol>
+<li>All aforementioned protocols can be used in MVCC.</li>
+<li>Timestamp ordering assigns transaction timestamps to determine what they can see.</li>
+<li>Optimistic concurrency control uses a private workspace for new versions.</li>
+<li>Two-phase locking requires transactions to acquire an appropriate lock on a physical version before they can read/write a logical tuple.</li>
 </ol>
-<h2 id="How-are-versions-stored"><a href="#How-are-versions-stored" class="headerlink" title="How are versions stored?"></a>How are versions stored?</h2><ol>
-<li>The DBMS uses the tuples’ pointer field to create a version chain per logical tuple. <ul>
-<li>This allows the DBMS to find the version visible to a particular transaction at runtime. </li>
-<li>Indexes always point to the “head” of the chain. </li>
+<h2 id="how-are-versions-stored"><a class="markdownIt-Anchor" href="#how-are-versions-stored"></a> How are versions stored?</h2>
+<ol>
+<li>The DBMS uses the tuples’ pointer field to create a version chain per logical tuple.
+<ul>
+<li>This allows the DBMS to find the version visible to a particular transaction at runtime.</li>
+<li>Indexes always point to the “head” of the chain.</li>
 </ul>
 </li>
-<li>The first approach is append-only storage: New versions are appended to the same table space. <ul>
-<li>The versions of different logical tuples are inter-mixed. </li>
-<li>On every update, append a new version of the tuple into an empty space in the table. </li>
-<li>If the chain is from oldest to newest, the DBMS must traverse the chain on look-ups. However, the update does not need to update the index. </li>
-<li>Or, the chain can be from oldest to newest. The pros and cons are contrary to the last scenario. </li>
+<li>The first approach is append-only storage: New versions are appended to the same table space.
+<ul>
+<li>The versions of different logical tuples are inter-mixed.</li>
+<li>On every update, append a new version of the tuple into an empty space in the table.</li>
+<li>If the chain is from oldest to newest, the DBMS must traverse the chain on look-ups. However, the update does not need to update the index.</li>
+<li>Or, the chain can be from oldest to newest. The pros and cons are contrary to the last scenario.</li>
 </ul>
 </li>
-<li>The second approach is time-travel storage: Old versions are copied to separate table space.<ul>
-<li>On every update, copy the current version to the time-travel table. Update pointers. Then, Overwrite the master version in the main table and update pointers. </li>
+<li>The second approach is time-travel storage: Old versions are copied to separate table space.
+<ul>
+<li>On every update, copy the current version to the time-travel table. Update pointers. Then, Overwrite the master version in the main table and update pointers.</li>
 </ul>
 </li>
-<li>The third approach is delta storage: The original values of the modified attributes are copied into a separate delta record space. <ul>
-<li>On every update, copy only the values modified to the delta storage and overwrite the master version. </li>
-<li>Transactions can recreate old versions by applying the delta in reverse order. </li>
-</ul>
-</li>
-</ol>
-<h2 id="How-to-perform-garbage-collection"><a href="#How-to-perform-garbage-collection" class="headerlink" title="How to perform garbage collection?"></a>How to perform garbage collection?</h2><ol>
-<li>The DBMS needs to remove reclaimable physical versions from the database over time. <ul>
-<li>Reclaimable means that no active transaction in the DBMS can see an aborted transaction created that version (SI) or the version. </li>
-<li>The DBMS can only reclaim versions created by an aborted transaction to support time-travel queries. </li>
-</ul>
-</li>
-<li>To look for expired versions, the implementation has two choices. </li>
-<li>The first approach is tuple-level: Find old versions by examining tuples directly.<ul>
-<li>In a background vacuuming manner, separate thread(s) periodically scan the table and look for reclaimable versions. This design works with any storage. </li>
-<li>In a cooperative cleaning manner, worker threads identify reclaimable versions as they traverse the version chain. It only works with oldest-to-newest. </li>
-</ul>
-</li>
-<li>The second approach is transaction-level: transactions keep track of their old versions on updates, so the DBMS does not have to scan tuples to determine visibility. <ul>
-<li>Each transaction keeps track of its read/write set. On commit/abort, the transaction provides this information to a centralized vacuum worker. </li>
-<li>The DBMS periodically determines when all versions created by a finished transaction are no longer visible. </li>
+<li>The third approach is delta storage: The original values of the modified attributes are copied into a separate delta record space.
+<ul>
+<li>On every update, copy only the values modified to the delta storage and overwrite the master version.</li>
+<li>Transactions can recreate old versions by applying the delta in reverse order.</li>
 </ul>
 </li>
 </ol>
-<h2 id="How-to-manage-indexes"><a href="#How-to-manage-indexes" class="headerlink" title="How to manage indexes?"></a>How to manage indexes?</h2><ol>
-<li>Primary key indexes point to the version chain head. <ul>
+<h2 id="how-to-perform-garbage-collection"><a class="markdownIt-Anchor" href="#how-to-perform-garbage-collection"></a> How to perform garbage collection?</h2>
+<ol>
+<li>The DBMS needs to remove reclaimable physical versions from the database over time.
+<ul>
+<li>Reclaimable means that no active transaction in the DBMS can see an aborted transaction created that version (SI) or the version.</li>
+<li>The DBMS can only reclaim versions created by an aborted transaction to support time-travel queries.</li>
+</ul>
+</li>
+<li>To look for expired versions, the implementation has two choices.</li>
+<li>The first approach is tuple-level: Find old versions by examining tuples directly.
+<ul>
+<li>In a background vacuuming manner, separate thread(s) periodically scan the table and look for reclaimable versions. This design works with any storage.</li>
+<li>In a cooperative cleaning manner, worker threads identify reclaimable versions as they traverse the version chain. It only works with oldest-to-newest.</li>
+</ul>
+</li>
+<li>The second approach is transaction-level: transactions keep track of their old versions on updates, so the DBMS does not have to scan tuples to determine visibility.
+<ul>
+<li>Each transaction keeps track of its read/write set. On commit/abort, the transaction provides this information to a centralized vacuum worker.</li>
+<li>The DBMS periodically determines when all versions created by a finished transaction are no longer visible.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-manage-indexes"><a class="markdownIt-Anchor" href="#how-to-manage-indexes"></a> How to manage indexes?</h2>
+<ol>
+<li>Primary key indexes point to the version chain head.
+<ul>
 <li>How often the DBMS must update the primary key index depends on whether the system creates new versions when a tuple is updated.</li>
-<li>If a transaction updates a tuple’s primary key attribute(s), then this is treated as a <code>DELETE</code> followed by an <code>INSERT</code>. </li>
+<li>If a transaction updates a tuple’s primary key attribute(s), then this is treated as a <code>DELETE</code> followed by an <code>INSERT</code>.</li>
 </ul>
 </li>
-<li>Secondary indexes may use the physical address to the version chain head like a primary key index. </li>
-<li>The secondary indexes may also use logical pointers. <ul>
-<li>It uses a fixed identifier per tuple that does not change, e.g., primary key or tuple ID. </li>
-<li>This would require an extra indirection layer. </li>
+<li>Secondary indexes may use the physical address to the version chain head like a primary key index.</li>
+<li>The secondary indexes may also use logical pointers.
+<ul>
+<li>It uses a fixed identifier per tuple that does not change, e.g., primary key or tuple ID.</li>
+<li>This would require an extra indirection layer.</li>
 </ul>
 </li>
 </ol>
-<h2 id="How-to-delete-a-tuple"><a href="#How-to-delete-a-tuple" class="headerlink" title="How to delete a tuple?"></a>How to delete a tuple?</h2><ol>
-<li>The DBMS physically deletes a tuple from the database only when all versions of a logically deleted tuple are not visible. </li>
-<li>If a tuple is deleted, a new version cannot be after the latest version. </li>
-<li>There are two ways to denote that a tuple has been logically deleted at some point in time. <ul>
-<li>The first way is to maintain a deleted flag to indicate that the logical tuple has been deleted after the newest physical version. The flag can either be in a tuple header or a separate column. </li>
-<li>The second tombstone tuple way is to create an empty physical version to indicate that a logical tuple is deleted. <ul>
+<h2 id="how-to-delete-a-tuple"><a class="markdownIt-Anchor" href="#how-to-delete-a-tuple"></a> How to delete a tuple?</h2>
+<ol>
+<li>The DBMS physically deletes a tuple from the database only when all versions of a logically deleted tuple are not visible.</li>
+<li>If a tuple is deleted, a new version cannot be after the latest version.</li>
+<li>There are two ways to denote that a tuple has been logically deleted at some point in time.
+<ul>
+<li>The first way is to maintain a deleted flag to indicate that the logical tuple has been deleted after the newest physical version. The flag can either be in a tuple header or a separate column.</li>
+<li>The second tombstone tuple way is to create an empty physical version to indicate that a logical tuple is deleted.
+<ul>
 <li>It uses a separate pool for tombstone tuples with only a special bit pattern in the version chain pointer to reduce the storage overhead.</li>
 </ul>
 </li>
@@ -373,9 +421,9 @@
 
     <footer class="post-footer">
           <div class="post-tags">
+              <a href="/tags/Concurrency-Control/" rel="tag"><i class="fa fa-tag"></i> Concurrency Control</a>
               <a href="/tags/Database-System/" rel="tag"><i class="fa fa-tag"></i> Database System</a>
               <a href="/tags/Transaction/" rel="tag"><i class="fa fa-tag"></i> Transaction</a>
-              <a href="/tags/Concurrency-Control/" rel="tag"><i class="fa fa-tag"></i> Concurrency Control</a>
           </div>
 
         

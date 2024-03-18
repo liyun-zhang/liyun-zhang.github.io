@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="@[toc]  Database v.s. CSV files:  Database provided a better encapsulation representation that provides ensurence of data integrety, necessary operations and durability. Only SQL is exposed to the use">
+    <meta name="description" content="Database v.s. CSV files:  Database provided a better encapsulation representation that provides ensurence of data integrety, necessary operations and durability. Only SQL is exposed to the users. CS">
 <meta property="og:type" content="article">
 <meta property="og:title" content="00. Trade-offs summary">
 <meta property="og:url" content="http://liyun-zhang.github.io/2024/02/22/Courses/15445/00-Trade-offs-summary/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="@[toc]  Database v.s. CSV files:  Database provided a better encapsulation representation that provides ensurence of data integrety, necessary operations and durability. Only SQL is exposed to the use">
+<meta property="og:description" content="Database v.s. CSV files:  Database provided a better encapsulation representation that provides ensurence of data integrety, necessary operations and durability. Only SQL is exposed to the users. CS">
 <meta property="og:locale">
 <meta property="article:published_time" content="2024-02-22T10:39:09.000Z">
 <meta property="article:modified_time" content="2024-03-15T07:07:34.788Z">
@@ -236,18 +236,20 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>@[toc]</p>
+    <div class="post-body" itemprop="articleBody"><p></p>
 <ol>
-<li><strong>Database</strong> v.s. <strong>CSV files</strong>: <ul>
-<li>Database provided a better encapsulation representation that provides ensurence of data integrety, necessary operations and durability. Only SQL is exposed to the users. </li>
-<li>CSV files requires used to write all operations, e.g. searching and writing, by themselves. It is enough for small amount of data. </li>
-<li>Database can be easily used to manage complex or enormously large data which can be difficult for CSV files. </li>
+<li><strong>Database</strong> v.s. <strong>CSV files</strong>:
+<ul>
+<li>Database provided a better encapsulation representation that provides ensurence of data integrety, necessary operations and durability. Only SQL is exposed to the users.</li>
+<li>CSV files requires used to write all operations, e.g. searching and writing, by themselves. It is enough for small amount of data.</li>
+<li>Database can be easily used to manage complex or enormously large data which can be difficult for CSV files.</li>
 </ul>
 </li>
-<li><strong>Disk-oriented DBMS</strong> v.s. <strong>OS memory mapping</strong>:<ul>
-<li>The basic idea is that DBMS always knows better than OS. </li>
-<li>Transaction safety: OS can flush dirty pages at any time causing dirty data corrupt database. </li>
-<li>Error handling: DBMS may isolate the error and handle it only in the storage layer. </li>
+<li><strong>Disk-oriented DBMS</strong> v.s. <strong>OS memory mapping</strong>:
+<ul>
+<li>The basic idea is that DBMS always knows better than OS.</li>
+<li>Transaction safety: OS can flush dirty pages at any time causing dirty data corrupt database.</li>
+<li>Error handling: DBMS may isolate the error and handle it only in the storage layer.</li>
 </ul>
 </li>
 <li></li>

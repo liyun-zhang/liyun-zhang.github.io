@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="@[toc]  How does the MVCC layer record operations? There are three column families: default to hold user values, lock to store locks and write to record changes.  The lock CF is accessed using the use">
+    <meta name="description" content="How does the MVCC layer record operations? How do clients manage transactions? How to perform Get, Prewrite, and Scan? How to perform commit and rollback?     How does the MVCC layer record operation">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MVCC Transaction">
 <meta property="og:url" content="http://liyun-zhang.github.io/2024/03/12/OpenSource/TinyKV/MVCC-Transaction/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="@[toc]  How does the MVCC layer record operations? There are three column families: default to hold user values, lock to store locks and write to record changes.  The lock CF is accessed using the use">
+<meta property="og:description" content="How does the MVCC layer record operations? How do clients manage transactions? How to perform Get, Prewrite, and Scan? How to perform commit and rollback?     How does the MVCC layer record operation">
 <meta property="og:locale">
 <meta property="og:image" content="http://liyun-zhang.github.io/imgs/TiKV/mvcc.png">
 <meta property="article:published_time" content="2024-03-12T07:44:46.000Z">
@@ -143,7 +143,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#How-does-the-MVCC-layer-record-operations"><span class="nav-number">1.</span> <span class="nav-text">How does the MVCC layer record operations?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#How-do-clients-manage-transactions"><span class="nav-number">2.</span> <span class="nav-text">How do clients manage transactions?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#How-to-perform-Get-Prewrite-and-Scan"><span class="nav-number">3.</span> <span class="nav-text">How to perform Get, Prewrite, and Scan?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#How-to-perform-commit-and-rollback"><span class="nav-number">4.</span> <span class="nav-text">How to perform commit and rollback?</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#how-does-the-mvcc-layer-record-operations"><span class="nav-number">1.</span> <span class="nav-text"> How does the MVCC layer record operations?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#how-do-clients-manage-transactions"><span class="nav-number">2.</span> <span class="nav-text"> How do clients manage transactions?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#how-to-perform-get-prewrite-and-scan"><span class="nav-number">3.</span> <span class="nav-text"> How to perform Get, Prewrite, and Scan?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#how-to-perform-commit-and-rollback"><span class="nav-number">4.</span> <span class="nav-text"> How to perform commit and rollback?</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -255,58 +255,75 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>@[toc]</p>
-<p><img src="/imgs/TiKV/mvcc.png"></p>
-<h1 id="How-does-the-MVCC-layer-record-operations"><a href="#How-does-the-MVCC-layer-record-operations" class="headerlink" title="How does the MVCC layer record operations?"></a>How does the MVCC layer record operations?</h1><ol>
-<li>There are three column families: <code>default</code> to hold user values, <code>lock</code> to store locks and <code>write</code> to record changes. <ul>
-<li>The <code>lock</code> CF is accessed using the user key; it stores a serialized <code>Lock</code> data structure. </li>
-<li>The <code>default</code> CF is accessed using the user key and the start timestamp of the transaction in which it was written; it stores the user value only. </li>
-<li>The <code>write</code> CF is accessed using the user key and the commit timestamp of the transaction where it was written; it stores a <code>write</code> data structure. </li>
+    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
+<li><a href="#how-does-the-mvcc-layer-record-operations">How does the MVCC layer record operations?</a></li>
+<li><a href="#how-do-clients-manage-transactions">How do clients manage transactions?</a></li>
+<li><a href="#how-to-perform-get-prewrite-and-scan">How to perform Get, Prewrite, and Scan?</a></li>
+<li><a href="#how-to-perform-commit-and-rollback">How to perform commit and rollback?</a></li>
+</ul>
+</p>
+<img src="/imgs/TiKV/mvcc.png">
+<h1 id="how-does-the-mvcc-layer-record-operations"><a class="markdownIt-Anchor" href="#how-does-the-mvcc-layer-record-operations"></a> How does the MVCC layer record operations?</h1>
+<ol>
+<li>There are three column families: <code>default</code> to hold user values, <code>lock</code> to store locks and <code>write</code> to record changes.
+<ul>
+<li>The <code>lock</code> CF is accessed using the user key; it stores a serialized <code>Lock</code> data structure.</li>
+<li>The <code>default</code> CF is accessed using the user key and the start timestamp of the transaction in which it was written; it stores the user value only.</li>
+<li>The <code>write</code> CF is accessed using the user key and the commit timestamp of the transaction where it was written; it stores a <code>write</code> data structure.</li>
 </ul>
 </li>
-<li>The key idea is that <code>default</code> CF stores all the written key-value pairs, including those uncommitted ones. </li>
-<li>Whether a key-value pair is committed is determined by whether a record in the <code>write</code> CF contains the <code>StartTS</code> of the <code>default</code> CF. <ul>
-<li>All readings are done by first iterating over the <code>write</code> CF to find the visible entry according to the commit timestamps integrated into the key of <code>write</code> CF. </li>
-<li>We want the <code>write</code> CF to be sorted by the time from the most recent to the earliest and grouped by keys. Hence, keys are encoded so that the ascending order of encoded keys is ordered first by user key (ascending), then by timestamp (descending). </li>
+<li>The key idea is that <code>default</code> CF stores all the written key-value pairs, including those uncommitted ones.</li>
+<li>Whether a key-value pair is committed is determined by whether a record in the <code>write</code> CF contains the <code>StartTS</code> of the <code>default</code> CF.
+<ul>
+<li>All readings are done by first iterating over the <code>write</code> CF to find the visible entry according to the commit timestamps integrated into the key of <code>write</code> CF.</li>
+<li>We want the <code>write</code> CF to be sorted by the time from the most recent to the earliest and grouped by keys. Hence, keys are encoded so that the ascending order of encoded keys is ordered first by user key (ascending), then by timestamp (descending).</li>
 </ul>
 </li>
 </ol>
-<h1 id="How-do-clients-manage-transactions"><a href="#How-do-clients-manage-transactions" class="headerlink" title="How do clients manage transactions?"></a>How do clients manage transactions?</h1><ol>
-<li>Each transaction is represented by a unique start timestamp provided by clients. All APIs provided to clients are executed through a <code>MvccTxn</code> structure to perform the MVCC operations. </li>
-<li>Clients can issue as much <code>KvGet</code>, <code>KvPreWrite</code>, or <code>KvScan</code> as they want during a transaction. </li>
-<li>After the operations they want have been executed, the transaction can be committed by <code>KvCommit</code>. If the commit fails, it is rollbacked by <code>KvBatchRollback</code>. </li>
+<h1 id="how-do-clients-manage-transactions"><a class="markdownIt-Anchor" href="#how-do-clients-manage-transactions"></a> How do clients manage transactions?</h1>
+<ol>
+<li>Each transaction is represented by a unique start timestamp provided by clients. All APIs provided to clients are executed through a <code>MvccTxn</code> structure to perform the MVCC operations.</li>
+<li>Clients can issue as much <code>KvGet</code>, <code>KvPreWrite</code>, or <code>KvScan</code> as they want during a transaction.</li>
+<li>After the operations they want have been executed, the transaction can be committed by <code>KvCommit</code>. If the commit fails, it is rollbacked by <code>KvBatchRollback</code>.</li>
 <li>Clients can also use <code>KvCheckTxnStatus</code> to check the status of their transactions. If the time-to-live of any lock is expired, the transaction must be rollbacked.</li>
 </ol>
-<h1 id="How-to-perform-Get-Prewrite-and-Scan"><a href="#How-to-perform-Get-Prewrite-and-Scan" class="headerlink" title="How to perform Get, Prewrite, and Scan?"></a>How to perform Get, Prewrite, and Scan?</h1><ol>
-<li>In a <code>Get(key)</code>, <ul>
-<li>If the <code>key</code> is locked by an older transaction, we should not read it now because the modification of the older transaction may be visible in this current transaction. </li>
-<li>If the <code>key</code> is locked by a younger transaction, it does not matter because the modification is not visible to us. </li>
-<li>The MVCC layer gets values by checking the <code>write</code> CF to find the most recently committed write. Then, access the value of the key with the <code>StartTS</code> information provided by the write record from the <code>default</code> CF. </li>
+<h1 id="how-to-perform-get-prewrite-and-scan"><a class="markdownIt-Anchor" href="#how-to-perform-get-prewrite-and-scan"></a> How to perform Get, Prewrite, and Scan?</h1>
+<ol>
+<li>In a <code>Get(key)</code>,
+<ul>
+<li>If the <code>key</code> is locked by an older transaction, we should not read it now because the modification of the older transaction may be visible in this current transaction.</li>
+<li>If the <code>key</code> is locked by a younger transaction, it does not matter because the modification is not visible to us.</li>
+<li>The MVCC layer gets values by checking the <code>write</code> CF to find the most recently committed write. Then, access the value of the key with the <code>StartTS</code> information provided by the write record from the <code>default</code> CF.</li>
 </ul>
 </li>
-<li>In a <code>PreWrite(key, value)</code>, <ul>
-<li>This transaction must hold an exclusive lock, i.e., it must wait if either an older or a younger transaction held the lock. </li>
-<li>Also, the most recent committed write must be before the start time of this transaction, i.e., there is no write committed to this key after this transaction is initiated. </li>
-<li>During the <code>PreWrite</code>, value modifications are written into the <code>default</code> CF in the MVCC layer. However, due to missing records in the <code>write</code> CF, they are not visible in the <code>Get</code> operations. </li>
+<li>In a <code>PreWrite(key, value)</code>,
+<ul>
+<li>This transaction must hold an exclusive lock, i.e., it must wait if either an older or a younger transaction held the lock.</li>
+<li>Also, the most recent committed write must be before the start time of this transaction, i.e., there is no write committed to this key after this transaction is initiated.</li>
+<li>During the <code>PreWrite</code>, value modifications are written into the <code>default</code> CF in the MVCC layer. However, due to missing records in the <code>write</code> CF, they are not visible in the <code>Get</code> operations.</li>
 </ul>
 </li>
-<li>The <code>Scan</code> is similar to <code>Get</code>. It is done through a <code>Scanner</code> that uses an <code>engine_util.DBIterator</code> to iterator over the <code>write</code> CF. </li>
+<li>The <code>Scan</code> is similar to <code>Get</code>. It is done through a <code>Scanner</code> that uses an <code>engine_util.DBIterator</code> to iterator over the <code>write</code> CF.</li>
 </ol>
-<h1 id="How-to-perform-commit-and-rollback"><a href="#How-to-perform-commit-and-rollback" class="headerlink" title="How to perform commit and rollback?"></a>How to perform commit and rollback?</h1><ol>
-<li>In a <code>KvCommit</code>, <ul>
-<li>Each modification must be assured that this transaction holds the exclusive lock. </li>
-<li>Notably, this transaction may have already been committed or rollbacked due to the unreliable network. </li>
-<li>During the commit, the modification records of <code>WriteKindPut</code> are written into the <code>write</code> CF so that the latter transactions can see the results. </li>
-<li>Finally, all locks held by this transaction will be released when the commit succeeds. </li>
+<h1 id="how-to-perform-commit-and-rollback"><a class="markdownIt-Anchor" href="#how-to-perform-commit-and-rollback"></a> How to perform commit and rollback?</h1>
+<ol>
+<li>In a <code>KvCommit</code>,
+<ul>
+<li>Each modification must be assured that this transaction holds the exclusive lock.</li>
+<li>Notably, this transaction may have already been committed or rollbacked due to the unreliable network.</li>
+<li>During the commit, the modification records of <code>WriteKindPut</code> are written into the <code>write</code> CF so that the latter transactions can see the results.</li>
+<li>Finally, all locks held by this transaction will be released when the commit succeeds.</li>
 </ul>
 </li>
-<li>If the commit fails or the clients detect that the transaction is out of TTL for the lock of the primary key, <code>KvBatchRollback</code> will be issued. <ul>
-<li>The records of the kind <code>WriteKindRollback</code> of the modified keys are written into the <code>write</code> CF and the value of the <code>default</code> CF is required to be deleted. </li>
-<li>Similar to <code>KvCommit</code>, there is a possibility that this transaction is already committed or rollbacked. </li>
+<li>If the commit fails or the clients detect that the transaction is out of TTL for the lock of the primary key, <code>KvBatchRollback</code> will be issued.
+<ul>
+<li>The records of the kind <code>WriteKindRollback</code> of the modified keys are written into the <code>write</code> CF and the value of the <code>default</code> CF is required to be deleted.</li>
+<li>Similar to <code>KvCommit</code>, there is a possibility that this transaction is already committed or rollbacked.</li>
 </ul>
 </li>
-<li>When the client encounters a lock failure, it will issue a <code>KvResolveLock</code> to commit or rollback. <ul>
-<li><code>Lock</code> CF is iterated to find all keys locked by this transaction. Those are all keys to be resolved and will either be committed or rollbacked. </li>
+<li>When the client encounters a lock failure, it will issue a <code>KvResolveLock</code> to commit or rollback.
+<ul>
+<li><code>Lock</code> CF is iterated to find all keys locked by this transaction. Those are all keys to be resolved and will either be committed or rollbacked.</li>
 </ul>
 </li>
 </ol>

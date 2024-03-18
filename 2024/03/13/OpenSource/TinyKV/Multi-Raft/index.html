@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="@[toc] Placement DriverHow does PD know the information of regions? The PD needs the necessary information to decide on placement and split. This information is sent to the PD by the heartbeat from th">
+    <meta name="description" content="Placement Driver  How does PD know the information of regions? How does PD schedule placement? What are the schedulers?   Multi-Raft  How to split regions? How to move regions?      Placement Driver">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Placement Driver and Multi-Raft">
 <meta property="og:url" content="http://liyun-zhang.github.io/2024/03/13/OpenSource/TinyKV/Multi-Raft/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="@[toc] Placement DriverHow does PD know the information of regions? The PD needs the necessary information to decide on placement and split. This information is sent to the PD by the heartbeat from th">
+<meta property="og:description" content="Placement Driver  How does PD know the information of regions? How does PD schedule placement? What are the schedulers?   Multi-Raft  How to split regions? How to move regions?      Placement Driver">
 <meta property="og:locale">
 <meta property="article:published_time" content="2024-03-13T15:26:08.000Z">
 <meta property="article:modified_time" content="2024-03-17T03:48:36.826Z">
@@ -141,7 +141,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Placement-Driver"><span class="nav-number">1.</span> <span class="nav-text">Placement Driver</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#How-does-PD-know-the-information-of-regions"><span class="nav-number">1.1.</span> <span class="nav-text">How does PD know the information of regions?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-does-PD-schedule-placement"><span class="nav-number">1.2.</span> <span class="nav-text">How does PD schedule placement?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-are-the-schedulers"><span class="nav-number">1.3.</span> <span class="nav-text">What are the schedulers?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Multi-Raft"><span class="nav-number">2.</span> <span class="nav-text">Multi-Raft</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-split-regions"><span class="nav-number">2.1.</span> <span class="nav-text">How to split regions?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-move-regions"><span class="nav-number">2.2.</span> <span class="nav-text">How to move regions?</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#placement-driver"><span class="nav-number">1.</span> <span class="nav-text"> Placement Driver</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-does-pd-know-the-information-of-regions"><span class="nav-number">1.1.</span> <span class="nav-text"> How does PD know the information of regions?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-does-pd-schedule-placement"><span class="nav-number">1.2.</span> <span class="nav-text"> How does PD schedule placement?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-are-the-schedulers"><span class="nav-number">1.3.</span> <span class="nav-text"> What are the schedulers?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#multi-raft"><span class="nav-number">2.</span> <span class="nav-text"> Multi-Raft</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-split-regions"><span class="nav-number">2.1.</span> <span class="nav-text"> How to split regions?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-move-regions"><span class="nav-number">2.2.</span> <span class="nav-text"> How to move regions?</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -253,60 +253,88 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>@[toc]</p>
-<h1 id="Placement-Driver"><a href="#Placement-Driver" class="headerlink" title="Placement Driver"></a>Placement Driver</h1><h2 id="How-does-PD-know-the-information-of-regions"><a href="#How-does-PD-know-the-information-of-regions" class="headerlink" title="How does PD know the information of regions?"></a>How does PD know the information of regions?</h2><ol>
-<li>The PD needs the necessary information to decide on placement and split. This information is sent to the PD by the heartbeat from the region or the store to the PD. </li>
-<li>The store will send a heartbeat to the PD periodically when the onSchedulerStoreHeartbeatTick is triggered by the ticker. <ul>
-<li>This heartbeat mainly tells the PD about the space information, e.g., disk capacity, used size, and available space. </li>
-<li>The PD will update its knowledge about the given store according to the heartbeat. </li>
+    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
+<li><a href="#placement-driver">Placement Driver</a>
+<ul>
+<li><a href="#how-does-pd-know-the-information-of-regions">How does PD know the information of regions?</a></li>
+<li><a href="#how-does-pd-schedule-placement">How does PD schedule placement?</a></li>
+<li><a href="#what-are-the-schedulers">What are the schedulers?</a></li>
 </ul>
 </li>
-<li>The region will send a heartbeat to the PD when something about the region is changed, e.g., peer joined or left, split. <ul>
-<li>This heartbeat mainly tells the PD about the region information, e.g., region metadata, peer identity, lagged peers, and the approximate size of this region. </li>
-<li>The PD will justify the validation of this heartbeat by the RegionEpoch of it. The region information will updated if it is valid. </li>
+<li><a href="#multi-raft">Multi-Raft</a>
+<ul>
+<li><a href="#how-to-split-regions">How to split regions?</a></li>
+<li><a href="#how-to-move-regions">How to move regions?</a></li>
 </ul>
 </li>
-</ol>
-<h2 id="How-does-PD-schedule-placement"><a href="#How-does-PD-schedule-placement" class="headerlink" title="How does PD schedule placement?"></a>How does PD schedule placement?</h2><ol>
-<li>The schedule decisions are made periodically. However, they are not sent to region leaders immediately. The operators are returned when the PD receives a heartbeat from the region leader. </li>
-<li>Every PD server has a <code>RaftCluster</code> that stores the information of the entire cluster. It handles the heartbeats sent to PD. </li>
-<li>Each <code>RaftCluster</code> has a <code>coordinator</code> to run schedulers in parallel and store generated operators in its <code>schedule.OperatorController</code>. </li>
-<li>When a region heartbeat is processed, the <code>RaftCluster</code> would ask for the <code>schedule.OperatorController</code> to <code>Dispatch</code> operators to the region. </li>
-<li>These operators are sent to leaders as Raft commands. Similar to commands from clients, they may not be committed. </li>
-</ol>
-<h2 id="What-are-the-schedulers"><a href="#What-are-the-schedulers" class="headerlink" title="What are the schedulers?"></a>What are the schedulers?</h2><ol>
-<li>They all implemented the <code>Scheduler</code> control that provides the <code>Schedule(opt.Cluster) *operator.Operator</code> interface to generate operators. </li>
-<li>A new goroutine is created to perform the schedule when a new scheduler is added to the <code>coordinator</code>. If new operators are created, they will be appended to the <code>schedule.OperatorController</code> waiting for the next heartbeat from the target region. </li>
-<li>One kind of scheduler is to transfer a leader when the current leader is no longer considered available. </li>
-<li>Another scheduler is to move regions between stores to balance the storage usage of each store. </li>
-</ol>
-<h1 id="Multi-Raft"><a href="#Multi-Raft" class="headerlink" title="Multi-Raft"></a>Multi-Raft</h1><h2 id="How-to-split-regions"><a href="#How-to-split-regions" class="headerlink" title="How to split regions?"></a>How to split regions?</h2><ol>
-<li>Every peer periodically checks whether their region needs to be split by sending a <code>SplitCheckTask</code> to the <code>splitCheckHandler</code> of its store. <ul>
-<li>The checker will calculate the total size of the key-value pairs in this region. A split is initiated if the size is larger than <code>splitSize</code>. </li>
-<li>The checker does not read through Raft. Instead, it directly reads from the DB engine file. </li>
-<li>The checker will also notify the peer of the current size of its region it just calculated for the peer to update its information and tell the PD later. </li>
+</ul>
+</p>
+<h1 id="placement-driver"><a class="markdownIt-Anchor" href="#placement-driver"></a> Placement Driver</h1>
+<h2 id="how-does-pd-know-the-information-of-regions"><a class="markdownIt-Anchor" href="#how-does-pd-know-the-information-of-regions"></a> How does PD know the information of regions?</h2>
+<ol>
+<li>The PD needs the necessary information to decide on placement and split. This information is sent to the PD by the heartbeat from the region or the store to the PD.</li>
+<li>The store will send a heartbeat to the PD periodically when the onSchedulerStoreHeartbeatTick is triggered by the ticker.
+<ul>
+<li>This heartbeat mainly tells the PD about the space information, e.g., disk capacity, used size, and available space.</li>
+<li>The PD will update its knowledge about the given store according to the heartbeat.</li>
 </ul>
 </li>
-<li>When a split key is generated, the checker will notify the peer to be prepared for splitting. <ul>
-<li>The peer would ask the PD to assign globally unique IDs to identify the new region and peers. </li>
-<li>The PD will send the leader an <code>AdminRequest</code> that contains the <code>NewRegionId</code> and <code>NewPeerIds</code> to suggest a split. </li>
-</ul>
-</li>
-<li>If the <code>AdminRequest</code> is committed, all peers of the split region will create a new peer of the new region in their store. <ul>
-<li>Notably, all data in the different regions of the same store are written into the same DB engine file. </li>
-<li>There is no need to copy or move files when creating new peers. The only thing need to do is to set the new peers in the correct state. </li>
-<li>The information on new peers must be updated in both the store and the PD. </li>
+<li>The region will send a heartbeat to the PD when something about the region is changed, e.g., peer joined or left, split.
+<ul>
+<li>This heartbeat mainly tells the PD about the region information, e.g., region metadata, peer identity, lagged peers, and the approximate size of this region.</li>
+<li>The PD will justify the validation of this heartbeat by the RegionEpoch of it. The region information will updated if it is valid.</li>
 </ul>
 </li>
 </ol>
-<h2 id="How-to-move-regions"><a href="#How-to-move-regions" class="headerlink" title="How to move regions?"></a>How to move regions?</h2><ol>
-<li>When we split the regions, no data is deleted from the store, which seems useless. However, splitting regions allows us to have finer-grained control. We can move regions to new stores later. </li>
-<li>A move consists of adding a new peer and removing an existing peer. <ul>
-<li>When adding a new peer, it is in a lagged state. The leader will send a snapshot to bring it up to date. </li>
-<li>When removing an existing peer, the data of its region will be removed from the store engine file. </li>
+<h2 id="how-does-pd-schedule-placement"><a class="markdownIt-Anchor" href="#how-does-pd-schedule-placement"></a> How does PD schedule placement?</h2>
+<ol>
+<li>The schedule decisions are made periodically. However, they are not sent to region leaders immediately. The operators are returned when the PD receives a heartbeat from the region leader.</li>
+<li>Every PD server has a <code>RaftCluster</code> that stores the information of the entire cluster. It handles the heartbeats sent to PD.</li>
+<li>Each <code>RaftCluster</code> has a <code>coordinator</code> to run schedulers in parallel and store generated operators in its <code>schedule.OperatorController</code>.</li>
+<li>When a region heartbeat is processed, the <code>RaftCluster</code> would ask for the <code>schedule.OperatorController</code> to <code>Dispatch</code> operators to the region.</li>
+<li>These operators are sent to leaders as Raft commands. Similar to commands from clients, they may not be committed.</li>
+</ol>
+<h2 id="what-are-the-schedulers"><a class="markdownIt-Anchor" href="#what-are-the-schedulers"></a> What are the schedulers?</h2>
+<ol>
+<li>They all implemented the <code>Scheduler</code> control that provides the <code>Schedule(opt.Cluster) *operator.Operator</code> interface to generate operators.</li>
+<li>A new goroutine is created to perform the schedule when a new scheduler is added to the <code>coordinator</code>. If new operators are created, they will be appended to the <code>schedule.OperatorController</code> waiting for the next heartbeat from the target region.</li>
+<li>One kind of scheduler is to transfer a leader when the current leader is no longer considered available.</li>
+<li>Another scheduler is to move regions between stores to balance the storage usage of each store.</li>
+</ol>
+<h1 id="multi-raft"><a class="markdownIt-Anchor" href="#multi-raft"></a> Multi-Raft</h1>
+<h2 id="how-to-split-regions"><a class="markdownIt-Anchor" href="#how-to-split-regions"></a> How to split regions?</h2>
+<ol>
+<li>Every peer periodically checks whether their region needs to be split by sending a <code>SplitCheckTask</code> to the <code>splitCheckHandler</code> of its store.
+<ul>
+<li>The checker will calculate the total size of the key-value pairs in this region. A split is initiated if the size is larger than <code>splitSize</code>.</li>
+<li>The checker does not read through Raft. Instead, it directly reads from the DB engine file.</li>
+<li>The checker will also notify the peer of the current size of its region it just calculated for the peer to update its information and tell the PD later.</li>
 </ul>
 </li>
-<li>Similar to split, peer changing needs to sync with the store and the PD. </li>
+<li>When a split key is generated, the checker will notify the peer to be prepared for splitting.
+<ul>
+<li>The peer would ask the PD to assign globally unique IDs to identify the new region and peers.</li>
+<li>The PD will send the leader an <code>AdminRequest</code> that contains the <code>NewRegionId</code> and <code>NewPeerIds</code> to suggest a split.</li>
+</ul>
+</li>
+<li>If the <code>AdminRequest</code> is committed, all peers of the split region will create a new peer of the new region in their store.
+<ul>
+<li>Notably, all data in the different regions of the same store are written into the same DB engine file.</li>
+<li>There is no need to copy or move files when creating new peers. The only thing need to do is to set the new peers in the correct state.</li>
+<li>The information on new peers must be updated in both the store and the PD.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-move-regions"><a class="markdownIt-Anchor" href="#how-to-move-regions"></a> How to move regions?</h2>
+<ol>
+<li>When we split the regions, no data is deleted from the store, which seems useless. However, splitting regions allows us to have finer-grained control. We can move regions to new stores later.</li>
+<li>A move consists of adding a new peer and removing an existing peer.
+<ul>
+<li>When adding a new peer, it is in a lagged state. The leader will send a snapshot to bring it up to date.</li>
+<li>When removing an existing peer, the data of its region will be removed from the store engine file.</li>
+</ul>
+</li>
+<li>Similar to split, peer changing needs to sync with the store and the PD.</li>
 </ol>
 
     </div>
