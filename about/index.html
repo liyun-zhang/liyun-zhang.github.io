@@ -146,13 +146,13 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-count">64</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
@@ -174,6 +174,289 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2024/03/20/LSM-Tree/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2024/03/20/LSM-Tree/" class="post-title-link" itemprop="url">2. LSM-Tree</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-03-20 13:29:38" itemprop="dateCreated datePublished" datetime="2024-03-20T13:29:38+08:00">2024-03-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-03-21 14:43:42" itemprop="dateModified" datetime="2024-03-21T14:43:42+08:00">2024-03-21</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>@[toc]</p>
+<h1 id="Write"><a href="#Write" class="headerlink" title="Write"></a>Write</h1><p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.h">db_impl.h</a> and <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.cc">db_impl.cc</a>. </p>
+<h2 id="How-to-organize-levels-of-logs"><a href="#How-to-organize-levels-of-logs" class="headerlink" title="How to organize levels of logs?"></a>How to organize levels of logs?</h2><ol>
+<li>There are <code>mem_</code>, <code>imm_</code>, and persisted logs. They are all Memtables. </li>
+<li>Both <code>mem_</code> and <code>imm_</code> are in volatile storages. <ul>
+<li>The <code>mem_</code> is the latest Memtable to which we can append logs. </li>
+<li>When <code>mem_</code> is full, it will be frozen into <code>imm_</code> to be an immutable Memtable. </li>
+</ul>
+</li>
+<li>The <code>imm_</code> will be written into disks as persisted logs. <ul>
+<li>The persisted logs are separated into several levels, starting from $0$. The lower level contains newer logs. </li>
+<li>The SSTables at lower levels can be compacted into higher-level SSTables. </li>
+</ul>
+</li>
+</ol>
+<h2 id="How-to-write-a-log"><a href="#How-to-write-a-log" class="headerlink" title="How to write a log?"></a>How to write a log?</h2><ol>
+<li><p>The <code>db_impl</code> provided <code>Put</code> and <code>Delete</code>. </p>
+<ul>
+<li><p>They encode requested writes into a <code>WriteBatch</code> and invoke <code>db_impl::Write</code> to finish the write. </p>
+</li>
+<li><p>The orders of concurrent writes are determined by their orders in <code>db_impl::writers_</code>. </p>
+</li>
+</ul>
+</li>
+<li><p>To execute a write, the first step is to invoke <code>MakeRoomForWrite</code> to reserve enough space in <code>mem_</code>, which is the only structure that can be modified. </p>
+</li>
+<li><p>Each entry in the <code>WriteBatch</code> is assigned a unique, monotonously increasing sequential number. </p>
+</li>
+<li><p>Before calling the <code>MemTableInserter</code> to apply each write to <code>mem_</code>, the write records must be put into the write-ahead log <code>log_</code>. </p>
+</li>
+</ol>
+<h2 id="How-are-WriteBatches-encoded"><a href="#How-are-WriteBatches-encoded" class="headerlink" title="How are WriteBatches encoded?"></a>How are WriteBatches encoded?</h2><ol>
+<li><p>In <code>WriteBatch</code>, a <code>req_</code> contains all requests in the following format, where <code>key_size</code> and <code>value_size</code> are encoded by <code>EncodeVarint32</code>, the same as <code>Memtable</code>. </p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">req_: </span><br><span class="line">+----------+-------+-----------+</span><br><span class="line">|  SeqNum  |  cnt  |  records  |</span><br><span class="line">+----------+-------+-----------+</span><br><span class="line">records:</span><br><span class="line">+--------+------------+-------+-------------+---------+</span><br><span class="line">|  type  |  key_size  |  key  |  value_size |  value  |</span><br><span class="line">+--------+------------+-------+-------------+---------+</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>A <code>Put</code> request has type <code>kTypeValue</code>. A <code>Delete</code> request has type <code>kTypeDeletion</code> and without the value part. </p>
+</li>
+<li><p>When creating a new <code>WriteBatch</code>, the <code>req_</code> reserves $12$ bytes, $8$ bytes for <code>SeqNum</code> and $4$ bytes for <code>cnt</code>. </p>
+<ul>
+<li>The <code>SeqNum</code> and <code>cnt</code> are initially $0$. </li>
+<li>When a new request is added to a <code>WriteBatch</code>, a <code>SetCount</code> is invoked to modify the <code>cnt</code>. </li>
+<li>The <code>SeqNum</code> is set when the write is being executed instead of when collecting. </li>
+</ul>
+</li>
+</ol>
+<h2 id="How-to-make-room-for-the-writes"><a href="#How-to-make-room-for-the-writes" class="headerlink" title="How to make room for the writes?"></a>How to make room for the writes?</h2><ol>
+<li>If the <code>WriteBatch</code> is <code>nullptr</code>, the compaction is forced. </li>
+<li>If <code>mem_</code> is not full, no more efforts need to be made. Otherwise, we must set the current <code>mem_</code> as immutable, i.e., <code>imm_</code>, and switch to a new one. </li>
+<li>If <code>imm_</code> is not empty or there are too many level $0$ files, we need to wait for the background thread to compact the current files. </li>
+<li>If <code>mem_</code> is full, <code>imm_</code> is empty, and there is enough space for level $0$ we can schedule a compaction and switch to a new <code>mem_</code>. <ul>
+<li>The write-ahead log file <code>logfile_</code> is bound with a <code>mem_</code>. Switching to a new <code>mem__</code> also needs to create a new <code>logfile_</code>. </li>
+<li>Then, <code>imm_</code> points to the current <code>mem_</code> before creating a new Memtable for <code>mem_</code>. </li>
+</ul>
+</li>
+</ol>
+<h2 id="How-to-compact-files"><a href="#How-to-compact-files" class="headerlink" title="How to compact files?"></a>How to compact files?</h2><p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.cc#L702">DBImpl::BackgroundCompaction</a>. </p>
+<ol>
+<li>If <code>imm_</code> is not empty, it must be written to the level $0$ files. </li>
+<li></li>
+</ol>
+<p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/version_set.h">version_set.h</a> and <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/version_set.cc">version_set.cc</a>. </p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2024/03/19/OpenSource/LevelDB/Memtable/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2024/03/19/OpenSource/LevelDB/Memtable/" class="post-title-link" itemprop="url">1. Memtable</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-03-19 12:50:37" itemprop="dateCreated datePublished" datetime="2024-03-19T12:50:37+08:00">2024-03-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-03-20 15:37:01" itemprop="dateModified" datetime="2024-03-20T15:37:01+08:00">2024-03-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/" itemprop="url" rel="index"><span itemprop="name">Open Source Code</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/LevelDB/" itemprop="url" rel="index"><span itemprop="name">LevelDB</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>@[toc]</p>
+<h1 id="Skiplist"><a href="#Skiplist" class="headerlink" title="Skiplist"></a>Skiplist</h1><p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/liyun-zhang/leveldb/blob/main/db/skiplist.h">skiplist.h</a></p>
+<h2 id="What-is-the-structure-of-the-skip-list"><a href="#What-is-the-structure-of-the-skip-list" class="headerlink" title="What is the structure of the skip list?"></a>What is the structure of the skip list?</h2><ol>
+<li>The skip list is a list with extended next pointers. </li>
+<li>The next pointers in a node have different heights. The maximum height of each node is different. A next pointer at a specific height points to the next node that is not shorter than the height. </li>
+<li>The “skip” refers to the higher pointers that point to distant nodes. Therefore, through the skip links, we can quickly locate the possible range of the target in search and inserting, similar to the doubling method in continuous arrays. </li>
+</ol>
+<h2 id="What-does-the-list-node-look-like"><a href="#What-does-the-list-node-look-like" class="headerlink" title="What does the list node look like?"></a>What does the list node look like?</h2><ol>
+<li>A node should contain a key and a series of pointers to the next node. </li>
+<li>In the skip list, the next pointers are at different heights. The higher pointers point to further nodes. </li>
+<li>To allocate an array of next node pointers, declare an array with one element at the end of the structure. Then, assign a large space to the object of that structure. <ul>
+<li>The array of next pointers is declared as <code>std::atomic&lt;Node*&gt; next_[1];</code>. </li>
+<li>In the <code>NewNode(const Key&amp; key, int height)</code>, use <code>Arena</code> to allocate size <code>sizeof(Node) + sizeof(std::atomic&lt;Node*&gt;) * (height - 1)</code>. </li>
+<li>In <code>sizeof(Node)</code>, an array with one element is allocated. Then, the space of additional <code>height-1</code> elements is extended. Therefore, a <code>Node</code> has total <code>height</code> next pointers. </li>
+</ul>
+</li>
+</ol>
+<h2 id="How-to-search-for-a-key"><a href="#How-to-search-for-a-key" class="headerlink" title="How to search for a key?"></a>How to search for a key?</h2><ol>
+<li><code>Skiplist</code> provided <code>FindGreaterOrEqual</code> and <code>FindLessThan</code> as basic functions to search for a key. </li>
+<li>Each function starts from the <code>head_</code> and compares it with the next key, from higher to lower. </li>
+<li>In <code>FindGreaterOrEqual</code>, we should keep lowering the height until the key is larger than the next. If it reaches the lowest height, $0$, directly return the current node. </li>
+<li><code>FindLessThan</code> is similar, searching until the key is less than the next or reaches the lowest height. </li>
+<li>The search process is fast because the higher next pointers can skip many unnecessary nodes. </li>
+</ol>
+<h2 id="How-to-insert-a-key"><a href="#How-to-insert-a-key" class="headerlink" title="How to insert a key?"></a>How to insert a key?</h2><ol>
+<li>To find a suitable position on the list for the new key, we can get all the previous nodes through <code>FindGreaterOrEqual</code>. <ul>
+<li><code>FindGreaterOrEqual</code> only returns when it reaches the $0$ height. Whenever the next key of the current node in a certain height is less than the target key, we record the current node to the <code>prev</code> of the corresponding height. </li>
+<li>When it returns, each element in <code>prev</code> is the previous node of the new node. </li>
+</ul>
+</li>
+<li>The maximum height of the new node is random. If it is higher than the highest node, set extra pointers to <code>head_</code>. <ul>
+<li>In <code>RandomHeight</code>, <code>while (height &lt; kMaxHeight &amp;&amp; rnd_.OneIn(kBranching))</code> shows that height is geometric distribution with probability of $\frac{1}{kBranching}$ to keep increasing the height. </li>
+</ul>
+</li>
+<li>Finally, we set the next pointers in the new node to the next pointers in <code>prev</code> and set the next pointers in <code>prev</code> to the new node. </li>
+</ol>
+<h1 id="Memtable"><a href="#Memtable" class="headerlink" title="Memtable"></a>Memtable</h1><p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/liyun-zhang/leveldb/blob/main/db/memtable.h">memtable.h</a> and <a target="_blank" rel="noopener" href="https://github.com/liyun-zhang/leveldb/blob/main/db/memtable.cc">memtable.cc</a></p>
+<h2 id="How-does-Memtable-encode-data"><a href="#How-does-Memtable-encode-data" class="headerlink" title="How does Memtable encode data?"></a>How does Memtable encode data?</h2><ol>
+<li>In Memtable, the bottom storage uses <code>Table</code> defined as <code>SkipList&lt;const char*, KeyComparator&gt;</code>. <ul>
+<li>From the skip list, we can see that it only stores keys instead of key-value pairs. </li>
+<li>Memtable encodes values into keys and stores the whole bytes. </li>
+</ul>
+</li>
+<li>There are three parts: <code>key, sequence number and type, value</code>. <ul>
+<li>The structure of the encoded buffer is as follows:<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">+----------------+-------+----------------+--------------+---------+</span><br><span class="line">|  key_size + 8  |  key  |  SeqNum, type  |  value_size  |  value  |</span><br><span class="line">+----------------+-------+----------------+--------------+---------+</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li>Both the <code>key_size</code> and <code>value_size</code> are encoded by <code>EncodeVarint32</code>. <ul>
+<li>Only content containing the most significant byte is saved. They are in a little-endian way with variant length. </li>
+<li>Each byte only stores $7$ bits of the <code>uint32_t</code>. The highest bit in a byte is $0$ when this is the last byte for the variant-length int. </li>
+</ul>
+</li>
+<li><code>SeqNum</code> and <code>type</code> are 8 bytes in total, where <code>SeqNum</code> is in higher bits and <code>type</code> is in lower bits. They are encoded in fixed size. </li>
+</ol>
+<h2 id="How-does-Memtable-decode-data"><a href="#How-does-Memtable-decode-data" class="headerlink" title="How does Memtable decode data?"></a>How does Memtable decode data?</h2><ol>
+<li>The target key is encoded without <code>value_size</code> and <code>value</code> to search the target with <code>FindGreaterOrEqual</code>. </li>
+<li>To decode the variant length int, read byte-by-byte until a byte with the highest bit of $0$. </li>
+<li>If the key does not match or the type is <code>kTypeDeletion</code>, return <code>Status::NotFound</code>. </li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1133,7 +1416,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-16 23:05:22" itemprop="dateModified" datetime="2024-03-16T23:05:22+08:00">2024-03-16</time>
+      <time title="Modified: 2024-03-18 18:05:26" itemprop="dateModified" datetime="2024-03-18T18:05:26+08:00">2024-03-18</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1165,16 +1448,14 @@
 </p>
 <h1 id="shell-execution"><a class="markdownIt-Anchor" href="#shell-execution"></a> Shell Execution</h1>
 <ol>
-<li>
-<p>The shell (in the <a target="_blank" rel="noopener" href="https://github.com/cmu-db/bustub/blob/master/tools/shell/shell.cpp">shell.cpp</a>) uses <code>linenoise</code> to read input lines until a line ending with <code>;</code> or beginning with <code>\</code>.</p>
+<li>The shell (in the <a target="_blank" rel="noopener" href="https://github.com/cmu-db/bustub/blob/master/tools/shell/shell.cpp">shell.cpp</a>) uses <code>linenoise</code> to read input lines until a line ending with <code>;</code> or beginning with <code>\</code>.
 <ul>
 <li><code>;</code> means the end of a query while <code>\</code> leads an internal meta-command.</li>
 <li>The backbone of the DBMS is <code>bustub::BustubInstance</code> (in <a target="_blank" rel="noopener" href="https://github.com/cmu-db/bustub/blob/master/src/common/bustub_instance.cpp">bustub_instance.cpp</a>). It is initialized at the beginning of the shell.</li>
 <li>After reading the complete query, execute it using <code>BustubInstance.ExecuteSql</code>. The result is writen in <code>bustub::FortTableWriter</code>.</li>
 </ul>
 </li>
-<li>
-<p>In <code>BustubInstance.ExecuteSqlTxn</code>:</p>
+<li>In <code>BustubInstance.ExecuteSqlTxn</code>:
 <ul>
 <li>First, determine whether this is an internal meta-command. If so, only execute the corresponding command and exit.</li>
 <li>If this is a query, use <strong><code>bustub::Binder</code></strong> (in <a target="_blank" rel="noopener" href="https://github.com/cmu-db/bustub/blob/master/src/binder/binder.cpp#L45">binder.cpp</a>) to parse the query into an AST. Handle the output format according to the statement type using <code>HandlexxxStatement</code>.</li>
@@ -1183,8 +1464,7 @@
 <li>Finally, the result will be written in the shell with a writer.</li>
 </ul>
 </li>
-<li>
-<p>To provide easier format control, the <code>bustub::ResultWriter</code> provides interfaces for standard output.</p>
+<li>To provide easier format control, the <code>bustub::ResultWriter</code> provides interfaces for standard output.
 <ul>
 <li><code>BeginHeader</code>, <code>EndHeader</code>, <code>BeginRow</code>, <code>EndRow</code>, and <code>BeginTable</code>, <code>EndTable</code> to output pre-defined messages.</li>
 <li><code>WriteCell</code> and <code>WriteHeaderCell</code> are used to output data and pre-defined separators.</li>
@@ -1760,667 +2040,6 @@
 <li>The author evaluated the system on Sparse Logistic Regression and Latent Dirichlet Allocation.</li>
 <li>They compare systems by running them to reach the same objective value. A better system achieves a lower objective in less time. They also compared the worker node utilization in different systems.</li>
 <li>The reduction of network traffic by each system component is measured.</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/10/06/Paper/Sys4AI/SparDA/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/10/06/Paper/Sys4AI/SparDA/" class="post-title-link" itemprop="url">SparDA</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2023-10-06 16:32:20" itemprop="dateCreated datePublished" datetime="2023-10-06T16:32:20+08:00">2023-10-06</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-16 11:24:36" itemprop="dateModified" datetime="2024-03-16T11:24:36+08:00">2024-03-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Paper-Notebook/" itemprop="url" rel="index"><span itemprop="name">Paper Notebook</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Paper-Notebook/Sys4AI/" itemprop="url" rel="index"><span itemprop="name">Sys4AI</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Paper: <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2301.10936">SparDA: Accelerating Dynamic Sparse Deep Neural Networks via Sparse-Dense Transformation</a></p>
-<p><ul class="markdownIt-TOC">
-<li><a href="#purpose">Purpose</a></li>
-<li><a href="#model">Model</a>
-<ul>
-<li><a href="#what-is-the-pipeline-of-sparda">What is the pipeline of SparDA?</a></li>
-<li><a href="#what-is-permutation-invariant">What is permutation invariant?</a></li>
-<li><a href="#what-are-the-rules-of-applying-permutation-invariant">What are the rules of applying permutation invariant?</a></li>
-<li><a href="#what-is-stile">What is STile?</a></li>
-<li><a href="#how-to-transform-input-and-eliminate-overhead">How to transform input and eliminate overhead?</a></li>
-<li><a href="#how-to-choose-an-efficient-stile">How to choose an efficient STile?</a></li>
-<li><a href="#how-to-represent-dynamic-sparsity">How to represent dynamic sparsity?</a></li>
-<li><a href="#what-are-the-apis-of-sparda-what-is-its-working-pipeline">What are the APIs of SparDA? What is its working pipeline?</a></li>
-</ul>
-</li>
-<li><a href="#evaluation">Evaluation</a></li>
-</ul>
-</p>
-<h1 id="purpose"><a class="markdownIt-Anchor" href="#purpose"></a> Purpose</h1>
-<ol>
-<li>Sparsity has become the most important and efficient approach to accelerate neural networks by erasing a large portion of computation without unraveling model accuracy.</li>
-<li>Issues:
-<ul>
-<li>Most commodity accelerators (e.g., GPUs and TPUs) are mainly designed for efficient dense computations.</li>
-<li>Previous research proposes sparsity optimizations to fit sparse computation, which only work for fixed granularities and perform poorly when the granularity mismatches.
-<ul>
-<li>Fine-grained computation kernels cannot well saturate hardware due to the random memory access caused by fine-grained data.</li>
-</ul>
-</li>
-<li>Existing solutions have to use time-consuming compiling to improve the efficiency of sparse kernels in an ahead-of-time manner and thus are limited to static sparsity.</li>
-<li>An efficient general index construction mechanism for all data granularities is still missing.
-<ul>
-<li>The performance of the previous sparse index construction methodology is also poor due to the constraint of sparse computation kernels.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Challenges:
-<ul>
-<li>The dynamic sparsity pattern in different scenarios, even with the same scenario, is quite diverse and complex.</li>
-<li>The key to optimizing such dynamic sparsity is simultaneously performing the calculations with an efficient kernel without computation waste.
-<ul>
-<li>Therefore, optimizing such complex dynamic sparsity patterns requires breaking the binding between the data and computation granularity.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Contribution:
-<ul>
-<li>Identified an important property called <em>permutation invariant</em>.
-<ul>
-<li>It enables SparDA to extract dynamic sparsity patterns of tensors only known at runtime with negligible overhead.</li>
-<li>It can transform dynamic sparse computation into equivalent dense computation that has been highly optimized on commodity accelerators.</li>
-</ul>
-</li>
-<li>By combining permutation invariant with computation tiling, SparDA exploits the effect of permutation invariant to allow permutation on finer-grained granularity instead of the whole row or column of a tensor.
-<ul>
-<li>It implies that the sparsity could be finer-grained and irregular if the non-zero values can be compacted into multiple dense computation tiles.</li>
-<li>Define the sparsity pattern of the non-zero values and the compacted computation tile as a sparse tile, i.e., STile.</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<h1 id="model"><a class="markdownIt-Anchor" href="#model"></a> Model</h1>
-<h2 id="what-is-the-pipeline-of-sparda"><a class="markdownIt-Anchor" href="#what-is-the-pipeline-of-sparda"></a> What is the pipeline of SparDA?</h2>
-<ol>
-<li>The design of STile naturally splits sparse computation into two decoupled stages: data permutation and dense computation.
-<ul>
-<li>Decoupling frees the computation stage from handling the intricate encoding and decoding of sparse tensors. Thus, the computation can more efficiently utilize the accelerators.</li>
-<li>With the decoupled stages, SparDA can leverage a wide range of well-optimized implementations of dense computation, including hardware instructions, manually optimized kernels, and automatically tuned kernels.</li>
-<li>The data permutation stage transforms sparse data into a dense format with a new primitive <code>SLoad</code>. After the computation, the produced dense data is transformed back to the required format (e.g., sparse format) with the other primitive <code>SWrite</code>.</li>
-</ul>
-</li>
-<li>The first stage is to learn the sparsity distribution from only a few samples.
-<ul>
-<li>The STile optimizer analyzes the sparsity of each operator. It selects the most suitable STile from a set of pre-constructed STiles, each connected to a well-optimized dense computation tile.</li>
-<li>SparDA generates a sparse kernel for the operator based on the selected STile.</li>
-<li>This stage can be executed during the initialization and periodically to deal with possible shifting of sparsity distribution.</li>
-</ul>
-</li>
-<li>The second stage is applying the generated sparse kernel at runtime.
-<ul>
-<li>To deal with the dynamically changed sparsity, SparDA detects the sparsity online and builds the index of the sparse data following the requirement of the STile.</li>
-</ul>
-</li>
-<li>There are two components in the sparse kernel.
-<ul>
-<li>The first one rearranges the sparse data into dense format when loading data across different memory hierarchies.</li>
-<li>The second one applies dense computation to condensed data without knowing their indices.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-is-permutation-invariant"><a class="markdownIt-Anchor" href="#what-is-permutation-invariant"></a> What is permutation invariant?</h2>
-<ol>
-<li>Tensor Expression (TE) describes deep learning computation in existing deep learning compilers.
-<ul>
-<li>ReduceSum: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false">[</mo><mi>p</mi><mo stretchy="false">]</mo><mo>+</mo><mo>=</mo><mi>A</mi><mo stretchy="false">[</mo><mi>p</mi><mo separator="true">,</mo><mi>l</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">C[p]+=A[p,l]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">[</span><span class="mord mathnormal">p</span><span class="mclose">]</span><span class="mord">+</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">A</span><span class="mopen">[</span><span class="mord mathnormal">p</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mclose">]</span></span></span></span></li>
-<li>Addition: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false">[</mo><mi>p</mi><mo stretchy="false">]</mo><mo>=</mo><mi>A</mi><mo stretchy="false">[</mo><mi>p</mi><mo stretchy="false">]</mo><mo>+</mo><mi>B</mi><mo stretchy="false">[</mo><mi>p</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">C[p]=A[p]+B[p]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">[</span><span class="mord mathnormal">p</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">A</span><span class="mopen">[</span><span class="mord mathnormal">p</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mopen">[</span><span class="mord mathnormal">p</span><span class="mclose">]</span></span></span></span></li>
-<li>MatMul: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false">[</mo><mi>m</mi><mo separator="true">,</mo><mi>n</mi><mo stretchy="false">]</mo><mo>+</mo><mo>=</mo><mi>A</mi><mo stretchy="false">[</mo><mi>m</mi><mo separator="true">,</mo><mi>k</mi><mo stretchy="false">]</mo><mo>×</mo><mi>B</mi><mo stretchy="false">[</mo><mi>k</mi><mo separator="true">,</mo><mi>n</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">C[m,n]+=A[m,k]\times B[k,n]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">[</span><span class="mord mathnormal">m</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">n</span><span class="mclose">]</span><span class="mord">+</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">A</span><span class="mopen">[</span><span class="mord mathnormal">m</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">n</span><span class="mclose">]</span></span></span></span></li>
-<li>BatchMatMul: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false">[</mo><mi>b</mi><mo separator="true">,</mo><mi>m</mi><mo separator="true">,</mo><mi>n</mi><mo stretchy="false">]</mo><mo>+</mo><mo>=</mo><mi>A</mi><mo stretchy="false">[</mo><mi>b</mi><mo separator="true">,</mo><mi>m</mi><mo separator="true">,</mo><mi>k</mi><mo stretchy="false">]</mo><mo>×</mo><mi>B</mi><mo stretchy="false">[</mo><mi>b</mi><mo separator="true">,</mo><mi>k</mi><mo separator="true">,</mo><mi>n</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">C[b,m,n]+=A[b,m,k]\times B[b,k,n]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">[</span><span class="mord mathnormal">b</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">m</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">n</span><span class="mclose">]</span><span class="mord">+</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">A</span><span class="mopen">[</span><span class="mord mathnormal">b</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">m</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mopen">[</span><span class="mord mathnormal">b</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">n</span><span class="mclose">]</span></span></span></span></li>
-<li>Convolution: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false">[</mo><mi>n</mi><mo separator="true">,</mo><mi>f</mi><mo separator="true">,</mo><mi>x</mi><mo separator="true">,</mo><mi>y</mi><mo stretchy="false">]</mo><mo>+</mo><mo>=</mo><mi>A</mi><mo stretchy="false">[</mo><mi>n</mi><mo separator="true">,</mo><mi>m</mi><mo separator="true">,</mo><mi>x</mi><mo>+</mo><mi>i</mi><mo separator="true">,</mo><mi>y</mi><mo>+</mo><mi>j</mi><mo stretchy="false">]</mo><mo>×</mo><mi>B</mi><mo stretchy="false">[</mo><mi>f</mi><mo separator="true">,</mo><mi>m</mi><mo separator="true">,</mo><mi>i</mi><mo separator="true">,</mo><mi>j</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">C[n,f,x,y]+=A[n,m,x+i,y+j]\times B[f,m,i,j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">[</span><span class="mord mathnormal">n</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">]</span><span class="mord">+</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">A</span><span class="mopen">[</span><span class="mord mathnormal">n</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">m</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">i</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">m</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">i</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span></li>
-</ul>
-</li>
-<li>Definition of permutation invariant dimension:
-<ul>
-<li>In a tensor expression <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo>←</mo><mi>f</mi><mo stretchy="false">(</mo><msub><mi>X</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>X</mi><mi>n</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">Y \leftarrow f (X_1,\dots , X_n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">←</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.07847em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.07847em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>, where <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi></mrow><annotation encoding="application/x-tex">f</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span></span></span></span> is an operator, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>X</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">X_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.07847em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi></mrow><annotation encoding="application/x-tex">Y</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span></span></span></span> are its input and output tensors, respectively.</li>
-<li>A dimension <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> in the operator is <strong>permutation invariant</strong> if it satisfies: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">∀</mi><mi>P</mi><mo>∈</mo><msub><mi mathvariant="normal">Φ</mi><mi>k</mi></msub><mo separator="true">,</mo><mi mathvariant="normal">∃</mi><msup><mi>P</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo>∈</mo><msub><mi mathvariant="normal">Φ</mi><mi>k</mi></msub><mtext>s.t. </mtext><msup><mi>P</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">(</mo><mi>f</mi><mo stretchy="false">(</mo><mi>P</mi><mo stretchy="false">(</mo><msub><mi>X</mi><mn>1</mn></msub><mo stretchy="false">)</mo><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><mi>P</mi><mo stretchy="false">(</mo><msub><mi>X</mi><mi>n</mi></msub><mo stretchy="false">)</mo><mo stretchy="false">)</mo><mo>=</mo><mi>Y</mi></mrow><annotation encoding="application/x-tex">\forall P \in \Phi_k, ∃ P&#x27; ∈ \Phi_k \text{s.t. }P&#x27;(f(P(X_1),\dots , P(X_n))=Y</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.73354em;vertical-align:-0.0391em;"></span><span class="mord">∀</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.946332em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord">Φ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">∃</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.001892em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord">Φ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord text"><span class="mord">s.t. </span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.07847em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.07847em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span></span></span></span></li>
-<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Φ</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">\Phi_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord">Φ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is the set of all permutation functions on <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> dimension. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">P (X)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mclose">)</span></span></span></span> means a permutation function <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span> is applied to the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> dimension of the tensor <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi></mrow><annotation encoding="application/x-tex">X</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span>, to shuffle the elements on <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> dimension to a new order. If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> dimension does not exist in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi></mrow><annotation encoding="application/x-tex">X</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo><mo>=</mo><mi>X</mi></mrow><annotation encoding="application/x-tex">P (X) = X</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span>.</li>
-</ul>
-</li>
-<li>For a permutation invariant dimension, when permutation is applied to this dimension of the input tensors, a reverse permutation exists on the output tensor to make the result the same as the original computation.</li>
-</ol>
-<h2 id="what-are-the-rules-of-applying-permutation-invariant"><a class="markdownIt-Anchor" href="#what-are-the-rules-of-applying-permutation-invariant"></a> What are the rules of applying permutation invariant?</h2>
-<ol>
-<li>Permutation invariant of tensor dimensions can be classified into three categories:
-<ul>
-<li><strong>Sporadic dimension</strong> exists in one or more tensors of a tensor expression but does not span all tensors. For example, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi></mrow><annotation encoding="application/x-tex">m</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">m</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">n</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi></mrow><annotation encoding="application/x-tex">f</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>l</mi></mrow><annotation encoding="application/x-tex">l</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span></span></span></span> of the tensor expressions.</li>
-<li><strong>Prevalent dimension</strong> is the dimension that exists in all the tensors (i.e., input and output tensors) of a tensor expression. Examples of prevalent dimensions are <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi></mrow><annotation encoding="application/x-tex">p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">p</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span>.</li>
-<li><strong>Compound dimension</strong> is the dimension that is involved in an arithmetic expression. E.g. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">x</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi></mrow><annotation encoding="application/x-tex">y</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathnormal">i</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span> in Convolution.</li>
-</ul>
-</li>
-<li>When permutation invariant is applied to only one dimension of a tensor expression, the dimension can be sporadic or prevalent but not a compound dimension.
-<ul>
-<li>Because permuting a compound dimension violates its corresponding arithmetic expression.</li>
-</ul>
-</li>
-<li>When permutation invariant is applied on multiple dimensions of a tensor expression:
-<ul>
-<li>When the permuted dimensions are sporadic, each dimension can only have a single permutation function.</li>
-<li>When the permuted dimensions include a prevalent dimension, the permutation function on each element of the prevalent dimension could be different.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-is-stile"><a class="markdownIt-Anchor" href="#what-is-stile"></a> What is STile?</h2>
-<ol>
-<li>A tile is a sliced piece of an operator’s computation.
-<ul>
-<li>Computation tiling slices the computation into many small homogeneous pieces to parallelize the computation and increase data reuse.</li>
-</ul>
-</li>
-<li>Permutation invariance can be applied to each tile independently; that is, the permutation functions on each tile can be different, leading to more diverse and fine-grained sparsity granularity.</li>
-<li>An STile is a group of non-redundant elements following a specific type of layout associated with a dense computation tile.
-<ul>
-<li>The non-redundant element is called the data tile, representing the sparsity granularity. The scattered data tiles can be condensed into dense tiles.</li>
-<li>In reverse, a dense tile can correspond to different STiles with different permutation functions.</li>
-</ul>
-</li>
-</ol>
-<img src="/imgs/Sys4ai/SparDA/tile.png" width="50%">
-<h2 id="how-to-transform-input-and-eliminate-overhead"><a class="markdownIt-Anchor" href="#how-to-transform-input-and-eliminate-overhead"></a> How to transform input and eliminate overhead?</h2>
-<ol>
-<li><strong>Sparse-Dense Transform</strong>: With permutation invariant, we can construct a permutation function <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span> to move all the redundant elements to the end while all the non-redundant elements to the front. The redundant elements can be safely removed to build a shorter <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> dimension.</li>
-<li><code>SLoad</code> maps sparse data tiles in input tensors to dense data blocks, while <code>SWrite</code> writes the output dense data block to the specified output data format, which could be sparse or dense.
-<ul>
-<li><code>SLoad</code> and <code>SWrite</code> work on data rearrangement when the data moves from global memory to shared memory and in reverse.</li>
-<li>As long as the data tile could saturate the read/write transaction of the memory (e.g., <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>32</mn></mrow><annotation encoding="application/x-tex">32</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span><span class="mord">2</span></span></span></span> bytes in CUDA GPUs), the data rearrangement would introduce little overhead because loading sparse data tiles does not waste memory bandwidth.</li>
-<li>This property further enables zero-copy of sparse data in online dynamic sparsity scenarios because the effective data tiles can be directly selected from their original data format and written to the higher-level memory with the desired format.</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-to-choose-an-efficient-stile"><a class="markdownIt-Anchor" href="#how-to-choose-an-efficient-stile"></a> How to choose an efficient STile?</h2>
-<ol>
-<li>The most efficient STile for a sparse operator is determined mainly by two factors, i.e., the efficiency of its associated dense computation tile and the operator’s dynamic sparsity.</li>
-<li>Though different-sized computation tiles are all dense for the first factor, they have different computation efficiency.
-<ul>
-<li>Usually, the smaller the computation tile is, the less efficient it is. Because it is harder to saturate all the available cores.</li>
-<li>Some carefully designed coordination of threads could significantly improve the computation efficiency of small computation tiles, leading to many efficient small computation tiles.</li>
-<li>These well-optimized computation tiles are stored in a tile database of SparDA and serve as the base of STiles.</li>
-</ul>
-</li>
-<li>All the STiles can be applied to a given sparsity for the second factor but lead to varied computation efficiency.
-<ul>
-<li>If the data tile of an STile is larger than the granularity of the given sparsity, a proportion of the computation is wasted.</li>
-<li>If the data tile is much smaller than the sparsity granularity, the computation tile is inefficient.</li>
-</ul>
-</li>
-<li>In online dynamic sparsity, the most suitable STile is chosen based on several representative samples.
-<ul>
-<li>It traverses all the STiles in the tile database to compute their cost on the given dynamically sparse operator and picks the best.</li>
-<li><code>CoverAlgo</code> outputs the number of STiles needed to cover all the non-zero values of a given sparsity sample. The cost is the sum of the n sparsity samples.</li>
-</ul>
-</li>
-</ol>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">@param  OP       : a dynamically sparse operator,</span></span><br><span class="line"><span class="string">        D_sparse : a list of n sparsity samples of Op</span></span><br><span class="line"><span class="string">@return Best_tile: the best STile for Op</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">ChooseStile</span>(<span class="params">D_sparse, Op</span>):</span><br><span class="line">  Best_stile, Cost_opt = null, inf</span><br><span class="line">  <span class="keyword">for</span> S <span class="keyword">in</span> GetStileFromTileDB(Op):</span><br><span class="line">    Cost = <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> D <span class="keyword">in</span> D_sparse:</span><br><span class="line">      num_stiles = CoverAlgo(D, S.data_tile)</span><br><span class="line">      Cost += Num_stiles * S.tile_cost</span><br><span class="line">    <span class="keyword">if</span> Cost &lt; Cost_opt:</span><br><span class="line">      Best_stile = S</span><br><span class="line">      Cost_opt = Cost</span><br><span class="line">  <span class="keyword">return</span> Best_stile</span><br></pre></td></tr></table></figure>
-<h2 id="how-to-represent-dynamic-sparsity"><a class="markdownIt-Anchor" href="#how-to-represent-dynamic-sparsity"></a> How to represent dynamic sparsity?</h2>
-<ol>
-<li>The representation is a sparsity attribute that can be efficiently constructed and parsed while consuming less memory.
-<ul>
-<li>The sparsity attribute combines a <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">0-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">0</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> attribute matrix along with a sparsity granularity. Each value in the attribute matrix represents a data block’s existence, which is the sparsity granularity’s size.
-<ul>
-<li>One type it can represent is that the location of sparse values keeps changing while the granularity is the same. Another type allows the granularity to change.</li>
-</ul>
-</li>
-<li>The sparsity granularity is in the form of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><msub><mi>S</mi><mrow><mi>d</mi><mi>i</mi><mi>m</mi><mn>1</mn></mrow></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>S</mi><mrow><mi>d</mi><mi>i</mi><mi>m</mi><mi>N</mi></mrow></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(S_{dim1},\dots , S_{dimN} )</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>, where <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mrow><mi>d</mi><mi>i</mi><mi>m</mi></mrow></msub></mrow><annotation encoding="application/x-tex">S_{dim}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is the size of the granularity on dimension dim.</li>
-</ul>
-</li>
-<li>During online model execution, SparDA detects the annotated sparsity and builds the index of the non-zero blocks in every sparse tensor.
-<ul>
-<li>The non-zero blocks are in the granularity of the data tile of the chosen STile. The blocks are translated into a bunch of STiles online.</li>
-<li>SparDA constructs the sparsity index in an out-of-order manner because the permutation invariant property relaxes the order of the indices in a sparse data format.</li>
-</ul>
-</li>
-<li>Unlike traditional sparse data format, which has data in it, SparDA only constructs an index while leaving the data as is. The index directly references the data blocks in their original tensor.
-<ul>
-<li>STile uses the index to load the data blocks across memory hierarchies and rearranges the data blocks on-the-fly into the dense format.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-are-the-apis-of-sparda-what-is-its-working-pipeline"><a class="markdownIt-Anchor" href="#what-are-the-apis-of-sparda-what-is-its-working-pipeline"></a> What are the APIs of SparDA? What is its working pipeline?</h2>
-<ol>
-<li>Its working pipeline is as follows:
-<ul>
-<li>To make PyTorch sparsity-aware, we first integrated the representation of dynamic sparsity into PyTorch with a class called <code>DSparsity</code>.</li>
-<li>Users can annotate the arbitrary dynamic sparsity pattern with a unified interface called <code>SetDSparsity</code>.</li>
-<li>After annotation, SparDA builds the sparse indexes through the fast index constructor with negligible overhead.</li>
-<li>After index construction, the STile optimization policy will choose an appropriate STile from the STile database according to the offline profiled performance table.</li>
-<li>The just-in-time code generator emits and compiles the corresponding STile for sparse computation.</li>
-</ul>
-</li>
-<li>SparDA has already constructed around <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1500</mn></mrow><annotation encoding="application/x-tex">1500</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">5</span><span class="mord">0</span><span class="mord">0</span></span></span></span> STiles from the dense computation kernels and profiles the performance of these STiles under different sparsity ratios.</li>
-<li>Users can easily customize the online STile optimization policy through the interface <code>RegisterOptPolicy</code> for different scenarios.
-<ul>
-<li>Users can also easily expand more STiles by adding corresponding dense computation kernels and their tensor expressions into the database.</li>
-</ul>
-</li>
-</ol>
-<h1 id="evaluation"><a class="markdownIt-Anchor" href="#evaluation"></a> Evaluation</h1>
-<ol>
-<li>The authors evaluate SparDA on four representative dynamic sparse scenarios: MoE models, dynamic sparsity caused by different sequence lengths, dynamic sparse algorithms, and sparse training.</li>
-<li>They compared SparDA with the state-of-art dense and sparse baselines: PyTorch (v1.11.0) and PyTorch with state-of-art sparse kernels (PyTorch-S).
-<ul>
-<li>We integrate the state-of-the-art sparse libraries to construct PyTorch-S, including cuSPARSE (v11.6), Sputnik, and Triton. We select the best performance of all the sparse libraries as the final results of PyTorch-S.</li>
-</ul>
-</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/10/04/Paper/Sys4AI/ELF/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/10/04/Paper/Sys4AI/ELF/" class="post-title-link" itemprop="url">Elf</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2023-10-04 17:07:43" itemprop="dateCreated datePublished" datetime="2023-10-04T17:07:43+08:00">2023-10-04</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-15 23:18:33" itemprop="dateModified" datetime="2024-03-15T23:18:33+08:00">2024-03-15</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Paper-Notebook/" itemprop="url" rel="index"><span itemprop="name">Paper Notebook</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Paper-Notebook/Sys4AI/" itemprop="url" rel="index"><span itemprop="name">Sys4AI</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Paper: <a target="_blank" rel="noopener" href="https://dl.acm.org/doi/abs/10.1145/3447993.3448628">Elf: Accelerate High-resolution Mobile Deep Vision with Content-aware Parallel Offloading</a></p>
-<p><ul class="markdownIt-TOC">
-<li><a href="#purpose">Purpose</a></li>
-<li><a href="#model">Model</a>
-<ul>
-<li><a href="#what-is-the-pipeline-of-elf">What is the pipeline of Elf?</a></li>
-<li><a href="#region-proposals">Region proposals</a>
-<ul>
-<li><a href="#how-to-predict-region-proposals">How to predict region proposals?</a></li>
-<li><a href="#how-do-we-index-region-proposals">How do we index region proposals?</a></li>
-</ul>
-</li>
-<li><a href="#offloading">Offloading</a>
-<ul>
-<li><a href="#how-to-optimize-elfs-schedule-problem">How to optimize Elf’s schedule problem?</a></li>
-<li><a href="#why-send-rp-coordinates-and-the-original-image-instead-of-a-cropped-rp-task">Why send RP coordinates and the original image instead of a cropped RP task?</a></li>
-<li><a href="#how-to-generate-rp-boxes">How to generate RP boxes?</a></li>
-<li><a href="#how-do-we-estimate-server-capacity-and-rp-computation-cost">How do we estimate server capacity and RP computation cost?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#evaluation">Evaluation</a></li>
-</ul>
-</p>
-<h1 id="purpose"><a class="markdownIt-Anchor" href="#purpose"></a> Purpose</h1>
-<ol>
-<li>To support applications running deep neural networks on multimedia data in real-time, having mobile devices offload the computation, especially the neural network inference, to edge clouds has proved effective.</li>
-<li>Issues:
-<ul>
-<li>In reality, we may not be able to find a dedicated and powerful server but must make do with less powerful ones.</li>
-<li>Various techniques to make DNN models smaller to reduce the computation load lead to compromised model accuracy due to the fundamental trade-off between model size and model accuracy.</li>
-<li>The inference latency can be significantly reduced by offloading the intensive model inference to a powerful edge server and with the high bandwidth and low latency provided by the emerging 5G networks.
-<ul>
-<li>Most existing solutions use low-resolution images throughout the entire pipeline.</li>
-<li>Most existing methods only consider offloading tasks between a single pair of servers and clients, assuming that no competing clients or extra edge resources are available.</li>
-<li>The heterogeneous resource demands of applications running on edge servers and highly dynamic workloads by mobile users lead to resource fragmentation.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Challenges:
-<ul>
-<li>The client must effectively partition the inference job into multiple pieces while maintaining the inference accuracy.</li>
-<li>The system needs to be aware of available computation resources on each server and dynamically develop the frame partitioning solution to ensure no server in the parallel offloading procedure becomes the bottleneck.</li>
-<li>Such a system should have a general framework design independent of its host deep vision applications.</li>
-</ul>
-</li>
-<li>Contribution:
-<ul>
-<li>The idea is to partition the video frame and offload the partial inference tasks to multiple servers for parallel processing.</li>
-<li>Elf is a framework to accelerate high-resolution mobile deep vision offloading in heterogeneous client and edge server environments, by adaptively distributing the computation to available edge servers.</li>
-<li>It employs a recurrent region proposal prediction algorithm, a region proposal centric frame partitioning, and a resource-aware multi-offloading scheme.</li>
-</ul>
-</li>
-</ol>
-<h1 id="model"><a class="markdownIt-Anchor" href="#model"></a> Model</h1>
-<h2 id="what-is-the-pipeline-of-elf"><a class="markdownIt-Anchor" href="#what-is-the-pipeline-of-elf"></a> What is the pipeline of Elf?</h2>
-<ol>
-<li>The first phase is recurrent region proposal prediction.
-<ul>
-<li>On the mobile end, whenever a new video frame arrives, Elf predicts its region proposals (RPs) based on the ones detected in historical frames.</li>
-<li>The algorithm must be lightweight, effectively learn the motion model of the objects/RPs from history frames, and pay more attention to recent frames.</li>
-<li>Efficiently utilizing the historical RP inference results converts the computing-intensive image regression problem to a lightweight time series prediction problem.</li>
-<li>An RP indexing algorithm keeps track of the motion across frames. A Low-Resolution Compensation scheme is proposed to handle new objects when they first appear.</li>
-</ul>
-</li>
-<li>The second phase is frame partitioning and offloading.
-<ul>
-<li>Ideally, a well-designed frame partitioning scheme should show a negligible overhead and have heterogeneous edge servers to finish parallel inference tasks at the same time.</li>
-<li>The partitioning algorithm should be inclusive and aware of the number of and locations of RPs in a frame. Also, Elf discards background pixels that are unlikely to contain any RPs.</li>
-<li>Partitions have different computation costs depending on the objects in each partition. The algorithm should consider this cost heterogeneity to achieve load balancing among the servers.</li>
-<li>Unlike central clouds, edge cloud servers exhibit heterogeneous computing/storage/networking resources due to their distributed nature and high user mobility. Poor offloading may result in job stragglers completing tasks much slower than their peers, thus significantly increasing the overall latency.</li>
-</ul>
-</li>
-<li>The last phase is partial inference and result integration.
-<ul>
-<li>Taking the offloaded partitions as input, the edge servers run the application-specific CNN models to yield partial inference results.</li>
-<li>These partial results are finally integrated on the mobile side to render the final result.</li>
-</ul>
-</li>
-</ol>
-<h2 id="region-proposals"><a class="markdownIt-Anchor" href="#region-proposals"></a> Region proposals</h2>
-<h3 id="how-to-predict-region-proposals"><a class="markdownIt-Anchor" href="#how-to-predict-region-proposals"></a> How to predict region proposals?</h3>
-<ol>
-<li>An attention-based LSTM network is used to predict region proposals.
-<ul>
-<li>It takes only the RPs of the past <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> frames without the image of the current frame as its input and outputs the RPs of the current frame.</li>
-<li>It can only handle the objects that already occurred in the previous frame.</li>
-</ul>
-</li>
-<li>To handle new objects and reduce the computation overhead, Elf runs LRC once per n frames.
-<ul>
-<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">n</span></span></span></span> is a hyperparameter, indicating the trade-off between computation cost and at most <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">n</span></span></span></span>-frame delay to realize new objects.</li>
-<li>First, LRC down-samples a high-resolution video frame using a max-pooling operation.</li>
-<li>Then Elf offloads the resized video frame and the partitions from regular-sized partitions to edge servers to run application-specific models, which usually consist of an object detection component.</li>
-<li>Based on the inference results, Elf can roughly locate the new objects in the frame.</li>
-</ul>
-</li>
-<li>The predicted RP bounding box may not cover all the pixels of an object due to motion.
-<ul>
-<li>The bounding box is expanded by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi mathvariant="normal">%</mi></mrow><annotation encoding="application/x-tex">p\%</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.94444em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">p</span><span class="mord">%</span></span></span></span>. The downside of this scheme is the increased data transmission and computation.</li>
-<li>It consults the corresponding RP position shift and the prediction confidence level as the indicators to assign different weights on <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi></mrow><annotation encoding="application/x-tex">p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">p</span></span></span></span>.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-do-we-index-region-proposals"><a class="markdownIt-Anchor" href="#how-do-we-index-region-proposals"></a> How do we index region proposals?</h3>
-<ol>
-<li>Vision-based matching algorithms are not considered because they introduce significant overheads in hundreds of milliseconds.</li>
-<li>From the first video frame, Elf assigns a unique index to each region proposal.
-<ul>
-<li>Elf matches each RP with the corresponding index assigned earlier in each upcoming frame.</li>
-<li>If an RP includes a new object not seen before, a new index will be automatically assigned.</li>
-</ul>
-</li>
-<li>Match the RPs across frames with a combination of RP position shift and RP area shift.
-<ul>
-<li>The RP position shift measures the change of the center point along the x-/y-axis between the current frame and the previous frame. A larger value indicates a bigger spatial shift and, thus, a lower matching probability.</li>
-<li>The RP area shift measures the area change between the RPs in two adjacent frames. A lower value indicates a higher matching probability.</li>
-<li>When the x and y RP position shift are both under <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0.02</mn></mrow><annotation encoding="application/x-tex">0.02</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span><span class="mord">.</span><span class="mord">0</span><span class="mord">2</span></span></span></span> and the area shift ratio is under <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0.2</mn></mrow><annotation encoding="application/x-tex">0.2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span><span class="mord">.</span><span class="mord">2</span></span></span></span>, we declare a match.</li>
-</ul>
-</li>
-</ol>
-<h2 id="offloading"><a class="markdownIt-Anchor" href="#offloading"></a> Offloading</h2>
-<h3 id="how-to-optimize-elfs-schedule-problem"><a class="markdownIt-Anchor" href="#how-to-optimize-elfs-schedule-problem"></a> How to optimize Elf’s schedule problem?</h3>
-<ol>
-<li>Assuming <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi></mrow><annotation encoding="application/x-tex">M</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span></span></span></span> is the total number of RPs, while <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> is the total number of servers; Elf packs the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi></mrow><annotation encoding="application/x-tex">M</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span></span></span></span> RP processing tasks and one LRC task into <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>N</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup></mrow><annotation encoding="application/x-tex">N&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span> offloading tasks (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>N</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo>≤</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">N&#x27;≤N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.887862em;vertical-align:-0.13597em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> ), and offloads each task onto an edge server.</li>
-<li>The overall objective of the partitioning and the offloading process is to minimize the completion time of the offloading tasks that are distributed across <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>N</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup></mrow><annotation encoding="application/x-tex">N&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span> edge servers, i.e., minimizing the task completion time, which has the longest execution time among all the tasks.</li>
-<li>The optimization objective can be written as
-<ul>
-<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>min</mi><mo>⁡</mo><mi>max</mi><mo>⁡</mo><mo stretchy="false">(</mo><mo stretchy="false">{</mo><msubsup><mi>T</mi><mi>k</mi><mi>t</mi></msubsup><mo stretchy="false">}</mo><mo stretchy="false">)</mo><mo separator="true">,</mo><mi>k</mi><mo>∈</mo><mo stretchy="false">[</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msup><mi>N</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">]</mo><mtext>,</mtext><mspace linebreak="newline"></mspace><mtext>s.t.  </mtext><msubsup><mi>T</mi><mi>k</mi><mi>t</mi></msubsup><mo>=</mo><msubsup><mi>T</mi><mrow><mi>r</mi><mi>e</mi><mi>s</mi><mo separator="true">,</mo><mi>k</mi></mrow><mi>t</mi></msubsup><mo>+</mo><msubsup><mi>T</mi><mrow><mi>l</mi><mi>r</mi><mi>c</mi><mo separator="true">,</mo><mi>k</mi></mrow><mi>t</mi></msubsup><mo>⋅</mo><mn>1</mn><mo stretchy="false">(</mo><mi>t</mi><mspace></mspace><mspace width="0.6666666666666666em"/><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">d</mi></mrow><mtext> </mtext><mtext> </mtext><mi>n</mi><mo>=</mo><mn>0</mn><mo stretchy="false">)</mo><mo>⋅</mo><mn>1</mn><mo stretchy="false">(</mo><mi>arg</mi><mo>⁡</mo><mi>max</mi><mo>⁡</mo><mo stretchy="false">{</mo><msup><mi>p</mi><mi>t</mi></msup><mo stretchy="false">}</mo><mo>=</mo><mi>k</mi><mo stretchy="false">)</mo><mtext>, </mtext><msubsup><mi>T</mi><mrow><mi>r</mi><mi>p</mi><mi>s</mi><mo separator="true">,</mo><mi>k</mi></mrow><mi>t</mi></msubsup><mo>≈</mo><mfrac><msubsup><mi>C</mi><mrow><mi>r</mi><mi>p</mi><mi>s</mi><mo separator="true">,</mo><mi>k</mi></mrow><mi>t</mi></msubsup><msubsup><mi>p</mi><mi>k</mi><mi>t</mi></msubsup></mfrac><mtext>, </mtext><msubsup><mi>T</mi><mrow><mi>l</mi><mi>r</mi><mi>c</mi><mo separator="true">,</mo><mi>k</mi></mrow><mi>t</mi></msubsup><mo>≈</mo><mfrac><msubsup><mi>C</mi><mrow><mi>l</mi><mi>r</mi><mi>c</mi><mo separator="true">,</mo><mi>k</mi></mrow><mi>t</mi></msubsup><msubsup><mi>p</mi><mi>k</mi><mi>t</mi></msubsup></mfrac></mrow><annotation encoding="application/x-tex">\min\max(\{T^t_k\}), k\in[1,\dots,N&#x27;]\text{,}\\ \text{s.t. }\ T^t_k=T^t_{res,k}+T^t_{lrc,k}\cdot1(t\mod n=0)\cdot1(\arg\max\{p^t\}=k)\text{, }T^t_{rps,k}\approx\frac{C^t_{rps,k}}{p^t_k}\text{, }T^t_{lrc,k}\approx\frac{C^t_{lrc,k}}{p^t_k}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0766639999999998em;vertical-align:-0.2831079999999999em;"></span><span class="mop">min</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">max</span><span class="mopen">(</span><span class="mopen">{</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.4168920000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2831079999999999em;"><span></span></span></span></span></span></span><span class="mclose">}</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.001892em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mclose">]</span><span class="mord text"><span class="mord">,</span></span></span><span class="mspace newline"></span><span class="base"><span class="strut" style="height:1.0766639999999998em;vertical-align:-0.2831079999999999em;"></span><span class="mord text"><span class="mord">s.t. </span></span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.4168920000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2831079999999999em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.2127719999999997em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.4168920000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.2127719999999997em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.4168920000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">c</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mopen">(</span><span class="mord mathnormal">t</span><span class="mspace allowbreak"></span><span class="mspace" style="margin-right:0.6666666666666666em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord"><span class="mord"><span class="mord mathrm">m</span><span class="mord mathrm">o</span><span class="mord mathrm">d</span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">0</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.043556em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mopen">(</span><span class="mop">ar<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">max</span><span class="mopen">{</span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span></span></span></span></span><span class="mclose">}</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.2127719999999997em;vertical-align:-0.4192159999999999em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mclose">)</span><span class="mord text"><span class="mord">, </span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.4168920000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">s</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.81862em;vertical-align:-0.60196em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.2166599999999999em;"><span style="top:-2.6411em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7841428571428573em;"><span style="top:-2.1527714285714286em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span><span style="top:-2.8448em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3472285714285714em;"><span></span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.60742em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8703428571428571em;"><span style="top:-2.214em;margin-left:-0.07153em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">s</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span style="top:-2.931em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.42488571428571426em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.60196em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mord text"><span class="mord">, </span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.4168920000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">c</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.81862em;vertical-align:-0.60196em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.2166599999999999em;"><span style="top:-2.6411em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7841428571428573em;"><span style="top:-2.1527714285714286em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span><span style="top:-2.8448em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3472285714285714em;"><span></span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.60742em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8703428571428571em;"><span style="top:-2.214em;margin-left:-0.07153em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">c</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span style="top:-2.931em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.42488571428571426em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.60196em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></li>
-<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>T</mi><mi>k</mi><mi>t</mi></msubsup></mrow><annotation encoding="application/x-tex">T^t_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0766639999999998em;vertical-align:-0.2831079999999999em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.4168920000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2831079999999999em;"><span></span></span></span></span></span></span></span></span></span> is the completion time on the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span>-th server at the time-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.61508em;vertical-align:0em;"></span><span class="mord mathnormal">t</span></span></span></span>, which consists of two completion-time terms, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>T</mi><mrow><mi>r</mi><mi>p</mi><mi>s</mi><mo separator="true">,</mo><mi>k</mi></mrow><mi>t</mi></msubsup></mrow><annotation encoding="application/x-tex">T^t_{rps,k}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2127719999999997em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.4168920000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">s</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>T</mi><mrow><mi>l</mi><mi>r</mi><mi>c</mi><mo separator="true">,</mo><mi>k</mi></mrow><mi>t</mi></msubsup></mrow><annotation encoding="application/x-tex">T^t_{lrc,k}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2127719999999997em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.4168920000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">c</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span></span></span></span> for RPs and LRC, respectively.</li>
-<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>C</mi><mrow><mi>r</mi><mi>p</mi><mi>s</mi><mo separator="true">,</mo><mi>k</mi></mrow><mi>t</mi></msubsup></mrow><annotation encoding="application/x-tex">C^t_{rps,k}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2127719999999997em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.4168920000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">s</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>C</mi><mrow><mi>l</mi><mi>r</mi><mi>c</mi><mo separator="true">,</mo><mi>k</mi></mrow><mi>t</mi></msubsup></mrow><annotation encoding="application/x-tex">C^t_{lrc,k}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2127719999999997em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.4168920000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">c</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span></span></span></span> are the computing costs of the RP box and LRC offloading to the server <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> while <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>p</mi><mi>k</mi><mi>t</mi></msubsup></mrow><annotation encoding="application/x-tex">p^t_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0766639999999998em;vertical-align:-0.2831079999999999em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.4168920000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2831079999999999em;"><span></span></span></span></span></span></span></span></span></span> is the available resource capacity of the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span>-th server.</li>
-</ul>
-</li>
-</ol>
-<h3 id="why-send-rp-coordinates-and-the-original-image-instead-of-a-cropped-rp-task"><a class="markdownIt-Anchor" href="#why-send-rp-coordinates-and-the-original-image-instead-of-a-cropped-rp-task"></a> Why send RP coordinates and the original image instead of a cropped RP task?</h3>
-<ol>
-<li>The execution time of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> is a small number, such as <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn></mrow><annotation encoding="application/x-tex">2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn></mrow><annotation encoding="application/x-tex">3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span></span></span></span>) small RP (e.g., <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>&lt;</mo><mn>5</mn><mi mathvariant="normal">%</mi></mrow><annotation encoding="application/x-tex">&lt;5\%</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.80556em;vertical-align:-0.05556em;"></span><span class="mord">5</span><span class="mord">%</span></span></span></span> size of the original image) tasks are not much less than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> times of the execution time of running a single <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span>-fold RP task.</li>
-<li>It is hard to determine a good cropping strategy.
-<ul>
-<li>The precise cut-out of individual RPs will lead to poor detection inference accuracy due to the lack of necessary background pixels.</li>
-<li>If we leave large padding around the RPs, the total offloaded data will be too large to be efficient.</li>
-</ul>
-</li>
-<li>Too many cropping operations generate high memory copy overheads, which may become problematic for mobile devices.</li>
-</ol>
-<h3 id="how-to-generate-rp-boxes"><a class="markdownIt-Anchor" href="#how-to-generate-rp-boxes"></a> How to generate RP boxes?</h3>
-<ol>
-<li>Compared to a single RP, an RP-box is larger and consists of one or more nearby RPs.
-<ul>
-<li>Each offloading task consists of either an LRC task, or an RP-box processing task, or both.</li>
-<li>By scheduling an RP box instead of individual RPs, we can avoid fragmentation problems.</li>
-</ul>
-</li>
-<li>The number of available edge servers determines the number of offloading tasks.</li>
-<li><strong>RP box initialization</strong>: Before partitioning a frame, Elf first crops the area with all the RPs and horizontally partitions it into <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> segments (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> is the number of available servers), where each segment corresponds to an initial RP box.
-<ul>
-<li>The size of each RP box is initialized to be proportional to the available resource of the corresponding server.</li>
-<li>At the LRC round, we partition the cropped image into <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mtext>−</mtext><mn>1</mn></mrow><annotation encoding="application/x-tex">N − 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord">−</span><span class="mord">1</span></span></span></span> segments and have <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mtext>−</mtext><mn>1</mn></mrow><annotation encoding="application/x-tex">N − 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord">−</span><span class="mord">1</span></span></span></span> RP boxes accordingly. We reserve one server for the LRC task.</li>
-</ul>
-</li>
-<li><strong>RP association</strong>: Elf evaluates its spatial relationship with all the RP boxes for each RP. Given a pair of RP <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> and box <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span>,
-<ul>
-<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> is completely included in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span> and we conveniently associate them.</li>
-<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span> are not overlap, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> is not associated with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span>.</li>
-<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span> are partially overlapped, it also overlaps with at least one other box. We choose to associate with the RP box that has the most overlap with the RP.
-<ul>
-<li>If there is a tie, we choose the RP box with a larger gap between the server resource capacity and the computation costs of the RPs that are already associated.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><strong>RP box adjustment</strong>: Elf resizes each RP box so that it can fully cover all the RPs that are associated with it.
-<ul>
-<li>The computation cost of some RP boxes may drastically increase compared to the initialization stage and thus break the intended load balancing.</li>
-<li>We examine those RP boxes whose cost increase exceeds a pre-defined threshold. For these boxes, we re-associate the RP with the lowest cost to the neighboring box, which has enough computation capacity to hold this RP.</li>
-<li>After each re-association, the two boxes must adjust their sizes accordingly and estimate the new computation cost. We stop this process if the re-association results in a higher load imbalance.</li>
-</ul>
-</li>
-<li>The <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>C</mi><mrow><mi>r</mi><mi>p</mi><mi>s</mi><mo separator="true">,</mo><mi>k</mi></mrow><mi>t</mi></msubsup><mo>=</mo><msub><mo>∑</mo><mi>v</mi></msub><mo stretchy="false">{</mo><msubsup><mi>C</mi><mrow><mi>r</mi><mi>p</mi><mo separator="true">,</mo><mi>v</mi></mrow><mi>t</mi></msubsup><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">C^t_{rps,k}=\sum_v\{C^t_{rp,v}\}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2127719999999997em;vertical-align:-0.4192159999999999em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.4168920000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">s</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.176664em;vertical-align:-0.383108em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.0016819999999999613em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">v</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.29971000000000003em;"><span></span></span></span></span></span></span><span class="mopen">{</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.4530000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">p</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.03588em;">v</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.383108em;"><span></span></span></span></span></span></span><span class="mclose">}</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>C</mi><mrow><mi>l</mi><mi>r</mi><mi>c</mi></mrow><mi>t</mi></msubsup><mo>=</mo><mi>α</mi><mo>⋅</mo><mo stretchy="false">(</mo><msubsup><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>M</mi></msubsup><msubsup><mi>C</mi><mrow><mi>r</mi><mi>p</mi><mi>s</mi><mo separator="true">,</mo><mi>k</mi></mrow><mi>t</mi></msubsup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">C^t_{lrc}=\alpha\cdot(\sum^M_{k=1}C^t_{rps,k})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0766639999999998em;vertical-align:-0.2831079999999999em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.4168920000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">c</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2831079999999999em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.44445em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.4004469999999998em;vertical-align:-0.4192159999999999em;"></span><span class="mopen">(</span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.981231em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.2029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">M</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.29971000000000003em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7935559999999999em;"><span style="top:-2.4168920000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">s</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4192159999999999em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>.<br />
-<img src="/imgs/Sys4ai/Elf/partition.png" width="50%"></li>
-</ol>
-<h3 id="how-do-we-estimate-server-capacity-and-rp-computation-cost"><a class="markdownIt-Anchor" href="#how-do-we-estimate-server-capacity-and-rp-computation-cost"></a> How do we estimate server capacity and RP computation cost?</h3>
-<ol>
-<li>There are two approaches to estimating server capacity.
-<ul>
-<li>The first approach is through passive profiling.
-<ul>
-<li>It calculates the server m’s average end-to-end latency <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>m</mi></msub></mrow><annotation encoding="application/x-tex">T_m</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">m</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> over the last <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">n</span></span></span></span> (default value of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>7</mn></mrow><annotation encoding="application/x-tex">7</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">7</span></span></span></span>) offloading requests that are served by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi></mrow><annotation encoding="application/x-tex">m</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">m</span></span></span></span>. Then, the resource capacity is defined as <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><msub><mi>T</mi><mi>m</mi></msub></mrow><annotation encoding="application/x-tex">1/T_m</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mord">/</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">m</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
-<li>This passive profiling can help evaluate the trade-off between computing and network resources.</li>
-</ul>
-</li>
-<li>The second approach is through proactive profiling: Elf periodically queries the server for its GPU utilization.</li>
-</ul>
-</li>
-<li>There are also two ways of estimating an RP’s computation cost.
-<ul>
-<li>The first approach is based on the RP’s area, assuming the cost is linearly proportional to the RP’s area.</li>
-<li>The second approach is through Spatially Adaptive Computation Time (SACT). Elf can accordingly estimate the cost of an RP at the pixel level.
-<ul>
-<li>SACT is an optimization that early stops partial convolutional operations by evaluating the confidence of the outputs of intermediate layers.</li>
-<li>SACT indicates how much computation has been applied with each pixel of a raw frame input.</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<h1 id="evaluation"><a class="markdownIt-Anchor" href="#evaluation"></a> Evaluation</h1>
-<ol>
-<li>The author measured the latency of Elf using different numbers of servers.
-<ul>
-<li>The latency with different server numbers highly depends on the size of the RP boxes shipped to each edge server.</li>
-<li>The inference time shows distinct sensitivity among different deep vision models.
-<ul>
-<li>The models with more, even fully, convolutional operations present a stronger correlation between frame resolution and inference latency.</li>
-<li>Two-stage models usually generate the same number of Regions of Interest (ROI) independent of the input resolution and then ship each down the pipeline. The second stage thus costs the same time.</li>
-<li>Two-stage models can dynamically adjust the number of ROI based on the frame resolution as a higher resolution input potentially involves more objects.<br />
-<img src="/imgs/Sys4ai/Elf/server_num.png" width="15%"></li>
-</ul>
-</li>
-</ul>
-</li>
-<li>The cost of each processing part:
-<ul>
-<li>At the server end, the GPU utilization v.s. GPU numbers are measured.
-<ul>
-<li>On average, Elf-3 only consumes <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1.7</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">1.7\times</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">1</span><span class="mord">.</span><span class="mord">7</span><span class="mord">×</span></span></span></span> GPU utilization in total running with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn></mrow><annotation encoding="application/x-tex">3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span></span></span></span> GPUs, then <em>SO</em> to finish a single request.</li>
-<li>A lower per GPU utilization allows Elf to have more of a chance to efficiently utilize those resource fragmentations, thus improving the total GPU utilization of edge servers.<br />
-<img src="/imgs/Sys4ai/Elf/GPUutilization.png" width="15%"></li>
-</ul>
-</li>
-<li>On the communication side, they measured the latency under different network conditions.
-<ul>
-<li>Elf is less sensitive to the network bandwidth because it offloads much less data than SO.<br />
-<img src="/imgs/Sys4ai/Elf/network.png" width="15%"></li>
-</ul>
-</li>
-<li>At the mobile end, they measured Elf’s overhead.
-<ul>
-<li>RP prediction costs 70%+ of the total time as the attention LSTM model is implemented in Python and exported to C++ with TorchScript. It can be improved by rewriting the prediction model with TensorRT.<br />
-<img src="/imgs/Sys4ai/Elf/overhead.png" width="15%"></li>
-</ul>
-</li>
-</ul>
-</li>
-<li>The inference accuracy and offload ratio of attention-based LSTM against vanilla LSTM, the fast tracker, showed the effectiveness of attention-based LSTM.</li>
-<li>The impact of hyperparameters, e.g., the LRC parameter and RP expansion ratio, is measured.</li>
 </ol>
 
       

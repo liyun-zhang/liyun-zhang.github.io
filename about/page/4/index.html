@@ -146,13 +146,13 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-count">64</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
@@ -174,6 +174,572 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/08/22/Courses/15445/12-Multi-Version-Concurrency-Control/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/08/22/Courses/15445/12-Multi-Version-Concurrency-Control/" class="post-title-link" itemprop="url">12 Multi-Version Concurrency Control</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-08-22 15:34:19" itemprop="dateCreated datePublished" datetime="2023-08-22T15:34:19+08:00">2023-08-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-03-16 16:02:14" itemprop="dateModified" datetime="2024-03-16T16:02:14+08:00">2024-03-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#multi-version-logic">Multi-version logic</a>
+<ul>
+<li><a href="#what-does-multi-version-mean">What does multi-version mean?</a></li>
+<li><a href="#how-to-maintain-multi-version-logically">How to maintain multi-version logically?</a></li>
+<li><a href="#what-isolation-can-mvcc-support">What isolation can MVCC support?</a></li>
+</ul>
+</li>
+<li><a href="#design-decisions">Design decisions</a>
+<ul>
+<li><a href="#what-concurrency-control-protocol-can-be-used">What concurrency control protocol can be used?</a></li>
+<li><a href="#how-are-versions-stored">How are versions stored?</a></li>
+<li><a href="#how-to-perform-garbage-collection">How to perform garbage collection?</a></li>
+<li><a href="#how-to-manage-indexes">How to manage indexes?</a></li>
+<li><a href="#how-to-delete-a-tuple">How to delete a tuple?</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="multi-version-logic"><a class="markdownIt-Anchor" href="#multi-version-logic"></a> Multi-version logic</h1>
+<h2 id="what-does-multi-version-mean"><a class="markdownIt-Anchor" href="#what-does-multi-version-mean"></a> What does multi-version mean?</h2>
+<ol>
+<li>
+<p>The DBMS maintains multiple physical versions of a single logical object in the database.</p>
+<ul>
+<li>
+<p>When a transaction writes to an object, the DBMS creates a new version of that object.</p>
+</li>
+<li>
+<p>When a transaction reads an object, it reads the newest version that existed when it started.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Writers do not block readers, and readers do not block writers.</p>
+</li>
+<li>
+<p>Read-only transactions can read a consistent snapshot without acquiring locks using timestamps to determine visibility.</p>
+</li>
+<li>
+<p>Multi-version can easily support time-travel queries on a snapshot version of the database.</p>
+</li>
+</ol>
+<h2 id="how-to-maintain-multi-version-logically"><a class="markdownIt-Anchor" href="#how-to-maintain-multi-version-logically"></a> How to maintain multi-version logically?</h2>
+<ol>
+<li>Each version describes the current version number, the value for this version, and the lifetime range, i.e., the beginning and end timestamps.</li>
+<li>The end timestamp is marked infinity for the newest version.</li>
+<li>When a transaction writes an object:
+<ul>
+<li>First, it creates a new entry with a new version number and sets its begin timestamp as its timestamp and end timestamp as infinity.</li>
+<li>Then, it marks the end timestamp of the last version as its timestamp.</li>
+<li>Physically, this transaction should modify the last version to point to this new version. Hence, it must wait for the transaction that has created the previous version to commit before beginning its commit phase.</li>
+</ul>
+</li>
+</ol>
+<h2 id="what-isolation-can-mvcc-support"><a class="markdownIt-Anchor" href="#what-isolation-can-mvcc-support"></a> What isolation can MVCC support?</h2>
+<ol>
+<li><code>SNAPSHOT ISOLATION</code> is another isolation supported by Oracle.
+<ul>
+<li>It guarantees that all reads made in a transaction see a consistent snapshot of the database when the transaction started.</li>
+<li>A transaction will commit only if its writes do not conflict with any concurrent updates made since that snapshot.</li>
+</ul>
+</li>
+<li>It is susceptible to write skew anomaly.
+<ul>
+<li>Two concurrent transactions modify different objects, resulting in race conditions.</li>
+<li>If a transaction wants to modify all values to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> while another transaction wants to modify all values to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>. The first transaction changes all <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>s, and the second transaction changes all <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>s. When their result merges with the database, it would be the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>s and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>s are flipped instead of all being <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>s or <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>s.</li>
+</ul>
+</li>
+</ol>
+<h1 id="design-decisions"><a class="markdownIt-Anchor" href="#design-decisions"></a> Design decisions</h1>
+<h2 id="what-concurrency-control-protocol-can-be-used"><a class="markdownIt-Anchor" href="#what-concurrency-control-protocol-can-be-used"></a> What concurrency control protocol can be used?</h2>
+<ol>
+<li>All aforementioned protocols can be used in MVCC.</li>
+<li>Timestamp ordering assigns transaction timestamps to determine what they can see.</li>
+<li>Optimistic concurrency control uses a private workspace for new versions.</li>
+<li>Two-phase locking requires transactions to acquire an appropriate lock on a physical version before they can read/write a logical tuple.</li>
+</ol>
+<h2 id="how-are-versions-stored"><a class="markdownIt-Anchor" href="#how-are-versions-stored"></a> How are versions stored?</h2>
+<ol>
+<li>The DBMS uses the tuples’ pointer field to create a version chain per logical tuple.
+<ul>
+<li>This allows the DBMS to find the version visible to a particular transaction at runtime.</li>
+<li>Indexes always point to the “head” of the chain.</li>
+</ul>
+</li>
+<li>The first approach is append-only storage: New versions are appended to the same table space.
+<ul>
+<li>The versions of different logical tuples are inter-mixed.</li>
+<li>On every update, append a new version of the tuple into an empty space in the table.</li>
+<li>If the chain is from oldest to newest, the DBMS must traverse the chain on look-ups. However, the update does not need to update the index.</li>
+<li>Or, the chain can be from oldest to newest. The pros and cons are contrary to the last scenario.</li>
+</ul>
+</li>
+<li>The second approach is time-travel storage: Old versions are copied to separate table space.
+<ul>
+<li>On every update, copy the current version to the time-travel table. Update pointers. Then, Overwrite the master version in the main table and update pointers.</li>
+</ul>
+</li>
+<li>The third approach is delta storage: The original values of the modified attributes are copied into a separate delta record space.
+<ul>
+<li>On every update, copy only the values modified to the delta storage and overwrite the master version.</li>
+<li>Transactions can recreate old versions by applying the delta in reverse order.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-perform-garbage-collection"><a class="markdownIt-Anchor" href="#how-to-perform-garbage-collection"></a> How to perform garbage collection?</h2>
+<ol>
+<li>The DBMS needs to remove reclaimable physical versions from the database over time.
+<ul>
+<li>Reclaimable means that no active transaction in the DBMS can see an aborted transaction created that version (SI) or the version.</li>
+<li>The DBMS can only reclaim versions created by an aborted transaction to support time-travel queries.</li>
+</ul>
+</li>
+<li>To look for expired versions, the implementation has two choices.</li>
+<li>The first approach is tuple-level: Find old versions by examining tuples directly.
+<ul>
+<li>In a background vacuuming manner, separate thread(s) periodically scan the table and look for reclaimable versions. This design works with any storage.</li>
+<li>In a cooperative cleaning manner, worker threads identify reclaimable versions as they traverse the version chain. It only works with oldest-to-newest.</li>
+</ul>
+</li>
+<li>The second approach is transaction-level: transactions keep track of their old versions on updates, so the DBMS does not have to scan tuples to determine visibility.
+<ul>
+<li>Each transaction keeps track of its read/write set. On commit/abort, the transaction provides this information to a centralized vacuum worker.</li>
+<li>The DBMS periodically determines when all versions created by a finished transaction are no longer visible.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-manage-indexes"><a class="markdownIt-Anchor" href="#how-to-manage-indexes"></a> How to manage indexes?</h2>
+<ol>
+<li>Primary key indexes point to the version chain head.
+<ul>
+<li>How often the DBMS must update the primary key index depends on whether the system creates new versions when a tuple is updated.</li>
+<li>If a transaction updates a tuple’s primary key attribute(s), then this is treated as a <code>DELETE</code> followed by an <code>INSERT</code>.</li>
+</ul>
+</li>
+<li>Secondary indexes may use the physical address to the version chain head like a primary key index.</li>
+<li>The secondary indexes may also use logical pointers.
+<ul>
+<li>It uses a fixed identifier per tuple that does not change, e.g., primary key or tuple ID.</li>
+<li>This would require an extra indirection layer.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-delete-a-tuple"><a class="markdownIt-Anchor" href="#how-to-delete-a-tuple"></a> How to delete a tuple?</h2>
+<ol>
+<li>The DBMS physically deletes a tuple from the database only when all versions of a logically deleted tuple are not visible.</li>
+<li>If a tuple is deleted, a new version cannot be after the latest version.</li>
+<li>There are two ways to denote that a tuple has been logically deleted at some point in time.
+<ul>
+<li>The first way is to maintain a deleted flag to indicate that the logical tuple has been deleted after the newest physical version. The flag can either be in a tuple header or a separate column.</li>
+<li>The second tombstone tuple way is to create an empty physical version to indicate that a logical tuple is deleted.
+<ul>
+<li>It uses a separate pool for tombstone tuples with only a special bit pattern in the version chain pointer to reduce the storage overhead.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/08/20/Courses/15445/11-Timestamp-Ordering-Concurrency-Control/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/08/20/Courses/15445/11-Timestamp-Ordering-Concurrency-Control/" class="post-title-link" itemprop="url">11 Timestamp Ordering Concurrency Control</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-08-20 23:59:40" itemprop="dateCreated datePublished" datetime="2023-08-20T23:59:40+08:00">2023-08-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-03-16 15:48:54" itemprop="dateModified" datetime="2024-03-16T15:48:54+08:00">2024-03-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#to-protocols">T/O Protocols</a>
+<ul>
+<li><a href="#what-is-the-difference-between-2pl-and-to">What is the difference between 2PL and T/O?</a></li>
+<li><a href="#basic-to-protocol">Basic T/O protocol</a>
+<ul>
+<li><a href="#what-is-the-main-idea-of-basic-to-protocol">What is the main idea of basic T/O protocol?</a></li>
+<li><a href="#how-does-basic-to-check-each-operation">How does basic T/O check each operation?</a></li>
+<li><a href="#can-we-optimize-the-write-rule-to-decrease-the-possibility-of-abort">Can we optimize the write rule to decrease the possibility of abort?</a></li>
+<li><a href="#what-are-the-issues-of-basic-to">What are the issues of basic T/O?</a></li>
+</ul>
+</li>
+<li><a href="#optimistic-concurrency-control">Optimistic concurrency control</a>
+<ul>
+<li><a href="#what-is-the-main-idea-of-occ">What is the main idea of OCC?</a></li>
+<li><a href="#what-will-happen-in-the-validation-phase">What will happen in the validation phase?</a></li>
+<li><a href="#what-are-the-issues-of-occ">What are the issues of OCC?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#the-phantom-problem">The phantom problem</a>
+<ul>
+<li><a href="#what-is-the-phantom-problem">What is the phantom problem?</a></li>
+<li><a href="#how-can-we-solve-the-phantom-problem">How can we solve the phantom problem?</a></li>
+<li><a href="#what-are-isolation-levels">What are isolation levels?</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="to-protocols"><a class="markdownIt-Anchor" href="#to-protocols"></a> T/O Protocols</h1>
+<h2 id="what-is-the-difference-between-2pl-and-to"><a class="markdownIt-Anchor" href="#what-is-the-difference-between-2pl-and-to"></a> What is the difference between 2PL and T/O?</h2>
+<ol>
+<li>2PL determines the serializability order of conflicting operations at runtime while transactions execute, while T/O determines the serializability order of transactions before they execute.
+<ul>
+<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>&lt;</mo><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><msub><mi>T</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">TS(T_i) &lt; TS(T_j)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>, then the DBMS must ensure that the execution schedule is equivalent to a serial schedule where <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> appears before <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span>.</li>
+<li>Different schemes assign timestamps at different times during the transaction.</li>
+<li>Timestamps can be implemented using different strategies: system/wall clock, logical counter, or hybrid.</li>
+</ul>
+</li>
+<li>2PL is pessimistic. It assumes that conflicts between transactions are very common.
+<ul>
+<li>Hence, it uses locks to prevent conflicts.</li>
+</ul>
+</li>
+<li>Timestamp ordering (T/O) is a more optimistic way. It assumes that conflicts between transactions are rare.
+<ul>
+<li>Hence, it allows each transaction to execute all operations they want and validate their legitimacy after each transaction committing and before applying anything to the main database.</li>
+</ul>
+</li>
+</ol>
+<h2 id="basic-to-protocol"><a class="markdownIt-Anchor" href="#basic-to-protocol"></a> Basic T/O protocol</h2>
+<h3 id="what-is-the-main-idea-of-basic-to-protocol"><a class="markdownIt-Anchor" href="#what-is-the-main-idea-of-basic-to-protocol"></a> What is the main idea of basic T/O protocol?</h3>
+<ol>
+<li>Txns read and write objects without locks.</li>
+<li>The timestamp of each transaction is assigned at the <code>BEGIN</code> command.</li>
+<li>Every object <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi></mrow><annotation encoding="application/x-tex">X</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span> is tagged with a timestamp of the last transaction that successfully read/write
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mo>−</mo><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">W-TS(X)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">W</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mclose">)</span></span></span></span>: Write timestamp on <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi></mrow><annotation encoding="application/x-tex">X</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span></li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>−</mo><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R-TS(X)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mclose">)</span></span></span></span>: Read timestamp on <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi></mrow><annotation encoding="application/x-tex">X</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span></li>
+</ul>
+</li>
+<li>Check timestamps for every operation. If a transaction tries to access an object “from the future,” it aborts and restarts.</li>
+</ol>
+<h3 id="how-does-basic-to-check-each-operation"><a class="markdownIt-Anchor" href="#how-does-basic-to-check-each-operation"></a> How does basic T/O check each operation?</h3>
+<ol>
+<li>When <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> wants to read <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi></mrow><annotation encoding="application/x-tex">X</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span>:
+<ul>
+<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>&lt;</mo><mi>W</mi><mo>−</mo><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">TS(T_i)&lt;W-TS(X)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">W</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mclose">)</span></span></span></span>, abort <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> and restart it with a new TS to prevent it from starvation.
+<ul>
+<li>This condition means that this <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is trying to read something from the future.</li>
+</ul>
+</li>
+<li>Else, allow <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> to read <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi></mrow><annotation encoding="application/x-tex">X</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span>, and update <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>−</mo><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R-TS(X)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mclose">)</span></span></span></span> to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">(</mo><mi>R</mi><mo>−</mo><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">max(R-TS(X), TS(T_i))</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">m</span><span class="mord mathnormal">a</span><span class="mord mathnormal">x</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mclose">)</span></span></span></span>.</li>
+<li>A local copy of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi></mrow><annotation encoding="application/x-tex">X</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span> is made to ensure repeatable reads for <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
+</ul>
+</li>
+<li>When <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> wants to write <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi></mrow><annotation encoding="application/x-tex">X</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span>:
+<ul>
+<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>&lt;</mo><mi>R</mi><mo>−</mo><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">TS(T_i)&lt;R-TS(X)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mclose">)</span></span></span></span> or <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>&lt;</mo><mi>W</mi><mo>−</mo><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">TS(T_i)&lt;W-TS(X)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">W</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mclose">)</span></span></span></span>, abort and restart <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.
+<ul>
+<li>The first condition means that another transaction from the future cannot see the write from <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> in the past.</li>
+<li>The second condition means that another transaction from the future already wrote this object and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> cannot overwrite it in the past.</li>
+</ul>
+</li>
+<li>Else, allow <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> to write <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi></mrow><annotation encoding="application/x-tex">X</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span> and update <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mo>−</mo><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">W-TS(X)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">W</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mclose">)</span></span></span></span>.</li>
+<li>Also, a local copy is made.</li>
+</ul>
+</li>
+</ol>
+<h3 id="can-we-optimize-the-write-rule-to-decrease-the-possibility-of-abort"><a class="markdownIt-Anchor" href="#can-we-optimize-the-write-rule-to-decrease-the-possibility-of-abort"></a> Can we optimize the write rule to decrease the possibility of abort?</h3>
+<ol>
+<li>Thomas write rule: If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>&lt;</mo><mi>W</mi><mo>−</mo><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">TS(T_i) &lt; W-TS(X)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">W</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mclose">)</span></span></span></span>, ignore the write to allow the transaction to continue executing without aborting.
+<ul>
+<li>The thought is that we can see this violation as an immediate write from a future transaction right after the successful write from <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
+<li>The effects are similar, i.e., no one sees what does <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> write.</li>
+</ul>
+</li>
+<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>&lt;</mo><mi>R</mi><mo>−</mo><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">TS(T_i)&lt;R-TS(X)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mclose">)</span></span></span></span>, we still need to abort <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
+</ol>
+<h3 id="what-are-the-issues-of-basic-to"><a class="markdownIt-Anchor" href="#what-are-the-issues-of-basic-to"></a> What are the issues of basic T/O?</h3>
+<ol>
+<li>There is high overhead from copying data to the transaction’s workspace and updating timestamps. Every read requires the transaction to write to the database.</li>
+<li>Long-running transactions can get starved. The likelihood that a transaction will read something from a newer transaction increases.</li>
+<li>If you assume that conflicts between transactions are rare and that most transactions are short-lived, forcing transactions to acquire locks or update timestamps adds unnecessary overhead.</li>
+</ol>
+<h2 id="optimistic-concurrency-control"><a class="markdownIt-Anchor" href="#optimistic-concurrency-control"></a> Optimistic concurrency control</h2>
+<h3 id="what-is-the-main-idea-of-occ"><a class="markdownIt-Anchor" href="#what-is-the-main-idea-of-occ"></a> What is the main idea of OCC?</h3>
+<ol>
+<li>OCC assumes that the number of conflicts is low. Especially when:
+<ul>
+<li>All transactions are read-only (ideal).</li>
+<li>Txns access disjoint subsets of data.</li>
+<li>The database is large, and the workload is not skewed.</li>
+</ul>
+</li>
+<li>The DBMS creates a private workspace for each transaction.
+<ul>
+<li>Any object read is copied into the workspace. Modifications are applied to the workspace.</li>
+<li>When a transaction is committed, the DBMS compares the workspace write set to see whether it conflicts with other transactions.</li>
+<li>The write set is installed into the “global” database if there are no conflicts.</li>
+</ul>
+</li>
+<li>OCC has three phases:
+<ul>
+<li>Read Phase: Track the read/write sets of transactions and store their writes in a private workspace, i.e., execution of transaction content.</li>
+<li>Validation Phase: When a transaction commits, check whether it conflicts with other transactions.</li>
+<li>Write Phase: If validation succeeds, apply private changes to the database. Otherwise, abort and restart the transaction.
+<ul>
+<li>Serial Commits: Use a global latch to limit a single transaction to be in the Validation/Write phases at a time.</li>
+<li>Parallel Commits: Use fine-grained write latches to support parallel Validation/Write phases. Txns acquire latches in primary key order to avoid deadlocks.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="what-will-happen-in-the-validation-phase"><a class="markdownIt-Anchor" href="#what-will-happen-in-the-validation-phase"></a> What will happen in the validation phase?</h3>
+<ol>
+<li>When transaction <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> invokes <code>COMMIT</code>, the DBMS checks if it conflicts with other transactions.
+<ul>
+<li>The DBMS needs to guarantee only serializable schedules are permitted.</li>
+<li>Check other transactions for RW and WW conflicts and ensure that conflicts are in one direction (e.g., older→younger).</li>
+</ul>
+</li>
+<li>There are two approaches to valid:
+<ul>
+<li>In backward validation, check whether the committing transaction intersects its read/write sets with any transactions already committed.<br />
+<img src="/imgs/15445/TO/backward.png" width="50%"></li>
+<li>In forward validation, check whether the committing transaction intersects its read/write sets with any active transactions that have not yet been committed.<br />
+<img src="/imgs/15445/TO/forward.png" width="50%"></li>
+</ul>
+</li>
+<li>Each transaction’s timestamp is assigned at the beginning of the validation phase. Check the timestamp ordering of the committing transaction with all other concerned transactions. When <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>&lt;</mo><mi>T</mi><mi>S</mi><mo stretchy="false">(</mo><msub><mi>T</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">TS(T_i)&lt;TS(T_j)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>, there are only three cases:
+<ul>
+<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> completes all three phases before <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> begins its execution. This means that there is serial ordering.</li>
+<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> completes before <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> starts its Write phase, then we require that <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> does not write to any object read by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span>, i.e. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mi>r</mi><mi>i</mi><mi>t</mi><mi>e</mi><mi>S</mi><mi>e</mi><mi>t</mi><mo stretchy="false">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>∩</mo><mi>R</mi><mi>e</mi><mi>a</mi><mi>d</mi><mi>S</mi><mi>e</mi><mi>t</mi><mo stretchy="false">(</mo><msub><mi>T</mi><mi>j</mi></msub><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="normal">∅</mi></mrow><annotation encoding="application/x-tex">WriteSet(T_i)\cap ReadSet(T_j)=\empty</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">W</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mord mathnormal">e</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∩</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mord mathnormal">e</span><span class="mord mathnormal">a</span><span class="mord mathnormal">d</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mord mathnormal">e</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.80556em;vertical-align:-0.05556em;"></span><span class="mord">∅</span></span></span></span>.
+<ul>
+<li>At this condition, we can conclude that <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> cannot see anything written by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>. Therefore, if <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> read anything written by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, it is a violation.</li>
+</ul>
+</li>
+<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> completes its Read phase before <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span>​ completes its Read phase, then we require that <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> does not write to any object that is either read or written by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span>.
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mi>r</mi><mi>i</mi><mi>t</mi><mi>e</mi><mi>S</mi><mi>e</mi><mi>t</mi><mo stretchy="false">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>∩</mo><mi>R</mi><mi>e</mi><mi>a</mi><mi>d</mi><mi>S</mi><mi>e</mi><mi>t</mi><mo stretchy="false">(</mo><msub><mi>T</mi><mi>j</mi></msub><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="normal">∅</mi></mrow><annotation encoding="application/x-tex">WriteSet(T_i) \cap ReadSet(T_j) = \empty</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">W</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mord mathnormal">e</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∩</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mord mathnormal">e</span><span class="mord mathnormal">a</span><span class="mord mathnormal">d</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mord mathnormal">e</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.80556em;vertical-align:-0.05556em;"></span><span class="mord">∅</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mi>r</mi><mi>i</mi><mi>t</mi><mi>e</mi><mi>S</mi><mi>e</mi><mi>t</mi><mo stretchy="false">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>∩</mo><mi>W</mi><mi>r</mi><mi>i</mi><mi>t</mi><mi>e</mi><mi>S</mi><mi>e</mi><mi>t</mi><mo stretchy="false">(</mo><msub><mi>T</mi><mi>j</mi></msub><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="normal">∅</mi></mrow><annotation encoding="application/x-tex">WriteSet(T_i) \cap WriteSet(T_j) = \empty</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">W</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mord mathnormal">e</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∩</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">W</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mord mathnormal">e</span><span class="mord mathnormal">t</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.80556em;vertical-align:-0.05556em;"></span><span class="mord">∅</span></span></span></span>.</li>
+<li>Anything wrote by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> should be seen by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> and should not conflict with what <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">T_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.969438em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> intends to write.</li>
+<li>OCC wants more than just serializable orders. Similar to the Thomas write rule, if we allow the write sets to have something in common, it would still be serializable, yet in conflict.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="what-are-the-issues-of-occ"><a class="markdownIt-Anchor" href="#what-are-the-issues-of-occ"></a> What are the issues of OCC?</h3>
+<ol>
+<li>High overhead for copying data locally.</li>
+<li>Validation/Write phase bottlenecks.</li>
+<li>Aborts are more wasteful than in 2PL because they only occur after a transaction has been executed.</li>
+</ol>
+<h1 id="the-phantom-problem"><a class="markdownIt-Anchor" href="#the-phantom-problem"></a> The phantom problem</h1>
+<h2 id="what-is-the-phantom-problem"><a class="markdownIt-Anchor" href="#what-is-the-phantom-problem"></a> What is the phantom problem?</h2>
+<ol>
+<li>In the above transaction management protocols, we assume that the total number of tuples in a table is fixed, i.e., transactions will not execute insertion or deletion.</li>
+<li>Insertions or deletions result in different results for the same range of scan queries, e.g., count, maximum.
+<ul>
+<li>The reason is that transactions can only lock on existing records, not one underway.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-can-we-solve-the-phantom-problem"><a class="markdownIt-Anchor" href="#how-can-we-solve-the-phantom-problem"></a> How can we solve the phantom problem?</h2>
+<ol>
+<li>The first approach is to re-execute scans.
+<ul>
+<li>The DBMS tracks the <code>WHERE</code> clause for all queries that the transaction executes. Retain the scan set for every range query in a transaction.</li>
+<li>Upon committing, re-execute the scan portion of each query and check whether it generates the same result.</li>
+<li>This could double the execution time for all queries, which may be unacceptable.</li>
+</ul>
+</li>
+<li>The second approach is by predicate locking.
+<ul>
+<li>Shared lock on the predicate in a <code>WHERE</code> clause of a <code>SELECT</code> query.</li>
+<li>Exclusive lock on the predicate in a <code>WHERE</code> clause of any <code>UPDATE</code>, <code>INSERT</code>, or <code>DELETE</code> query.</li>
+<li>Prevent any query changing the result of the locked predicate from executing.</li>
+</ul>
+</li>
+<li>The third approach is index locking.
+<ul>
+<li>Key-value locks only cover a single existing key-value in an index, while gap locks cover those virtual keys for non-existent values.</li>
+<li>Key-range locks take multiple key-value and gap locks to lock on a range.</li>
+<li>Hierarchical locking allows a transaction to hold wider key-range locks with different locking modes to reduce the number of visits to the lock manager.</li>
+</ul>
+</li>
+<li>If there is no suitable index, then the transaction must obtain the following:
+<ul>
+<li>A lock on every page in the table to prevent a record’s attributes from being changed to fit the predicates.</li>
+<li>The lock for the table itself prevents records that fit the predicates from being added or deleted.</li>
+</ul>
+</li>
+</ol>
+<h2 id="what-are-isolation-levels"><a class="markdownIt-Anchor" href="#what-are-isolation-levels"></a> What are isolation levels?</h2>
+<ol>
+<li>We may use a weaker level of consistency to improve scalability.</li>
+<li>It provides for greater concurrency at the cost of exposing transactions to uncommitted changes: dirty reads, unrepeatable reads, and phantom reads.</li>
+<li>The four isolation levels are as shown below:<br />
+<img src="/imgs/15445/TO/isolation.png" width="50%"></li>
+<li>Each isolation level requires different locks to implement:
+<ul>
+<li><code>SERIALIZABLE</code>: Obtain all locks first, plus index locks, plus strict 2PL.</li>
+<li><code>REPEATABLE READS</code>: Same as above, but no index locks.</li>
+<li><code>READ COMMITTED</code>: Same as above, but S locks are released immediately.</li>
+<li><code>READ UNCOMMITTED</code>: Same as above, but allows dirty reads (no S locks).</li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -2797,836 +3363,6 @@ M834 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">�
 <li>If a <code>Read/WritePageGuard</code> is acquired through <code>FetchPageRead</code> or <code>FetchPageWrite</code>, the latch is acquired inside these functions. However, the latch won’t be acquired automatically if a <code>PageGuard</code> is acquired through its construction function.</li>
 <li>No matter how <code>Read/WritePageGuard</code> is acquired, the latch will always be released automatically when the <code>PageGuard</code> is deconstructed by a deconstructor or move operation.</li>
 <li>In the move assignment, we must first drop the original page, copy from the right reference, and finally deconstruct the right reference.</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/06/25/Courses/15445/05-Index-Concurrency/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/25/Courses/15445/05-Index-Concurrency/" class="post-title-link" itemprop="url">05 Index Concurrency</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2023-06-25 00:40:22" itemprop="dateCreated datePublished" datetime="2023-06-25T00:40:22+08:00">2023-06-25</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-16 14:31:10" itemprop="dateModified" datetime="2024-03-16T14:31:10+08:00">2024-03-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><ul class="markdownIt-TOC">
-<li><a href="#concurrency-control">Concurrency control</a>
-<ul>
-<li><a href="#what-are-the-correctness-criteria-of-concurrency-control">What are the correctness criteria of concurrency control?</a></li>
-<li><a href="#what-is-the-more-specific-difference-between-locks-and-latches">What is the more specific difference between locks and latches?</a></li>
-<li><a href="#what-are-the-two-latch-modes">What are the two latch modes?</a></li>
-<li><a href="#what-are-the-different-latch-implementations">What are the different latch implementations?</a></li>
-</ul>
-</li>
-<li><a href="#latching-scheme">Latching scheme</a>
-<ul>
-<li><a href="#hash-table-latching">Hash table latching</a>
-<ul>
-<li><a href="#why-are-deadlocks-not-possible-in-the-hash-table">Why are deadlocks not possible in the hash table?</a></li>
-<li><a href="#how-can-we-design-hash-table-latching">How can we design hash table latching?</a></li>
-</ul>
-</li>
-<li><a href="#btree-latching">B+Tree latching</a>
-<ul>
-<li><a href="#what-should-we-use-latching-to-prevent">What should we use latching to prevent?</a></li>
-<li><a href="#how-should-we-achieve-physical-correctness">How should we achieve physical correctness?</a></li>
-<li><a href="#what-is-the-problem-with-the-aforementioned-strategy">What is the problem with the aforementioned strategy?</a></li>
-<li><a href="#when-will-a-deadlock-occur">When will a deadlock occur?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</p>
-<h1 id="concurrency-control"><a class="markdownIt-Anchor" href="#concurrency-control"></a> Concurrency control</h1>
-<h2 id="what-are-the-correctness-criteria-of-concurrency-control"><a class="markdownIt-Anchor" href="#what-are-the-correctness-criteria-of-concurrency-control"></a> What are the correctness criteria of concurrency control?</h2>
-<ol>
-<li>Logical Correctness:
-<ul>
-<li>Can a thread see the data that it is supposed to see? For example, correctly control data race.</li>
-</ul>
-</li>
-<li>Physical Correctness:
-<ul>
-<li>Is the internal representation of the object sound? For example, fetching a ptr will point to the correct address, and it won’t be freed between fetching and accessing.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-is-the-more-specific-difference-between-locks-and-latches"><a class="markdownIt-Anchor" href="#what-is-the-more-specific-difference-between-locks-and-latches"></a> What is the more specific difference between locks and latches?</h2>
-<ol>
-<li>What are they used to separate? What are they protecting? How long will they be held?
-<ul>
-<li>Locks separate user transactions accessing the same tuples in database contents. Locks are held in the entire transaction.</li>
-<li>Latches are used to separate threads accessing the same in-memory data structures. Latches are held in the critical section.</li>
-</ul>
-</li>
-<li>How many modes do they have?
-<ul>
-<li>Locks have four modes: shared, exclusive, update, and intention.</li>
-<li>Latches only have two modes: read and write.</li>
-</ul>
-</li>
-<li>How do they solve deadlock?
-<ul>
-<li>Locks use detection and resolution by waits-for, timeout, or abort.</li>
-<li>Latches can only avoid deadlock by code discipline.</li>
-</ul>
-</li>
-<li>Where are they kept?
-<ul>
-<li>Locks are kept in Lock Manager, while latches are kept in the protected data structure.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-are-the-two-latch-modes"><a class="markdownIt-Anchor" href="#what-are-the-two-latch-modes"></a> What are the two latch modes?</h2>
-<ol>
-<li>
-<p>Read mode means that Multiple threads can read the same object simultaneously.</p>
-<ul>
-<li>A thread can acquire the read latch if another thread has it in read mode.</li>
-</ul>
-</li>
-<li>
-<p>Write mode only allows one thread to access the object.</p>
-<ul>
-<li>A thread cannot acquire a write latch if another thread has it in any mode.</li>
-</ul>
-</li>
-<li>
-<p>In the compatibility matrix, only two read mode access is allowed.</p>
-</li>
-</ol>
-<h2 id="what-are-the-different-latch-implementations"><a class="markdownIt-Anchor" href="#what-are-the-different-latch-implementations"></a> What are the different latch implementations?</h2>
-<ol>
-<li>The first is blocking OS Mutex.
-<ul>
-<li>It is simple to use.</li>
-<li>It takes about <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>25</mn><mtext> </mtext><mi>n</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">25\ ns</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mord">5</span><span class="mspace"> </span><span class="mord mathnormal">n</span><span class="mord mathnormal">s</span></span></span></span> per lock/unlock invocation, which means that it is non-scalable.
-<ul>
-<li><code>std::mutex</code> is slower than <code>pthread_mutex,</code> and <code>futex</code> is faster than both.</li>
-</ul>
-</li>
-<li><code>futex</code> stands for fast userspace mutex.
-<ul>
-<li>It has a userspace spinlock and a heavy-weight OS latch.</li>
-<li>Threads will first try to acquire the userspace lock. If success, then that is good.</li>
-<li>But if failed, the thread will fall back to the OS latch. OS takes control of the thread and when to schedule it, and DBMS can do nothing with it. Also, <code>syscall</code> is expensive.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>The second approach is reader-writer latches.
-<ul>
-<li>It allows for concurrent readers. Must manage read/write queues to avoid starvation.</li>
-<li>It can be implemented on top of spinlock.</li>
-<li>Still, <code>std::shared_mutex</code> is slower than <code>pthread_rwlock</code>.</li>
-</ul>
-</li>
-</ol>
-<h1 id="latching-scheme"><a class="markdownIt-Anchor" href="#latching-scheme"></a> Latching scheme</h1>
-<h2 id="hash-table-latching"><a class="markdownIt-Anchor" href="#hash-table-latching"></a> Hash table latching</h2>
-<h3 id="why-are-deadlocks-not-possible-in-the-hash-table"><a class="markdownIt-Anchor" href="#why-are-deadlocks-not-possible-in-the-hash-table"></a> Why are deadlocks not possible in the hash table?</h3>
-<ol>
-<li>All threads move in the same direction and only access a single page/slot at a time.
-<ul>
-<li>Hence, no loops are waiting in this scenario.</li>
-</ul>
-</li>
-<li>To resize the table, take a global write latch on the entire table.</li>
-</ol>
-<h3 id="how-can-we-design-hash-table-latching"><a class="markdownIt-Anchor" href="#how-can-we-design-hash-table-latching"></a> How can we design hash table latching?</h3>
-<ol>
-<li>The coarser-grain approach is to use page latches.
-<ul>
-<li>Each page has a reader-writer latch that protects its entire contents.</li>
-</ul>
-</li>
-<li>The finer-grain approach is to use slot latches.
-<ul>
-<li>Each slot has its latch.</li>
-<li>It can use a single-mode latch to reduce meta-data and computational overhead.</li>
-</ul>
-</li>
-</ol>
-<h2 id="btree-latching"><a class="markdownIt-Anchor" href="#btree-latching"></a> B+Tree latching</h2>
-<h3 id="what-should-we-use-latching-to-prevent"><a class="markdownIt-Anchor" href="#what-should-we-use-latching-to-prevent"></a> What should we use latching to prevent?</h3>
-<ol>
-<li>Threads are trying to modify the contents of a node at the same time. (This is logical correctness, i.e., data race)</li>
-<li>One thread traverses the tree while another thread splits/merges nodes.
-<ul>
-<li>This is physical correctness. Splitting/merging will cause free pointers, nodes, or in-node entries.</li>
-<li>This will also cause a problem with logical correctness, i.e., false negative.
-<ul>
-<li>If a thread gets the pointer of the node that possesses the key it wants, then before it accesses the node, the key is borrowed by a sibling, causing the thread to think the key does not exist.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>When introducing sibling pointers, we may have a deadlock situation.</li>
-</ol>
-<h3 id="how-should-we-achieve-physical-correctness"><a class="markdownIt-Anchor" href="#how-should-we-achieve-physical-correctness"></a> How should we achieve physical correctness?</h3>
-<ol>
-<li>The most naive method is to hold all locks until the entire process is done. But its performance is a disaster.
-<ul>
-<li>We must release some latches when we are sure they are safe.</li>
-<li>According to our goal, a node is safe when we know that it won’t be changed (split, merged, or redistributed) when updated.</li>
-<li>We can know a child is safe when its child is not full on insertion or more than half-full on deletion, i.e., any later operations can be isolated on or below its level.</li>
-</ul>
-</li>
-<li>For find operation, there won’t be any updates. Hence, we can always unlatch the parent when we acquire an R latch on the child.</li>
-<li>We need to obtain W latches as required for insert or delete operations. Once a child is latched, check if it is safe.
-<ul>
-<li>If the child is safe, we can release all latches on ancestors. The latches should be released from top to bottom to perform better.</li>
-</ul>
-</li>
-</ol>
-<h3 id="what-is-the-problem-with-the-aforementioned-strategy"><a class="markdownIt-Anchor" href="#what-is-the-problem-with-the-aforementioned-strategy"></a> What is the problem with the aforementioned strategy?</h3>
-<ol>
-<li>Every insert/delete operation will take a write latch on the root, which makes the root a bottleneck with higher concurrency.</li>
-<li>We can assume that most modifications to a B+Tree will not require a split or merge.</li>
-<li>Hence, optimistically traverse the tree using read latches instead of assuming that there will be a split/merge as aforementioned. If the guess is wrong, repeat traversal with the pessimistic algorithm.</li>
-<li>For insert/delete operations, set latches as if for search, get to leaf, and set W latch on leaf. If the leaf is unsafe, release all latches and restart the thread using the previous insert/delete protocol with write latches.</li>
-</ol>
-<h3 id="when-will-a-deadlock-occur"><a class="markdownIt-Anchor" href="#when-will-a-deadlock-occur"></a> When will a deadlock occur?</h3>
-<ol>
-<li>With sibling pointers, we may move from one leaf node to another where deadlock could occur.</li>
-<li>Latches cannot detect deadlock, so the only solution is to kill one thread.</li>
-<li>The leaf node sibling latch acquisition protocol must support a “no-wait” mode. The DBMS’s data structures must cope with failed latch acquisitions.</li>
-<li>Though some scenarios do not have a deadlock, the waiting thread cannot know what the other thread is doing, which means it can only kill itself to avoid deadlock.</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/06/24/Courses/15445/04-Data-Organization/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/24/Courses/15445/04-Data-Organization/" class="post-title-link" itemprop="url">04 Data Organization</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2023-06-24 17:12:22" itemprop="dateCreated datePublished" datetime="2023-06-24T17:12:22+08:00">2023-06-24</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-16 14:17:41" itemprop="dateModified" datetime="2024-03-16T14:17:41+08:00">2024-03-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><ul class="markdownIt-TOC">
-<li><a href="#what-does-the-database-access-methods-layer-need-to-do">What does the database access methods layer need to do?</a></li>
-<li><a href="#hash-table">Hash table</a>
-<ul>
-<li><a href="#how-is-the-naive-static-hash-table">How is the naive static hash table?</a></li>
-<li><a href="#what-are-hash-functions">What are hash functions?</a></li>
-<li><a href="#static-hashing-schemes">Static hashing schemes</a>
-<ul>
-<li><a href="#how-is-linear-probe-hashing">How is linear probe hashing?</a></li>
-<li><a href="#how-to-solve-the-non-unique-keys-problem">How to solve the non-unique keys problem?</a></li>
-<li><a href="#how-is-the-robin-hood-hashing">How is the Robin Hood hashing?</a></li>
-<li><a href="#how-is-the-cuckoo-hashing">How is the cuckoo hashing?</a></li>
-</ul>
-</li>
-<li><a href="#dynamic-hashing-schemes">Dynamic hashing schemes</a>
-<ul>
-<li><a href="#how-is-chained-hashing">How is chained hashing?</a></li>
-<li><a href="#how-is-extendible-hashing">How is extendible hashing?</a></li>
-<li><a href="#how-is-linear-hashing">How is linear hashing?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#tree">Tree</a>
-<ul>
-<li><a href="#table-indexes">Table indexes</a>
-<ul>
-<li><a href="#what-do-table-indexes-do">What do table indexes do?</a></li>
-<li><a href="#what-are-clustered-indexes">What are clustered indexes?</a></li>
-</ul>
-</li>
-<li><a href="#basic-b-tree">Basic B+ Tree</a>
-<ul>
-<li><a href="#what-is-a-b-tree">What is a B+ Tree?</a></li>
-<li><a href="#how-are-keyvalue-pairs-stored-in-each-node">How are key/value pairs stored in each node?</a></li>
-<li><a href="#what-is-stored-in-the-leaf-node">What is stored in the leaf node?</a></li>
-<li><a href="#what-are-the-pros-and-cons-of-b-tree-compared-with-btree">What are the pros and cons of B-Tree compared with B+Tree?</a></li>
-<li><a href="#how-does-btree-insert-a-node">How does B+Tree insert a node?</a></li>
-<li><a href="#how-does-btree-delete-a-node">How does B+Tree delete a node?</a></li>
-</ul>
-</li>
-<li><a href="#btree-usage-and-design">B+Tree usage and design</a>
-<ul>
-<li><a href="#how-does-dbms-use-btree-in-the-selection-query">How does DBMS use B+Tree in the selection query?</a></li>
-<li><a href="#how-to-handle-duplicate-keys">How to handle duplicate keys?</a></li>
-<li><a href="#how-to-solve-redundant-page-jumps-when-sequential-access-leaf-nodes">How to solve redundant page jumps when sequential access leaf nodes?</a></li>
-<li><a href="#how-to-choose-node-size">How to choose node size?</a></li>
-<li><a href="#how-to-choose-a-merge-threshold">How to choose a merge threshold?</a></li>
-<li><a href="#how-to-handle-variable-length-keys">How to handle variable length keys?</a></li>
-<li><a href="#how-can-we-do-the-intra-node-search">How can we do the intra-node search?</a></li>
-<li><a href="#how-can-we-optimize-space-usage">How can we optimize space usage?</a></li>
-<li><a href="#how-can-we-optimize-consumed-time">How can we optimize consumed time?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</p>
-<h1 id="what-does-the-database-access-methods-layer-need-to-do"><a class="markdownIt-Anchor" href="#what-does-the-database-access-methods-layer-need-to-do"></a> What does the database access methods layer need to do?</h1>
-<ol>
-<li>
-<p>Data Organization</p>
-<ul>
-<li>How do we layout data structure in memory/pages, and what information should be stored to support efficient access?</li>
-<li>This layer will organize all kinds of data inside the database, e.g., internal meta-data, core data storage, temporary data structures, and table indexes.</li>
-</ul>
-</li>
-<li>
-<p>Concurrency</p>
-<ul>
-<li>How can multiple threads be enabled to access the data structure simultaneously without causing problems?</li>
-</ul>
-</li>
-<li>
-<p>There are two types of data structures: hash tables and trees.</p>
-</li>
-</ol>
-<h1 id="hash-table"><a class="markdownIt-Anchor" href="#hash-table"></a> Hash table</h1>
-<h2 id="how-is-the-naive-static-hash-table"><a class="markdownIt-Anchor" href="#how-is-the-naive-static-hash-table"></a> How is the naive static hash table?</h2>
-<ol>
-<li>
-<p>A hash table implements an unordered associative array that maps keys to values.</p>
-</li>
-<li>
-<p>For any input key, hash functions return an integer representation.</p>
-</li>
-<li>
-<p>The space complexity is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span>, the average time complexity is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> and the worst time complexity is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span>.</p>
-<ul>
-<li>Databases need to be about constants. For time complexity, smaller constants can save much time in billions of operations.</li>
-<li>The space will be several times larger than the number of keys.</li>
-</ul>
-</li>
-<li>
-<p>The naive static hash table assumes:</p>
-<ul>
-<li>The number of elements is known ahead of time and fixed.</li>
-<li>Each key is unique.</li>
-<li>We have the perfect hash function where two keys must have different hash values.</li>
-</ul>
-</li>
-<li>
-<p>These assumptions are not always satisfied.</p>
-<ul>
-<li>
-<p>We need a dynamic hashing scheme to suit when the first assumption fails.</p>
-</li>
-<li>
-<p>To suit when the last two assumptions failed, we need to design a more delicate hash function to reduce the collision rate and hashing scheme to handle collisions after hashing.</p>
-<ul>
-<li>
-<p>The trade-off of the hash function is between being fast and collision rate.</p>
-</li>
-<li>
-<p>The trade-off of the hashing scheme is between allocating a larger hash table and additional instructions to get/put keys.</p>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-are-hash-functions"><a class="markdownIt-Anchor" href="#what-are-hash-functions"></a> What are hash functions?</h2>
-<ol>
-<li>
-<p>We do not want to use a cryptographic hash function for DBMS hash tables, e.g., SHA-2.</p>
-<ul>
-<li>Because this hashing is only used internally, we will never worry about leaking keys.</li>
-<li>We want something that is fast and has a low collision rate.</li>
-</ul>
-</li>
-<li>
-<p>The commonly used hash functions are:</p>
-<ul>
-<li>CRC-64: Used in networking for error detection.</li>
-<li>MurmurHash: Designed as a fast, general-purpose hash function.</li>
-<li>Google CityHash: Designed to be faster for short keys (&lt;64 bytes).</li>
-<li>Facebook XXHash: From the creator of zstd compression, the state-of-the-art.</li>
-<li>Google Farmhash: A newer version of CityHash with better collision rates.</li>
-</ul>
-</li>
-<li>
-<p>Their speed comparison is as follows:</p>
-<img src="/imgs/15445/Organization/hash_func.png" width="75%">
-</li>
-</ol>
-<h2 id="static-hashing-schemes"><a class="markdownIt-Anchor" href="#static-hashing-schemes"></a> Static hashing schemes</h2>
-<h3 id="how-is-linear-probe-hashing"><a class="markdownIt-Anchor" href="#how-is-linear-probe-hashing"></a> How is linear probe hashing?</h3>
-<ol>
-<li>A key-value pair is stored in the hashing table for all the schemes. The key is determining whether this is the key we want to find.</li>
-<li>It resolves collisions by linearly searching for the next free slot in the table.</li>
-<li>To determine whether an element is present, hash to a location in the index and scan for it. If an empty slot is found before the key, the element does not exist.</li>
-<li>To delete an entry, there are two approaches:
-<ul>
-<li><strong>Movement</strong>: Rehash the remaining keys until find the first empty slot. Nobody does this.</li>
-<li><strong>Tombstone</strong>: Set a marker to indicate that the entry in the slot is logically deleted. The slot can be reused for new keys. This may still need periodic garbage collection.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-to-solve-the-non-unique-keys-problem"><a class="markdownIt-Anchor" href="#how-to-solve-the-non-unique-keys-problem"></a> How to solve the non-unique keys problem?</h3>
-<ol>
-<li>The first choice is to store values in separate storage areas for each key, and the value of the hash table points to the area.</li>
-<li>The second choice is storing duplicate key entries in the hash table.
-<ul>
-<li>Read would return the first key they found.</li>
-<li>Deletes would remove all the keys or a specific key-value pair.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-is-the-robin-hood-hashing"><a class="markdownIt-Anchor" href="#how-is-the-robin-hood-hashing"></a> How is the Robin Hood hashing?</h3>
-<ol>
-<li>This variant of linear probe hashing steals slots from “rich” keys and gives them to “poor” keys.
-<ul>
-<li>Each key tracks the number of positions they are from where its optimal position (original hash value) is in the table.</li>
-<li>The keys farther away from their optimal position are poorer, while the keys closer are richer.</li>
-<li>On insert, a key takes the slot of another key if the first key is “richer” than the second key. And the second key will keep searching linearly until it finds another “richer” key.</li>
-</ul>
-</li>
-<li>Stealing increases the number of writing operations compared with the linear probing scheme while reducing the time of the worst case.</li>
-<li>This could have cascading/flooding problems where one inserts causes multiple “stealing.” Also, it does not consider the possibility of having hotkeys.</li>
-</ol>
-<h3 id="how-is-the-cuckoo-hashing"><a class="markdownIt-Anchor" href="#how-is-the-cuckoo-hashing"></a> How is the cuckoo hashing?</h3>
-<ol>
-<li>Use multiple hash tables with different hash function seeds to ensure they won’t hash to the same value.
-<ul>
-<li>On insert, check every table and pick anyone with a free slot.</li>
-<li>If no table has a free slot, choose one victim, evict it, and then re-hash it to find a new location.</li>
-</ul>
-</li>
-<li>Look-ups and deletions are always <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> because only one location per hash table is checked.</li>
-<li>There is a possibility of cascading. The worst case is an infinite cascading loop.
-<ul>
-<li>We can use extra code to detect if replacing is going in a loop. If so, we must double the hash table size with new hash functions and re-insert all keys.</li>
-</ul>
-</li>
-</ol>
-<h2 id="dynamic-hashing-schemes"><a class="markdownIt-Anchor" href="#dynamic-hashing-schemes"></a> Dynamic hashing schemes</h2>
-<h3 id="how-is-chained-hashing"><a class="markdownIt-Anchor" href="#how-is-chained-hashing"></a> How is chained hashing?</h3>
-<ol>
-<li>It maintains a linked list of buckets for each slot in the hash table.</li>
-<li>Resolve collisions by placing all elements with the same hash key into the same bucket.
-<ul>
-<li>To determine whether an element is present, hash to its bucket and scan for it.</li>
-</ul>
-</li>
-<li>The problem is that the linked list can grow forever, causing the time spent on search to increase as the system runs.</li>
-</ol>
-<h3 id="how-is-extendible-hashing"><a class="markdownIt-Anchor" href="#how-is-extendible-hashing"></a> How is extendible hashing?</h3>
-<ol>
-<li>Multiple slot locations can point to the same bucket chain.</li>
-<li>For the number of bits that need to be examined, there is a global and a local one.</li>
-<li>It reshuffles bucket entries on split and increases the number of bits to examine when a list is full.
-<ul>
-<li>If there is only one slot pointing to this list, i.e., the global examining bits are the same as the local one,
-<ul>
-<li>The DBMS increases the global number, causing the size of the hashing table doubled.</li>
-<li>Those lists with smaller local numbers will still set the pointers of corresponding new slots (with only the last global examining bit different) to themselves.</li>
-<li>DBMS also increases the number of local examining bits on the fulled list. The keys in it will re-hash to their two new lists.</li>
-</ul>
-</li>
-<li>If more than one slot is pointing to this list, i.e., the global examining bits are larger than the local one,
-<ul>
-<li>The DBMS only increases the local examining bits of the full list and does the re-hashing.</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-is-linear-hashing"><a class="markdownIt-Anchor" href="#how-is-linear-hashing"></a> How is linear hashing?</h3>
-<ol>
-<li>It is similar to extensible hashing. But the hash table maintains a pointer that tracks the next bucket to split.</li>
-<li>When any bucket overflows, split the bucket at the pointer location.
-<ul>
-<li>When the split causes the number of slots in the hash table to double, it introduces a new hash function, taking modulo with the new hash table size.</li>
-</ul>
-</li>
-<li>It uses multiple hashes to find the right bucket for a given key.
-<ul>
-<li>It always first uses the old hash function with a smaller modulus.</li>
-<li>If this hash value is smaller than the split pointer, which means that this slot has already been split, DBMS needs to use the new hash function to find the true hash value.</li>
-<li>Otherwise, this slot is not split, and the old hash value works fine.</li>
-</ul>
-</li>
-<li>Splitting buckets based on the split pointer will eventually get to all overflowed buckets.
-<ul>
-<li>When the pointer reaches the last slot, delete the first hash function and return to the beginning.</li>
-</ul>
-</li>
-<li>Deleting may cause the size of the hash table to shrink when it deletes the only entry in the second half of the hash table.
-<ul>
-<li>DMBS shrinks the size of the hash table and deletes the new hash function.</li>
-</ul>
-</li>
-</ol>
-<h1 id="tree"><a class="markdownIt-Anchor" href="#tree"></a> Tree</h1>
-<h2 id="table-indexes"><a class="markdownIt-Anchor" href="#table-indexes"></a> Table indexes</h2>
-<h3 id="what-do-table-indexes-do"><a class="markdownIt-Anchor" href="#what-do-table-indexes-do"></a> What do table indexes do?</h3>
-<ol>
-<li>A table index is a replica of a subset of a table’s attributes organized and sorted for efficient access using those attributes.</li>
-<li>It is used in queries to find tuples with attributes that match certain values.</li>
-<li>The DBMS ensures that the contents of the table and the index are logically synchronized.</li>
-<li>The DBMS’s job is to figure out the best index(es) to execute each query.</li>
-<li>There is a trade-off regarding the number of indexes to create per database, i.e., the lookup speed and synchronization overhead.
-<ul>
-<li>We need extra storage overhead to store the data structure and maintenance overhead to keep synchronization.</li>
-</ul>
-</li>
-</ol>
-<h3 id="what-are-clustered-indexes"><a class="markdownIt-Anchor" href="#what-are-clustered-indexes"></a> What are clustered indexes?</h3>
-<ol>
-<li>The table is stored in the sort order specified by the primary key.
-<ul>
-<li>It can be either heap- or index-organized storage.</li>
-</ul>
-</li>
-<li>Some DBMSs always use a clustered index. If a table does not contain a primary key, the DBMS will<br />
-automatically make a hidden primary key.</li>
-<li>Other DBMSs cannot use them at all.</li>
-</ol>
-<h2 id="basic-b-tree"><a class="markdownIt-Anchor" href="#basic-b-tree"></a> Basic B+ Tree</h2>
-<h3 id="what-is-a-b-tree"><a class="markdownIt-Anchor" href="#what-is-a-b-tree"></a> What is a B+ Tree?</h3>
-<ol>
-<li>A B+Tree is a self-balancing tree data structure that keeps data sorted and allows searches, sequential access, insertions, and deletions always in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>log</mi><mo>⁡</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(\log n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span>.</li>
-<li>A B+ tree is an M-way search tree.
-<ul>
-<li>It is perfectly balanced, i.e., every leaf node is at the same depth in the tree.</li>
-<li>Every node other than the root is at least half-full, i.e., <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo>−</mo><mn>1</mn><mo>≤</mo><mi>n</mi><mi>u</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi><mtext> </mtext><mi>o</mi><mi>f</mi><mtext> </mtext><mi>k</mi><mi>e</mi><mi>y</mi><mi>s</mi><mo>≤</mo><mi>M</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">M/2-1 ≤ number\ of\ keys ≤ M-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord">/</span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.78041em;vertical-align:-0.13597em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">n</span><span class="mord mathnormal">u</span><span class="mord mathnormal">m</span><span class="mord mathnormal">b</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace"> </span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>.</li>
-<li>Every inner node with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> keys has <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">k+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.77777em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> non-null children.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-are-keyvalue-pairs-stored-in-each-node"><a class="markdownIt-Anchor" href="#how-are-keyvalue-pairs-stored-in-each-node"></a> How are key/value pairs stored in each node?</h3>
-<ol>
-<li>Every B+Tree node is comprised of an array of key/value pairs.</li>
-<li>The keys are derived from the attribute(s) on which the index is based.</li>
-<li>The value stored in an inner node is a pointer to its corresponding children, while the value stored in a leaf node is its specific value.</li>
-<li>There are two storage methods for the key-value pair.
-<ul>
-<li>One is to store them consecutively, i.e., each value is stored immediately after its key.</li>
-<li>The other is to store them in the same place in two arrays, i.e., each value has the same index as its key.</li>
-</ul>
-</li>
-<li>The arrays are (usually) kept in sorted key order.</li>
-</ol>
-<h3 id="what-is-stored-in-the-leaf-node"><a class="markdownIt-Anchor" href="#what-is-stored-in-the-leaf-node"></a> What is stored in the leaf node?</h3>
-<ol>
-<li>
-<p>Each leaf node also has pointers that point to its siblings.</p>
-</li>
-<li>
-<p>There are two approaches to store the values:</p>
-<ul>
-<li>The first approach is to store them with record IDs, a pointer to the page ID, and an offset of the tuple to which the index entry corresponds.</li>
-<li>The second approach is to store them with tuple data, specifically primary keys.</li>
-</ul>
-</li>
-<li>
-<p>The pros of the second approach are that we do not need to access another address to fetch the contents when primary keys are all we want.</p>
-<p>However, secondary indexes must store the Record ID as their value. Hence, if we want secondary indexes in the second approach, we must look up other tables to find the Record ID with the same primary keys.</p>
-</li>
-</ol>
-<h3 id="what-are-the-pros-and-cons-of-b-tree-compared-with-btree"><a class="markdownIt-Anchor" href="#what-are-the-pros-and-cons-of-b-tree-compared-with-btree"></a> What are the pros and cons of B-Tree compared with B+Tree?</h3>
-<ol>
-<li>The main difference is that  B-Tree stores keys and values in all nodes in the tree, while B+Tree only stores values in leaf nodes. Inner nodes only guide the search process.</li>
-<li>B-Tree is more space-efficient since each key only appears once in the tree.</li>
-<li>However, B-Tree needs to jump between pages when we want sequential access keys, causing much more I/O.</li>
-</ol>
-<h3 id="how-does-btree-insert-a-node"><a class="markdownIt-Anchor" href="#how-does-btree-insert-a-node"></a> How does B+Tree insert a node?</h3>
-<ol>
-<li>Find correct leaf node L. Insert data entry into L in sorted order.</li>
-<li>If L has enough space, then it is done.</li>
-<li>Otherwise, split L keys into L and a new node L2. Insert the index entry pointing to L2 into the parent of L.
-<ul>
-<li>The parent of L may need to be rebalanced after this insertion.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-does-btree-delete-a-node"><a class="markdownIt-Anchor" href="#how-does-btree-delete-a-node"></a> How does B+Tree delete a node?</h3>
-<ol>
-<li>Start at the root and find leaf L, where the entry belongs. Remove the entry.</li>
-<li>If L is at least half-full, then it is done.</li>
-<li>If L has only M/2-1 entries,
-<ul>
-<li>First, try to re-distribute, borrowing from siblings.</li>
-<li>If re-distribution fails, merge L and sibling and delete the entry (pointing to L or sibling) from the parent of L.
-<ul>
-<li>The parent of L may need a rebalance.</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<h2 id="btree-usage-and-design"><a class="markdownIt-Anchor" href="#btree-usage-and-design"></a> B+Tree usage and design</h2>
-<h3 id="how-does-dbms-use-btree-in-the-selection-query"><a class="markdownIt-Anchor" href="#how-does-dbms-use-btree-in-the-selection-query"></a> How does DBMS use B+Tree in the selection query?</h3>
-<ol>
-<li>
-<p>When creating an index, a certain attribute order is specified to sort the tuple.</p>
-<ul>
-<li>
-<p>When <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>A</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">A_1, \dots,A_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> are specified, the B+Tree will store the corresponding <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">n</span></span></span></span> values in as keys in each node.</p>
-</li>
-<li>
-<p>When <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>a</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">a_1, \dots,a_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> are stored in one node, all nodes in its left sub-tree have <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mn>1</mn></msub><mo>≤</mo><msub><mi>a</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>A</mi><mi>n</mi></msub><mo>≤</mo><msub><mi>a</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">A_1≤a_1,\dots,A_n≤a_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> while all nodes in its right sub-tree are only guaranteed with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mn>1</mn></msub><mo>&gt;</mo><msub><mi>a</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">A_1 &gt; a_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, i.e., the B+Tree is maintained with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">A_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> as its primary sorting key.</p>
-</li>
-</ul>
-</li>
-<li>
-<p>In a selection condition, we can easily select with certain conditions on <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>A</mi><mi>k</mi></msub><mtext> </mtext><mo stretchy="false">(</mo><mi>k</mi><mo>≤</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">A_1,\dots,A_k\ (k≤n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace"> </span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span>. Some DBMS also support conditions specified only on <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mi>k</mi></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>A</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">A_k, \dots,A_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, which requires DBMS to access all leaf nodes sequentially.</p>
-</li>
-<li>
-<p>Compared with the hash table, B+Tree can better support selection without knowing the attributes to look for.</p>
-</li>
-</ol>
-<h3 id="how-to-handle-duplicate-keys"><a class="markdownIt-Anchor" href="#how-to-handle-duplicate-keys"></a> How to handle duplicate keys?</h3>
-<ol>
-<li>The first approach is to add the tuple’s unique Record ID as part of the key to ensure all keys are unique.
-<ul>
-<li>The DBMS can still use partial keys to find tuples.</li>
-</ul>
-</li>
-<li>The second approach is allowing leaf nodes to spill into overflow nodes containing duplicate keys.
-<ul>
-<li>Only duplicate keys of existing keys can overflow.</li>
-<li>Overflow nodes also need to split or merge when splitting or merging nodes.</li>
-<li>This is more complex to maintain and modify.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-to-solve-redundant-page-jumps-when-sequential-access-leaf-nodes"><a class="markdownIt-Anchor" href="#how-to-solve-redundant-page-jumps-when-sequential-access-leaf-nodes"></a> How to solve redundant page jumps when sequential access leaf nodes?</h3>
-<ol>
-<li>In a clustered B+Tree, nodes on the same page are in consecutive order.
-<ul>
-<li>We can traverse the left-most leaf page and retrieve tuples from all leaf pages.</li>
-<li>This will always be better than sorting data for each query.</li>
-</ul>
-</li>
-<li>In a non-clustered B+Tree, the DBMS can first figure out all the tuples it needs and then sort them based on their Page ID.</li>
-</ol>
-<h3 id="how-to-choose-node-size"><a class="markdownIt-Anchor" href="#how-to-choose-node-size"></a> How to choose node size?</h3>
-<ol>
-<li>The slower the storage device, the larger the optimal node size for a B+Tree.
-<ul>
-<li>HDD takes <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mtext> </mtext><mi>M</mi><mi>B</mi></mrow><annotation encoding="application/x-tex">1\ MB</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">1</span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span>, SSD usually takes <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>10</mn><mtext> </mtext><mi>K</mi><mi>B</mi></mrow><annotation encoding="application/x-tex">10\ KB</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">0</span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span>, in-memory nodes have <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>512</mn><mtext> </mtext><mi>B</mi></mrow><annotation encoding="application/x-tex">512\ B</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">5</span><span class="mord">1</span><span class="mord">2</span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span>.</li>
-</ul>
-</li>
-<li>Optimal sizes can vary depending on the workload. The trade-off is between leaf node scans and root-to-leaf traversals.
-<ul>
-<li>With a larger size, we can have more sequential reads in leaf node scans, but we need to read more data in root-to-leaf traversals.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-to-choose-a-merge-threshold"><a class="markdownIt-Anchor" href="#how-to-choose-a-merge-threshold"></a> How to choose a merge threshold?</h3>
-<ol>
-<li>Some DBMSs do not always merge nodes when they are half full.</li>
-<li>Delaying a merge operation may reduce the amount of reorganization. They assume that the missing part will be filled soon.</li>
-<li>Having smaller nodes exist and periodically rebuilding the entire tree may also be better.</li>
-</ol>
-<h3 id="how-to-handle-variable-length-keys"><a class="markdownIt-Anchor" href="#how-to-handle-variable-length-keys"></a> How to handle variable length keys?</h3>
-<ol>
-<li>The first approach is to store the keys as pointers to the tuple’s attribute.</li>
-<li>The second approach is to allow variable-length nodes. It requires careful memory management.</li>
-<li>The third approach is always to pad the key to the max length of the key type.</li>
-<li>The last approach is a key map or indirection. It is similar to the in-node dictionary.</li>
-</ol>
-<h3 id="how-can-we-do-the-intra-node-search"><a class="markdownIt-Anchor" href="#how-can-we-do-the-intra-node-search"></a> How can we do the intra-node search?</h3>
-<ol>
-<li>The naive method is linear search. We can use SIMD to vectorize the process.</li>
-<li>The second method is binary search, given that keys in a node are already sorted.</li>
-<li>The third method is interpolation search.
-<ul>
-<li>This requires a known distribution of keys.</li>
-<li>It jumps to the approximate location of the desired key based on known distribution.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-can-we-optimize-space-usage"><a class="markdownIt-Anchor" href="#how-can-we-optimize-space-usage"></a> How can we optimize space usage?</h3>
-<ol>
-<li>Prefix compression
-<ul>
-<li>Sorted keys in the same leaf node will likely have the same prefix.</li>
-<li>Extract common prefixes and store only a unique suffix for each key.</li>
-</ul>
-</li>
-<li>Deduplication
-<ul>
-<li>Non-unique indexes can end up storing multiple copies of the same key in leaf nodes.</li>
-<li>Store the key once and then maintain a list of tuples with that key.</li>
-</ul>
-</li>
-<li>Suffix truncation
-<ul>
-<li>The keys in the inner nodes are only used to “direct traffic.” We don’t need the entire key.</li>
-<li>Store a minimum prefix needed to route probes into the index correctly.</li>
-</ul>
-</li>
-</ol>
-<h3 id="how-can-we-optimize-consumed-time"><a class="markdownIt-Anchor" href="#how-can-we-optimize-consumed-time"></a> How can we optimize consumed time?</h3>
-<ol>
-<li>Pointer swizzling
-<ul>
-<li>Nodes use page IDs to reference other nodes in the index. The DBMS must get the memory location from the page table during traversal.</li>
-<li>If a page is pinned in the buffer pool, we can store raw pointers instead of page IDs. This avoids address lookups from the page table.</li>
-</ul>
-</li>
-<li>Bulk insert
-<ul>
-<li>The fastest way to build a new B+Tree for an existing table is first to sort the keys and then build the index from the bottom up.</li>
-</ul>
-</li>
 </ol>
 
       

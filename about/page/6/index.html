@@ -146,13 +146,13 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-count">64</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
@@ -174,6 +174,347 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/07/17/Courses/CS149/14-Fine-grained-Synchronization-and-Lock-free-Programming/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/07/17/Courses/CS149/14-Fine-grained-Synchronization-and-Lock-free-Programming/" class="post-title-link" itemprop="url">14. Fine-grained Synchronization and Lock-free Programming</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-07-17 11:22:54" itemprop="dateCreated datePublished" datetime="2022-07-17T11:22:54+08:00">2022-07-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-03-16 22:13:45" itemprop="dateModified" datetime="2024-03-16T22:13:45+08:00">2024-03-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="fine-grained-synchronization-and-fine-grained-lock"><a class="markdownIt-Anchor" href="#fine-grained-synchronization-and-fine-grained-lock"></a> Fine-grained synchronization and fine-grained lock</h1>
+<ol>
+<li>Data structures are often larger than a single memory location. One solution is to protect the structure with a single lock.<br />
+It is relatively simple to implement correct mutual exclusion for data structure operations. However, the operations on the data structure are serialized, which may limit parallel application performance.</li>
+<li>Another solution is “hand-over-hand” locking. We set a lock for each element in the data structure. Each thread only keeps as little as the lock they need, and every time a thread moves forward, it unlocks the locks they don’t need anymore and locks the locks they need now.</li>
+<li>Fine-grained lock aims to enable parallelism in data structure operations by Reducing contention for global data structure lock.<br />
+It is tricky to ensure correctness (how to determine when mutual exclusion is required, how to avoid deadlock or livelock).</li>
+<li>It has an overhead of taking a lock on each traversal step. There are extra instructions, and traversal now involves memory writes. Also, it has extra storage costs, namely a lock per node.</li>
+<li>C++11 has an <code>atomic&lt;T&gt;</code>. It provides atomic read, write, read-modify-write of entire objects. Atomicity may be implemented by mutex or efficiently by processor-supported atomic instructions if <code>T</code> is a basic type.<br />
+It also provides memory ordering semantics for operations before and after atomic operations.</li>
+</ol>
+<h1 id="lock-free-programming"><a class="markdownIt-Anchor" href="#lock-free-programming"></a> Lock-free programming</h1>
+<ol>
+<li>
+<p>Single reader, single writer bounded queue: Only two threads (one producer, one consumer) accessing the queue simultaneously.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Queue</span> &#123;</span><br><span class="line">  <span class="type">int</span> data[N];</span><br><span class="line">  <span class="type">unsigned</span> head; <span class="comment">// head of queue</span></span><br><span class="line">  <span class="type">unsigned</span> tail; <span class="comment">// next free element</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(Queue* q)</span> </span>&#123;</span><br><span class="line">  q-&gt;head = q-&gt;tail = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// return false if queue is full</span></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">push</span><span class="params">(Queue* q, <span class="type">int</span> value)</span> </span>&#123;</span><br><span class="line">  <span class="comment">// queue is full if tail is element before head</span></span><br><span class="line">  <span class="keyword">if</span> (q-&gt;tail == <span class="built_in">MOD_N</span>(q-&gt;head - <span class="number">1</span>))</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">  q.data[q-&gt;tail] = value;</span><br><span class="line">  q-&gt;tail = <span class="built_in">MOD_N</span>(q-&gt;tail + <span class="number">1</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// returns false if queue is empty</span></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">pop</span><span class="params">(Queue* q, <span class="type">int</span>* value)</span> </span>&#123;</span><br><span class="line">  <span class="comment">// if not empty</span></span><br><span class="line">  <span class="keyword">if</span> (q-&gt;head != q-&gt;tail) &#123;</span><br><span class="line">    *value = q-&gt;data[q-&gt;head];</span><br><span class="line">    q-&gt;head = <span class="built_in">MOD_N</span>(q-&gt;head + <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>Single reader, single writer unbounded queue: Only push modifies <code>tail</code> and <code>reclaim</code>; only pop modifies <code>head</code>.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Node</span> &#123;</span><br><span class="line">  Node* next;</span><br><span class="line">  <span class="type">int</span> value;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Queue</span> &#123;</span><br><span class="line">  Node* head;    <span class="comment">// the element before head of queue</span></span><br><span class="line">  Node* tail;    <span class="comment">// the last element added</span></span><br><span class="line">  Node* reclaim; <span class="comment">// the head of undeleted nodes</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(Queue* q)</span> </span>&#123;</span><br><span class="line">  q-&gt;head = q-&gt;tail = q-&gt;reclaim = <span class="keyword">new</span> Node;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">push</span><span class="params">(Queue* q, <span class="type">int</span> value)</span> </span>&#123;</span><br><span class="line">  Node* n = <span class="keyword">new</span> Node;</span><br><span class="line">  n-&gt;next = <span class="literal">NULL</span>;</span><br><span class="line">  n-&gt;value = value;</span><br><span class="line">  q-&gt;tail-&gt;next = n;</span><br><span class="line">  q-&gt;tail = q-&gt;tail-&gt;next;</span><br><span class="line">  <span class="comment">// delete all nodes between reclaim and head</span></span><br><span class="line">  <span class="keyword">while</span> (q-&gt;reclaim != q-&gt;head) &#123;</span><br><span class="line">    Node* tmp = q-&gt;reclaim;</span><br><span class="line">    q-&gt;reclaim = q-&gt;reclaim-&gt;next;</span><br><span class="line">    <span class="keyword">delete</span> tmp;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// returns false if queue is empty</span></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">pop</span><span class="params">(Queue* q, <span class="type">int</span>* value)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (q-&gt;head != q-&gt;tail) &#123;</span><br><span class="line">    *value = q-&gt;head-&gt;next-&gt;value;</span><br><span class="line">    q-&gt;head = q-&gt;head-&gt;next;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>Lock-free stack: the main idea is that a thread’s modification can proceed as long as no other thread has modified the stack. The <code>compare_and_swap</code> operation is atomic, but doesn’t need to hold any other lock on data structure.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Node</span> &#123;</span><br><span class="line">  Node* next;</span><br><span class="line">  <span class="type">int</span> value;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Stack</span> &#123;</span><br><span class="line">  Node* top;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(Stack* s)</span> </span>&#123;</span><br><span class="line">  s-&gt;top = <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">push</span><span class="params">(Stack* s, Node* n)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    Node* old_top = s-&gt;top;</span><br><span class="line">    n-&gt;next = old_top;</span><br><span class="line">    <span class="comment">// Check whether the current top is the old top, </span></span><br><span class="line">    <span class="comment">// if true, set the current top to n; or get a new top</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">compare_and_swap</span>(&amp;s-&gt;top, old_top, n) == old_top)</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Node* <span class="title">pop</span><span class="params">(Stack* s)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    Node* old_top = s-&gt;top;</span><br><span class="line">    <span class="keyword">if</span> (old_top == <span class="literal">NULL</span>)</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    Node* new_top = old_top-&gt;next;</span><br><span class="line">    <span class="comment">// if the top is still the old top, return old top and set to new top</span></span><br><span class="line">    <span class="comment">// or get a new top</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">compare_and_swap</span>(&amp;s-&gt;top, old_top, new_top) == old_top)</span><br><span class="line">      <span class="keyword">return</span> old_top;  <span class="comment">// Assume that consumer then recycles old_top</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>The above push operation is fine, but the pop operation may have some error.<br />
+After thread0 stores the old_top, if thread1 pops the old_top out, modifies the stack, and pushes the old_top into the stack again, then the <code>compare_and_swap</code> operation of thread0 will pass. Namely, thread0 cannot realize that the stack has already been modified.</p>
+</li>
+<li>
+<p>One solution is adding a <code>pop_counter</code> to check whether other pop operations happened.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Node</span> &#123;</span><br><span class="line">  Node* next;</span><br><span class="line">  <span class="type">int</span> value;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Stack</span> &#123;</span><br><span class="line">  Node* top;</span><br><span class="line">  <span class="type">int</span> pop_count;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(Stack* s)</span> </span>&#123;</span><br><span class="line">  s-&gt;top = <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">push</span><span class="params">(Stack* s, Node* n)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    Node* old_top = s-&gt;top;</span><br><span class="line">    n-&gt;next = old_top;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">compare_and_swap</span>(&amp;s-&gt;top, old_top, n) == old_top)</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Node* <span class="title">pop</span><span class="params">(Stack* s)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="type">int</span> pop_count = s-&gt;pop_count;</span><br><span class="line">    Node* top = s-&gt;top;</span><br><span class="line">    <span class="keyword">if</span> (top == <span class="literal">NULL</span>)</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    Node* new_top = top-&gt;next;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">double_compare_and_swap</span>(&amp;s-&gt;top, top, new_top,</span><br><span class="line">                                &amp;s-&gt;pop_count, pop_count, pop_count+<span class="number">1</span>))</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">return</span> top;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>Another solution to the ABA problem is hazard pointers. The reuse of the <code>old_top</code> causes the ABA problem. We can use the hazard pointers to track all <code>old_top</code>s, and they cannot be recycled or reused if they match any hazard pointers.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Node</span> &#123;</span><br><span class="line">  Node* next;</span><br><span class="line">  <span class="type">int</span> value;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Stack</span> &#123;</span><br><span class="line">  Node* top;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">Node *hazard[NUM_THREADS];</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(Stack* s)</span> </span>&#123;</span><br><span class="line">  s-&gt;top = <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">push</span><span class="params">(Stack* s, Node* n)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    Node* old_top = s-&gt;top;</span><br><span class="line">    n-&gt;next = old_top;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">compare_and_swap</span>(&amp;s-&gt;top, old_top, n) == old_top)</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Node* <span class="title">pop</span><span class="params">(Stack* s)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    hazard[t] = s-&gt;top;</span><br><span class="line">    Node* top = hazard[t];</span><br><span class="line">    <span class="keyword">if</span> (top == <span class="literal">NULL</span>)</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    Node* new_top = top-&gt;next;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">compare_and_swap</span>(&amp;s-&gt;top, top, new_top))</span><br><span class="line">      <span class="keyword">return</span> top;  <span class="comment">// Caller must clear hazard[t] when it’s done with top</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>Lock-free linked list insertion assumes the only operation on the list is inserting. Supporting lock-free deletion significantly complicates data structure.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Node</span> &#123;</span><br><span class="line">  <span class="type">int</span> value;</span><br><span class="line">  Node* next;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">List</span> &#123;</span><br><span class="line">  Node* head;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// insert new node after specified node</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">insert_after</span><span class="params">(List* list, Node* after, <span class="type">int</span> value)</span> </span>&#123;</span><br><span class="line">  Node* n = <span class="keyword">new</span> Node;</span><br><span class="line">  n-&gt;value = value;</span><br><span class="line">  <span class="comment">// assume case of insert into empty list handled</span></span><br><span class="line">  <span class="comment">// here (keep code on slide simple for class discussion)</span></span><br><span class="line">  Node* prev = list-&gt;head;</span><br><span class="line">  <span class="keyword">while</span> (prev-&gt;next) &#123;</span><br><span class="line">    <span class="keyword">if</span> (prev == after) &#123;</span><br><span class="line">      <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">        Node* old_next = prev-&gt;next;</span><br><span class="line">        n-&gt;next = old_next;</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">compare_and_swap</span>(&amp;prev-&gt;next, old_next, n) == old_next)</span><br><span class="line">          <span class="keyword">return</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    prev = prev-&gt;next;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>If your program only uses the machine, well-written code with locks can be as fast (or faster) than lock-free code.<br />
+However, there are situations where code with locks can suffer from tricky performance problems. Like multi-programmed situations where page faults, pre-emption, etc., can occur while the thread is in a critical section</p>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/07/16/Courses/CS149/13-Implementing-Synchronization/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/07/16/Courses/CS149/13-Implementing-Synchronization/" class="post-title-link" itemprop="url">13. Implementing Synchronization</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-07-16 11:05:13" itemprop="dateCreated datePublished" datetime="2022-07-16T11:05:13+08:00">2022-07-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-03-16 22:07:26" itemprop="dateModified" datetime="2024-03-16T22:07:26+08:00">2024-03-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="implementing-locks"><a class="markdownIt-Anchor" href="#implementing-locks"></a> Implementing locks</h1>
+<ol>
+<li>Three phases of a synchronization event：<br />
+Acquire method: How does a thread attempt to access protected resources?<br />
+Waiting algorithm: How does a thread wait for access shared resources?<br />
+Release method: How does a thread enable other threads to gain resources when its work in the synchronized region is complete?</li>
+<li>Busy waiting (spinning): <code>while (condition X not true) ;</code></li>
+<li>Blocking synchronization: <code>if (condition X not true) block until true;</code><br />
+If progress cannot be made because a resource cannot be acquired, it is desirable to free up execution resources for another thread and preempt the running thread.</li>
+<li>Busy waiting can be preferable to blocking if scheduling overhead is larger than the expected wait time or the processor’s resources are not needed for other tasks.<br />
+The latter situation is often the case in a parallel program since we usually don’t oversubscribe a system when running a performance-critical parallel app.</li>
+<li>Desirable lock performance characteristics:<br />
+<strong>Low latency</strong>: If the lock is free and no other processors are trying to acquire it, a processor should be able to acquire the lock quickly<br />
+<strong>Low interconnect traffic</strong>: If all processors are trying to acquire the lock at once, they should acquire the lock in succession with as little traffic as possible<br />
+<strong>Scalability</strong>: Latency/traffic should scale reasonably with the number of processors<br />
+<strong>Low storage cost</strong><br />
+<strong>Fairness</strong>: Avoid starvation or substantial unfairness. One idea is that processors should acquire the lock in the order they request access to it.</li>
+</ol>
+<h2 id="test-and-set-lock"><a class="markdownIt-Anchor" href="#test-and-set-lock"></a> Test-and-set lock</h2>
+<h3 id="simple-test-and-set-lock"><a class="markdownIt-Anchor" href="#simple-test-and-set-lock"></a> Simple test-and-set lock</h3>
+<ol>
+<li>The following spin lock has data race because LOAD-TEST-STORE is not atomic.<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">// Lock</span><br><span class="line">ld   R0, mem[addr]  // load word into R0</span><br><span class="line">cmp  R0, #0          // compare R0 to 0</span><br><span class="line">bnz  lock            // if nonzero jump to top</span><br><span class="line">st   mem[addr], #1  // set lock to 1</span><br><span class="line"></span><br><span class="line">// Unlock</span><br><span class="line">st   mem[addr], #0  // set lock to 0</span><br></pre></td></tr></table></figure>
+</li>
+<li>So, we need an atomic test-and-set instruction<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ts R0, mem[addr]  // load mem[addr] into R0</span><br><span class="line">                  // if mem[addr] is 0, set mem[addr] to 1</span><br><span class="line">                  </span><br><span class="line">// Lock</span><br><span class="line">ts   R0, mem[addr]  // load word into R0</span><br><span class="line">bnz  R0, lock        // if nonzero jump to top</span><br><span class="line"></span><br><span class="line">// Unlock</span><br><span class="line">st   mem[addr], #0  // store 0 to address</span><br></pre></td></tr></table></figure>
+</li>
+<li>Every time a processor executes the ts instruction, it will send a BusRdX signal and invalidate the lock in all other processors’ caches. The coherence traffic may be heavy when many processors try to execute on the same lock.<br />
+This lock generates one invalidation per waiting processor per test.</li>
+<li>Bus contention increases the time to transfer the lock since the lock holder must wait to acquire the bus to release. Bus contention also slows down the execution of critical sections.</li>
+<li>In x86, we can do the atomic compare and exchange by <code>lock cmpxchg src, dst</code> instruction. The <code>lock</code> prefix makes the operation atomic. The logic of the instruction is as follows:<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (dst == %eax)  <span class="comment">// eax is the x86 accumulator register</span></span><br><span class="line">  ZF = <span class="number">1</span>          <span class="comment">// ZF is a flag registor</span></span><br><span class="line">dst = src <span class="keyword">else</span></span><br><span class="line">  ZF = <span class="number">0</span></span><br><span class="line">  %eax = dst</span><br></pre></td></tr></table></figure>
+</li>
+<li>Simple test-and-set lock has low latency (under low contention), high traffic, poor scaling, low storage cost (one int), and no provisions for fairness.</li>
+</ol>
+<h3 id="test-and-set-lock-with-back-off"><a class="markdownIt-Anchor" href="#test-and-set-lock-with-back-off"></a> Test-and-set lock with back off</h3>
+<ol>
+<li>
+<p>Upon failure to acquire the lock, delay for a while before retrying.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">Lock</span><span class="params">(<span class="keyword">volatile</span> <span class="type">int</span>* lock)</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> amount = <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">test_and_set</span>(lock) == <span class="number">0</span>)</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    <span class="built_in">delay</span>(amount);</span><br><span class="line">    amount *= <span class="number">2</span>;</span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>It has the same uncontended latency as test-and-set but potentially higher latency under contention because the waiting processor may still delay even when the lock is available.</p>
+</li>
+<li>
+<p>It generates less traffic than test-and-set since it does not continually attempt to acquire a lock. It improves scalability due to less traffic.</p>
+</li>
+<li>
+<p>Storage cost unchanged (still one int for lock)</p>
+</li>
+<li>
+<p>Exponential back-off can cause severe unfairness. Newer requesters back off for shorter intervals</p>
+</li>
+</ol>
+<h3 id="test-and-test-and-set-lock"><a class="markdownIt-Anchor" href="#test-and-test-and-set-lock"></a> Test-and-test-and-set lock</h3>
+<ol>
+<li>
+<p>To prevent the coherence traffic problem, we can test first and do the test-and-set only if the earlier test has passed.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">Lock</span><span class="params">(<span class="keyword">volatile</span> <span class="type">int</span>* lock)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">while</span> (*lock != <span class="number">0</span>) ;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">test_and_set</span>(lock) == <span class="number">0</span>)</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Unlock</span><span class="params">(<span class="keyword">volatile</span> <span class="type">int</span>* lock)</span> </span>&#123;</span><br><span class="line">  *lock = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>This lock has slightly higher latency than test-and-set in uncontended cases but generates much less interconnect traffic. Only One invalidation is generated per waiting processor per lock release.<br />
+Namely, only <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>P</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(P)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mclose">)</span></span></span></span> invalidation and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>P</mi><mn>2</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(P^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> interconnect traffic.</p>
+</li>
+<li>
+<p>It is more scalable due to less traffic, storage cost unchanged (still one int), and no fairness provisions.</p>
+</li>
+</ol>
+<h2 id="ticket-lock"><a class="markdownIt-Anchor" href="#ticket-lock"></a> Ticket lock</h2>
+<ol>
+<li>The test-and-set style locks cannot provide for fairness because all waiting processors attempt to acquire a lock using test-and-set upon release.</li>
+<li>We can assign each thread a number when they try to acquire the lock. We give the lock to the waiting thread with the smallest number every time.<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">lock</span> &#123;</span><br><span class="line">  <span class="keyword">volatile</span> <span class="type">int</span> next_ticket;</span><br><span class="line">  <span class="keyword">volatile</span> <span class="type">int</span> now_serving;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Lock</span><span class="params">(lock* lock)</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> my_ticket = <span class="built_in">atomic_increment</span>(&amp;lock-&gt;next_ticket);  <span class="comment">// take a “ticket”</span></span><br><span class="line">  <span class="keyword">while</span> (my_ticket != lock-&gt;now_serving);                <span class="comment">//wait for number</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">unlock</span><span class="params">(lock* lock)</span> </span>&#123;</span><br><span class="line">  lock-&gt;now_serving++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>No atomic operation is needed to acquire the lock. Only a read is necessary when acquiring the lock, and write only happens when the lock is released. So, only one invalidation is generated per lock release, namely <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>P</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(P)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mclose">)</span></span></span></span> interconnect traffic.</li>
+</ol>
+<h2 id="array-based-lock"><a class="markdownIt-Anchor" href="#array-based-lock"></a> Array-based lock</h2>
+<ol>
+<li>
+<p>Each processor spins on a different memory address. It also utilizes atomic operations to assign an address to acquire it.<br />
+If there are two barriers, after some threads pass the first barrier, they might set the flag to 0 even if some other threads haven’t passed the first barrier yet, causing those slower threads to wait.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">lock</span> &#123;</span><br><span class="line">  <span class="keyword">volatile</span> padded_int status[P];  <span class="comment">// padded to keep off same cache line</span></span><br><span class="line">  <span class="keyword">volatile</span> <span class="type">int</span> head;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> my_element;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Lock</span><span class="params">(lock* lock)</span> </span>&#123;</span><br><span class="line">  my_element = <span class="built_in">atomic_circ_increment</span>(&amp;lock-&gt;head);  <span class="comment">// assume modular increment </span></span><br><span class="line">  <span class="keyword">while</span> (lock-&gt;status[my_element] == <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">unlock</span><span class="params">(lock* lock)</span> </span>&#123;</span><br><span class="line">  lock-&gt;status[my_element] = <span class="number">1</span>;</span><br><span class="line">  lock-&gt;status[<span class="built_in">circ_next</span>(my_element)] = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>The lock only requires <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> interconnect traffic per release but requires linear space in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>P</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(P)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mclose">)</span></span></span></span>.</p>
+</li>
+<li>
+<p>The atomic circular increment is a more complex operation. So, the lock has a higher overhead.</p>
+</li>
+<li>
+<p>Queue-based Lock (MCS lock): Create a queue of waiters. Each thread allocates a local space on which to wait.</p>
+</li>
+</ol>
+<h1 id="implementing-barrier"><a class="markdownIt-Anchor" href="#implementing-barrier"></a> Implementing barrier</h1>
+<ol>
+<li>The following code uses a <code>counter</code> to count how many threads have hit the barrier. The last thread hit the barrier and will release all of them.<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Barrier_t</span> &#123;</span><br><span class="line">   LOCK lock;</span><br><span class="line">  <span class="type">int</span> counter;  <span class="comment">// initialize to 0</span></span><br><span class="line">  <span class="type">int</span> flag;      <span class="comment">// the flag field should probably be padded to </span></span><br><span class="line">                <span class="comment">// sit on its own cache line. </span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// barrier for p processors</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Barrier</span><span class="params">(Barrier_t* b, <span class="type">int</span> p)</span> </span>&#123;</span><br><span class="line">  <span class="built_in">lock</span>(b-&gt;lock);</span><br><span class="line">  <span class="keyword">if</span> (b-&gt;counter == <span class="number">0</span>) &#123;</span><br><span class="line">    b-&gt;flag = <span class="number">0</span>; <span class="comment">// first thread arriving at barrier clears flag </span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="type">int</span> num_arrived = ++(b-&gt;counter);</span><br><span class="line">  <span class="built_in">unlock</span>(b-&gt;lock);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (num_arrived == p) &#123; <span class="comment">// last arriver sets flag b-&gt;counter = 0;</span></span><br><span class="line">    b-&gt;flag = <span class="number">1</span>;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">while</span> (b-&gt;flag == <span class="number">0</span>); <span class="comment">// wait for flag</span></span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>To solve the problem, we should wait for all processes to leave the first barrier, before clearing the flag for entry into the second.<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Centralized barrier</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Barrier_t</span> &#123;</span><br><span class="line">  LOCK lock;</span><br><span class="line">  <span class="type">int</span> arrive_counter;  <span class="comment">// initialize to 0 (number of threads that have arrived)</span></span><br><span class="line">  <span class="type">int</span> leave_counter;  <span class="comment">// initialize to P (number of threads that have left barrier)</span></span><br><span class="line">  <span class="type">int</span> flag;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// barrier for p processors</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Barrier</span><span class="params">(Barrier_t* b, <span class="type">int</span> p)</span> </span>&#123;</span><br><span class="line">  <span class="built_in">lock</span>(b-&gt;lock);</span><br><span class="line">  <span class="keyword">if</span> (b-&gt;arrive_counter == <span class="number">0</span>) &#123;   <span class="comment">// if first to arrive...</span></span><br><span class="line">    <span class="keyword">if</span> (b-&gt;leave_counter == P) &#123;  <span class="comment">// check to make sure no other threads “still in barrier”</span></span><br><span class="line">      b-&gt;flag = <span class="number">0</span>;               <span class="comment">// first arriving thread clears flag</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="built_in">unlock</span>(lock);</span><br><span class="line">      <span class="keyword">while</span> (b-&gt;leave_counter != P);  <span class="comment">// wait for all threads to leave before clearing</span></span><br><span class="line">      <span class="built_in">lock</span>(lock);</span><br><span class="line">      b-&gt;flag = <span class="number">0</span>;                <span class="comment">// first arriving thread clears flag</span></span><br><span class="line">    &#125; </span><br><span class="line">  &#125;</span><br><span class="line">  <span class="type">int</span> num_arrived = ++(b-&gt;arrive_counter);</span><br><span class="line">  <span class="built_in">unlock</span>(b-&gt;lock);</span><br><span class="line">  <span class="keyword">if</span> (num_arrived == p) &#123;  <span class="comment">// last arriver sets flag</span></span><br><span class="line">    b-&gt;arrive_counter = <span class="number">0</span>;</span><br><span class="line">    b-&gt;leave_counter = <span class="number">1</span>;</span><br><span class="line">    b-&gt;flag = <span class="number">1</span>;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">while</span> (b-&gt;flag == <span class="number">0</span>);  <span class="comment">// wait for flag</span></span><br><span class="line">    <span class="built_in">lock</span>(b-&gt;lock);</span><br><span class="line">    b-&gt;leave_counter++;</span><br><span class="line">    <span class="built_in">unlock</span>(b-&gt;lock);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>We can save one variable by sense reversal. Processors wait for the flag to be equal to the local sense.<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Barrier_t</span> &#123;</span><br><span class="line">  LOCK lock;</span><br><span class="line">  <span class="type">int</span> counter; <span class="comment">// initialize to 0</span></span><br><span class="line">  <span class="type">int</span> flag; <span class="comment">// initialize to 0</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> local_sense = <span class="number">0</span>;  <span class="comment">// private per processor</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// barrier for p processors</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Barrier</span><span class="params">(Barrier_t* b, <span class="type">int</span> p)</span> </span>&#123;</span><br><span class="line">  local_sense = (local_sense == <span class="number">0</span>) ? <span class="number">1</span> : <span class="number">0</span>; <span class="built_in">lock</span>(b-&gt;lock);</span><br><span class="line">  <span class="type">int</span> num_arrived = ++(b-&gt;counter);</span><br><span class="line">  <span class="keyword">if</span> (b-&gt;counter == p) &#123; <span class="comment">// last arriver sets flag</span></span><br><span class="line">    <span class="built_in">unlock</span>(b-&gt;lock);</span><br><span class="line">    b-&gt;counter = <span class="number">0</span>;</span><br><span class="line">    b-&gt;flag = local_sense;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">unlock</span>(b-&gt;lock);</span><br><span class="line">    <span class="keyword">while</span> (b-&gt;flag != local_sense); <span class="comment">// wait for flag</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>There are <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>P</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(P)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mclose">)</span></span></span></span> traffic on interconnects per barrier.<br />
+All threads have <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>P</mi></mrow><annotation encoding="application/x-tex">2P</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span> write transactions to obtain barrier lock and update the counter. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>P</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(P)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mclose">)</span></span></span></span> traffic assuming lock acquisition is implemented in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> manner<br />
+Last thread has <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn></mrow><annotation encoding="application/x-tex">2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span></span></span></span> write transactions to write to the flag and reset the counter. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>P</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(P)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mclose">)</span></span></span></span> traffic since there are many sharers of the flag<br />
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">P-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> transactions to read updated flag</li>
+<li>In a centralized barrier, all threads share a single barrier lock and counter, which causes high contention.</li>
+<li>Combining trees makes better use of parallelism in interconnect topologies, which has <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>l</mi><mi>o</mi><mi>g</mi><mi>P</mi></mrow><annotation encoding="application/x-tex">logP</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span> span (latency). This strategy makes less sense on a bus where all traffic is still serialized on a shared bus.<br />
+Barrier acquire: when the processor arrives at the barrier, performs increment of parent counter. Process recurses to root.<br />
+Barrier release: beginning from the root, notify children of the release.</li>
+</ol>
+<h1 id="locks-in-cuda-assignment-3"><a class="markdownIt-Anchor" href="#locks-in-cuda-assignment-3"></a> Locks in CUDA (Assignment 3)</h1>
+<ol>
+<li>
+<p>CUDA has provided <code>atomicCAS</code> and <code>atomicExch</code>. But if we use the following code to implement the mutex, threads will end up in a dead loop.<br />
+All warps in a block need to execute the same instructions. However, only one thread can have the lock; at most, one thread in a block can leave the loop, and hence, the whole block, including the one with the lock, will keep executing the <code>atomicCAS</code>. The thread with a loop cannot execute anything in a critical area and unlock the lock, which causes all threads to end up in the dead loop of the <code>lock</code>.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">__share__ <span class="type">int</span> mutex;</span><br><span class="line"></span><br><span class="line"><span class="function">__device__ <span class="type">void</span> <span class="title">lock</span><span class="params">(<span class="type">int</span>* mutex)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">while</span>(<span class="built_in">atomicCAS</span>(mutex, <span class="number">0</span>, <span class="number">1</span>)) ;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">__device__ <span class="type">void</span> <span class="title">unlock</span><span class="params">(<span class="type">int</span>* mutex)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">atomicExch</span>(mutex, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">__global__ <span class="type">void</span> <span class="title">kernel</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">lock</span>(&amp;mutex);</span><br><span class="line">  <span class="comment">// critical code</span></span><br><span class="line">  <span class="built_in">unlock</span>(&amp;mutex);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>The method to solve the problem must also consider the special execution mode of condition instruction in CUDA. A loop is necessary, but we want to execute the instruction inside a condition body so that when one thread grabs the lock, it can execute and unlock the lock before the next iteration.<br />
+So, we can have an <code>if</code> condition inside the loop, such as the following code.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">__share__ <span class="type">int</span> mutex;</span><br><span class="line"></span><br><span class="line"><span class="function">__kernel__ <span class="type">void</span> <span class="title">kernel</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="type">bool</span> leaveLoop = <span class="literal">false</span>;</span><br><span class="line">  <span class="keyword">while</span> (!leaveLoop)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">atomicExch</span>(&amp;mutex, <span class="number">1</span>))</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="comment">// critical cade</span></span><br><span class="line">      leaveLoop = <span class="literal">true</span>;      <span class="comment">// this thread can leave the loop, but it need to </span></span><br><span class="line">                             <span class="comment">// wait for other threads in its block</span></span><br><span class="line">      <span class="built_in">atomicExch</span>(&amp;mutex, <span class="number">0</span>); <span class="comment">// unlock the lock, so that in next iteration, </span></span><br><span class="line">                             <span class="comment">// some other threads can have the lock and finish</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1868,412 +2209,6 @@ Inside a single thread block is SPMD shared address space programming.</li>
 <li>One SM core may have multiple blocks, so an SMM core can concurrently execute multiple CUDA thread blocks.<br />
 When all threads in the block are complete, block resources (shared memory allocations, warp execution contexts) become available for the next block.</li>
 <li>The CUDA program is not compiled into SIMD instructions like ISPC gangs. GPU hardware dynamically checks whether 32 independent CUDA threads share an instruction. If true, it executes all 32 threads in a SIMD manner, or performance can suffer due to divergent execution.</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/05/17/Courses/CS149/04-Work-Distribution-and-Scheduling/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2022/05/17/Courses/CS149/04-Work-Distribution-and-Scheduling/" class="post-title-link" itemprop="url">04. Work Distribution and Scheduling</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2022-05-17 15:35:33" itemprop="dateCreated datePublished" datetime="2022-05-17T15:35:33+08:00">2022-05-17</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-16 19:12:41" itemprop="dateModified" datetime="2024-03-16T19:12:41+08:00">2024-03-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="balancing-the-workload"><a class="markdownIt-Anchor" href="#balancing-the-workload"></a> Balancing the workload</h1>
-<p>Always implement the simplest solution first, then measure performance to determine if you need to do better.</p>
-<h2 id="static-assignment"><a class="markdownIt-Anchor" href="#static-assignment"></a> Static assignment</h2>
-<ol>
-<li>The assignment of work to threads is pre-determined. But it is not necessarily determined at compile-time; it may depend on runtime parameters.</li>
-<li>Benefit: simple, essentially zero runtime overhead</li>
-<li>Applicable situation: When the cost (execution time) of work and the amount of work is predictable. The following are some of the most common situations:<br />
-When it is known upfront that all work has the same cost<br />
-When work is predictable, but not all jobs have the same cost<br />
-When statistics about execution time are known</li>
-<li>Semi-static assignment: When the work cost is predictable for the near-term future, we can periodically profile itself and re-adjust the assignment.<br />
-The assignment is “static” for the interval between re-adjustments</li>
-</ol>
-<h2 id="dynamic-assignment"><a class="markdownIt-Anchor" href="#dynamic-assignment"></a> Dynamic assignment</h2>
-<ol>
-<li>
-<p>The program determines assignment dynamically at runtime to ensure a well-distributed load. They are often used when the execution time or the total number of tasks is unpredictable.</p>
-</li>
-<li>
-<p>The ISPC task is implemented dynamically.</p>
-</li>
-</ol>
-<h3 id="with-one-queue"><a class="markdownIt-Anchor" href="#with-one-queue"></a> With one queue</h3>
-<ol>
-<li>
-<p>The programmers divide the whole problem into sub-problems (or “tasks”, “work”). A queue shared by all threads is a collection of work to do. A thread will grab another task from the queue whenever it finishes its task.</p>
-</li>
-<li>
-<p>Fine granularity partitioning: each task is small.<br />
-This is likely to have a good workload balance, but there is potential for high synchronization costs.</p>
-</li>
-<li>
-<p>Coarse granularity partitioning: each task is larger.<br />
-This will decrease synchronization cost and the overhead but may have a worse workload balance.</p>
-</li>
-<li>
-<p>Long tasks should be scheduled first. Thread performing long tasks performs fewer overall tasks but approximately the same amount of work as the other threads. This requires some knowledge of the workload.</p>
-</li>
-</ol>
-<h3 id="with-a-set-of-queues"><a class="markdownIt-Anchor" href="#with-a-set-of-queues"></a> With a set of queues</h3>
-<ol>
-<li>
-<p>When assigned to one queue, all threads have to communicate with each other about the queue.</p>
-</li>
-<li>
-<p>Each thread has its queue, and it only executes tasks in its queue. So, there is no need to communicate with other threads.</p>
-</li>
-<li>
-<p>Initially, the programmer pushes tasks into queues arbitrarily (a bit like a static assignment).<br />
-The dynamic is that when a queue is empty, that thread can steal from other still-working threads.<br />
-It will steal from a random thread. Every time, it will steal a proportion of the tasks in the target queue, not all of them, and usually more than one task.<br />
-A thread is terminated when there is no thread for it to steal; when a steal fails, it will try to steal from other threads until it has tried all of them.</p>
-</li>
-<li>
-<p>Stealing involves communication but at a lower frequency than one queue method. In this way, the local queue access is fast.</p>
-</li>
-<li>
-<p>Sometimes, it is hard to have fully independent tasks, but work in task queues need not be independent.<br />
-A task is not removed from the queue and assigned to the worker thread until all task dependencies are satisfied. Workers can submit new tasks (with optional, explicit dependencies) to the task system.</p>
-</li>
-</ol>
-<h1 id="scheduling"><a class="markdownIt-Anchor" href="#scheduling"></a> Scheduling</h1>
-<p>In a divide-and-conquer algorithm, there are both dependencies and independencies. Like in quick-sort, both divides depend on the partition, and those two divides are independent.<br />
-With Cilk Plus, we can express divide-and-conquer easier.</p>
-<h2 id="cilk_spawn"><a class="markdownIt-Anchor" href="#cilk_spawn"></a> cilk_spawn</h2>
-<ol>
-<li>
-<p><code>cilk_spawn</code> is labeled before a function call so that the called function can run concurrently with the code after the call.<br />
-The call labeled <code>cilk_spawn</code> is the spawned child, and the rest of the code is the continuation.</p>
-</li>
-<li>
-<p>In divide-and-conquer, there is always a time when the problem size is small enough that the overhead of spawn trumps the benefits of<br />
-potential parallelization. Then, we will solve those problems sequentially.</p>
-</li>
-<li>
-<p>The main idea is to expose independent work (potential parallelism) to the system using <code>cilk_spawn</code>.</p>
-</li>
-<li>
-<p><code>cilk_spawn</code> is a bit like <code>pthread_create</code>, and <code>cilk_sync</code> is similar to <code>pthread_join</code>. But the <code>pthread</code> has some problems when too many threads are spawned.<br />
-The first is the heavyweight spawn operation. Many more concurrently running threads than cores will cause context-switching overhead, a larger working set than necessary, and less cache locality.</p>
-</li>
-<li>
-<p>The Cilk Plus runtime maintains a pool of worker threads. All threads are created at the application launch.  The machine has exactly as many worker threads as in execution contexts.<br />
-If we labeled everything <code>cilk_spawn</code>, the main thread has nothing to do.</p>
-</li>
-<li>
-<p>Each thread in the pool will maintain a work queue to store what word needs to be done.<br />
-When a thread goes idle, it will look in the busy thread’s queue for work and move work from the busy thread’s queue to its queue.</p>
-</li>
-<li>
-<p>If the caller thread runs the continuation first, the queue should record the child for later execution, and the child is made available for stealing by other threads.<br />
-The caller thread will spawn as many children as possible using this method, like BFS. If there is no stealing, the execution order is very different than<br />
-that of program withcilk_spawnremoved.</p>
-</li>
-<li>
-<p>If the caller thread runs the child first, the queue should record continuation for later execution, and continuation is made available for stealing by other threads.<br />
-In this method, the caller thread will only create one item to steal.<br />
-If no stealing occurs, the thread continually pops continuation from the work queue and enqueues new continuation (like DFS). The execution order is the same as for the program with spawn removed.<br />
-If continuation is stolen, the stealing thread spawns the next child.</p>
-</li>
-<li>
-<p>If the continuation is run first, there will be more items to steal; thus, it will be a better advantage of multi-thread.<br />
-But if the continuation is run first, the work queue storage for a system with T threads is no more than T times that of stack storage for single-threaded execution and thus saves more space.</p>
-</li>
-<li>
-<p>The work queue is implemented as a dequeue (double-ended queue).<br />
-Local thread pushes/pops from the “tail” (bottom), while remote threads steal from the “head” (top).<br />
-Reduces contention with local thread: local thread does not access the same part of dequeue as stealing threads.<br />
-Do larger work first: in divide-and-conquer, the top of the queue is usually at the beginning of the call tree and is a larger piece of work.<br />
-Maximizes locality: in conjunction with the run-child-first policy, the local thread works on the local part of the call tree</p>
-</li>
-</ol>
-<h2 id="cilk_sync"><a class="markdownIt-Anchor" href="#cilk_sync"></a> cilk_sync</h2>
-<ol>
-<li>
-<p><code>cilk_sync</code> is used after those <code>cilk_spawn</code> call code. It will return when all calls spawned by the current function have been completed.</p>
-</li>
-<li>
-<p>There is an implicit <code>cilk_sync</code> at the end of every function containing a cilk_spawn, so when a Cilk function returns, all work associated with that function is complete.</p>
-</li>
-<li>
-<p>If no work has been stolen by other threads, then there’s nothing to do at the sync point, <code>cilk_sync</code> is a no-op. But this is not a common situation.</p>
-</li>
-<li>
-<p>One way to implement sync is with a stalling joint.<br />
-The thread that initiates the fork must perform the sync. Therefore, it waits for all spawned work to be complete.<br />
-The descriptor for block A was created.<br />
-When stealing from the initial thread happens, a descriptor for that stolen work is created to track the number of outstanding spawns for the block and the number of those that have completed.<br />
-When all the child spawned for the block is done, this block is considered done, and the descriptor is free. When all the blocks are done, sync is fulfilled.</p>
-</li>
-<li>
-<p>Another way to implement sync is the greedy policy.<br />
-When the thread that initiates the fork goes idle, it can look to steal new work.  The last thread to reach the join point continues execution after sync. This will also create a descriptor for those stolen works.<br />
-The worker thread that initiated spawn may not be the thread that executes logic after <code>cilk_sync</code>.</p>
-</li>
-<li>
-<p>In greed policy, All threads always attempt to steal if there is nothing to do, and the thread only goes idle if no work to steal is present in the system. But in stalling policy, the initial thread doesn’t steal and only waits until its work is done.</p>
-</li>
-<li>
-<p>The overhead of bookkeeping steals and managing sync points only occurs when steals occur. If large pieces of work are stolen, this should occur infrequently. Most of the time, threads push/pop local work from their local queue.</p>
-</li>
-<li>
-<p>Cilk uses greedy join scheduling.</p>
-</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/04/20/Courses/CS149/03-Parallel-Programming-Basics/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2022/04/20/Courses/CS149/03-Parallel-Programming-Basics/" class="post-title-link" itemprop="url">03. Parallel Programming Basics</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2022-04-20 14:27:45" itemprop="dateCreated datePublished" datetime="2022-04-20T14:27:45+08:00">2022-04-20</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-16 18:45:17" itemprop="dateModified" datetime="2024-03-16T18:45:17+08:00">2024-03-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="decomposition"><a class="markdownIt-Anchor" href="#decomposition"></a> Decomposition</h1>
-<ol>
-<li>
-<p>Decomposition: The problem to solve is usually a chunk of work. So the first step we need to do is to decomposite them into subproblems (a.k.a tasks, work to do)</p>
-</li>
-<li>
-<p>We usually want the number of subproblems to be at least as many as processors.</p>
-</li>
-<li>
-<p>The key aspect of decomposition is to identify dependencies. We want subproblems to be independent so that they can be paralleled.</p>
-</li>
-<li>
-<p>Amdahl’s Law: dependencies limit maximum speedup due to parallelism<br />
-Let S = the fraction of sequential execution that is inherently sequential (dependencies prevent parallel execution). The maximum speedup due to parallel execution ≤ 1/S.</p>
-<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>s</mi><mi>p</mi><mi>e</mi><mi>e</mi><mi>d</mi><mi>u</mi><mi>p</mi><mo>≤</mo><mfrac><mi>t</mi><mrow><mi>s</mi><mi>t</mi><mo>+</mo><mfrac><mrow><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>s</mi><mo stretchy="false">)</mo><mi>t</mi></mrow><mi>p</mi></mfrac></mrow></mfrac><mo>=</mo><mfrac><mn>1</mn><mrow><mi>s</mi><mo>+</mo><mfrac><mrow><mn>1</mn><mo>−</mo><mi>s</mi></mrow><mi>p</mi></mfrac></mrow></mfrac></mrow><annotation encoding="application/x-tex">speedup \le\frac{t}{st+\frac{(1-s)t}{p}}=\frac1{s+\frac{1-s}{p}} 
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">s</span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal">e</span><span class="mord mathnormal">d</span><span class="mord mathnormal">u</span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.6731879999999997em;vertical-align:-1.381108em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.29208em;"><span style="top:-2.11em;"><span class="pstrut" style="height:3.01em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.01em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.485em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mtight">1</span><span class="mbin mtight">−</span><span class="mord mathnormal mtight">s</span><span class="mclose mtight">)</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.481108em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span><span style="top:-3.2399999999999998em;"><span class="pstrut" style="height:3.01em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.687em;"><span class="pstrut" style="height:3.01em;"></span><span class="mord"><span class="mord mathnormal">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.381108em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.537656em;vertical-align:-1.216216em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.32144em;"><span style="top:-2.264892em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mbin mtight">−</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.481108em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord">1</span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.216216em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
-</li>
-<li>
-<p>In most cases, the programmer is responsible for performing decomposition.</p>
-</li>
-<li>
-<p>When doing the decomposition, it is better to think of partitioning computation instead of data.</p>
-</li>
-</ol>
-<h1 id="assignment"><a class="markdownIt-Anchor" href="#assignment"></a> Assignment</h1>
-<ol>
-<li>
-<p>Assignment: When the subproblems are more than processors, we will group them to form a larger chunk of work and assign the grouped tasks to parallel threads.</p>
-</li>
-<li>
-<p>One goal is to balance the workload so that each processor finishes their work almost simultaneously.<br />
-Another goal is to reduce communication costs. Getting data from another processor is nontrivial expensive, either cache miss or waiting for a message.<br />
-These two goals are at odds with each other.</p>
-</li>
-<li>
-<p>This step can be performed statically or dynamically during the execution<br />
-Static way: Before the processors begin the work, we have already decided how to divide things.<br />
-Dynamic way: We work out how to divide on the way as processing.</p>
-</li>
-<li>
-<p>We can choose the static way with the programCount and programIndex assignment or pthread</p>
-</li>
-<li>
-<p>We can choose the dynamic way with foreach if the system chooses the dynamic way or the queue.<br />
-In the queue way, we arrange all tasks in a queue, and when a processor has done its job, it will grab another task from the queue. This is an excellent way to balance the workload, but maintaining the queue and acquiring tasks from it might cost some performance.</p>
-</li>
-</ol>
-<h1 id="orchestration"><a class="markdownIt-Anchor" href="#orchestration"></a> Orchestration</h1>
-<ol>
-<li>
-<p>Orchestration: When parallel threads are running, they may need to cooperate. So, we need to let them communicate correctly.</p>
-</li>
-<li>
-<p>We will worry about things like structure communication, synchronization, organizing data structure in memory, and scheduling tasks.</p>
-</li>
-<li>
-<p>The goal is to reduce the costs of communication/sync, preserve the locality of data reference, reduce the overhead of synchronization or communication, etc.</p>
-</li>
-<li>
-<p>In the shared address space model, lock/unlock is commonly used for preserving atomicity, and barriers can divide computation into phases. When threads execute to barriers, they will stop and wait. Until enough threads hit the barrier, those stalled threads can execute rest codes.</p>
-</li>
-<li>
-<p>A commonly used optimization strategy is fewer locks/unlocks and barriers.<br />
-Every time we operate a shared variable, we must use the lock/unlock to keep atomicity. We could operate on partial variables locally and then merge the partial results.<br />
-When we use a barrier to keep a shared variable valid when it might be changed at the next phase, we can use different shared variables in successive phases. This is to trade off footprint for removing dependencies.</p>
-</li>
-</ol>
-<h1 id="mapping"><a class="markdownIt-Anchor" href="#mapping"></a> Mapping</h1>
-<ol>
-<li>
-<p>Mapping: Finally, we need to map each thread to physical hardware.</p>
-</li>
-<li>
-<p>When we map pthreads to hardware execution context on a CPU core, this is done by the operating system.<br />
-When we map ISPC program instances to vector instruction lanes, this is done by the compiler.<br />
-When we map CUDA thread blocks to GPU cores, this is done by the hardware.</p>
-</li>
-<li>
-<p>Place related threads (cooperating threads) on the same processor to maximize locality data sharing and minimize costs of comm/sync.<br />
-Place unrelated threads on the same processor (one might be bandwidth-limited, and another might be compute-limited) to use the machine more efficiently.</p>
-</li>
-<li>
-<p>Normally, we just let the OS do the mapping as it wants. But sometimes we still want to control the way of mapping.</p>
-</li>
 </ol>
 
       

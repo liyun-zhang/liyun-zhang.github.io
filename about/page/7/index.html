@@ -146,13 +146,13 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-count">64</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
@@ -174,6 +174,412 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/05/17/Courses/CS149/04-Work-Distribution-and-Scheduling/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/05/17/Courses/CS149/04-Work-Distribution-and-Scheduling/" class="post-title-link" itemprop="url">04. Work Distribution and Scheduling</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-05-17 15:35:33" itemprop="dateCreated datePublished" datetime="2022-05-17T15:35:33+08:00">2022-05-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-03-16 19:12:41" itemprop="dateModified" datetime="2024-03-16T19:12:41+08:00">2024-03-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="balancing-the-workload"><a class="markdownIt-Anchor" href="#balancing-the-workload"></a> Balancing the workload</h1>
+<p>Always implement the simplest solution first, then measure performance to determine if you need to do better.</p>
+<h2 id="static-assignment"><a class="markdownIt-Anchor" href="#static-assignment"></a> Static assignment</h2>
+<ol>
+<li>The assignment of work to threads is pre-determined. But it is not necessarily determined at compile-time; it may depend on runtime parameters.</li>
+<li>Benefit: simple, essentially zero runtime overhead</li>
+<li>Applicable situation: When the cost (execution time) of work and the amount of work is predictable. The following are some of the most common situations:<br />
+When it is known upfront that all work has the same cost<br />
+When work is predictable, but not all jobs have the same cost<br />
+When statistics about execution time are known</li>
+<li>Semi-static assignment: When the work cost is predictable for the near-term future, we can periodically profile itself and re-adjust the assignment.<br />
+The assignment is “static” for the interval between re-adjustments</li>
+</ol>
+<h2 id="dynamic-assignment"><a class="markdownIt-Anchor" href="#dynamic-assignment"></a> Dynamic assignment</h2>
+<ol>
+<li>
+<p>The program determines assignment dynamically at runtime to ensure a well-distributed load. They are often used when the execution time or the total number of tasks is unpredictable.</p>
+</li>
+<li>
+<p>The ISPC task is implemented dynamically.</p>
+</li>
+</ol>
+<h3 id="with-one-queue"><a class="markdownIt-Anchor" href="#with-one-queue"></a> With one queue</h3>
+<ol>
+<li>
+<p>The programmers divide the whole problem into sub-problems (or “tasks”, “work”). A queue shared by all threads is a collection of work to do. A thread will grab another task from the queue whenever it finishes its task.</p>
+</li>
+<li>
+<p>Fine granularity partitioning: each task is small.<br />
+This is likely to have a good workload balance, but there is potential for high synchronization costs.</p>
+</li>
+<li>
+<p>Coarse granularity partitioning: each task is larger.<br />
+This will decrease synchronization cost and the overhead but may have a worse workload balance.</p>
+</li>
+<li>
+<p>Long tasks should be scheduled first. Thread performing long tasks performs fewer overall tasks but approximately the same amount of work as the other threads. This requires some knowledge of the workload.</p>
+</li>
+</ol>
+<h3 id="with-a-set-of-queues"><a class="markdownIt-Anchor" href="#with-a-set-of-queues"></a> With a set of queues</h3>
+<ol>
+<li>
+<p>When assigned to one queue, all threads have to communicate with each other about the queue.</p>
+</li>
+<li>
+<p>Each thread has its queue, and it only executes tasks in its queue. So, there is no need to communicate with other threads.</p>
+</li>
+<li>
+<p>Initially, the programmer pushes tasks into queues arbitrarily (a bit like a static assignment).<br />
+The dynamic is that when a queue is empty, that thread can steal from other still-working threads.<br />
+It will steal from a random thread. Every time, it will steal a proportion of the tasks in the target queue, not all of them, and usually more than one task.<br />
+A thread is terminated when there is no thread for it to steal; when a steal fails, it will try to steal from other threads until it has tried all of them.</p>
+</li>
+<li>
+<p>Stealing involves communication but at a lower frequency than one queue method. In this way, the local queue access is fast.</p>
+</li>
+<li>
+<p>Sometimes, it is hard to have fully independent tasks, but work in task queues need not be independent.<br />
+A task is not removed from the queue and assigned to the worker thread until all task dependencies are satisfied. Workers can submit new tasks (with optional, explicit dependencies) to the task system.</p>
+</li>
+</ol>
+<h1 id="scheduling"><a class="markdownIt-Anchor" href="#scheduling"></a> Scheduling</h1>
+<p>In a divide-and-conquer algorithm, there are both dependencies and independencies. Like in quick-sort, both divides depend on the partition, and those two divides are independent.<br />
+With Cilk Plus, we can express divide-and-conquer easier.</p>
+<h2 id="cilk_spawn"><a class="markdownIt-Anchor" href="#cilk_spawn"></a> cilk_spawn</h2>
+<ol>
+<li>
+<p><code>cilk_spawn</code> is labeled before a function call so that the called function can run concurrently with the code after the call.<br />
+The call labeled <code>cilk_spawn</code> is the spawned child, and the rest of the code is the continuation.</p>
+</li>
+<li>
+<p>In divide-and-conquer, there is always a time when the problem size is small enough that the overhead of spawn trumps the benefits of<br />
+potential parallelization. Then, we will solve those problems sequentially.</p>
+</li>
+<li>
+<p>The main idea is to expose independent work (potential parallelism) to the system using <code>cilk_spawn</code>.</p>
+</li>
+<li>
+<p><code>cilk_spawn</code> is a bit like <code>pthread_create</code>, and <code>cilk_sync</code> is similar to <code>pthread_join</code>. But the <code>pthread</code> has some problems when too many threads are spawned.<br />
+The first is the heavyweight spawn operation. Many more concurrently running threads than cores will cause context-switching overhead, a larger working set than necessary, and less cache locality.</p>
+</li>
+<li>
+<p>The Cilk Plus runtime maintains a pool of worker threads. All threads are created at the application launch.  The machine has exactly as many worker threads as in execution contexts.<br />
+If we labeled everything <code>cilk_spawn</code>, the main thread has nothing to do.</p>
+</li>
+<li>
+<p>Each thread in the pool will maintain a work queue to store what word needs to be done.<br />
+When a thread goes idle, it will look in the busy thread’s queue for work and move work from the busy thread’s queue to its queue.</p>
+</li>
+<li>
+<p>If the caller thread runs the continuation first, the queue should record the child for later execution, and the child is made available for stealing by other threads.<br />
+The caller thread will spawn as many children as possible using this method, like BFS. If there is no stealing, the execution order is very different than<br />
+that of program withcilk_spawnremoved.</p>
+</li>
+<li>
+<p>If the caller thread runs the child first, the queue should record continuation for later execution, and continuation is made available for stealing by other threads.<br />
+In this method, the caller thread will only create one item to steal.<br />
+If no stealing occurs, the thread continually pops continuation from the work queue and enqueues new continuation (like DFS). The execution order is the same as for the program with spawn removed.<br />
+If continuation is stolen, the stealing thread spawns the next child.</p>
+</li>
+<li>
+<p>If the continuation is run first, there will be more items to steal; thus, it will be a better advantage of multi-thread.<br />
+But if the continuation is run first, the work queue storage for a system with T threads is no more than T times that of stack storage for single-threaded execution and thus saves more space.</p>
+</li>
+<li>
+<p>The work queue is implemented as a dequeue (double-ended queue).<br />
+Local thread pushes/pops from the “tail” (bottom), while remote threads steal from the “head” (top).<br />
+Reduces contention with local thread: local thread does not access the same part of dequeue as stealing threads.<br />
+Do larger work first: in divide-and-conquer, the top of the queue is usually at the beginning of the call tree and is a larger piece of work.<br />
+Maximizes locality: in conjunction with the run-child-first policy, the local thread works on the local part of the call tree</p>
+</li>
+</ol>
+<h2 id="cilk_sync"><a class="markdownIt-Anchor" href="#cilk_sync"></a> cilk_sync</h2>
+<ol>
+<li>
+<p><code>cilk_sync</code> is used after those <code>cilk_spawn</code> call code. It will return when all calls spawned by the current function have been completed.</p>
+</li>
+<li>
+<p>There is an implicit <code>cilk_sync</code> at the end of every function containing a cilk_spawn, so when a Cilk function returns, all work associated with that function is complete.</p>
+</li>
+<li>
+<p>If no work has been stolen by other threads, then there’s nothing to do at the sync point, <code>cilk_sync</code> is a no-op. But this is not a common situation.</p>
+</li>
+<li>
+<p>One way to implement sync is with a stalling joint.<br />
+The thread that initiates the fork must perform the sync. Therefore, it waits for all spawned work to be complete.<br />
+The descriptor for block A was created.<br />
+When stealing from the initial thread happens, a descriptor for that stolen work is created to track the number of outstanding spawns for the block and the number of those that have completed.<br />
+When all the child spawned for the block is done, this block is considered done, and the descriptor is free. When all the blocks are done, sync is fulfilled.</p>
+</li>
+<li>
+<p>Another way to implement sync is the greedy policy.<br />
+When the thread that initiates the fork goes idle, it can look to steal new work.  The last thread to reach the join point continues execution after sync. This will also create a descriptor for those stolen works.<br />
+The worker thread that initiated spawn may not be the thread that executes logic after <code>cilk_sync</code>.</p>
+</li>
+<li>
+<p>In greed policy, All threads always attempt to steal if there is nothing to do, and the thread only goes idle if no work to steal is present in the system. But in stalling policy, the initial thread doesn’t steal and only waits until its work is done.</p>
+</li>
+<li>
+<p>The overhead of bookkeeping steals and managing sync points only occurs when steals occur. If large pieces of work are stolen, this should occur infrequently. Most of the time, threads push/pop local work from their local queue.</p>
+</li>
+<li>
+<p>Cilk uses greedy join scheduling.</p>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/04/20/Courses/CS149/03-Parallel-Programming-Basics/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/04/20/Courses/CS149/03-Parallel-Programming-Basics/" class="post-title-link" itemprop="url">03. Parallel Programming Basics</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-04-20 14:27:45" itemprop="dateCreated datePublished" datetime="2022-04-20T14:27:45+08:00">2022-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-03-16 18:45:17" itemprop="dateModified" datetime="2024-03-16T18:45:17+08:00">2024-03-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="decomposition"><a class="markdownIt-Anchor" href="#decomposition"></a> Decomposition</h1>
+<ol>
+<li>
+<p>Decomposition: The problem to solve is usually a chunk of work. So the first step we need to do is to decomposite them into subproblems (a.k.a tasks, work to do)</p>
+</li>
+<li>
+<p>We usually want the number of subproblems to be at least as many as processors.</p>
+</li>
+<li>
+<p>The key aspect of decomposition is to identify dependencies. We want subproblems to be independent so that they can be paralleled.</p>
+</li>
+<li>
+<p>Amdahl’s Law: dependencies limit maximum speedup due to parallelism<br />
+Let S = the fraction of sequential execution that is inherently sequential (dependencies prevent parallel execution). The maximum speedup due to parallel execution ≤ 1/S.</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>s</mi><mi>p</mi><mi>e</mi><mi>e</mi><mi>d</mi><mi>u</mi><mi>p</mi><mo>≤</mo><mfrac><mi>t</mi><mrow><mi>s</mi><mi>t</mi><mo>+</mo><mfrac><mrow><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>s</mi><mo stretchy="false">)</mo><mi>t</mi></mrow><mi>p</mi></mfrac></mrow></mfrac><mo>=</mo><mfrac><mn>1</mn><mrow><mi>s</mi><mo>+</mo><mfrac><mrow><mn>1</mn><mo>−</mo><mi>s</mi></mrow><mi>p</mi></mfrac></mrow></mfrac></mrow><annotation encoding="application/x-tex">speedup \le\frac{t}{st+\frac{(1-s)t}{p}}=\frac1{s+\frac{1-s}{p}} 
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">s</span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal">e</span><span class="mord mathnormal">d</span><span class="mord mathnormal">u</span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.6731879999999997em;vertical-align:-1.381108em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.29208em;"><span style="top:-2.11em;"><span class="pstrut" style="height:3.01em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.01em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.485em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mtight">1</span><span class="mbin mtight">−</span><span class="mord mathnormal mtight">s</span><span class="mclose mtight">)</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.481108em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span><span style="top:-3.2399999999999998em;"><span class="pstrut" style="height:3.01em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.687em;"><span class="pstrut" style="height:3.01em;"></span><span class="mord"><span class="mord mathnormal">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.381108em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.537656em;vertical-align:-1.216216em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.32144em;"><span style="top:-2.264892em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mbin mtight">−</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.481108em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord">1</span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.216216em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+</li>
+<li>
+<p>In most cases, the programmer is responsible for performing decomposition.</p>
+</li>
+<li>
+<p>When doing the decomposition, it is better to think of partitioning computation instead of data.</p>
+</li>
+</ol>
+<h1 id="assignment"><a class="markdownIt-Anchor" href="#assignment"></a> Assignment</h1>
+<ol>
+<li>
+<p>Assignment: When the subproblems are more than processors, we will group them to form a larger chunk of work and assign the grouped tasks to parallel threads.</p>
+</li>
+<li>
+<p>One goal is to balance the workload so that each processor finishes their work almost simultaneously.<br />
+Another goal is to reduce communication costs. Getting data from another processor is nontrivial expensive, either cache miss or waiting for a message.<br />
+These two goals are at odds with each other.</p>
+</li>
+<li>
+<p>This step can be performed statically or dynamically during the execution<br />
+Static way: Before the processors begin the work, we have already decided how to divide things.<br />
+Dynamic way: We work out how to divide on the way as processing.</p>
+</li>
+<li>
+<p>We can choose the static way with the programCount and programIndex assignment or pthread</p>
+</li>
+<li>
+<p>We can choose the dynamic way with foreach if the system chooses the dynamic way or the queue.<br />
+In the queue way, we arrange all tasks in a queue, and when a processor has done its job, it will grab another task from the queue. This is an excellent way to balance the workload, but maintaining the queue and acquiring tasks from it might cost some performance.</p>
+</li>
+</ol>
+<h1 id="orchestration"><a class="markdownIt-Anchor" href="#orchestration"></a> Orchestration</h1>
+<ol>
+<li>
+<p>Orchestration: When parallel threads are running, they may need to cooperate. So, we need to let them communicate correctly.</p>
+</li>
+<li>
+<p>We will worry about things like structure communication, synchronization, organizing data structure in memory, and scheduling tasks.</p>
+</li>
+<li>
+<p>The goal is to reduce the costs of communication/sync, preserve the locality of data reference, reduce the overhead of synchronization or communication, etc.</p>
+</li>
+<li>
+<p>In the shared address space model, lock/unlock is commonly used for preserving atomicity, and barriers can divide computation into phases. When threads execute to barriers, they will stop and wait. Until enough threads hit the barrier, those stalled threads can execute rest codes.</p>
+</li>
+<li>
+<p>A commonly used optimization strategy is fewer locks/unlocks and barriers.<br />
+Every time we operate a shared variable, we must use the lock/unlock to keep atomicity. We could operate on partial variables locally and then merge the partial results.<br />
+When we use a barrier to keep a shared variable valid when it might be changed at the next phase, we can use different shared variables in successive phases. This is to trade off footprint for removing dependencies.</p>
+</li>
+</ol>
+<h1 id="mapping"><a class="markdownIt-Anchor" href="#mapping"></a> Mapping</h1>
+<ol>
+<li>
+<p>Mapping: Finally, we need to map each thread to physical hardware.</p>
+</li>
+<li>
+<p>When we map pthreads to hardware execution context on a CPU core, this is done by the operating system.<br />
+When we map ISPC program instances to vector instruction lanes, this is done by the compiler.<br />
+When we map CUDA thread blocks to GPU cores, this is done by the hardware.</p>
+</li>
+<li>
+<p>Place related threads (cooperating threads) on the same processor to maximize locality data sharing and minimize costs of comm/sync.<br />
+Place unrelated threads on the same processor (one might be bandwidth-limited, and another might be compute-limited) to use the machine more efficiently.</p>
+</li>
+<li>
+<p>Normally, we just let the OS do the mapping as it wants. But sometimes we still want to control the way of mapping.</p>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
