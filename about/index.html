@@ -146,7 +146,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">64</span>
+          <span class="site-state-item-count">66</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -157,7 +157,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -174,6 +174,342 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2024/03/24/Version-Control/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2024/03/24/Version-Control/" class="post-title-link" itemprop="url">Version Control</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2024-03-24 23:36:44 / Modified: 23:37:00" itemprop="dateCreated datePublished" datetime="2024-03-24T23:36:44+08:00">2024-03-24</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#file">File</a>
+<ul>
+<li><a href="#how-to-organize-logs">How to organize logs?</a></li>
+<li><a href="#how-do-we-know-the-information-of-files">How do we know the information of files?</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="file"><a class="markdownIt-Anchor" href="#file"></a> File</h1>
+<h2 id="how-to-organize-logs"><a class="markdownIt-Anchor" href="#how-to-organize-logs"></a> How to organize logs?</h2>
+<ol>
+<li>There are <code>mem_</code>, <code>imm_</code>, and persisted logs. They are all Memtables.</li>
+<li>Both <code>mem_</code> and <code>imm_</code> are in volatile storages.
+<ul>
+<li>The <code>mem_</code> is the latest Memtable to which we can append logs.</li>
+<li>When <code>mem_</code> is full, it will be frozen into <code>imm_</code> to be an immutable Memtable.</li>
+</ul>
+</li>
+<li>The <code>imm_</code> will be written into disks as persisted logs.
+<ul>
+<li>The persisted logs are separated into several levels, starting from <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>. The lower level contains newer logs.</li>
+<li>The SSTables at lower levels can be compacted into higher-level SSTables.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-do-we-know-the-information-of-files"><a class="markdownIt-Anchor" href="#how-do-we-know-the-information-of-files"></a> How do we know the information of files?</h2>
+<ol>
+<li>Each <code>FileMetaData</code> corresponds to a file on the disk. It contained basic metadata of a file, including ID (<code>number</code>), size (<code>file_size</code>), and its key range (<code>smallest</code> and <code>largest</code>).</li>
+<li>The <code>Version</code> contains all the metadata of files.
+<ul>
+<li>List of files of different levels are stored in <code>std::vector&lt;FileMetaData*&gt; files_[config::kNumLevels]</code>.</li>
+<li>Both <code>Version</code> and <code>FileMetaData</code> uses <code>ref</code> to track pointers that point to them. They are destroyed when <code>ref</code> goes to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>.</li>
+</ul>
+</li>
+<li>The <code>VersionSet</code> contains all the <code>Version</code>s of the database. They are formed into a list.
+<ul>
+<li>The most recent version is in <code>current_</code>. There is a <code>dummy_versions_</code> as the head of the list.</li>
+<li>The <code>prev_</code> pointer in <code>Version</code> is the previous version while <code>next_</code> is the newer version.</li>
+<li>The <code>current_</code> is considered the previous of <code>dummy_versions_</code>.</li>
+</ul>
+</li>
+<li>From <code>VersionSet::AppendVersion</code>, we can see that this list is a cycle.
+<ul>
+<li>The <code>next_</code> of <code>dummy_versions_</code> points to the oldest version since it will only be set when add the first version into the list.</li>
+<li>The <code>prev_</code> of the oldest version points to the <code>dummy_versions_</code>.</li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2024/03/22/OpenSource/LevelDB/Cache/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2024/03/22/OpenSource/LevelDB/Cache/" class="post-title-link" itemprop="url">3. Cache</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-03-22 00:30:14" itemprop="dateCreated datePublished" datetime="2024-03-22T00:30:14+08:00">2024-03-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-03-24 23:46:18" itemprop="dateModified" datetime="2024-03-24T23:46:18+08:00">2024-03-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/" itemprop="url" rel="index"><span itemprop="name">Open Source Code</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/LevelDB/" itemprop="url" rel="index"><span itemprop="name">LevelDB</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#how-to-prevent-reading-from-the-disk-too-often">How to prevent reading from the disk too often?</a></li>
+<li><a href="#how-does-handletable-insert-evict-and-lookup-items-in-table_">How does HandleTable insert, evict, and lookup items in table_?</a></li>
+<li><a href="#how-to-insert-evict-and-lookup-items">How to insert, evict, and lookup items?</a></li>
+<li><a href="#what-is-stored-in-each-cache-slot">What is stored in each cache slot?</a></li>
+<li><a href="#how-does-tablecache-read-a-key">How does TableCache read a key?</a></li>
+<li><a href="#how-does-tablecache-iterate-over-a-file">How does TableCache iterate over a file?</a></li>
+</ul>
+</p>
+<h1 id="how-to-prevent-reading-from-the-disk-too-often"><a class="markdownIt-Anchor" href="#how-to-prevent-reading-from-the-disk-too-often"></a> How to prevent reading from the disk too often?</h1>
+<ol>
+<li>There are only two Memtables, <code>mem_</code> and <code>imm_</code>, in the memory. We may need to read from disk often, especially for level <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files. The solution is to cache</li>
+<li>The <code>TableCache</code> provides interfaces for <code>VersionSet</code> to use cache strategies.
+<ul>
+<li>It has a <code>Cache*</code> that points to a specific cache strategy. The <code>Cache</code> is a base class implemented by <code>ShardedLRUCache</code> in <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/util/cache.cc#L339">cache.cc</a>.</li>
+</ul>
+</li>
+<li>The <code>ShardedLRUCache</code> hashes keys into several <code>LRUCache</code>s.</li>
+<li>Each <code>LRUCache</code> uses <code>LRUHandle</code> to store the list of cached contents.
+<ul>
+<li>There are two lists: one <code>in-use_</code> list contains the items currently referenced by clients, and another <code>lru_</code> list includes the items not currently referenced by clients in LRU order.</li>
+<li>Another <code>HandleTable</code> is used to fetch the items according to their hash value.</li>
+</ul>
+</li>
+</ol>
+<h1 id="how-does-handletable-insert-evict-and-lookup-items-in-table_"><a class="markdownIt-Anchor" href="#how-does-handletable-insert-evict-and-lookup-items-in-table_"></a> How does HandleTable insert, evict, and lookup items in table_?</h1>
+<ol>
+<li>In <code>HandleTable</code>, <code>length_</code> is the total number of items in the cache. Here, we need to take the modulo operation on h again.
+<ul>
+<li>Since <code>length_</code> is set to be a power of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn></mrow><annotation encoding="application/x-tex">2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span></span></span></span>, <code>hash &amp; length_-1</code> is the modulo operation of <code>hash</code> concerning <code>length_</code>.</li>
+</ul>
+</li>
+<li>The items in <code>HandleTable</code> are contained in a variable-length array <code>LRUHandle** list_</code>.
+<ul>
+<li>Normally, each slot only has one item. However, when the size is growing, rehashing may cause a hash collision. Those collide items are connected into a list by <code>next_hash</code>.</li>
+</ul>
+</li>
+<li>The <code>HandleTable::FindPointer</code> returns a pointer that points to the slot instead of the item.
+<ul>
+<li>The target item is identified by having the same <code>hash</code> or the same key.</li>
+<li>When the target item does not exist, it should return a position indicating the slot to insert the item instead of a <code>nullptr</code>.</li>
+<li>When inserting an item, the new item will be replaced if the pointer points to another item or increases the number of elements. If the number of elements exceeds the <code>length_</code>, the table needs to resize.</li>
+<li>When evicting an item, store the <code>next_hash</code> pointer in the found slot.</li>
+</ul>
+</li>
+</ol>
+<h1 id="how-to-insert-evict-and-lookup-items"><a class="markdownIt-Anchor" href="#how-to-insert-evict-and-lookup-items"></a> How to insert, evict, and lookup items?</h1>
+<ol>
+<li>The <code>next</code> and <code>prev</code> in <code>LRUHandler</code> point to their neighbors in the <code>in_use_</code> or <code>lru_</code> list. The <code>next_hash</code> points to its neighbor in <code>table_</code>.</li>
+<li>To lookup a key, the <code>HandleTable::Lookup</code> is invoked. If the key exists, its <code>refs</code> is increased and moved to the <code>in_use_</code> list if it is in the <code>lru_</code>.</li>
+<li>To insert a key, it must be appended to the <code>in_use_</code> list and the <code>table_</code>. We also need to remove what it replaced.
+<ul>
+<li>If the <code>capacity_</code> is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> indicating the cache is turned off, these operations can be skipped.</li>
+<li>If the cache usage after inserting exceeds the capacity, we need to evict items in the <code>lru_</code> in order.</li>
+</ul>
+</li>
+<li>Both lookup and insert return a <code>Handle*</code> that can be reinterpreted as a <code>LRUHandle*</code>.</li>
+<li>When the clients release an item, its <code>refs</code> is decreased.
+<ul>
+<li>When the <code>refs</code> is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>, which means that only the LRUCache is holding it and can be moved from <code>in_use_</code> to <code>lru_</code>. The <code>prev</code> of <code>lru_</code> is the newest item while the <code>next</code> of <code>lru_</code> is the oldest. Therefore, <code>lru_.next</code> is the first item to be evicted.</li>
+<li>When the <code>refs</code> is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>, which means no one is holding it, and it will be deleted.</li>
+</ul>
+</li>
+</ol>
+<h1 id="what-is-stored-in-each-cache-slot"><a class="markdownIt-Anchor" href="#what-is-stored-in-each-cache-slot"></a> What is stored in each cache slot?</h1>
+<ol>
+<li>The first kind of cached content is a specific file’s index block.
+<ul>
+<li>The table cache uses the file number as the key. The value is a void pointer that can be interpreted as <code>TableAndFile*</code>.</li>
+<li>The <code>TableAndFile</code> is the <code>RandomAccessFile*</code> and <code>Table*</code> to access the file. So, a cache slot stores the access to a file and the index of its keys.</li>
+<li>The <code>RandomAccessFile*</code> provides a <code>Read</code> to read content for a given destination. The cache operations are executed through <code>Table*</code>.</li>
+<li>The core of a <code>Table</code> is <code>Table::Rep</code>, which contains the contents of the index block in <code>Block* index_block</code> and its  <code>cache_id</code>, which is a globally unique, monotonously increasing ID.</li>
+<li>The <code>rep_-&gt;options.block_cache</code> points to the <code>SharedLRUCache</code> where the <code>Table</code> is.</li>
+</ul>
+</li>
+<li>The second kind of content cached is a data block of a <code>TableAndFile*</code>.
+<ul>
+<li>The key is the <code>cache_id</code> of the <code>TableAndFile*</code> and its offset in that file. The value is a <code>Block</code> containing its contents.</li>
+</ul>
+</li>
+</ol>
+<h1 id="how-does-tablecache-read-a-key"><a class="markdownIt-Anchor" href="#how-does-tablecache-read-a-key"></a> How does TableCache read a key?</h1>
+<ol>
+<li>To read a key from a specific file with <code>TableCache</code>, <code>TableCache::Get</code> first tries to find the index block of that file by <code>FindTable</code>.
+<ul>
+<li>If the target key is found, it will be processed by <code>void (*handle_result)(void*, const Slice&amp;, const Slice&amp;)</code>.</li>
+<li>If the file is not currently in the cache, it will create an entry and be inserted.</li>
+</ul>
+</li>
+<li>Then, use the <code>Table::InternalGet</code> to seek the target key from the index of the file.
+<ul>
+<li>If the key is not in this file, do nothing and return.</li>
+<li>Otherwise, use the <code>Table::BlockReader</code> to generate a block iterator to seek the key in the block designated by the information from the index iterator.</li>
+<li>It would try to find whether the target block is read into the cache. If not, read the block from the disk and insert it into the cache.</li>
+<li>If the key is found in that block, <code>handle_result</code> will process the key-value pair.</li>
+</ul>
+</li>
+<li>The table can be released immediately after the <code>InternalGet</code> is returned.</li>
+</ol>
+<h1 id="how-does-tablecache-iterate-over-a-file"><a class="markdownIt-Anchor" href="#how-does-tablecache-iterate-over-a-file"></a> How does TableCache iterate over a file?</h1>
+<ol>
+<li>Like reading a value, the <code>FindTable</code> will load the index block into the cache.</li>
+<li>Then, a <code>TwoLevelIterator</code> is created to iterate the <code>Table</code> using <code>Table::NewIterator</code>.
+<ul>
+<li>It is initialized with a <code>Block::Iter</code> to iterate over the index block and a <code>BlockFunction</code> to generate another iterator to read data according to the information from the index iterator from its <code>value()</code>.
+<ul>
+<li>The <code>BlockFunction</code> is defined as <code>Iterator* (*BlockFunction)(void*, const ReadOptions&amp;, const Slice&amp;)</code>.</li>
+</ul>
+</li>
+<li>In <code>TableCache</code>, <code>Table::BlockReader</code> is passed to be the <code>BlockFunction</code>.</li>
+</ul>
+</li>
+<li>To iterate over the file, iterate over the index block and fetch the corresponding data block of valid index entries.
+<ul>
+<li>We can initiate the <code>TwoLevelIterator</code> with <code>Seek</code>, <code>SeekToFirst</code>, or <code>SeekToLast</code>.
+<ul>
+<li>They will set the index iterator to a valid position that satisfies the requests.</li>
+<li>Then, <code>TwoLevelIterator::InitDataBlock</code> is invoked to load the iterator of the data block with <code>block_function_</code>.</li>
+</ul>
+</li>
+<li>It can advance with <code>TwoLevelIterator::Next</code> and move backward with <code>TwoLevelIterator::Prev</code>.
+<ul>
+<li>They will move the data iterator before skipping those empty or invalid entries.</li>
+<li>Skipping moves the index iterator and tries to initiate the data iterator until it is valid.</li>
+<li>When constructing the data iterator, a <code>data_block_handle_</code> is stored to identify the current file so we can skip the entries in the same block when moving the index iterator.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -219,7 +555,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-21 14:43:42" itemprop="dateModified" datetime="2024-03-21T14:43:42+08:00">2024-03-21</time>
+      <time title="Modified: 2024-03-24 23:27:49" itemprop="dateModified" datetime="2024-03-24T23:27:49+08:00">2024-03-24</time>
     </span>
 
   
@@ -232,67 +568,168 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>@[toc]</p>
-<h1 id="Write"><a href="#Write" class="headerlink" title="Write"></a>Write</h1><p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.h">db_impl.h</a> and <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.cc">db_impl.cc</a>. </p>
-<h2 id="How-to-organize-levels-of-logs"><a href="#How-to-organize-levels-of-logs" class="headerlink" title="How to organize levels of logs?"></a>How to organize levels of logs?</h2><ol>
-<li>There are <code>mem_</code>, <code>imm_</code>, and persisted logs. They are all Memtables. </li>
-<li>Both <code>mem_</code> and <code>imm_</code> are in volatile storages. <ul>
-<li>The <code>mem_</code> is the latest Memtable to which we can append logs. </li>
-<li>When <code>mem_</code> is full, it will be frozen into <code>imm_</code> to be an immutable Memtable. </li>
-</ul>
-</li>
-<li>The <code>imm_</code> will be written into disks as persisted logs. <ul>
-<li>The persisted logs are separated into several levels, starting from $0$. The lower level contains newer logs. </li>
-<li>The SSTables at lower levels can be compacted into higher-level SSTables. </li>
-</ul>
-</li>
-</ol>
-<h2 id="How-to-write-a-log"><a href="#How-to-write-a-log" class="headerlink" title="How to write a log?"></a>How to write a log?</h2><ol>
-<li><p>The <code>db_impl</code> provided <code>Put</code> and <code>Delete</code>. </p>
+          <p><ul class="markdownIt-TOC">
+<li><a href="#write">Write</a>
 <ul>
-<li><p>They encode requested writes into a <code>WriteBatch</code> and invoke <code>db_impl::Write</code> to finish the write. </p>
+<li><a href="#how-to-write-a-log">How to write a log?</a></li>
+<li><a href="#how-are-writebatches-encoded">How are WriteBatches encoded?</a></li>
+<li><a href="#how-to-make-room-for-the-writes">How to make room for the writes?</a></li>
+<li><a href="#how-to-pick-the-tables-to-compact">How to pick the tables to compact?</a></li>
+<li><a href="#how-to-perform-compact">How to perform compact?</a></li>
+</ul>
 </li>
-<li><p>The orders of concurrent writes are determined by their orders in <code>db_impl::writers_</code>. </p>
+<li><a href="#get">Get</a>
+<ul>
+<li><a href="#how-to-get-a-key-from-the-database">How to get a key from the database?</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="write"><a class="markdownIt-Anchor" href="#write"></a> Write</h1>
+<p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.h">db_impl.h</a> and <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.cc">db_impl.cc</a>.</p>
+<h2 id="how-to-write-a-log"><a class="markdownIt-Anchor" href="#how-to-write-a-log"></a> How to write a log?</h2>
+<ol>
+<li>
+<p>The <code>db_impl</code> provided <code>Put</code> and <code>Delete</code>.</p>
+<ul>
+<li>
+<p>They encode requested writes into a <code>WriteBatch</code> and invoke <code>db_impl::Write</code> to finish the write.</p>
+</li>
+<li>
+<p>The orders of concurrent writes are determined by their orders in <code>db_impl::writers_</code>.</p>
 </li>
 </ul>
 </li>
-<li><p>To execute a write, the first step is to invoke <code>MakeRoomForWrite</code> to reserve enough space in <code>mem_</code>, which is the only structure that can be modified. </p>
+<li>
+<p>To execute a write, the first step is to invoke <code>MakeRoomForWrite</code> to reserve enough space in <code>mem_</code>, which is the only structure that can be modified.</p>
 </li>
-<li><p>Each entry in the <code>WriteBatch</code> is assigned a unique, monotonously increasing sequential number. </p>
+<li>
+<p>Each entry in the <code>WriteBatch</code> is assigned a unique, monotonously increasing sequential number.</p>
 </li>
-<li><p>Before calling the <code>MemTableInserter</code> to apply each write to <code>mem_</code>, the write records must be put into the write-ahead log <code>log_</code>. </p>
+<li>
+<p>Before calling the <code>MemTableInserter</code> to apply each write to <code>mem_</code>, the write records must be put into the write-ahead log <code>log_</code>.</p>
 </li>
 </ol>
-<h2 id="How-are-WriteBatches-encoded"><a href="#How-are-WriteBatches-encoded" class="headerlink" title="How are WriteBatches encoded?"></a>How are WriteBatches encoded?</h2><ol>
-<li><p>In <code>WriteBatch</code>, a <code>req_</code> contains all requests in the following format, where <code>key_size</code> and <code>value_size</code> are encoded by <code>EncodeVarint32</code>, the same as <code>Memtable</code>. </p>
+<h2 id="how-are-writebatches-encoded"><a class="markdownIt-Anchor" href="#how-are-writebatches-encoded"></a> How are WriteBatches encoded?</h2>
+<ol>
+<li>
+<p>In <code>WriteBatch</code>, a <code>req_</code> contains all requests in the following format, where <code>key_size</code> and <code>value_size</code> are encoded by <code>EncodeVarint32</code>, the same as <code>Memtable</code>.</p>
 <figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">req_: </span><br><span class="line">+----------+-------+-----------+</span><br><span class="line">|  SeqNum  |  cnt  |  records  |</span><br><span class="line">+----------+-------+-----------+</span><br><span class="line">records:</span><br><span class="line">+--------+------------+-------+-------------+---------+</span><br><span class="line">|  type  |  key_size  |  key  |  value_size |  value  |</span><br><span class="line">+--------+------------+-------+-------------+---------+</span><br></pre></td></tr></table></figure>
 </li>
-<li><p>A <code>Put</code> request has type <code>kTypeValue</code>. A <code>Delete</code> request has type <code>kTypeDeletion</code> and without the value part. </p>
+<li>
+<p>A <code>Put</code> request has type <code>kTypeValue</code>. A <code>Delete</code> request has type <code>kTypeDeletion</code> and without the value part.</p>
 </li>
-<li><p>When creating a new <code>WriteBatch</code>, the <code>req_</code> reserves $12$ bytes, $8$ bytes for <code>SeqNum</code> and $4$ bytes for <code>cnt</code>. </p>
+<li>
+<p>When creating a new <code>WriteBatch</code>, the <code>req_</code> reserves <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>12</mn></mrow><annotation encoding="application/x-tex">12</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">2</span></span></span></span> bytes, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>8</mn></mrow><annotation encoding="application/x-tex">8</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">8</span></span></span></span> bytes for <code>SeqNum</code> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4</mn></mrow><annotation encoding="application/x-tex">4</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">4</span></span></span></span> bytes for <code>cnt</code>.</p>
 <ul>
-<li>The <code>SeqNum</code> and <code>cnt</code> are initially $0$. </li>
-<li>When a new request is added to a <code>WriteBatch</code>, a <code>SetCount</code> is invoked to modify the <code>cnt</code>. </li>
-<li>The <code>SeqNum</code> is set when the write is being executed instead of when collecting. </li>
+<li>The <code>SeqNum</code> and <code>cnt</code> are initially <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>.</li>
+<li>When a new request is added to a <code>WriteBatch</code>, a <code>SetCount</code> is invoked to modify the <code>cnt</code>.</li>
+<li>The <code>SeqNum</code> is set when the write is being executed instead of when collecting.</li>
 </ul>
 </li>
 </ol>
-<h2 id="How-to-make-room-for-the-writes"><a href="#How-to-make-room-for-the-writes" class="headerlink" title="How to make room for the writes?"></a>How to make room for the writes?</h2><ol>
-<li>If the <code>WriteBatch</code> is <code>nullptr</code>, the compaction is forced. </li>
-<li>If <code>mem_</code> is not full, no more efforts need to be made. Otherwise, we must set the current <code>mem_</code> as immutable, i.e., <code>imm_</code>, and switch to a new one. </li>
-<li>If <code>imm_</code> is not empty or there are too many level $0$ files, we need to wait for the background thread to compact the current files. </li>
-<li>If <code>mem_</code> is full, <code>imm_</code> is empty, and there is enough space for level $0$ we can schedule a compaction and switch to a new <code>mem_</code>. <ul>
-<li>The write-ahead log file <code>logfile_</code> is bound with a <code>mem_</code>. Switching to a new <code>mem__</code> also needs to create a new <code>logfile_</code>. </li>
-<li>Then, <code>imm_</code> points to the current <code>mem_</code> before creating a new Memtable for <code>mem_</code>. </li>
-</ul>
-</li>
-</ol>
-<h2 id="How-to-compact-files"><a href="#How-to-compact-files" class="headerlink" title="How to compact files?"></a>How to compact files?</h2><p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.cc#L702">DBImpl::BackgroundCompaction</a>. </p>
+<h2 id="how-to-make-room-for-the-writes"><a class="markdownIt-Anchor" href="#how-to-make-room-for-the-writes"></a> How to make room for the writes?</h2>
 <ol>
-<li>If <code>imm_</code> is not empty, it must be written to the level $0$ files. </li>
-<li></li>
+<li>If the <code>WriteBatch</code> is <code>nullptr</code>, the compaction is forced.</li>
+<li>If <code>mem_</code> is not full, no more efforts need to be made. Otherwise, we must set the current <code>mem_</code> as immutable, i.e., <code>imm_</code>, and switch to a new one.</li>
+<li>If <code>imm_</code> is not empty or there are too many level <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files, we need to wait for the background thread to compact the current files.</li>
+<li>If <code>mem_</code> is full, <code>imm_</code> is empty, and there is enough space for level <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> we can schedule a compaction and switch to a new <code>mem_</code>.
+<ul>
+<li>The write-ahead log file <code>logfile_</code> is bound with a <code>mem_</code>. Switching to a new <code>mem__</code> also needs to create a new <code>logfile_</code>.</li>
+<li>Then, <code>imm_</code> points to the current <code>mem_</code> before creating a new Memtable for <code>mem_</code>.</li>
+</ul>
+</li>
 </ol>
-<p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/version_set.h">version_set.h</a> and <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/version_set.cc">version_set.cc</a>. </p>
+<h2 id="how-to-pick-the-tables-to-compact"><a class="markdownIt-Anchor" href="#how-to-pick-the-tables-to-compact"></a> How to pick the tables to compact?</h2>
+<p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.cc#L702">DBImpl::BackgroundCompaction</a>.</p>
+<ol>
+<li>The compaction with the highest priority is called a minor compact. It happens when <code>imm_</code> is not empty, it must be written to the level <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files.</li>
+<li>The second priority is the manual compaction when <code>manual_compaction_</code> is not <code>nullptr</code>.
+<ul>
+<li>A <code>ManualCompaction</code> indicates the level and the range to compact. All files at the given level that overlaps with the specific range will be compact.</li>
+</ul>
+</li>
+<li>In <code>VersionSet::PickCompaction</code>, there are two kinds of compactions: size compaction and seek compaction.</li>
+<li>The size compaction designates a <code>compaction_level_</code> with the highest <code>compaction_score_</code> to compact.
+<ul>
+<li>It is calculated for each level when editing a new version in the database.</li>
+<li>For level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files, the score is the ratio of the number of files and the <code>kL0_CompactionTrigger</code>. For other levels, it is the ratio of the total file size in that level against the maximum size for each level.</li>
+<li>The size compaction is triggered when the <code>compaction_score_ &gt;= 1</code>, i.e., the number or size of files in a certain level exceeds the maximum line.</li>
+<li>The first file that comes after <code>compact_pointer_[level]</code> is picked to compact.</li>
+</ul>
+</li>
+<li>The seek compaction designates a <code>file_to_compact_</code> to be the candidate.</li>
+<li>The files in level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> may overlap. We must make sure that no remaining files overlap with those files to compact.
+<ul>
+<li>A file in the level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> may extend the search range and require restarting the search in manual compaction.</li>
+<li>The size compaction and seek compaction would pick more than one file to compact when overlap exists.</li>
+</ul>
+</li>
+<li>After the above procedures, the size compaction and the seek compaction have selected some files in the lower level to compact, which is in <code>Compaction.input[0]</code>.
+<ul>
+<li>Those files will compact with the files in the next level that overlaps with them, which is in <code>Compaction.input[1]</code>.</li>
+<li>The boundaries of files are encoded by the user key and sequential number.
+<ul>
+<li>The sequence number is encoded in a little-endian way. So, the newer keys might be in front of the older keys in the former block, e.g., when a higher byte is changed.</li>
+<li>There is a case in the upper bound of a file and the lower bound of another file shares the same user key with an older sequence number.</li>
+<li>If we only compact the former file, in reading, we might find the older result in a lower level instead of the correct value in a higher level.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>To compact more thoroughly, we try to expand the current inputs by including all files at the compact level that overlap with them.
+<ul>
+<li>The files overlap with the files at the compact level is already included. This time is mainly for the files at the compact level that overlaps with files in the next level. Also need to include those boundary files.</li>
+<li>This is merely a trial. It only happens when the total size of <code>Compaction.inputs[1]</code> and expanded files is less than the <code>ExpandedCompactionByteSizeLimit</code>.</li>
+<li>Another condition for this expansion is that we cannot increase the number of files selected from the next level. Namely, the range of the new expanded files is already included in the <code>Compaction.inputs[1]</code>.</li>
+</ul>
+</li>
+<li>The grandparent files in the next two levels that overlap with all files in both lower levels are required.</li>
+<li>Finally, update the place where we will do the next compaction for this level in <code>compact_pointer_[level]</code>.</li>
+</ol>
+<ul>
+<li>We update this immediately instead of waiting for the VersionEdit to be applied so that if the compaction fails, we will try a different key range next time.</li>
+</ul>
+<h2 id="how-to-perform-compact"><a class="markdownIt-Anchor" href="#how-to-perform-compact"></a> How to perform compact?</h2>
+<ol>
+<li>If this is not a manual compaction and there is only one file in <code>Compaction.inputs[0]</code> and no next-level file to merge, we only need to trivially move the file into the next level.
+<ul>
+<li>In the <code>VersionEdit</code>, remove the file in <code>Compaction.inputs[0]</code> from its level and add it into the next level.</li>
+</ul>
+</li>
+<li>The merge process is completed by a <code>MergingIterator</code>.
+<ul>
+<li>Given that level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files might overlap, there is a <code>TwoLevelIterator</code> for each files. For other levels, one iterator is enough to traverse them in order.
+<ul>
+<li>What is read by a <code>TwoLevelIterator</code> is determined by the index interator passed to it.</li>
+<li>For the level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files, we use the index iterator of its index block. For other levels, the <code>Version::LevelFileNumIterator</code> is passed to be the index iterator.</li>
+</ul>
+</li>
+<li>All the files that are involved are pinned in the cache now.</li>
+</ul>
+</li>
+</ol>
+<h1 id="get"><a class="markdownIt-Anchor" href="#get"></a> Get</h1>
+<h2 id="how-to-get-a-key-from-the-database"><a class="markdownIt-Anchor" href="#how-to-get-a-key-from-the-database"></a> How to get a key from the database?</h2>
+<ol>
+<li>
+<p>The <code>DBImpl::Get</code> searches the key from the latest records to the oldest records. First search on the <code>mem_</code>. If missed, try on the <code>imm_</code>.</p>
+</li>
+<li>
+<p>If it is not found in memory, read from the files on disk by <code>Version::Get</code> of the current version.</p>
+<ul>
+<li>
+<p>The level <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files may have overlapped ranges. Search level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> in order from newest to oldest. Check every file that may contain the target key through <code>TableCache::Get</code>.</p>
+</li>
+<li>
+<p>The <code>handle_result</code> is a function to save the matched value to a <code>Save*</code>.</p>
+</li>
+<li>
+<p>Other levels can use binary search to file the possible file.</p>
+</li>
+</ul>
+</li>
+</ol>
 
       
     </div>
@@ -1478,568 +1915,6 @@
 </li>
 </ul>
 </li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/10/12/OpenSource/BusTub/Project-4-Concurrency-Control/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/10/12/OpenSource/BusTub/Project-4-Concurrency-Control/" class="post-title-link" itemprop="url">Project #4: Concurrency Control</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2023-10-12 13:26:44" itemprop="dateCreated datePublished" datetime="2023-10-12T13:26:44+08:00">2023-10-12</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-16 23:46:29" itemprop="dateModified" datetime="2024-03-16T23:46:29+08:00">2024-03-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Source-Code/" itemprop="url" rel="index"><span itemprop="name">Open Source Code</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Source-Code/BusTub/" itemprop="url" rel="index"><span itemprop="name">BusTub</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><ul class="markdownIt-TOC">
-<li><a href="#lockmanager">LockManager</a>
-<ul>
-<li><a href="#locks">Locks</a></li>
-<li><a href="#lock">Lock</a>
-<ul>
-<li><a href="#before-granting-locks">Before granting locks</a></li>
-<li><a href="#grant-locks">Grant locks</a></li>
-</ul>
-</li>
-<li><a href="#unlocktable">UnlockTable</a></li>
-</ul>
-</li>
-<li><a href="#concurrent-query-execution">Concurrent query execution</a>
-<ul>
-<li><a href="#seqscan-executor">SeqScan Executor</a></li>
-<li><a href="#insert-delete-and-update-executors">Insert, Delete, and Update Executors</a></li>
-<li><a href="#transaction-manager">Transaction manager</a></li>
-</ul>
-</li>
-</ul>
-</p>
-<h1 id="lockmanager"><a class="markdownIt-Anchor" href="#lockmanager"></a> LockManager</h1>
-<h2 id="locks"><a class="markdownIt-Anchor" href="#locks"></a> Locks</h2>
-<ol>
-<li><code>LockManager</code> is used to protect the data in the database. According to the lock granularities, the lock information is stored in <code>table_lock_map_</code> and <code>row_lock_map_</code>.</li>
-<li>The interface of <code>LockManager</code> may be executed concurrently by each transaction. Hence <code>table_lock_map_latch_</code> and <code>row_lock_map_latch_</code> are necessary to protect the data of <code>LockManager</code>.</li>
-<li>The information of each object is stored in <code>LockRequestQueue</code>, where all requests are stored, including both granted and waiting requests. Each queue has a <code>latch_</code> to protect its data and as the lock of the condition variable.</li>
-<li>The <code>table_lock_map_latch_</code> or <code>row_lock_map_latch_</code> can be released once the <code>latch_</code> of the corresponding queue is acquired to support better throughput of processing lock requests.</li>
-</ol>
-<h2 id="lock"><a class="markdownIt-Anchor" href="#lock"></a> Lock</h2>
-<h3 id="before-granting-locks"><a class="markdownIt-Anchor" href="#before-granting-locks"></a> Before granting locks</h3>
-<ol>
-<li>Check whether this transaction allows the acquisition of this lock based on its isolation level and current state.</li>
-<li>Check whether this transaction is upgrading its lock.
-<ul>
-<li>If so, check whether there is another transaction that is upgrading.</li>
-<li>If not, check whether it can upgrade to this new lock mode.</li>
-<li>If can, set the <code>upgrading_</code> of this queue, remove the recording of the currently holding lock from the transaction, update the lock_mode_ and granted_ of the request in the queue, and use this request as the request to be granted.</li>
-</ul>
-</li>
-<li>If this is not an upgrade, create a new request and insert it into the queue.</li>
-<li>When locking a row, we must also ensure that appropriate locks are held in the table.</li>
-</ol>
-<h3 id="grant-locks"><a class="markdownIt-Anchor" href="#grant-locks"></a> Grant locks</h3>
-<ol>
-<li>If the transaction is not aborted, try to grant the lock. If failed, sleep the process with the condition variable.</li>
-<li>The rules for granting locks are as follows:
-<ul>
-<li>If there are granted locks and they are compatible with all granted locks, grant the lock.</li>
-<li>If there is no granted lock,
-<ul>
-<li>If there is an upgrading request, when this is the upgrading request, or this is compatible with the upgrading request, grant the lock.</li>
-<li>If there is no upgrading request, grant the lock when this is the first request on the waiting list or this is compatible with the first request.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>If the loop of trying to grant the lock due to the transaction is aborted, its request needs to be deleted from the queue. Otherwise, add the record of the holding the lock to the transaction.</li>
-</ol>
-<h2 id="unlocktable"><a class="markdownIt-Anchor" href="#unlocktable"></a> UnlockTable</h2>
-<ol>
-<li>The transaction should not have any record of holding locks of rows of this table.</li>
-<li>Find the request for this transaction, remove it from the queue, update the transaction state according to the isolation level, unlock the lock, and remove the recording from the transaction.</li>
-<li>When unlocking a table, we need to ensure that no lock of rows in that table is held.</li>
-</ol>
-<h1 id="concurrent-query-execution"><a class="markdownIt-Anchor" href="#concurrent-query-execution"></a> Concurrent query execution</h1>
-<h2 id="seqscan-executor"><a class="markdownIt-Anchor" href="#seqscan-executor"></a> SeqScan Executor</h2>
-<ol>
-<li>The concurrency control of deletion depends on the <code>SeqScan</code> executor. In <code>Init()</code>, we need to determine the lock type according to <code>exec_ctx_-&gt;IsDelete()</code>.
-<ul>
-<li>If this scan is for future deletion, we must acquire an exclusive lock on rows and an intension-exclusive lock on the table.</li>
-<li>Otherwise, we lock the table with an intension-shared lock if the isolation level is not <code>READ_UNCOMMITED</code>.</li>
-</ul>
-</li>
-<li>In <code>Next</code>, if shared locks are on the previous row and the isolation level is <code>READ_COMMITTED</code>, we must first release the shared lock. Hence, we can only execute <code>++(*iter_)</code> at the beginning instead of right after fetching the row.
-<ul>
-<li>Also, when reading tuples, we always acquire a lock first. If, after reading, the tuple does not match the predicate, we should force unlock the lock despite the lock mode.</li>
-</ul>
-</li>
-<li>A corner case for this is that some transactions may execute a deletion before another sequential scan. Then, the later sequential scan should only acquire a shared lock while the first deletion has already acquired an exclusive lock.</li>
-<li>When there is no more tuple to emit, we should unlock the shared lock this executor locks on the table.</li>
-</ol>
-<h2 id="insert-delete-and-update-executors"><a class="markdownIt-Anchor" href="#insert-delete-and-update-executors"></a> Insert, Delete, and Update Executors</h2>
-<ol>
-<li>As aforementioned, the concurrency control of deletion depends on <code>SeqScan</code>. Therefore, we do not need to do anything extra in the <code>Delete</code> executor.</li>
-<li>For insert and update, we need to acquire an intension-exclusive lock on the table in the <code>Init</code>.</li>
-<li>Insert needs to acquire an exclusive lock on the inserted row, but only after the row is generated.</li>
-<li>The update can use an in-place update and needs an exclusive lock before that.</li>
-</ol>
-<h2 id="transaction-manager"><a class="markdownIt-Anchor" href="#transaction-manager"></a> Transaction manager</h2>
-<ol>
-<li>On abort, the transaction manager needs to restore the changes made by this transaction. The first is to restore the changes made to tables directly.
-<ul>
-<li>The reversion must be performed in the opposite order as the modification.</li>
-<li>If the transaction inserted or deleted some tuples, we must reverse the <code>is_deleted_</code> flag in metadata.</li>
-<li>If the transaction updated some tuples without in-place update optimization, we need to insert a delete and an insert record.</li>
-<li>If the transaction uses in-place update optimization, we must keep the old tuples and their meta in the record to restore when aborted.</li>
-<li>Modification to indexes needs to be reverted similarly.</li>
-</ul>
-</li>
-<li>After reverted modifications in abort or entered commit, all locks held by the transaction must be released. We only need to check the lock sets in a transaction.</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/10/09/Paper/Sys4AI/Parameter-Server/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/10/09/Paper/Sys4AI/Parameter-Server/" class="post-title-link" itemprop="url">Parameter Server</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2023-10-09 19:09:31" itemprop="dateCreated datePublished" datetime="2023-10-09T19:09:31+08:00">2023-10-09</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-15 23:31:40" itemprop="dateModified" datetime="2024-03-15T23:31:40+08:00">2024-03-15</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Paper-Notebook/" itemprop="url" rel="index"><span itemprop="name">Paper Notebook</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Paper-Notebook/Sys4AI/" itemprop="url" rel="index"><span itemprop="name">Sys4AI</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Paper: <a target="_blank" rel="noopener" href="https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-li_mu.pdf">Scaling Distributed Machine Learning with the Parameter Server</a></p>
-<p><ul class="markdownIt-TOC">
-<li><a href="#purpose">Purpose</a></li>
-<li><a href="#model">Model</a>
-<ul>
-<li><a href="#what-is-a-conventional-distributed-ml-system">What is a conventional distributed ML system?</a></li>
-<li><a href="#what-is-the-structure-of-this-new-parameter-server">What is the structure of this new parameter server?</a></li>
-<li><a href="#how-to-optimize-the-cost-of-communication-of-pulling-parameters">How to optimize the cost of communication of pulling parameters?</a></li>
-<li><a href="#how-to-support-flexible-consistency">How to support flexible consistency?</a></li>
-<li><a href="#well-defined-behavior-background">Well-defined behavior (Background)</a>
-<ul>
-<li><a href="#how-to-provide-a-well-defined-behavior-after-failure">How to provide a well-defined behavior after failure?</a></li>
-<li><a href="#what-is-the-problem-with-the-lamport-clock">What is the problem with the Lamport clock?</a></li>
-</ul>
-</li>
-<li><a href="#what-is-the-problem-of-vector-clocks-in-the-parameter-server">What is the problem of vector clocks in the parameter server?</a></li>
-<li><a href="#how-to-optimize-the-cost-of-communication">How to optimize the cost of communication?</a></li>
-<li><a href="#what-is-the-difference-in-fault-tolerance-between-a-parameter-server-and-a-conventional-distributed-system">What is the difference in fault tolerance between a parameter server and a conventional distributed system?</a></li>
-</ul>
-</li>
-<li><a href="#evaluation">Evaluation</a></li>
-</ul>
-</p>
-<h1 id="purpose"><a class="markdownIt-Anchor" href="#purpose"></a> Purpose</h1>
-<ol>
-<li>Issues:
-<ul>
-<li>Many research settings run jobs exclusively on a cluster without contention.</li>
-</ul>
-</li>
-<li>Challenges:
-<ul>
-<li>Sharing imposes three challenges:
-<ul>
-<li>Accessing the parameters requires an enormous amount of network bandwidth.</li>
-<li>Many machine learning algorithms are sequential.</li>
-<li>At scale, fault tolerance is critical.</li>
-</ul>
-</li>
-<li>When solving distributed data analysis problems, the issue of reading and updating parameters shared between different worker nodes is ubiquitous.
-<ul>
-<li>Using key-value pair abstraction to update parameters naively is inefficient: values are typically small (floats or integers), and the overhead of sending each update as a key value operation is high.</li>
-</ul>
-</li>
-<li>For efficient operation, fault tolerance must not require a full restart of a long-running computation.</li>
-</ul>
-</li>
-<li>Contributions:
-<ul>
-<li>Factoring out commonly required components of machine learning systems enables application-specific code to remain concise.</li>
-<li>As a shared platform to target systems-level optimizations, it provides a robust, versatile, and high-performance implementation capable of handling a diverse array of algorithms, from sparse logistic regression to topic models and distributed sketching.</li>
-<li>Five key features:
-<ul>
-<li><strong>Efficient communication</strong> is achieved through an asynchronous communication model.</li>
-<li><strong>Flexible consistency models</strong> to balance algorithmic convergence rate and system efficiency.</li>
-<li><strong>Elastic scalability</strong>, where new nodes can be added without restarting the running framework.</li>
-<li><strong>Fault tolerance and durability</strong> provide fast recovery and well-defined behavior.</li>
-<li><strong>Ease of use</strong>.</li>
-</ul>
-</li>
-<li>Achieved synergy by picking the right systems techniques, adapting them to the machine learning algorithms, and modifying the machine learning algorithms to be more systems-friendly.</li>
-</ul>
-</li>
-</ol>
-<h1 id="model"><a class="markdownIt-Anchor" href="#model"></a> Model</h1>
-<h2 id="what-is-a-conventional-distributed-ml-system"><a class="markdownIt-Anchor" href="#what-is-a-conventional-distributed-ml-system"></a> What is a conventional distributed ML system?</h2>
-<ol>
-<li>Training typically consists of three components: feature extraction, the objective function, and learning.
-<ul>
-<li>Feature extraction processes the raw training data to obtain feature vectors, where each feature captures an attribute of the training data.</li>
-<li>Preprocessing can be executed efficiently by existing frameworks such as MapReduce.</li>
-</ul>
-</li>
-<li>There are three components: task scheduler, worker, and server.
-<ul>
-<li>The parameters are stored in servers while the training data is partitioned among the workers.</li>
-<li>The task scheduler first notifies each worker to execute <code>LoadData</code>. Then, in each iteration, it issues each worker to execute <code>WorkerIterate</code>.</li>
-<li>Each worker has two functions:
-<ul>
-<li><code>LoadData</code> will load and cache a part of training data, which will not change in all iterations. It will also pull the initial working set of parameters from the server.</li>
-<li><code>WorkIterate</code> will calculate the gradient based on the current parameter and send this gradient to the server before pulling new parameters.</li>
-</ul>
-</li>
-<li>Servers only need to aggregate gradients from workers and update parameters in each iteration in <code>ServerIterate</code>.</li>
-</ul>
-</li>
-<li>In each iteration, every worker independently uses its training data to determine what changes should be made to the weights to get closer to an optimal value.
-<ul>
-<li>Because each worker’s updates reflect only its training data, the system needs a mechanism to allow these updates to mix. It does so by expressing the updates as a subgradient.</li>
-</ul>
-</li>
-<li>The most expensive step in the algorithm is computing the subgradient to update <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi></mrow><annotation encoding="application/x-tex">w</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02691em;">w</span></span></span></span>. This task is divided among all the workers, each executing <code>WorkerIterate</code>.</li>
-<li>The total size of <code>w</code> may exceed the capacity of a single machine.
-<ul>
-<li>A worker needs to know a coordinate of w if and only if some of its training data references that entry.</li>
-<li>A particular worker’s working set of entries can be trivially cached locally.</li>
-</ul>
-</li>
-</ol>
-<img src="/imgs/Sys4ai/PS/subgradient.png" width="25%">
-<h2 id="what-is-the-structure-of-this-new-parameter-server"><a class="markdownIt-Anchor" href="#what-is-the-structure-of-this-new-parameter-server"></a> What is the structure of this new parameter server?</h2>
-<ol>
-<li>Parameter server nodes are grouped into a server group and several worker groups.
-<ul>
-<li>A server node in the server group maintains a partition of the globally shared parameters.</li>
-<li>Workers communicate only with the server nodes (not among themselves), updating and retrieving the shared parameters.</li>
-</ul>
-</li>
-<li>There is a scheduler node for each worker group. It assigns tasks to workers and monitors their progress. If workers are added or removed, unfinished tasks are rescheduled.</li>
-<li>The parameter server supports independent parameter namespaces.
-<ul>
-<li>This allows a worker group to isolate its shared parameters from others.</li>
-<li>Several worker groups may also share the same namespace: we may use more than one worker group to solve the same deep learning application to increase parallelization.</li>
-</ul>
-</li>
-</ol>
-<img src="/imgs/Sys4ai/PS/arch.png" width="25%">
-<h2 id="how-to-optimize-the-cost-of-communication-of-pulling-parameters"><a class="markdownIt-Anchor" href="#how-to-optimize-the-cost-of-communication-of-pulling-parameters"></a> How to optimize the cost of communication of pulling parameters?</h2>
-<ol>
-<li>Many learning algorithms represent parameters as structured mathematical objects.
-<ul>
-<li>Workers usually send a segment of a vector or an entire row of the matrix.</li>
-</ul>
-</li>
-<li>Batch both the communication of updates and their processing on the parameter server and allow the consistency tracking to be implemented efficiently.
-<ul>
-<li>This lets us treat the parameters as (key, value) pairs while endowing them with vector and matrix semantics, where non-existing keys are associated with zeros.</li>
-</ul>
-</li>
-<li>Data is sent between nodes using push and pull operations.
-<ul>
-<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span> is a key range, then <code>w.push(R, dest)</code> sends all existing entries of <code>w</code> in key range <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span> to the destination, a particular node, or a node group such as the server group.</li>
-<li>Similarly, <code>w.pull(R, dest)</code> reads all existing entries of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi></mrow><annotation encoding="application/x-tex">w</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02691em;">w</span></span></span></span> in key range <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span> from the destination.</li>
-<li>Gradients share the keys of the worker’s working set <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi></mrow><annotation encoding="application/x-tex">w</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02691em;">w</span></span></span></span>. Hence, the programmer can use w.push(R, g, dest) to save memory for local gradients.</li>
-</ul>
-</li>
-<li>The system also supports user-defined filters to selectively synchronize individual (key, value) pairs, allowing fine-grained data consistency control within a task.
-<ul>
-<li>The optimization algorithm usually contains information on which parameters are most valuable for synchronization.</li>
-<li>One example is the significantly modified filter, which only pushes entries that have changed by more than a threshold since their last synchronization.</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-to-support-flexible-consistency"><a class="markdownIt-Anchor" href="#how-to-support-flexible-consistency"></a> How to support flexible consistency?</h2>
-<ol>
-<li>A remote procedure call issues tasks. It can be a push or a pull that a worker issues to servers. Tasks may include any number of subtasks.</li>
-<li>Tasks are executed asynchronously.
-<ul>
-<li>The caller can perform further computation immediately after issuing a task.</li>
-<li>The caller marks a task as finished only after receiving the callee’s reply. The callee marks a task as finished only if the call of the task is returned and all subtasks issued by this call are finished.</li>
-<li>A caller that wishes to serialize task execution can place an execute-after-finished dependency between tasks.</li>
-</ul>
-</li>
-<li>We can implement different models by task dependency.
-<ul>
-<li><strong>Sequential</strong>: All tasks are executed one by one.</li>
-<li><strong>Eventual</strong>: All tasks may be started simultaneously. This is only recommendable if the underlying algorithms are robust with regard to delays.</li>
-<li><strong>Bounded Delay</strong>: When a maximal delay time <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span></span></span></span> is set, a new task will be blocked until all previous tasks <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span></span></span></span> times ago have been finished.
-<ul>
-<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\tau=0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> is the sequential consistency model, and an infinite delay <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mo>=</mo><mi mathvariant="normal">∞</mi></mrow><annotation encoding="application/x-tex">\tau = \infty</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord">∞</span></span></span></span> becomes the eventual consistency model.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>The dependency graphs may be dynamic; the caller traverses the DAG.
-<ul>
-<li>If the graph is static, the caller can send all tasks with the DAG to the callee to reduce synchronization costs.</li>
-</ul>
-</li>
-<li>This inconsistency potentially slows down the convergence progress. Some algorithms may be less sensitive to this type of inconsistency.
-<ul>
-<li>The best trade-off between system efficiency and algorithm convergence rate usually depends on various factors, including the algorithm’s sensitivity to data inconsistency, feature correlation in training data, and capacity difference of hardware components.</li>
-</ul>
-</li>
-</ol>
-<img src="/imgs/Sys4ai/PS/dag.png" width="50%">
-<h2 id="well-defined-behavior-background"><a class="markdownIt-Anchor" href="#well-defined-behavior-background"></a> Well-defined behavior (Background)</h2>
-<h3 id="how-to-provide-a-well-defined-behavior-after-failure"><a class="markdownIt-Anchor" href="#how-to-provide-a-well-defined-behavior-after-failure"></a> How to provide a well-defined behavior after failure?</h3>
-<ol>
-<li>To provide a well-defined behavior, we only need to find a way to determine the logical order of concurrent operations.
-<ul>
-<li>In a single-machine situation, suppose we perform a write to key <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> with timestamp <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">t_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76508em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> and then perform another write to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> with timestamp <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">t_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76508em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.
-<ul>
-<li>Since <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mn>2</mn></msub><mo>&gt;</mo><msub><mi>t</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">t_2 &gt; t_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76508em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.76508em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, the second write must be newer than the first so the database can safely overwrite the original value.</li>
-</ul>
-</li>
-<li>In a distributed system, this assumption does not hold. The problem is <strong>clock skew</strong>, such as, different clocks tend to run at different rates, so we cannot assume that time <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.61508em;vertical-align:0em;"></span><span class="mord mathnormal">t</span></span></span></span> on node <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi></mrow><annotation encoding="application/x-tex">a</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">a</span></span></span></span> happened before time <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">t + 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69841em;vertical-align:-0.08333em;"></span><span class="mord mathnormal">t</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> on node <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span>.</li>
-</ul>
-</li>
-<li>Lamport clock is a logical clock that provides a partial order of events. If an event <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi></mrow><annotation encoding="application/x-tex">A</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal">A</span></span></span></span> causally happens before another event <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi></mrow><annotation encoding="application/x-tex">B</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span>, i.e. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo>→</mo><mi>B</mi></mrow><annotation encoding="application/x-tex">A\rightarrow B</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span>, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mi>i</mi><mi>m</mi><mi>e</mi><mi>s</mi><mi>t</mi><mi>a</mi><mi>m</mi><mi>p</mi><mo stretchy="false">(</mo><mi>A</mi><mo stretchy="false">)</mo><mo>&lt;</mo><mi>t</mi><mi>i</mi><mi>m</mi><mi>e</mi><mi>s</mi><mi>t</mi><mi>a</mi><mi>m</mi><mi>p</mi><mo stretchy="false">(</mo><mi>B</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">timestamp(A) &lt; timestamp(B)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal">m</span><span class="mord mathnormal">e</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal">a</span><span class="mord mathnormal">m</span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord mathnormal">A</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal">m</span><span class="mord mathnormal">e</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal">a</span><span class="mord mathnormal">m</span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mclose">)</span></span></span></span>.
-<ul>
-<li>Causality means that if one event leads to another, then there is a path of events from the first event to the second event.</li>
-<li>The algorithm provides only a partial order of events as we cannot relate all the events with the “happened before” relationship.</li>
-</ul>
-</li>
-<li>In a distributed system, we can define mainly 3 types of events that each process can execute: a local event, a send event, and a receive event. Then the rules are defined as:
-<ul>
-<li>For a local event, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>→</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">a \rightarrow b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span>, if <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mi>i</mi><mi>m</mi><mi>e</mi><mi>s</mi><mi>t</mi><mi>a</mi><mi>m</mi><mi>p</mi><mo stretchy="false">(</mo><mi>a</mi><mo stretchy="false">)</mo><mo>&lt;</mo><mi>t</mi><mi>i</mi><mi>m</mi><mi>e</mi><mi>s</mi><mi>t</mi><mi>a</mi><mi>m</mi><mi>p</mi><mo stretchy="false">(</mo><mi>b</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">timestamp(a) &lt; timestamp(b)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal">m</span><span class="mord mathnormal">e</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal">a</span><span class="mord mathnormal">m</span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord mathnormal">a</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal">m</span><span class="mord mathnormal">e</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal">a</span><span class="mord mathnormal">m</span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord mathnormal">b</span><span class="mclose">)</span></span></span></span>.</li>
-<li>If process <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">P_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> sends a message to process <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">P_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, then, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>e</mi><mi>n</mi><mi>d</mi><mo stretchy="false">(</mo><mi>m</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>a</mi><mi>g</mi><mi>e</mi><mo stretchy="false">)</mo><mo>→</mo><mi>r</mi><mi>e</mi><mi>c</mi><mi>e</mi><mi>i</mi><mi>v</mi><mi>e</mi><mo stretchy="false">(</mo><mi>m</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>a</mi><mi>g</mi><mi>e</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">send(message) \rightarrow receive(message)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">s</span><span class="mord mathnormal">e</span><span class="mord mathnormal">n</span><span class="mord mathnormal">d</span><span class="mopen">(</span><span class="mord mathnormal">m</span><span class="mord mathnormal">e</span><span class="mord mathnormal">s</span><span class="mord mathnormal">s</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal">e</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">e</span><span class="mord mathnormal">c</span><span class="mord mathnormal">e</span><span class="mord mathnormal">i</span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">e</span><span class="mopen">(</span><span class="mord mathnormal">m</span><span class="mord mathnormal">e</span><span class="mord mathnormal">s</span><span class="mord mathnormal">s</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal">e</span><span class="mclose">)</span></span></span></span>.</li>
-<li>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>→</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">a \rightarrow b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>→</mo><mi>c</mi></mrow><annotation encoding="application/x-tex">b\rightarrow c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">c</span></span></span></span> then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>→</mo><mi>c</mi></mrow><annotation encoding="application/x-tex">a \rightarrow c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">c</span></span></span></span>.</li>
-</ul>
-</li>
-<li>The time stamps of each node are updated as follows rules:
-<ul>
-<li>Before executing an event, the process increments the logical timestamp by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>.</li>
-<li>During a send event, the process increments the logical timestamp by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> and sends the time along with the message.</li>
-<li>During a receive event, the recipient’s counter is updated to the max value of its time stamp and the timestamp in the received message. It then increments the timestamp by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>.</li>
-</ul>
-</li>
-</ol>
-<h3 id="what-is-the-problem-with-the-lamport-clock"><a class="markdownIt-Anchor" href="#what-is-the-problem-with-the-lamport-clock"></a> What is the problem with the Lamport clock?</h3>
-<ol>
-<li>One of the shortcomings of Lamport’s clock is that it cannot identify concurrent events that are causally related.</li>
-</ol>
-<ul>
-<li>When two nodes concurrently modify the same object and send the result to a third node, the third node cannot determine which modification happens first.</li>
-</ul>
-<ol start="2">
-<li>Instead of using integer values for the timestamp, a vector clock uses a vector of integer values to represent the timestamp.
-<ul>
-<li>If we have <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> processes in the group, then each process will have a vector with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> elements.</li>
-<li>Before executing an event, the process <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathnormal">i</span></span></span></span> increments the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathnormal">i</span></span></span></span>-th element of its vector clock by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>.</li>
-<li>During a send event, the process <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathnormal">i</span></span></span></span> increments the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathnormal">i</span></span></span></span>-th element of its vector clock by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> and sends the vector along with the message.</li>
-<li>During a receive event, the process <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathnormal">i</span></span></span></span> increments the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathnormal">i</span></span></span></span>-th element of its vector clock by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>. For all other processes, it takes the maximum of the corresponding component of the incoming message and its local vector. It sets it as the corresponding element in the local clock itself.</li>
-</ul>
-</li>
-<li>The vector clocks are compared as follows:
-<ul>
-<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mn>1</mn></msub><mo>=</mo><msub><mi>V</mi><mn>2</mn></msub><mtext>  </mtext><mo>⟺</mo><mtext>  </mtext><mi mathvariant="normal">∀</mi><mi>i</mi><mo>=</mo><mn>1</mn><mo>→</mo><mi>N</mi><mo separator="true">,</mo><msub><mi>V</mi><mn>1</mn></msub><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>=</mo><msub><mi>V</mi><mn>2</mn></msub><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">V_1 = V_2\iff \forall i=1\to N,V_1[i]=V_2[i]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⟺</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord">∀</span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mclose">]</span></span></span></span>.</li>
-<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mn>1</mn></msub><mo>≤</mo><msub><mi>V</mi><mn>2</mn></msub><mtext>  </mtext><mo>⟺</mo><mtext>  </mtext><mi mathvariant="normal">∀</mi><mi>i</mi><mo>=</mo><mn>1</mn><mo>→</mo><mi>N</mi><mo separator="true">,</mo><msub><mi>V</mi><mn>1</mn></msub><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>≤</mo><msub><mi>V</mi><mn>2</mn></msub><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">V_1\le V_2\iff \forall i=1\to N,V_1[i]\le V_2[i]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⟺</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord">∀</span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mclose">]</span></span></span></span>.</li>
-<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mn>1</mn></msub><mo>&lt;</mo><msub><mi>V</mi><mn>2</mn></msub><mtext>  </mtext><mo>⟺</mo><mtext>  </mtext><msub><mi>V</mi><mn>1</mn></msub><mo>≤</mo><msub><mi>V</mi><mn>2</mn></msub><mo>∧</mo><mi mathvariant="normal">∃</mi><mi>j</mi><mo separator="true">,</mo><msub><mi>V</mi><mn>1</mn></msub><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&lt;</mo><msub><mi>V</mi><mn>2</mn></msub><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">V_1&lt;V_2\iff V_1\le V_2\land\exist j, V_1[j]&lt;V_2[j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⟺</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∃</span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span>.</li>
-</ul>
-</li>
-<li>We can identify the concurrent events when <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mi>O</mi><mi>T</mi><mo stretchy="false">(</mo><msub><mi>V</mi><mn>1</mn></msub><mo>≤</mo><msub><mi>V</mi><mn>2</mn></msub><mo stretchy="false">)</mo><mo>∧</mo><mi>N</mi><mi>O</mi><mi>T</mi><mo stretchy="false">(</mo><msub><mi>V</mi><mn>2</mn></msub><mo>≤</mo><msub><mi>V</mi><mn>1</mn></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">NOT(V_1\le V_2)\land NOT(V_2\le V_1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>.
-<ul>
-<li>When concurrent events are detected, the system must resolve the conflicts. Vector clock only provides a method to find concurrent events.</li>
-<li>One way to resolve conflicts is to leave it to the client, who knows the semantics, to decide which version is correct.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-is-the-problem-of-vector-clocks-in-the-parameter-server"><a class="markdownIt-Anchor" href="#what-is-the-problem-of-vector-clocks-in-the-parameter-server"></a> What is the problem of vector clocks in the parameter server?</h2>
-<ol>
-<li>Each (key, value) pair is associated with a vector clock, which records the time of each node on this (key, value) pair. Hence, a naive vector clock implementation requires <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>n</mi><mi>m</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(nm)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord mathnormal">m</span><span class="mclose">)</span></span></span></span> space to handle <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">n</span></span></span></span> nodes and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi></mrow><annotation encoding="application/x-tex">m</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">m</span></span></span></span> parameters.
-<ul>
-<li>With thousands of nodes and billions of parameters, this is infeasible in terms of memory and bandwidth.</li>
-</ul>
-</li>
-<li>Many parameters have the same timestamp due to the parameter server’s range-based communication pattern.
-<ul>
-<li>If a node pushes the parameters in a range, then the timestamps of the parameters associated with the node are likely the same.</li>
-<li>Assume that <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">V_i(k)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mclose">)</span></span></span></span> is the time of key <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> for node <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathnormal">i</span></span></span></span>. Given a key range <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span>, the ranged vector clock <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>R</mi><mo stretchy="false">)</mo><mo>=</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">V_i(R)=t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.61508em;vertical-align:0em;"></span><span class="mord mathnormal">t</span></span></span></span> means <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">∀</mi><mi>k</mi><mo>∈</mo><mi>R</mi><mo separator="true">,</mo><msub><mi>V</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo><mo>=</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">\forall k\in R, V_i(k)=t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.73354em;vertical-align:-0.0391em;"></span><span class="mord">∀</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.61508em;vertical-align:0em;"></span><span class="mord mathnormal">t</span></span></span></span>.</li>
-</ul>
-</li>
-<li>Initially, there is only one range vector clock for each node <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathnormal">i</span></span></span></span>. It covers the entire parameter key space as its range with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> as its initial timestamp. Each range set may split the range and create at most <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn></mrow><annotation encoding="application/x-tex">3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span></span></span></span> new vector clocks.</li>
-</ol>
-<h2 id="how-to-optimize-the-cost-of-communication"><a class="markdownIt-Anchor" href="#how-to-optimize-the-cost-of-communication"></a> How to optimize the cost of communication?</h2>
-<ol>
-<li>A worker might send the same key lists again. Hence, it is desirable for the receiving node to cache the key lists. Later, the sender only needs to send a hash of the list rather than the list itself.</li>
-<li>Values may contain many zero entries. Hence, we only need to send nonzero (key, value) pairs. We use the fast Snappy compression library to compress messages, effectively removing the zeros.</li>
-<li>Naive replication potentially increases network traffic by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> times, where <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> is the number of replications.
-<ul>
-<li>The parameter server framework permits replication after aggregation for many algorithms.</li>
-<li>With n workers, replication uses only k/n bandwidth. Often, k is a small constant, while n is hundreds to thousands.</li>
-<li>While aggregation increases the delay of the task reply, it can be hidden by relaxed consistency conditions.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-is-the-difference-in-fault-tolerance-between-a-parameter-server-and-a-conventional-distributed-system"><a class="markdownIt-Anchor" href="#what-is-the-difference-in-fault-tolerance-between-a-parameter-server-and-a-conventional-distributed-system"></a> What is the difference in fault tolerance between a parameter server and a conventional distributed system?</h2>
-<ol>
-<li>Servers replicate parameters with consistent hashing.</li>
-<li>When a worker fails, the recovery depends on the algorithm designer.
-<ul>
-<li>If the training data is huge, recovering a worker node may be more expensive than recovering a server node.</li>
-<li>Losing a small amount of training data during optimization typically only affects the model.</li>
-</ul>
-</li>
-</ol>
-<h1 id="evaluation"><a class="markdownIt-Anchor" href="#evaluation"></a> Evaluation</h1>
-<ol>
-<li>The author evaluated the system on Sparse Logistic Regression and Latent Dirichlet Allocation.</li>
-<li>They compare systems by running them to reach the same objective value. A better system achieves a lower objective in less time. They also compared the worker node utilization in different systems.</li>
-<li>The reduction of network traffic by each system component is measured.</li>
 </ol>
 
       

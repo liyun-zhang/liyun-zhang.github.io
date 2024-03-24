@@ -146,7 +146,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">64</span>
+          <span class="site-state-item-count">66</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -157,7 +157,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -174,6 +174,293 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/07/24/Courses/CS149/16-Heterogeneous-Parallelism-and-Hardware-Specialization/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/07/24/Courses/CS149/16-Heterogeneous-Parallelism-and-Hardware-Specialization/" class="post-title-link" itemprop="url">16. Heterogeneous Parallelism and Hardware Specialization</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-07-24 15:20:29" itemprop="dateCreated datePublished" datetime="2022-07-24T15:20:29+08:00">2022-07-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-03-16 23:01:34" itemprop="dateModified" datetime="2024-03-16T23:01:34+08:00">2024-03-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <ol>
+<li>Amdahl’s law in terms of resource limits: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>p</mi><mi>e</mi><mi>e</mi><mi>d</mi><mi>u</mi><mi>p</mi><mo stretchy="false">(</mo><mi>f</mi><mo separator="true">,</mo><mi>n</mi><mo separator="true">,</mo><mi>r</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mrow><mfrac><mrow><mn>1</mn><mo>−</mo><mi>f</mi></mrow><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo></mrow></mfrac><mo>+</mo><mfrac><mi>f</mi><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo><mo>⋅</mo><mfrac><mi>n</mi><mi>r</mi></mfrac></mrow></mfrac></mrow></mfrac></mrow><annotation encoding="application/x-tex">speedup(f, n, r)=\frac{1}{\frac{1-f}{perf(r)}+\frac{f}{perf(r)\cdot\frac{n}{r}}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">s</span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal">e</span><span class="mord mathnormal">d</span><span class="mord mathnormal">u</span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">n</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.877228em;vertical-align:-1.03212em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.51911em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size3 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9584142857142857em;"><span style="top:-2.640785714285714em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.4623857142857144em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mbin mtight">−</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5377857142857143em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size3 size6"></span></span><span class="mbin mtight">+</span><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size3 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9584142857142857em;"><span style="top:-2.5925285714285713em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span><span class="mbin mtight">⋅</span><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size1 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8175600000000001em;"><span style="top:-2.468em;"><span class="pstrut" style="height:3em;"></span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.387em;"><span class="pstrut" style="height:3em;"></span><span class="mord mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.532em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size1 size6"></span></span></span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.4623857142857144em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7874714285714286em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size3 size6"></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.03212em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span>. Here, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>=</mo></mrow><annotation encoding="application/x-tex">f =</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span></span></span></span> fraction of a program that is parallelizable, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo></mrow><annotation encoding="application/x-tex">n =</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span></span></span></span> total processing resources, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo></mrow><annotation encoding="application/x-tex">r =</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span></span></span></span> resources dedicated to each processing core, each of the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mi>n</mi><mi>r</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{n}{r}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.040392em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.695392em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span> cores have sequential performance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">perf(r)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mclose">)</span></span></span></span>.</li>
+<li>If a processor has one <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">perf(r)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mclose">)</span></span></span></span> core and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>−</mo><mi>r</mi></mrow><annotation encoding="application/x-tex">n-r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">perf(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> cores, its <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>p</mi><mi>e</mi><mi>e</mi><mi>d</mi><mi>u</mi><mi>p</mi><mo stretchy="false">(</mo><mi>f</mi><mo separator="true">,</mo><mi>n</mi><mo separator="true">,</mo><mi>r</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mrow><mfrac><mrow><mn>1</mn><mo>−</mo><mi>f</mi></mrow><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo></mrow></mfrac><mo>+</mo><mfrac><mi>f</mi><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><mi>n</mi><mo>−</mo><mi>r</mi><mo stretchy="false">)</mo><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></mfrac></mrow></mfrac></mrow><annotation encoding="application/x-tex">speedup(f, n, r)=\frac{1}{\frac{1-f}{perf(r)}+\frac{f}{perf(r)+(n-r)perf(1)}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">s</span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal">e</span><span class="mord mathnormal">d</span><span class="mord mathnormal">u</span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">n</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.702448em;vertical-align:-0.8573399999999999em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.5191100000000004em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size3 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9584142857142857em;"><span style="top:-2.640785714285714em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.4623857142857144em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mbin mtight">−</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5377857142857143em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size3 size6"></span></span><span class="mbin mtight">+</span><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size3 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9584142857142857em;"><span style="top:-2.640785714285714em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span><span class="mbin mtight">+</span><span class="mopen mtight">(</span><span class="mord mathnormal mtight">n</span><span class="mbin mtight">−</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mopen mtight">(</span><span class="mord mtight">1</span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.4623857142857144em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5377857142857143em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size3 size6"></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8573399999999999em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span>.</li>
+<li>Most “real world” applications have complex workload characteristics. The most efficient processor is a heterogeneous mixture of resources, namely use the most efficient tool for the job.</li>
+<li>Supercomputers are energy constrained due to shear scale and overall cost to operate (power for machine and cooling)<br />
+Datacenters are energy-constrained to reduce cooling costs and physical space requirements.<br />
+Mobile devices are energy constrained due to limited battery life and heat dissipation.</li>
+<li>The challenge of heterogeneous for system designers: what is the right mixture of resources to meet performance, cost, and energy goals?<br />
+Too few throughput-oriented resources would lower peak throughput for parallel workloads. Too few sequential processing resources limit the overall system by sequential part of the workload. How much chip area should be dedicated to a specific function? (these resources are taken away from general-purpose processing) Work balance must be anticipated at chip design time</li>
+<li>The challenge to software developers: how to map programs onto a heterogeneous collection of resources?<br />
+Wish to design algorithms that decompose well into components that each map well to different processing components of the machine. The scheduling problem is more complex in a heterogeneous system. An available mixture of resources can dictate the choice of algorithm: software portability and maintenance nightmare.</li>
+<li>Reducing energy consumption should use specialized processing and moving less data.</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/07/21/Courses/CS149/15-Transactional-Memory/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/07/21/Courses/CS149/15-Transactional-Memory/" class="post-title-link" itemprop="url">15. Transactional Memory</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-07-21 22:53:19" itemprop="dateCreated datePublished" datetime="2022-07-21T22:53:19+08:00">2022-07-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-03-16 22:58:55" itemprop="dateModified" datetime="2024-03-16T22:58:55+08:00">2024-03-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="transactional-memory"><a class="markdownIt-Anchor" href="#transactional-memory"></a> Transactional memory</h1>
+<ol>
+<li>
+<p>Declarative programming is when the programmer states what to do, not how to do it. The system implements synchronization as necessary to ensure atomicity.</p>
+</li>
+<li>
+<p>In transaction memory, the atomic construct is declarative, which means that the programmer states what to do, not how to do it. The system implements synchronization as necessary to ensure atomicity.<br />
+The system could implement <code>atomic&#123;&#125;</code> using a lock. However, the programmer has no explicit use or management of locks.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Traditional method</span></span><br><span class="line"><span class="built_in">lock</span>(mutex);</span><br><span class="line"><span class="comment">//critical code</span></span><br><span class="line"><span class="built_in">unlock</span>(mutex);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Transaction memory</span></span><br><span class="line">atomic &#123;</span><br><span class="line">  <span class="comment">// critical code</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>Memory transaction is an atomic and isolated sequence of memory accesses inspired by database transactions.<br />
+Atomicity requires that upon transaction commit, all memory writes in the transaction take effect at once, and on transaction abort, none of the writes appear to take effect as if the transaction never happened.<br />
+Isolation means that no other processor can observe writes before committing the transaction.<br />
+Serializability is that transactions appear to commit in a single serial order, but transaction semantics does not guarantee the exact order of commits.</p>
+</li>
+<li>
+<p>Load-linked, store conditional (LL/SC) is a light version of transactional memory. It has a pair of corresponding instructions (not a single atomic instruction)<br />
+<code>load_linked(x)</code>: load value from address<br />
+<code>store_conditional(x, value)</code>: store value to x, if x hasn’t been written to since<br />
+corresponding LL</p>
+</li>
+<li>
+<p>Two read operations won’t cause true contention. In TM, we can allow the parallelism between two read operations. However, serialization must be ensured when at least one write operation occurs.</p>
+</li>
+<li>
+<p>The transactional memory system is also responsible for processing exceptions, decreasing the complexity of manually using try-catch statements to catch exceptions.<br />
+When an exception inside the atomic block occurs, the transaction is aborted, and memory updates are undone.</p>
+</li>
+<li>
+<p>A transactional memory system needs composable locks.<br />
+Composing lock-based code can be tricky, requiring system-wide policies to get correct, and can break software modularity.<br />
+The following code can end up in a deadlock. TM system should be able to compose the two synchronizations together to avoid the possible deadlock. A programmer can use an <code>atomic&#123;&#125;</code> to correctly represent the two <code>synchronized &#123;&#125;</code> structures.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">function</span><span class="params">(A, B)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">synchronized</span>(A)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">synchronized</span>(B)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="comment">// critical code</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 0</span></span><br><span class="line"><span class="built_in">function</span>(x, y);</span><br><span class="line"></span><br><span class="line"><span class="comment">//thread 1</span></span><br><span class="line"><span class="built_in">function</span>(y, x);</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p><code>Atomic&#123;&#125;</code> is not the same as <code>lock()/unlock()</code>. Atomic is a high-level declaration of atomicity, which does not specify the implementation of atomicity. The lock is a low-level blocking primitive that does not provide atomicity or isolation on its own.<br />
+Locks can be used to implement an atomic block. Also, locks can be used for purposes beyond atomicity. Namely, we cannot replace all uses of locks with atomic regions.<br />
+Atomic eliminates many data races, but programming with atomic blocks can still suffer from atomicity violations.</p>
+</li>
+<li>
+<p>Atomicity violation due to programmer error: Logically, the atomic code sequence is erroneously separated into two atomic blocks.</p>
+</li>
+</ol>
+<h1 id="implementing-transactional-memory"><a class="markdownIt-Anchor" href="#implementing-transactional-memory"></a> Implementing transactional memory</h1>
+<h2 id="data-versioning"><a class="markdownIt-Anchor" href="#data-versioning"></a> Data versioning</h2>
+<ol>
+<li>Data versioning manages uncommitted (new) and previously committed (old) versions of data for concurrent transactions. This is used to allow transaction abort.</li>
+<li>Eager versioning updates memory immediately and maintains “undo log” in case of abort.<br />
+When a write happens, the old value is pushed into the undo log, and the new value is to memory.<br />
+When a transaction is aborted, we can search the undo log to recover the corresponding state.<br />
+When the transaction is committed, we can discard the undo log of those committed contents.</li>
+<li>Lazy versioning is a deferred update. Namely, it logs memory updates in the transaction write buffer and flushes the buffer on commit.<br />
+When a write happens, the new value is pushed into the write buffer, and we don’t write the new value in memory.<br />
+When a transaction is aborted, we discard the write buffer, and there is no need to modify the memory since we haven’t written anything to it yet.<br />
+When a transaction is committed, we write the data in the write buffer to memory and discard the write buffer.</li>
+<li>Eager versioning is faster in commit since data is already in memory. But it is slower in aborts and has fault tolerance issues (crashes in the middle of a transaction). It writes to memory immediately, hoping the transaction won’t abort, but deals with aborts when necessary.</li>
+<li>Lazy versioning is faster in abort, clears the log, and has no fault tolerance issues. But it is slower in commits. It only writes to memory when you have to.</li>
+</ol>
+<h2 id="conflict-detection-and-resolution"><a class="markdownIt-Anchor" href="#conflict-detection-and-resolution"></a> Conflict detection and resolution</h2>
+<ol>
+<li>This is to decide when to abort. It must detect and handle transaction conflicts, including read-write and write-write conflicts. The system must track a transaction’s read set and write set.</li>
+<li>Pessimistic detection checks for conflicts during loads or stores. A hardware implementation will check for conflicts through coherent actions.<br />
+The philosophy is, &quot;I suspect conflicts might happen, so let’s always check to see if one has occurred after each memory operation… if I’m going to have to roll back, might as well do it now to avoid wasted work.”</li>
+<li>The contention manager decides to stall or abort the transaction when a conflict is detected. A conflict can be stalled when detected before executing (early detection). When a conflict is detected after execution, then it can only restart.<br />
+When two writes cause the conflict, it may raise a livelock if both threads restart before the other one has finished.</li>
+<li>Optimistic detection detects conflicts when a transaction attempts to commit. Hardware validates the write set using coherence actions and gets exclusive access to cache lines in the write set.<br />
+The intuition is, “Let’s hope for the best and sort out all the conflicts only when the transaction tries to commit.”<br />
+In a conflict, it gives priority to committing the transactions. Other transactions may be aborted later on. In conflicts between committing transactions, use the contention manager to decide priorities. Optimistic detection won’t cause livelock.</li>
+<li>We can use optimistic and pessimistic schemes together. Several STM systems use optimistic for reads and pessimistic for writes.</li>
+<li>Pessimistic conflict detection (“eager”) can detect conflicts early and thus undo less work, turning some aborts into stalls. It has no forward progress guarantees, and there are more aborts in some cases. Also, fine-grained communication is required to check on each load/store.<br />
+Bad: detection on the critical path</li>
+<li>Optimistic conflict detection (“lazy” or “commit”) has forward progress guarantees. It requires bulk communication and conflict detection. It detects conflicts late and can still have fairness problems.</li>
+<li>Conflict detection granularity<br />
+Object granularity is a software-based technique. It reduces time and space overhead and is close to the programmer’s reasoning. But there might be false sharing on large objects.<br />
+Machine word granularity can minimize false sharing but increases the overhead of time and space.<br />
+Cache-line granularity is a compromise between an object and a word.</li>
+</ol>
+<h2 id="hardware-transactional-memory"><a class="markdownIt-Anchor" href="#hardware-transactional-memory"></a> Hardware transactional memory</h2>
+<ol>
+<li>Data versioning is implemented in caches. Cache the write buffer or the undo log. And add new cache line metadata to track transaction read and write sets.<br />
+Conflict detection is implemented through cache coherence protocol. Coherence lookups detect conflicts between transactions. It works with snooping and directory coherence.</li>
+<li>Register checkpoint must also be taken at the transaction begins to restore the execution context state on abort.</li>
+<li>Cache lines need extra bits to track the read set and write set.<br />
+<strong>R bit</strong> indicates data read by transaction and is set on loads, while <strong>W bit</strong> indicates data written by transaction and is set on stores. R/W bits gang-cleared on transaction commit or abort.<br />
+R/W bits can be a work or cache-line granularity.<br />
+We need a 2nd cache write for the undo log for eager versioning.</li>
+<li>Coherence requests check R/W bits to detect conflicts.<br />
+Observing shared requests to W-word is a read-write conflict.<br />
+Observing exclusive (intent to write) requests to R-word is a write-read conflict.<br />
+Observing exclusive (intent to write) requests to W-word is a write-write conflict.</li>
+<li>Fast two-phase commit<br />
+Validate: request RdX access to write set lines (if needed)<br />
+Commit: gang-reset R and W bits, turns to write set data to valid (dirty) data.</li>
+<li>Fast conflict detection and abort<br />
+Check: lookup exclusive requests in the read set and write set<br />
+Abort: invalidate write set, gang-reset R and W bits, restore to register checkpoint</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1787,428 +2074,6 @@ This establishes an upper bound on the benefit of reducing sync overhead.</p>
 <p>The <code>begin</code> and <code>end</code> are <code>SystemCountState</code> instances acquired by <code>getSystemCounterState()</code> at the beginning and end of the code to analyze.</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">PCM *m = PCM::<span class="built_in">getInstance</span>();</span><br><span class="line">SystemCounterState begin = <span class="built_in">getSystemCounterState</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// code to analyze goes here</span></span><br><span class="line"></span><br><span class="line">SystemCounterState end = <span class="built_in">getSystemCounterState</span>();</span><br><span class="line"></span><br><span class="line"><span class="built_in">printf</span>(“Instructions per clock: %f\n”, <span class="built_in">getIPC</span>(begin, end));</span><br><span class="line"><span class="built_in">printf</span>(“L3 cache hit ratio: %f\n”, <span class="built_in">getL3CacheHitRatio</span>(begin, end));</span><br><span class="line"><span class="built_in">printf</span>(“Bytes read: %d\n”, <span class="built_in">getBytesReadFromMC</span>(begin, end));</span><br></pre></td></tr></table></figure>
 </li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/05/21/Courses/CS149/06-Locality-Communication-and-Contention/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2022/05/21/Courses/CS149/06-Locality-Communication-and-Contention/" class="post-title-link" itemprop="url">06. Locality, Communication, and Contention</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2022-05-21 13:42:23" itemprop="dateCreated datePublished" datetime="2022-05-21T13:42:23+08:00">2022-05-21</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-16 19:43:13" itemprop="dateModified" datetime="2024-03-16T19:43:13+08:00">2024-03-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="communication"><a class="markdownIt-Anchor" href="#communication"></a> Communication</h1>
-<h2 id="reduce-communication-time"><a class="markdownIt-Anchor" href="#reduce-communication-time"></a> Reduce communication time</h2>
-<ol>
-<li>
-<p>Total communication time = overhead + occupancy + network delay.</p>
-</li>
-<li>
-<p>Overhead is the time spent on communication by a processor, occupancy is the time for data to pass through the slowest component of the system, and network delay is everything else.</p>
-</li>
-<li>
-<p>Reduce overhead of communication to sender/receiver:<br />
-Reassign tasks in a better way that needs to send fewer messages.<br />
-Make messages larger to amortize overhead.<br />
-Coalesce many small messages into large ones</p>
-</li>
-<li>
-<p>Reduce delay:<br />
-Application writers can restructure code to exploit locality.<br />
-Hardware implementors can improve communication architecture.</p>
-</li>
-</ol>
-<h2 id="reduce-communication-cost"><a class="markdownIt-Anchor" href="#reduce-communication-cost"></a> Reduce communication cost</h2>
-<ol>
-<li>
-<p>Total communication cost = communication time - overlap</p>
-</li>
-<li>
-<p>Overlap: portion of communication performed concurrently with other work (“other work” can be computation or other communication)</p>
-</li>
-<li>
-<p>Cost is the part you cannot overcome by changing the protocol. The communication time is necessary, and we can hide the overlap part by pipelining.</p>
-</li>
-<li>
-<p>Increase communication/computation overlap:<br />
-Application writers can use asynchronous communication (e.g., async messages)<br />
-Hardware implementors can use pipelining, multi-threading, pre-fetching, out-of-order execution<br />
-Requires additional concurrency in the application (more concurrency than the number of execution units)</p>
-</li>
-<li>
-<p>Instruction pipeline: Break the execution of each instruction down into several smaller steps.<br />
-Enables higher clock frequency; only a simple, short operation is done by each part of the pipeline in each clock</p>
-</li>
-<li>
-<p>Non-pipelined communication: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>T</mi><mn>0</mn></msub><mo>+</mo><mfrac><mi>n</mi><mi>B</mi></mfrac></mrow><annotation encoding="application/x-tex">T(n)=T_0+\frac{n}{B}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.040392em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.695392em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span> (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">T_0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is the start-up latency, n is bytes transferred in operation, and B is the transfer rate or bandwidth)<br />
-Efficient bandwidth <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo><mfrac><mi>n</mi><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">=\frac{n}{T(n)}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.215392em;vertical-align:-0.52em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.695392em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">T</span><span class="mopen mtight">(</span><span class="mord mathnormal mtight">n</span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.52em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></p>
-</li>
-</ol>
-<h2 id="improve-arithmetic-intensity"><a class="markdownIt-Anchor" href="#improve-arithmetic-intensity"></a> Improve arithmetic intensity</h2>
-<ol>
-<li>
-<p>Communication-to-computation ratio = amount of communication/amount of computation<br />
-The units can be different. If the denominator is the execution time of computation, the ratio gives the average bandwidth requirement.</p>
-</li>
-<li>
-<p>Arithmetic intensity = 1 / communication-to-computation ratio</p>
-</li>
-<li>
-<p>Change the traversal order to reduce the time between accesses to the same data. We want to do all the calculations related to accessing data now.<br />
-This way, we can improve the cache utilization by preventing those data from getting flushed out when we try to reaccess them.</p>
-</li>
-<li>
-<p>Fuse loops to reduce the frequency of store operation.</p>
-</li>
-<li>
-<p>Improve arithmetic intensity by sharing data. Co-locate tasks that operate on the same data.  Schedule threads to work on the same data structure and on the same processor at the same time. Reduces inherent communication</p>
-</li>
-</ol>
-<h2 id="reduce-artifactual-communication"><a class="markdownIt-Anchor" href="#reduce-artifactual-communication"></a> Reduce artifactual communication</h2>
-<ol>
-<li>
-<p>Inherent communication: Communication that must occur in a parallel algorithm. The communication is fundamental to the algorithm.<br />
-Artifactual communication: all other communication happens because we want to use resources efficiently.</p>
-</li>
-<li>
-<p>The granularity of communication can be important because it may introduce artifactual communication.<br />
-Assume that communication granularity is a cache line.</p>
-</li>
-<li>
-<p>If we see data as a row-major layout, when the data required is in the column, each communication only provides one needed data.</p>
-</li>
-<li>
-<p>When Threads access their assigned elements (no inherent communication exists), real machine triggers (artifactual) communication due to the cache line being written to by both processors.</p>
-</li>
-<li>
-<p>Reduce artifactual communications by blocking data layout. Each communication only involves the data in the same block. If communication granularity is larger than a block row, each communication will transfer multiple rows.</p>
-</li>
-</ol>
-<h1 id="contention"><a class="markdownIt-Anchor" href="#contention"></a> Contention</h1>
-<ol>
-<li>
-<p>Contention occurs when many requests for a resource are made within a small window of time. The resource is a hot spot.<br />
-Contention of shared resources results in longer overall operation times.</p>
-</li>
-<li>
-<p>Distributed work queues serve to reduce contention (contention in access to a single shared work queue)</p>
-</li>
-<li>
-<p>One way to reduce contention is to use finer-granularity locks. Instead of locking the whole data structure, we can only lock a part of that structure.</p>
-</li>
-<li>
-<p>Another way is that each CUDA block computes partial results and merges them afterward. However, this requires extra work for merging, and each CUDA block needs to store a partial result instead of all using the same result.</p>
-</li>
-<li>
-<p>The best way is to stagger access to contended resources. For example, instead of calculating the final result directly, we can calculate several temporal results with no contention and get the final result from them.</p>
-</li>
-</ol>
-<h1 id="understanding-the-performance"><a class="markdownIt-Anchor" href="#understanding-the-performance"></a> Understanding the performance</h1>
-<ol>
-<li>
-<p>Always, always, always try the simplest parallel solution first, then measure performance to see where you stand.</p>
-</li>
-<li>
-<p>We should compare parallel program speedup to the best sequential program instead of parallel algorithm running on one core.<br />
-The reason is that to allow for parallelism, we might change the algorithm and make it slower when executed sequentially.</p>
-</li>
-<li>
-<p>Determine if your performance is limited by computation, memory bandwidth (or latency), or synchronization.<br />
-Try to establish “high watermarks”. What’s the best you can do in practice? How close is your implementation to a best-case scenario?</p>
-</li>
-<li>
-<p>Roofline model: Use microbenchmarks to compute the peak performance of a machine as a function of the arithmetic intensity of the application. Then, compare the application’s performance to known peak values.</p>
-</li>
-</ol>
-<h2 id="establish-high-watermarks"><a class="markdownIt-Anchor" href="#establish-high-watermarks"></a> Establish high watermarks</h2>
-<ol>
-<li>
-<p>Add “math” (non-memory instructions).<br />
-Does execution time increase linearly with operation count as math is added?<br />
-If so, this is evidence that the code is instruction-rate limited.</p>
-</li>
-<li>
-<p>Remove almost all math, but load the same data.<br />
-How much does execution time decrease?<br />
-If not much, suspect memory bottleneck</p>
-</li>
-<li>
-<p>Change all array accesses to A[0].<br />
-How much faster does your code get?<br />
-This establishes an upper bound for improving the locality of data access.</p>
-</li>
-<li>
-<p>Remove all atomic operations or locks.<br />
-How much faster does your code get? (provided it still does approximately the same amount of work)<br />
-This establishes an upper bound on the benefit of reducing sync overhead.</p>
-</li>
-</ol>
-<h2 id="scaling"><a class="markdownIt-Anchor" href="#scaling"></a> Scaling</h2>
-<ol>
-<li>
-<p>Both problem size and the processor’s number determine arithmetic intensity. Small problem sizes or large processor numbers yield low arithmetic intensity.</p>
-</li>
-<li>
-<p>If the problem is too small, it might execute fast enough on a single core. Scaling the performance of small problems may not be all that important.</p>
-</li>
-<li>
-<p>If the problem size is too large for a single machine, the working set may not fit in memory, causing thrashing to disk. With enough processors, the key working set fits in the per-processor cache.<br />
-This may get a super-linear speedup and make speedup on a bigger parallel machine with more memory look amazing.</p>
-</li>
-<li>
-<p>Desire to scale problem size as machine sizes grow (buy a bigger machine to compute more, rather than compute the same problem faster)</p>
-</li>
-<li>
-<p>Problem-constrained scaling uses a parallel computer to solve the same problem faster.<br />
-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>p</mi><mi>e</mi><mi>e</mi><mi>d</mi><mi>u</mi><mi>p</mi><mo>=</mo><mfrac><mrow><mi>t</mi><mi>i</mi><mi>m</mi><mi>e</mi><mtext> </mtext><mn>1</mn><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi></mrow><mrow><mi>t</mi><mi>i</mi><mi>m</mi><mi>e</mi><mtext> </mtext><mi>P</mi><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi><mi>s</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">Speedup=\frac{time\ 1\ processor}{time\ P\ processors}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal">e</span><span class="mord mathnormal">d</span><span class="mord mathnormal">u</span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.38888em;vertical-align:-0.481108em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.907772em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">e</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.446108em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">e</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mtight">1</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.481108em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></p>
-</li>
-<li>
-<p>Time-constrained scaling focuses on completing more work in a fixed amount of time.<br />
-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>p</mi><mi>e</mi><mi>e</mi><mi>d</mi><mi>u</mi><mi>p</mi><mo>=</mo><mfrac><mrow><mi>w</mi><mi>o</mi><mi>r</mi><mi>k</mi><mtext> </mtext><mi>d</mi><mi>o</mi><mi>n</mi><mi>e</mi><mtext> </mtext><mi>b</mi><mi>y</mi><mtext> </mtext><mi>P</mi><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi><mi>s</mi></mrow><mrow><mi>w</mi><mi>o</mi><mi>r</mi><mi>k</mi><mtext> </mtext><mi>d</mi><mi>o</mi><mi>n</mi><mi>e</mi><mtext> </mtext><mi>b</mi><mi>y</mi><mtext> </mtext><mn>1</mn><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">Speedup = \frac{work\ done\ by\ P\ processors}{work\ done\ by\ 1\ processor}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal">e</span><span class="mord mathnormal">d</span><span class="mord mathnormal">u</span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.4133239999999998em;vertical-align:-0.481108em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9322159999999999em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">e</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">b</span><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mtight">1</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.446108em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">e</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">b</span><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.481108em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span><br />
-“Work done” may not be a linear function of problem inputs. One approach to defining “work done” is by execution time of exact computation on a single processor (but consider the effects of thrashing if the problem is too big)</p>
-</li>
-<li>
-<p>Memory-constrained scaling (weak scaling) focuses on running the largest problem possible without overflowing main memory. Neither work nor execution times are held constant.<br />
-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>p</mi><mi>e</mi><mi>e</mi><mi>d</mi><mi>u</mi><mi>p</mi><mo>=</mo><mfrac><mrow><mi>w</mi><mi>o</mi><mi>r</mi><mi>k</mi><mtext> </mtext><mo stretchy="false">(</mo><mi>P</mi><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi><mi>s</mi><mo stretchy="false">)</mo></mrow><mrow><mi>t</mi><mi>i</mi><mi>m</mi><mi>e</mi><mtext> </mtext><mo stretchy="false">(</mo><mi>P</mi><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi><mi>s</mi><mo stretchy="false">)</mo></mrow></mfrac><mi mathvariant="normal">/</mi><mfrac><mrow><mi>w</mi><mi>o</mi><mi>r</mi><mi>k</mi><mtext> </mtext><mo stretchy="false">(</mo><mn>1</mn><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi><mo stretchy="false">)</mo></mrow><mrow><mi>t</mi><mi>i</mi><mi>m</mi><mi>e</mi><mtext> </mtext><mo stretchy="false">(</mo><mn>1</mn><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi><mo stretchy="false">)</mo></mrow></mfrac><mo>=</mo><mfrac><mrow><mi>w</mi><mi>o</mi><mi>r</mi><mi>k</mi><mtext> </mtext><mi>p</mi><mi>e</mi><mi>r</mi><mtext> </mtext><mi>u</mi><mi>n</mi><mi>i</mi><mi>t</mi><mtext> </mtext><mi>t</mi><mi>i</mi><mi>m</mi><mi>e</mi><mtext> </mtext><mi>o</mi><mi>n</mi><mtext> </mtext><mi>P</mi><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi><mi>s</mi></mrow><mrow><mi>w</mi><mi>o</mi><mi>r</mi><mi>k</mi><mtext> </mtext><mi>p</mi><mi>e</mi><mi>r</mi><mtext> </mtext><mi>u</mi><mi>n</mi><mi>i</mi><mi>t</mi><mtext> </mtext><mi>t</mi><mi>i</mi><mi>m</mi><mi>e</mi><mtext> </mtext><mi>o</mi><mi>n</mi><mtext> </mtext><mn>1</mn><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">Speedup = \frac{work\ (P\ processors)}{time\ (P\ processors)}/\frac{work\ (1\ processor)}{time\ (1\ processor)}=\frac{work\ per\ unit\ time\ on\ P\ processors}{work\ per\ unit\ time\ on\ 1\ processor}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal">e</span><span class="mord mathnormal">d</span><span class="mord mathnormal">u</span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.53em;vertical-align:-0.52em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.01em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">e</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.485em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.52em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mord">/</span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.01em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">e</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mopen mtight">(</span><span class="mord mtight">1</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.485em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mopen mtight">(</span><span class="mord mtight">1</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.52em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.4133239999999998em;vertical-align:-0.481108em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9322159999999999em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">t</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">e</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">n</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mtight">1</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.446108em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">t</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">e</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">n</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.481108em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></p>
-</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/05/19/Courses/CS149/05-Graphic-processing-units-and-CUDA/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2022/05/19/Courses/CS149/05-Graphic-processing-units-and-CUDA/" class="post-title-link" itemprop="url">05. Graphic processing units and CUDA</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2022-05-19 09:59:09" itemprop="dateCreated datePublished" datetime="2022-05-19T09:59:09+08:00">2022-05-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-16 19:22:24" itemprop="dateModified" datetime="2024-03-16T19:22:24+08:00">2024-03-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="graphics"><a class="markdownIt-Anchor" href="#graphics"></a> Graphics</h1>
-<ol>
-<li>The first step to drawing a graphic on the screen is to describe the manipulated things (key entities), whose surface is represented as a 3D triangle mesh.<br />
-So, the input of the calculating system is a list of vertices in 3D space and their connectivity to primitives.</li>
-<li>The operations of the system are as follows:<br />
-Given a scene camera position, compute where the vertices lie on the screen<br />
-Group vertices into primitives<br />
-Generate one fragment for each pixel a primitive overlaps<br />
-Compute the color of the primitive for each fragment based on scene lighting and primitive material properties<br />
-Put the color of the “closest fragment” to the camera in the output image</li>
-<li>We can Abstract the process of rendering a picture as a sequence of operations on vertices, primitives, fragments, and pixels.<br />
-GPUs are very fast processors for performing the same computation (shader programs) on large collections of data (streams of vertices, fragments, and pixels), which sounds like data-parallelism.</li>
-<li>To do GPU-based scientific computation, we need to set the OpenGL output image size to the output array size and render two triangles that exactly cover the screen.</li>
-</ol>
-<h1 id="cuda"><a class="markdownIt-Anchor" href="#cuda"></a> CUDA</h1>
-<h2 id="grid-block-and-thread"><a class="markdownIt-Anchor" href="#grid-block-and-thread"></a> Grid, Block, and Thread</h2>
-<ol>
-<li>CUDA thread IDs can be up to 3-dimensional. Multiple threads make up a block, and multiple blocks make up a grid.<br />
-Each kernel has a grid. All the blocks in a grid form a 3D matrix, and all the threads in a block also form a 3D matrix.<br />
-We can get information about the shape of threads in a block matrix or block in a grid matrix in a block with <code>block_dim</code> and <code>grid_dim</code></li>
-<li>When launching the CUDA threads, we need to specify the size of blocks and threads with <code>kernel_function&lt;&lt;&lt;block_dim, thread_dim&gt;&gt;&gt;(parameters)</code>.<br />
-Here, block_dim and thread_dim can be either a dim3 value or a number of the total number of blocks and threads per block to make the CUDA compiler figure out how to arrange blocks and threads.</li>
-<li>So, the coordinates for declaring or locating a block in a grid or a thread in a block are in 3D. In the CUDA code, we can get information about the current block or thread with <code>blockIdx</code> and <code>threadIdx</code> and their properties <code>x</code>, <code>y</code>, and <code>z</code>.</li>
-<li>The calculation object of CUDA is usually matrices. So, we prefer to cut matrices into blocks. Each CUDA block calculates one block in matrices, and each thread calculates one element in matrices.</li>
-<li>In <code>pthread</code>, there is stack space for the thread, and we need to allocate a control block so OS can schedule the thread.<br />
-Unlike <code>pthread</code>, CUDA controls those instances by thread blocks. If controlled by threads, there will be too many to control.</li>
-<li>Major CUDA assumption: thread block execution can be carried out in any order (no dependencies between blocks)</li>
-</ol>
-<h2 id="kernel-function"><a class="markdownIt-Anchor" href="#kernel-function"></a> Kernel function</h2>
-<ol>
-<li>“Host” code: serial execution runs as part of normal C/C++ application on CPU<br />
-“CUDA device” code: a kernel function runs on GPU, denoted by <code>__global__</code> before the definition of the kernel function.<br />
-Device function: SPMD execution on GPU, denoted by <code>__device__</code>. Kernels call these functions and don’t generate new threads.<br />
-Kernels and device functions only reference device memory. Host code can only reference host memory but can have pointers to device memory.</li>
-<li>In the kernel function, we need to get the indices of the element a thread is calculating. For a 2D matrix, we usually take <code>x</code> as the column direction and y as the row direction.<br />
-So to access <code>A[i][j]</code>, <code>i = blockIdx.y * blockDim * y + threadIdx.y</code> and <code>j = blockIdx.x * blockDim.x + threadIdx.x</code>.</li>
-<li>The data collection size does not determine the number of kernel invocations. So, normally, we want to do a test before accessing the vector values (array values). The overhead of the test can be ignored, although it does cause some threads not to be used.</li>
-<li><code>__syncthreads()</code> is a barrier that waits for all threads in the block to arrive at this point.<br />
-Atomic operations on global memory and shared memory variables are also provided, but they are costly and should only be used as a last resort.<br />
-There is an implicit barrier across all threads at the return of the kernel.</li>
-<li>A compiled CUDA device binary includes program text (instructions) and information about required resources (how many threads per block, how much space per thread, how much shared-space per thread block)</li>
-</ol>
-<h2 id="memory-model"><a class="markdownIt-Anchor" href="#memory-model"></a> Memory Model</h2>
-<ol>
-<li>The host and device have distinct address spaces, so we need to copy data into CUDA memory before executing.<br />
-<code>cudaMalloc(ptr, size)</code> can allocate CUDA memory, and <code>cudaFree(ptr)</code> can free CUDA memory. The pointer in <code>cudaMalloc</code> can be a host variable, but the pointer in <code>cudaFree</code> must be allocated by <code>cudaMalloc</code>.<br />
-<code>cudaMemcpy(dest, src, size, kind)</code> can copy those data into CUDA memory. The kind of direction of copy can be <code>cudaMemcpyHostToDevice</code> or <code>curdaMemcpyDeviceToHost</code>.</li>
-<li>Three distinct types of memory visible to kernels are per-thread private, per-block shared, and device global memory.</li>
-<li><code>cudaMalloc</code>, <code>cudaMemcpy</code>, and cudaFree operate on the device’s global memory, and those local variables in the kernel function are in per-thread private memory.<br />
-We can declare variables in per-block shared memory with <code>__share__</code>.</li>
-<li>If multiple threads in a block need to access a common memory, they will all read it once. And if that memory is in the global memory, it would be really slow.</li>
-<li>We can copy the common memory into the per-block shared memory to avoid such an efficient decrease. So we only need to access global memory once, and later accesses only in per-block shared memory.<br />
-We need to declare a <code>__share__</code> array and assign it to values in global memory.</li>
-<li>All threads copy data from global memory to per-block shared memory asynchronous, so we better ass a <code>_syncthread()</code> to make sure later operations only start when all data have been copied.</li>
-</ol>
-<h2 id="hardware-implementation"><a class="markdownIt-Anchor" href="#hardware-implementation"></a> Hardware implementation</h2>
-<ol>
-<li>Those synchronizations within a warp and scheduling are done by hardware, and programmers don’t need to worry about these things.</li>
-<li>GPU implementation maps thread blocks (“work”) to cores using a dynamic scheduling policy that respects resource requirements.</li>
-<li>In GPU implementation (not a CUDA abstraction), each SM has multiple groups of warps. However, the number of warp execution contexts is far more than the number of warps.<br />
-There is a warp selector for each warp to choose the instruction to be executed by that warp. Each warp selector usually has two (or more) Fectch/Decoder units.</li>
-<li>Shared per-block memory and L1-cache are inside each SM, but L2-cache is shared by all SMs.<br />
-The device-global memory (GPU memory) only communicates with blocks through the L2 cache.</li>
-<li>For each clock, an SM will choose several warp contexts to fill all warps to use thread-level parallelism, and a warp will choose several instructions to fill all Fetch/Decoder units to use instruction-level parallelism.</li>
-<li>When running a CUDA program, the GPU work scheduler will map one block to multiple warps in the same SM core. CUDA threads are numbered within a block in row-major order.<br />
-Inside a single thread block is SPMD shared address space programming.</li>
-<li>When a single warp accesses consecutive memory locations, do block read or write. When single warp accesses separated memory locations, it requires gather (read) or scatter(write)</li>
-<li>One SM core may have multiple blocks, so an SMM core can concurrently execute multiple CUDA thread blocks.<br />
-When all threads in the block are complete, block resources (shared memory allocations, warp execution contexts) become available for the next block.</li>
-<li>The CUDA program is not compiled into SIMD instructions like ISPC gangs. GPU hardware dynamically checks whether 32 independent CUDA threads share an instruction. If true, it executes all 32 threads in a SIMD manner, or performance can suffer due to divergent execution.</li>
 </ol>
 
       

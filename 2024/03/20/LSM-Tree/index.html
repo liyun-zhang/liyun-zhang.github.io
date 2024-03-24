@@ -20,15 +20,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="@[toc] WriteThe codes are in db_impl.h and db_impl.cc.  How to organize levels of logs? There are mem_, imm_, and persisted logs. They are all Memtables.  Both mem_ and imm_ are in volatile storages.">
+    <meta name="description" content="Write  How to write a log? How are WriteBatches encoded? How to make room for the writes? How to pick the tables to compact? How to perform compact?   Get  How to get a key from the database?      Wr">
 <meta property="og:type" content="article">
 <meta property="og:title" content="2. LSM-Tree">
 <meta property="og:url" content="http://liyun-zhang.github.io/2024/03/20/LSM-Tree/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="@[toc] WriteThe codes are in db_impl.h and db_impl.cc.  How to organize levels of logs? There are mem_, imm_, and persisted logs. They are all Memtables.  Both mem_ and imm_ are in volatile storages.">
+<meta property="og:description" content="Write  How to write a log? How are WriteBatches encoded? How to make room for the writes? How to pick the tables to compact? How to perform compact?   Get  How to get a key from the database?      Wr">
 <meta property="og:locale">
 <meta property="article:published_time" content="2024-03-20T05:29:38.000Z">
-<meta property="article:modified_time" content="2024-03-21T06:43:42.051Z">
+<meta property="article:modified_time" content="2024-03-24T15:27:49.021Z">
 <meta property="article:author" content="LiyunZhang">
 <meta name="twitter:card" content="summary">
 
@@ -138,7 +138,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Write"><span class="nav-number">1.</span> <span class="nav-text">Write</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-organize-levels-of-logs"><span class="nav-number">1.1.</span> <span class="nav-text">How to organize levels of logs?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-write-a-log"><span class="nav-number">1.2.</span> <span class="nav-text">How to write a log?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-are-WriteBatches-encoded"><span class="nav-number">1.3.</span> <span class="nav-text">How are WriteBatches encoded?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-make-room-for-the-writes"><span class="nav-number">1.4.</span> <span class="nav-text">How to make room for the writes?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-compact-files"><span class="nav-number">1.5.</span> <span class="nav-text">How to compact files?</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#write"><span class="nav-number">1.</span> <span class="nav-text"> Write</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-write-a-log"><span class="nav-number">1.1.</span> <span class="nav-text"> How to write a log?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-are-writebatches-encoded"><span class="nav-number">1.2.</span> <span class="nav-text"> How are WriteBatches encoded?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-make-room-for-the-writes"><span class="nav-number">1.3.</span> <span class="nav-text"> How to make room for the writes?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-pick-the-tables-to-compact"><span class="nav-number">1.4.</span> <span class="nav-text"> How to pick the tables to compact?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-perform-compact"><span class="nav-number">1.5.</span> <span class="nav-text"> How to perform compact?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#get"><span class="nav-number">2.</span> <span class="nav-text"> Get</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-get-a-key-from-the-database"><span class="nav-number">2.1.</span> <span class="nav-text"> How to get a key from the database?</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -151,7 +151,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">64</span>
+          <span class="site-state-item-count">66</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -162,7 +162,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -225,7 +225,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-21 14:43:42" itemprop="dateModified" datetime="2024-03-21T14:43:42+08:00">2024-03-21</time>
+      <time title="Modified: 2024-03-24 23:27:49" itemprop="dateModified" datetime="2024-03-24T23:27:49+08:00">2024-03-24</time>
     </span>
 
   
@@ -237,67 +237,168 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>@[toc]</p>
-<h1 id="Write"><a href="#Write" class="headerlink" title="Write"></a>Write</h1><p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.h">db_impl.h</a> and <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.cc">db_impl.cc</a>. </p>
-<h2 id="How-to-organize-levels-of-logs"><a href="#How-to-organize-levels-of-logs" class="headerlink" title="How to organize levels of logs?"></a>How to organize levels of logs?</h2><ol>
-<li>There are <code>mem_</code>, <code>imm_</code>, and persisted logs. They are all Memtables. </li>
-<li>Both <code>mem_</code> and <code>imm_</code> are in volatile storages. <ul>
-<li>The <code>mem_</code> is the latest Memtable to which we can append logs. </li>
-<li>When <code>mem_</code> is full, it will be frozen into <code>imm_</code> to be an immutable Memtable. </li>
-</ul>
-</li>
-<li>The <code>imm_</code> will be written into disks as persisted logs. <ul>
-<li>The persisted logs are separated into several levels, starting from $0$. The lower level contains newer logs. </li>
-<li>The SSTables at lower levels can be compacted into higher-level SSTables. </li>
-</ul>
-</li>
-</ol>
-<h2 id="How-to-write-a-log"><a href="#How-to-write-a-log" class="headerlink" title="How to write a log?"></a>How to write a log?</h2><ol>
-<li><p>The <code>db_impl</code> provided <code>Put</code> and <code>Delete</code>. </p>
+    <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
+<li><a href="#write">Write</a>
 <ul>
-<li><p>They encode requested writes into a <code>WriteBatch</code> and invoke <code>db_impl::Write</code> to finish the write. </p>
+<li><a href="#how-to-write-a-log">How to write a log?</a></li>
+<li><a href="#how-are-writebatches-encoded">How are WriteBatches encoded?</a></li>
+<li><a href="#how-to-make-room-for-the-writes">How to make room for the writes?</a></li>
+<li><a href="#how-to-pick-the-tables-to-compact">How to pick the tables to compact?</a></li>
+<li><a href="#how-to-perform-compact">How to perform compact?</a></li>
+</ul>
 </li>
-<li><p>The orders of concurrent writes are determined by their orders in <code>db_impl::writers_</code>. </p>
+<li><a href="#get">Get</a>
+<ul>
+<li><a href="#how-to-get-a-key-from-the-database">How to get a key from the database?</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="write"><a class="markdownIt-Anchor" href="#write"></a> Write</h1>
+<p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.h">db_impl.h</a> and <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.cc">db_impl.cc</a>.</p>
+<h2 id="how-to-write-a-log"><a class="markdownIt-Anchor" href="#how-to-write-a-log"></a> How to write a log?</h2>
+<ol>
+<li>
+<p>The <code>db_impl</code> provided <code>Put</code> and <code>Delete</code>.</p>
+<ul>
+<li>
+<p>They encode requested writes into a <code>WriteBatch</code> and invoke <code>db_impl::Write</code> to finish the write.</p>
+</li>
+<li>
+<p>The orders of concurrent writes are determined by their orders in <code>db_impl::writers_</code>.</p>
 </li>
 </ul>
 </li>
-<li><p>To execute a write, the first step is to invoke <code>MakeRoomForWrite</code> to reserve enough space in <code>mem_</code>, which is the only structure that can be modified. </p>
+<li>
+<p>To execute a write, the first step is to invoke <code>MakeRoomForWrite</code> to reserve enough space in <code>mem_</code>, which is the only structure that can be modified.</p>
 </li>
-<li><p>Each entry in the <code>WriteBatch</code> is assigned a unique, monotonously increasing sequential number. </p>
+<li>
+<p>Each entry in the <code>WriteBatch</code> is assigned a unique, monotonously increasing sequential number.</p>
 </li>
-<li><p>Before calling the <code>MemTableInserter</code> to apply each write to <code>mem_</code>, the write records must be put into the write-ahead log <code>log_</code>. </p>
+<li>
+<p>Before calling the <code>MemTableInserter</code> to apply each write to <code>mem_</code>, the write records must be put into the write-ahead log <code>log_</code>.</p>
 </li>
 </ol>
-<h2 id="How-are-WriteBatches-encoded"><a href="#How-are-WriteBatches-encoded" class="headerlink" title="How are WriteBatches encoded?"></a>How are WriteBatches encoded?</h2><ol>
-<li><p>In <code>WriteBatch</code>, a <code>req_</code> contains all requests in the following format, where <code>key_size</code> and <code>value_size</code> are encoded by <code>EncodeVarint32</code>, the same as <code>Memtable</code>. </p>
+<h2 id="how-are-writebatches-encoded"><a class="markdownIt-Anchor" href="#how-are-writebatches-encoded"></a> How are WriteBatches encoded?</h2>
+<ol>
+<li>
+<p>In <code>WriteBatch</code>, a <code>req_</code> contains all requests in the following format, where <code>key_size</code> and <code>value_size</code> are encoded by <code>EncodeVarint32</code>, the same as <code>Memtable</code>.</p>
 <figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">req_: </span><br><span class="line">+----------+-------+-----------+</span><br><span class="line">|  SeqNum  |  cnt  |  records  |</span><br><span class="line">+----------+-------+-----------+</span><br><span class="line">records:</span><br><span class="line">+--------+------------+-------+-------------+---------+</span><br><span class="line">|  type  |  key_size  |  key  |  value_size |  value  |</span><br><span class="line">+--------+------------+-------+-------------+---------+</span><br></pre></td></tr></table></figure>
 </li>
-<li><p>A <code>Put</code> request has type <code>kTypeValue</code>. A <code>Delete</code> request has type <code>kTypeDeletion</code> and without the value part. </p>
+<li>
+<p>A <code>Put</code> request has type <code>kTypeValue</code>. A <code>Delete</code> request has type <code>kTypeDeletion</code> and without the value part.</p>
 </li>
-<li><p>When creating a new <code>WriteBatch</code>, the <code>req_</code> reserves $12$ bytes, $8$ bytes for <code>SeqNum</code> and $4$ bytes for <code>cnt</code>. </p>
+<li>
+<p>When creating a new <code>WriteBatch</code>, the <code>req_</code> reserves <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>12</mn></mrow><annotation encoding="application/x-tex">12</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">2</span></span></span></span> bytes, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>8</mn></mrow><annotation encoding="application/x-tex">8</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">8</span></span></span></span> bytes for <code>SeqNum</code> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4</mn></mrow><annotation encoding="application/x-tex">4</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">4</span></span></span></span> bytes for <code>cnt</code>.</p>
 <ul>
-<li>The <code>SeqNum</code> and <code>cnt</code> are initially $0$. </li>
-<li>When a new request is added to a <code>WriteBatch</code>, a <code>SetCount</code> is invoked to modify the <code>cnt</code>. </li>
-<li>The <code>SeqNum</code> is set when the write is being executed instead of when collecting. </li>
+<li>The <code>SeqNum</code> and <code>cnt</code> are initially <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>.</li>
+<li>When a new request is added to a <code>WriteBatch</code>, a <code>SetCount</code> is invoked to modify the <code>cnt</code>.</li>
+<li>The <code>SeqNum</code> is set when the write is being executed instead of when collecting.</li>
 </ul>
 </li>
 </ol>
-<h2 id="How-to-make-room-for-the-writes"><a href="#How-to-make-room-for-the-writes" class="headerlink" title="How to make room for the writes?"></a>How to make room for the writes?</h2><ol>
-<li>If the <code>WriteBatch</code> is <code>nullptr</code>, the compaction is forced. </li>
-<li>If <code>mem_</code> is not full, no more efforts need to be made. Otherwise, we must set the current <code>mem_</code> as immutable, i.e., <code>imm_</code>, and switch to a new one. </li>
-<li>If <code>imm_</code> is not empty or there are too many level $0$ files, we need to wait for the background thread to compact the current files. </li>
-<li>If <code>mem_</code> is full, <code>imm_</code> is empty, and there is enough space for level $0$ we can schedule a compaction and switch to a new <code>mem_</code>. <ul>
-<li>The write-ahead log file <code>logfile_</code> is bound with a <code>mem_</code>. Switching to a new <code>mem__</code> also needs to create a new <code>logfile_</code>. </li>
-<li>Then, <code>imm_</code> points to the current <code>mem_</code> before creating a new Memtable for <code>mem_</code>. </li>
-</ul>
-</li>
-</ol>
-<h2 id="How-to-compact-files"><a href="#How-to-compact-files" class="headerlink" title="How to compact files?"></a>How to compact files?</h2><p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.cc#L702">DBImpl::BackgroundCompaction</a>. </p>
+<h2 id="how-to-make-room-for-the-writes"><a class="markdownIt-Anchor" href="#how-to-make-room-for-the-writes"></a> How to make room for the writes?</h2>
 <ol>
-<li>If <code>imm_</code> is not empty, it must be written to the level $0$ files. </li>
-<li></li>
+<li>If the <code>WriteBatch</code> is <code>nullptr</code>, the compaction is forced.</li>
+<li>If <code>mem_</code> is not full, no more efforts need to be made. Otherwise, we must set the current <code>mem_</code> as immutable, i.e., <code>imm_</code>, and switch to a new one.</li>
+<li>If <code>imm_</code> is not empty or there are too many level <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files, we need to wait for the background thread to compact the current files.</li>
+<li>If <code>mem_</code> is full, <code>imm_</code> is empty, and there is enough space for level <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> we can schedule a compaction and switch to a new <code>mem_</code>.
+<ul>
+<li>The write-ahead log file <code>logfile_</code> is bound with a <code>mem_</code>. Switching to a new <code>mem__</code> also needs to create a new <code>logfile_</code>.</li>
+<li>Then, <code>imm_</code> points to the current <code>mem_</code> before creating a new Memtable for <code>mem_</code>.</li>
+</ul>
+</li>
 </ol>
-<p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/version_set.h">version_set.h</a> and <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/version_set.cc">version_set.cc</a>. </p>
+<h2 id="how-to-pick-the-tables-to-compact"><a class="markdownIt-Anchor" href="#how-to-pick-the-tables-to-compact"></a> How to pick the tables to compact?</h2>
+<p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.cc#L702">DBImpl::BackgroundCompaction</a>.</p>
+<ol>
+<li>The compaction with the highest priority is called a minor compact. It happens when <code>imm_</code> is not empty, it must be written to the level <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files.</li>
+<li>The second priority is the manual compaction when <code>manual_compaction_</code> is not <code>nullptr</code>.
+<ul>
+<li>A <code>ManualCompaction</code> indicates the level and the range to compact. All files at the given level that overlaps with the specific range will be compact.</li>
+</ul>
+</li>
+<li>In <code>VersionSet::PickCompaction</code>, there are two kinds of compactions: size compaction and seek compaction.</li>
+<li>The size compaction designates a <code>compaction_level_</code> with the highest <code>compaction_score_</code> to compact.
+<ul>
+<li>It is calculated for each level when editing a new version in the database.</li>
+<li>For level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files, the score is the ratio of the number of files and the <code>kL0_CompactionTrigger</code>. For other levels, it is the ratio of the total file size in that level against the maximum size for each level.</li>
+<li>The size compaction is triggered when the <code>compaction_score_ &gt;= 1</code>, i.e., the number or size of files in a certain level exceeds the maximum line.</li>
+<li>The first file that comes after <code>compact_pointer_[level]</code> is picked to compact.</li>
+</ul>
+</li>
+<li>The seek compaction designates a <code>file_to_compact_</code> to be the candidate.</li>
+<li>The files in level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> may overlap. We must make sure that no remaining files overlap with those files to compact.
+<ul>
+<li>A file in the level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> may extend the search range and require restarting the search in manual compaction.</li>
+<li>The size compaction and seek compaction would pick more than one file to compact when overlap exists.</li>
+</ul>
+</li>
+<li>After the above procedures, the size compaction and the seek compaction have selected some files in the lower level to compact, which is in <code>Compaction.input[0]</code>.
+<ul>
+<li>Those files will compact with the files in the next level that overlaps with them, which is in <code>Compaction.input[1]</code>.</li>
+<li>The boundaries of files are encoded by the user key and sequential number.
+<ul>
+<li>The sequence number is encoded in a little-endian way. So, the newer keys might be in front of the older keys in the former block, e.g., when a higher byte is changed.</li>
+<li>There is a case in the upper bound of a file and the lower bound of another file shares the same user key with an older sequence number.</li>
+<li>If we only compact the former file, in reading, we might find the older result in a lower level instead of the correct value in a higher level.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>To compact more thoroughly, we try to expand the current inputs by including all files at the compact level that overlap with them.
+<ul>
+<li>The files overlap with the files at the compact level is already included. This time is mainly for the files at the compact level that overlaps with files in the next level. Also need to include those boundary files.</li>
+<li>This is merely a trial. It only happens when the total size of <code>Compaction.inputs[1]</code> and expanded files is less than the <code>ExpandedCompactionByteSizeLimit</code>.</li>
+<li>Another condition for this expansion is that we cannot increase the number of files selected from the next level. Namely, the range of the new expanded files is already included in the <code>Compaction.inputs[1]</code>.</li>
+</ul>
+</li>
+<li>The grandparent files in the next two levels that overlap with all files in both lower levels are required.</li>
+<li>Finally, update the place where we will do the next compaction for this level in <code>compact_pointer_[level]</code>.</li>
+</ol>
+<ul>
+<li>We update this immediately instead of waiting for the VersionEdit to be applied so that if the compaction fails, we will try a different key range next time.</li>
+</ul>
+<h2 id="how-to-perform-compact"><a class="markdownIt-Anchor" href="#how-to-perform-compact"></a> How to perform compact?</h2>
+<ol>
+<li>If this is not a manual compaction and there is only one file in <code>Compaction.inputs[0]</code> and no next-level file to merge, we only need to trivially move the file into the next level.
+<ul>
+<li>In the <code>VersionEdit</code>, remove the file in <code>Compaction.inputs[0]</code> from its level and add it into the next level.</li>
+</ul>
+</li>
+<li>The merge process is completed by a <code>MergingIterator</code>.
+<ul>
+<li>Given that level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files might overlap, there is a <code>TwoLevelIterator</code> for each files. For other levels, one iterator is enough to traverse them in order.
+<ul>
+<li>What is read by a <code>TwoLevelIterator</code> is determined by the index interator passed to it.</li>
+<li>For the level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files, we use the index iterator of its index block. For other levels, the <code>Version::LevelFileNumIterator</code> is passed to be the index iterator.</li>
+</ul>
+</li>
+<li>All the files that are involved are pinned in the cache now.</li>
+</ul>
+</li>
+</ol>
+<h1 id="get"><a class="markdownIt-Anchor" href="#get"></a> Get</h1>
+<h2 id="how-to-get-a-key-from-the-database"><a class="markdownIt-Anchor" href="#how-to-get-a-key-from-the-database"></a> How to get a key from the database?</h2>
+<ol>
+<li>
+<p>The <code>DBImpl::Get</code> searches the key from the latest records to the oldest records. First search on the <code>mem_</code>. If missed, try on the <code>imm_</code>.</p>
+</li>
+<li>
+<p>If it is not found in memory, read from the files on disk by <code>Version::Get</code> of the current version.</p>
+<ul>
+<li>
+<p>The level <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files may have overlapped ranges. Search level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> in order from newest to oldest. Check every file that may contain the target key through <code>TableCache::Get</code>.</p>
+</li>
+<li>
+<p>The <code>handle_result</code> is a function to save the matched value to a <code>Save*</code>.</p>
+</li>
+<li>
+<p>Other levels can use binary search to file the possible file.</p>
+</li>
+</ul>
+</li>
+</ol>
 
     </div>
 
@@ -316,6 +417,9 @@
                 </a>
             </div>
             <div class="post-nav-item">
+                <a href="/2024/03/22/OpenSource/LevelDB/Cache/" rel="next" title="3. Cache">
+                  3. Cache <i class="fa fa-chevron-right"></i>
+                </a>
             </div>
           </div>
     </footer>

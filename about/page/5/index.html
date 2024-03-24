@@ -146,7 +146,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">64</span>
+          <span class="site-state-item-count">66</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -157,7 +157,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -174,6 +174,687 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/06/28/Courses/15445/06-Operator-Algorithms/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/28/Courses/15445/06-Operator-Algorithms/" class="post-title-link" itemprop="url">06 Operator Algorithms</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-06-28 13:16:33" itemprop="dateCreated datePublished" datetime="2023-06-28T13:16:33+08:00">2023-06-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-03-16 14:50:53" itemprop="dateModified" datetime="2024-03-16T14:50:53+08:00">2024-03-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Courses/CMU-15-445-645-Database-System/" itemprop="url" rel="index"><span itemprop="name">CMU 15-445/645 Database System</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#execute-queries">Execute queries</a>
+<ul>
+<li><a href="#how-are-queries-planned">How are queries planned?</a></li>
+<li><a href="#what-is-the-assumption-of-algorithms-in-database-systems">What is the assumption of algorithms in database systems?</a></li>
+</ul>
+</li>
+<li><a href="#sort">Sort</a>
+<ul>
+<li><a href="#what-implementation-should-we-use-to-execute-a-query-containing-an-order-by-with-a-limit">What implementation should we use to execute a query containing an ORDER BY with a LIMIT?</a></li>
+<li><a href="#what-if-the-data-is-too-large-to-fit-in-memory-for-any-clause-including-order-by-with-a-limit">What if the data is too large to fit in memory? (for any clause including ORDER BY with a LIMIT)</a></li>
+<li><a href="#how-to-perform-an-external-merge-sort">How to perform an external merge sort?</a></li>
+<li><a href="#how-can-we-hide-the-disk-io">How can we hide the disk I/O?</a></li>
+<li><a href="#how-can-we-optimize-comparison">How can we optimize comparison?</a></li>
+<li><a href="#how-to-use-btree-for-sorting-since-it-is-sorted">How to use B+Tree for sorting since it is sorted?</a></li>
+</ul>
+</li>
+<li><a href="#aggregations">Aggregations</a>
+<ul>
+<li><a href="#how-can-we-implement-aggregations">How can we implement aggregations?</a></li>
+<li><a href="#how-to-do-hashing-when-spilling-data-onto-a-disk">How to do hashing when spilling data onto a disk?</a></li>
+</ul>
+</li>
+<li><a href="#join">Join</a>
+<ul>
+<li><a href="#why-do-we-need-to-join">Why do we need to join?</a></li>
+<li><a href="#what-are-join-algorithms-doing">What are join algorithms doing?</a></li>
+<li><a href="#what-are-the-outputs-of-join-algorithms">What are the outputs of join algorithms?</a></li>
+<li><a href="#how-can-we-measure-the-cost-of-join">How can we measure the cost of join?</a></li>
+<li><a href="#join-algorithms">Join algorithms</a>
+<ul>
+<li><a href="#nested-loop-join">Nested loop join</a>
+<ul>
+<li><a href="#what-is-the-most-naive-algorithm">What is the most naive algorithm?</a></li>
+<li><a href="#how-can-we-better-use-the-data-already-read-from-disk">How can we better use the data already read from disk?</a></li>
+<li><a href="#how-can-we-take-advantage-of-more-buffer-space">How can we take advantage of more buffer space?</a></li>
+<li><a href="#can-we-avoid-sequential-scans-by-using-an-index">Can we avoid sequential scans by using an index?</a></li>
+</ul>
+</li>
+<li><a href="#sort-merge-join">Sort-merge join</a>
+<ul>
+<li><a href="#what-is-the-process-of-sort-merge-join">What is the process of sort-merge join?</a></li>
+<li><a href="#how-do-the-two-cursors-move">How do the two cursors move?</a></li>
+<li><a href="#when-is-sort-merge-join-useful">When is sort-merge join useful?</a></li>
+</ul>
+</li>
+<li><a href="#hash-join">Hash join</a>
+<ul>
+<li><a href="#how-does-hash-join-work">How does hash join work?</a></li>
+<li><a href="#how-big-of-a-table-can-we-hash-using-this-approach">How big of a table can we hash using this approach?</a></li>
+<li><a href="#can-we-optimize-the-search-for-tuples-that-do-not-have-any-match">Can we optimize the search for tuples that do not have any match?</a></li>
+<li><a href="#what-if-we-lack-the-memory-to-fit-the-entire-hash-table">What if we lack the memory to fit the entire hash table?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="execute-queries"><a class="markdownIt-Anchor" href="#execute-queries"></a> Execute queries</h1>
+<h2 id="how-are-queries-planned"><a class="markdownIt-Anchor" href="#how-are-queries-planned"></a> How are queries planned?</h2>
+<ol>
+<li>The operators are arranged in an abstract syntax tree. Data flows from the leaves of the tree up towards the root.</li>
+<li>The leaf nodes are access methods, e.g., scanning index and scanning table, feeding data up along its path to its parent node to do the processing.</li>
+<li>The output of the root node is the result of the query.</li>
+<li>This tree only describes a logical plan, i.e., instead of telling what implementation to use, it is just the logical flow we want. SQL only declares a logical plan, while the database system’s job is figuring out the optimal execution.</li>
+</ol>
+<h2 id="what-is-the-assumption-of-algorithms-in-database-systems"><a class="markdownIt-Anchor" href="#what-is-the-assumption-of-algorithms-in-database-systems"></a> What is the assumption of algorithms in database systems?</h2>
+<ol>
+<li>Just like it cannot assume that a table fits entirely in memory, a disk-oriented DBMS cannot assume that query results fit in memory.</li>
+<li>We will use the buffer pool to implement algorithms that need to spill to disk.</li>
+<li>We will also prefer algorithms that maximize the amount of sequential I/O.</li>
+</ol>
+<h1 id="sort"><a class="markdownIt-Anchor" href="#sort"></a> Sort</h1>
+<h2 id="what-implementation-should-we-use-to-execute-a-query-containing-an-order-by-with-a-limit"><a class="markdownIt-Anchor" href="#what-implementation-should-we-use-to-execute-a-query-containing-an-order-by-with-a-limit"></a> What implementation should we use to execute a query containing an ORDER BY with a LIMIT?</h2>
+<ol>
+<li>The DBMS only needs to scan the data once to find the top-N elements.</li>
+<li>The ideal scenario for heapsort is when the top-N elements fit in memory so that the DBMS only has to maintain an in-memory sorted priority queue while scanning the data.</li>
+</ol>
+<h2 id="what-if-the-data-is-too-large-to-fit-in-memory-for-any-clause-including-order-by-with-a-limit"><a class="markdownIt-Anchor" href="#what-if-the-data-is-too-large-to-fit-in-memory-for-any-clause-including-order-by-with-a-limit"></a> What if the data is too large to fit in memory? (for any clause including ORDER BY with a LIMIT)</h2>
+<ol>
+<li>We do not want to use quick sort in this scenario since data spilling to disk will cause too many random access.</li>
+<li>We can use external merge sort that splits data into separate runs, sorts them individually, and then combines them into longer sorted runs.</li>
+<li>A run is a list of key/value pairs.
+<ul>
+<li>Keys are the attribute(s) used to compare and compute the sort order.</li>
+<li>Values have two choices: it can either be the actual tuple data (i.e., early materialization) or be the Record IDs (i.e., late materialization)
+<ul>
+<li>The advantage of early materialization is that it can produce results faster, while the disadvantage is that it needs to copy more data during the procedure.</li>
+<li>The advantage of late materialization is that it can only fetch wanted data while it needs to find the actual data elsewhere (probably involving another disk I/O).</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-perform-an-external-merge-sort"><a class="markdownIt-Anchor" href="#how-to-perform-an-external-merge-sort"></a> How to perform an external merge sort?</h2>
+<ol>
+<li>Data is broken up into <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> pages. The DBMS has a finite number of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi></mrow><annotation encoding="application/x-tex">B</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span> buffer pool pages to hold input and output data.</li>
+<li>In the first phase, sort chunks of data that fit in memory and then write back the sorted chunks to a file on disk.
+<ul>
+<li>In the first pass, we can read all <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi></mrow><annotation encoding="application/x-tex">B</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span> pages of the table into memory, sort pages into runs, and write them back to disk.</li>
+<li>Do not sort in the buffer since we do not wish other threads to see some partially sorted data, which may cause errors. Copy the data to somewhere else and copy it back to the buffer after it is sorted.</li>
+</ul>
+</li>
+<li>In the second phase, combine sorted runs into larger chunks.
+<ul>
+<li>In the following passes, each pass use <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">B-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> pages for input and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> page for output.</li>
+<li>Recursively merge pairs of runs into runs <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">B-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>-times as long.</li>
+</ul>
+</li>
+<li>In general, the first pass creates <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">⌈</mo><mi>N</mi><mi mathvariant="normal">/</mi><mi>B</mi><mo stretchy="false">⌉</mo></mrow><annotation encoding="application/x-tex">\lceil N/B\rceil</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⌈</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord">/</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mclose">⌉</span></span></span></span> sorted runs of size <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi></mrow><annotation encoding="application/x-tex">B</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span> and the following passes are <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mi>B</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(B-1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span>-way merge.
+<ul>
+<li>The number of passes is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>+</mo><mo stretchy="false">⌈</mo><msub><mo><mi>log</mi><mo>⁡</mo></mo><mrow><mi>B</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false">⌈</mo><mi>N</mi><mi mathvariant="normal">/</mi><mi>B</mi><mo stretchy="false">⌉</mo><mo stretchy="false">⌉</mo></mrow><annotation encoding="application/x-tex">1+\lceil\log_{B-1}\lceil N/B\rceil\rceil</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.052471em;vertical-align:-0.302471em;"></span><span class="mopen">⌈</span><span class="mop"><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.23419099999999998em;"><span style="top:-2.45586em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.302471em;"><span></span></span></span></span></span></span><span class="mopen">⌈</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord">/</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mclose">⌉</span><span class="mclose">⌉</span></span></span></span>.</li>
+<li>The total I/O cost is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>N</mi><mo>⋅</mo><mo stretchy="false">(</mo><mi>n</mi><mi>u</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi><mtext> </mtext><mi>o</mi><mi>f</mi><mtext> </mtext><mi>p</mi><mi>a</mi><mi>s</mi><mi>s</mi><mi>e</mi><mi>s</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">2N\cdot (number\ of\ passes)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord mathnormal">u</span><span class="mord mathnormal">m</span><span class="mord mathnormal">b</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace"> </span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mspace"> </span><span class="mord mathnormal">p</span><span class="mord mathnormal">a</span><span class="mord mathnormal">s</span><span class="mord mathnormal">s</span><span class="mord mathnormal">e</span><span class="mord mathnormal">s</span><span class="mclose">)</span></span></span></span>.</li>
+</ul>
+</li>
+<li>In a 2-way external merge sort, instead of sorting the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi></mrow><annotation encoding="application/x-tex">B</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span> pages into a run in the first pass, each page is sorted into a run.
+<ul>
+<li>So, the number of passes is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>+</mo><mo stretchy="false">⌈</mo><msub><mo><mi>log</mi><mo>⁡</mo></mo><mn>2</mn></msub><mi>N</mi><mo stretchy="false">⌉</mo></mrow><annotation encoding="application/x-tex">1+\lceil\log_2N\rceil</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⌈</span><span class="mop"><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.20696799999999996em;"><span style="top:-2.4558600000000004em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24414em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">⌉</span></span></span></span>.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-can-we-hide-the-disk-io"><a class="markdownIt-Anchor" href="#how-can-we-hide-the-disk-io"></a> How can we hide the disk I/O?</h2>
+<ol>
+<li>A typical setup is using <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn></mrow><annotation encoding="application/x-tex">3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span></span></span></span> pages (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn></mrow><annotation encoding="application/x-tex">2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span></span></span></span> for input pages and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> for output page). Even if we have more buffer space available (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>&gt;</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">B&gt;3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72243em;vertical-align:-0.0391em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span></span></span></span>), it does not effectively utilize them if the worker must block disk I/O.</li>
+<li>We can prefetch the next run in the background and store it in a second buffer while the system processes the current run.</li>
+<li>This method continuously utilizes the disk to reduce the wait time for I/O requests at each step.</li>
+</ol>
+<h2 id="how-can-we-optimize-comparison"><a class="markdownIt-Anchor" href="#how-can-we-optimize-comparison"></a> How can we optimize comparison?</h2>
+<ol>
+<li>The first approach is code specialization.
+<ul>
+<li>Instead of providing a comparison function as a pointer to the sorting algorithm, create a hardcoded version of the sort that is specific to a key type.</li>
+</ul>
+</li>
+<li>For string keys, the second approach is suffix truncation.
+<ul>
+<li>First, compare a binary prefix of keys instead of a slower string comparison.</li>
+<li>Fallback to a slower version if prefixes are equal.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-use-btree-for-sorting-since-it-is-sorted"><a class="markdownIt-Anchor" href="#how-to-use-btree-for-sorting-since-it-is-sorted"></a> How to use B+Tree for sorting since it is sorted?</h2>
+<ol>
+<li>If the table that must be sorted already has a B+Tree index on the sort attribute(s), then we can use that to accelerate sorting.</li>
+<li>Retrieve tuples in desired order by traversing the tree’s leaf pages.
+<ul>
+<li>For clustered B+Tree, this is always better than external sorting because there is no computational cost, and all disk access is sequential.</li>
+<li>For non-clustered B+Tree, this is almost always a bad idea. In general, one I/O per data record.</li>
+</ul>
+</li>
+</ol>
+<h1 id="aggregations"><a class="markdownIt-Anchor" href="#aggregations"></a> Aggregations</h1>
+<h2 id="how-can-we-implement-aggregations"><a class="markdownIt-Anchor" href="#how-can-we-implement-aggregations"></a> How can we implement aggregations?</h2>
+<ol>
+<li>The DBMS needs a way to find tuples with the same distinguishing attributes for grouping quickly.</li>
+<li>We can use the aforementioned sorting algorithms for aggregations specified with an <code>ORDER BY</code> clause.</li>
+<li>Hashing is a better alternative for queries that do not need the data to be ordered, e.g., forming groups in <code>GROUP BY</code> or removing duplicates in <code>DISTINCT</code>. Hashing can be computationally cheaper than sorting.
+<ul>
+<li>For each record, check whether there is an entry in the hash table. For <code>DISTINCT</code>, discard the duplicate. For <code>GROUP BY</code>, perform aggregate computation.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-do-hashing-when-spilling-data-onto-a-disk"><a class="markdownIt-Anchor" href="#how-to-do-hashing-when-spilling-data-onto-a-disk"></a> How to do hashing when spilling data onto a disk?</h2>
+<ol>
+<li>The first phase is partition. Divide tuples into buckets based on the hash key. Write them out to disk when they get full.
+<ul>
+<li>Use a hash function <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">h_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> to split tuples into partitions on the disk.</li>
+<li>A partition is one or more pages that contain a set of keys with the same hash value.</li>
+<li>Assume that we have <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi></mrow><annotation encoding="application/x-tex">B</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span> buffers. We will use <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">B-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> buffers for the partitions and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> buffer for the input data.</li>
+</ul>
+</li>
+<li>The second phase is ReHash. Build an in-memory hash table for each partition and compute the aggregation.
+<ul>
+<li>For each partition on the disk, read it into memory and build an in-memory hash table based on a second hash function <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">h_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
+<li>Then, go through each bucket of this hash table to bring together matching tuples.</li>
+<li>Each time, we can use <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">B-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> pages as input pages and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> page as output page.
+<ul>
+<li>In each round, we can read in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">B-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> partitions.</li>
+<li>After each round is finished, we can clear the hash table since the next <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">B-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> partitions definitely won’t have the same keys as in the last round.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>During the ReHash phase, store pairs of the form <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mi>G</mi><mi>r</mi><mi>o</mi><mi>u</mi><mi>p</mi><mi>K</mi><mi>e</mi><mi>y</mi><mo>→</mo><mi>R</mi><mi>u</mi><mi>n</mi><mi>n</mi><mi>i</mi><mi>n</mi><mi>g</mi><mi>V</mi><mi>a</mi><mi>l</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(GroupKey→RunningVal)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">G</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">o</span><span class="mord mathnormal">u</span><span class="mord mathnormal">p</span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mord mathnormal">u</span><span class="mord mathnormal">n</span><span class="mord mathnormal">n</span><span class="mord mathnormal">i</span><span class="mord mathnormal">n</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mclose">)</span></span></span></span>.
+<ul>
+<li>When we want to insert a new tuple into the hash table if we find a matching <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><mi>r</mi><mi>o</mi><mi>u</mi><mi>p</mi><mi>K</mi><mi>e</mi><mi>y</mi></mrow><annotation encoding="application/x-tex">GroupKey</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">G</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">o</span><span class="mord mathnormal">u</span><span class="mord mathnormal">p</span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>, update the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>u</mi><mi>n</mi><mi>n</mi><mi>i</mi><mi>n</mi><mi>g</mi><mi>V</mi><mi>a</mi><mi>l</mi></mrow><annotation encoding="application/x-tex">RunningVal</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mord mathnormal">u</span><span class="mord mathnormal">n</span><span class="mord mathnormal">n</span><span class="mord mathnormal">i</span><span class="mord mathnormal">n</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span></span></span></span> appropriately. Else, insert a new <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mi>G</mi><mi>r</mi><mi>o</mi><mi>u</mi><mi>p</mi><mi>K</mi><mi>e</mi><mi>y</mi><mo>→</mo><mi>R</mi><mi>u</mi><mi>n</mi><mi>n</mi><mi>i</mi><mi>n</mi><mi>g</mi><mi>V</mi><mi>a</mi><mi>l</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(GroupKey→RunningVal)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">G</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">o</span><span class="mord mathnormal">u</span><span class="mord mathnormal">p</span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mord mathnormal">u</span><span class="mord mathnormal">n</span><span class="mord mathnormal">n</span><span class="mord mathnormal">i</span><span class="mord mathnormal">n</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mclose">)</span></span></span></span>.</li>
+<li>The running totals of different aggregation functions are as follows:
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mi>V</mi><mi>G</mi><mo stretchy="false">(</mo><mi>c</mi><mi>o</mi><mi>l</mi><mo stretchy="false">)</mo><mo>→</mo><mo stretchy="false">(</mo><mi>C</mi><mi>O</mi><mi>U</mi><mi>N</mi><mi>T</mi><mo separator="true">,</mo><mi>S</mi><mi>U</mi><mi>M</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">AVG(col)\rightarrow (COUNT,SUM)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="mord mathnormal">G</span><span class="mopen">(</span><span class="mord mathnormal">c</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mord mathnormal" style="margin-right:0.10903em;">U</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mord mathnormal" style="margin-right:0.10903em;">U</span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mclose">)</span></span></span></span></li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>U</mi><mi>M</mi><mo stretchy="false">(</mo><mi>c</mi><mi>o</mi><mi>l</mi><mo stretchy="false">)</mo><mo>→</mo><mo stretchy="false">(</mo><mi>S</mi><mi>U</mi><mi>M</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">SUM(col)\rightarrow(SUM)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mord mathnormal" style="margin-right:0.10903em;">U</span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mopen">(</span><span class="mord mathnormal">c</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mord mathnormal" style="margin-right:0.10903em;">U</span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mclose">)</span></span></span></span></li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mi>O</mi><mi>U</mi><mi>N</mi><mi>T</mi><mo stretchy="false">(</mo><mi>c</mi><mi>o</mi><mi>l</mi><mo stretchy="false">)</mo><mo>→</mo><mo stretchy="false">(</mo><mi>C</mi><mi>O</mi><mi>U</mi><mi>N</mi><mi>T</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">COUNT(col)\rightarrow(COUNT)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mord mathnormal" style="margin-right:0.10903em;">U</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">c</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mord mathnormal" style="margin-right:0.10903em;">U</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mclose">)</span></span></span></span></li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>I</mi><mi>N</mi><mo stretchy="false">(</mo><mi>c</mi><mi>o</mi><mi>l</mi><mo stretchy="false">)</mo><mo>→</mo><mo stretchy="false">(</mo><mi>M</mi><mi>I</mi><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">MIN(col)\rightarrow(MIN)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mopen">(</span><span class="mord mathnormal">c</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span></li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>A</mi><mi>X</mi><mo stretchy="false">(</mo><mi>c</mi><mi>o</mi><mi>l</mi><mo stretchy="false">)</mo><mo>→</mo><mo stretchy="false">(</mo><mi>M</mi><mi>A</mi><mi>X</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">MAX(col)\rightarrow(MAX)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mopen">(</span><span class="mord mathnormal">c</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mclose">)</span></span></span></span></li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="join"><a class="markdownIt-Anchor" href="#join"></a> Join</h1>
+<h2 id="why-do-we-need-to-join"><a class="markdownIt-Anchor" href="#why-do-we-need-to-join"></a> Why do we need to join?</h2>
+<ol>
+<li>Tables are normalized in a relational database to avoid unnecessary repetition of information.</li>
+<li>The join operator reconstructs the original tuples without any information loss.</li>
+<li>Join is an important operator in both OLAP and OLTP systems. Especially for the OLAP system, joining could take up to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>15</mn><mo>∼</mo><mn>50</mn><mi mathvariant="normal">%</mi></mrow><annotation encoding="application/x-tex">15\sim 50\%</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">5</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∼</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.80556em;vertical-align:-0.05556em;"></span><span class="mord">5</span><span class="mord">0</span><span class="mord">%</span></span></span></span> of time.</li>
+</ol>
+<h2 id="what-are-join-algorithms-doing"><a class="markdownIt-Anchor" href="#what-are-join-algorithms-doing"></a> What are join algorithms doing?</h2>
+<ol>
+<li>The most important kind is binary joins using inner equijoin algorithms.
+<ul>
+<li>Binary means that the operator takes two tables as input.</li>
+<li>Inner means it matches a certain tuple in the left table with another in the right.</li>
+<li>Equijoin means that the condition of matching two tuples is the equivalence of some attributes.</li>
+</ul>
+</li>
+<li>There are also other joins.
+<ul>
+<li>Multi-way joins take more than two tables as input, primarily in the research literature.</li>
+<li>Besides equijoin, there could also be anti-join, non-equijoin, etc.</li>
+</ul>
+</li>
+<li>Compared with cross-product, join is more efficient and can be carefully optimized.</li>
+</ol>
+<h2 id="what-are-the-outputs-of-join-algorithms"><a class="markdownIt-Anchor" href="#what-are-the-outputs-of-join-algorithms"></a> What are the outputs of join algorithms?</h2>
+<ol>
+<li>In <code>R JOIN S</code>, for tuple <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>∈</mo><mi>R</mi></mrow><annotation encoding="application/x-tex">r \in R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span> and tuple <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>∈</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">s \in S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span> that match on join attributes, concatenate <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi></mrow><annotation encoding="application/x-tex">s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">s</span></span></span></span> together into a new tuple.</li>
+<li>The output contents can vary depending on the query’s processing model, storage model, or data requirements.</li>
+<li>Basically, there are two choices that are similar in terms of sort.
+<ul>
+<li>Early materialization
+<ul>
+<li>Copy the values for the attributes in outer and inner tuples into a new output tuple.</li>
+<li>Subsequent query plan operators never need to return to the base tables to get more data.</li>
+</ul>
+</li>
+<li>Late materialization
+<ul>
+<li>Only copy the join keys and the matching tuples’ Record IDs.</li>
+<li>This is ideal for column stores because the DBMS does not copy data not needed for the query.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-can-we-measure-the-cost-of-join"><a class="markdownIt-Anchor" href="#how-can-we-measure-the-cost-of-join"></a> How can we measure the cost of join?</h2>
+<ol>
+<li>We can measure the join cost by the number of I/Os to compute the join.</li>
+<li>Output costs are ignored since they depend on the data.</li>
+<li>In the following analysis, we assume there are <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi></mrow><annotation encoding="application/x-tex">m</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">m</span></span></span></span> tuples stored in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi></mrow><annotation encoding="application/x-tex">M</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span></span></span></span> pages in table <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">n</span></span></span></span> tuples stored in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> pages in table <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi></mrow><annotation encoding="application/x-tex">S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span>.</li>
+</ol>
+<h2 id="join-algorithms"><a class="markdownIt-Anchor" href="#join-algorithms"></a> Join algorithms</h2>
+<h3 id="nested-loop-join"><a class="markdownIt-Anchor" href="#nested-loop-join"></a> Nested loop join</h3>
+<h4 id="what-is-the-most-naive-algorithm"><a class="markdownIt-Anchor" href="#what-is-the-most-naive-algorithm"></a> What is the most naive algorithm?</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> <span class="built_in">tuple</span> r <span class="keyword">in</span> R:</span><br><span class="line">  <span class="keyword">for</span> <span class="built_in">tuple</span> s <span class="keyword">in</span> S:</span><br><span class="line">    emit, <span class="keyword">if</span> r <span class="keyword">and</span> s <span class="keyword">match</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li>For <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>⋈</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">R\bowtie S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68833em;vertical-align:-0.005em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⋈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span>, he left the table <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span> in the outer loop is called the outer table, and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi></mrow><annotation encoding="application/x-tex">S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span> is called the inner table.</li>
+<li>For every tuple in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span>, it scans <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi></mrow><annotation encoding="application/x-tex">S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span> once. The cost is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>+</mo><mo stretchy="false">(</mo><mi>m</mi><mo>⋅</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">M+(m\cdot N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">m</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>.</li>
+<li>If we use the smaller table with fewer tuples as the outer table, we can perform better since the number of pages is significantly smaller than the number of tuples.</li>
+</ol>
+<h4 id="how-can-we-better-use-the-data-already-read-from-disk"><a class="markdownIt-Anchor" href="#how-can-we-better-use-the-data-already-read-from-disk"></a> How can we better use the data already read from disk?</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> block B_R <span class="keyword">in</span> R:</span><br><span class="line">  <span class="keyword">for</span> block B_S <span class="keyword">in</span> S:</span><br><span class="line">    <span class="keyword">for</span> <span class="built_in">tuple</span> r <span class="keyword">in</span> B_R:</span><br><span class="line">      <span class="keyword">for</span> <span class="built_in">tuple</span> s <span class="keyword">in</span> B_S:</span><br><span class="line">        emit, <span class="keyword">if</span> r <span class="keyword">and</span> s <span class="keyword">match</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li>For every read block <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mi>R</mi></msub></mrow><annotation encoding="application/x-tex">B_R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05017em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.00773em;">R</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mi>S</mi></msub></mrow><annotation encoding="application/x-tex">B_S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05017em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, we try to compute as much as possible, i.e., pair all tuples in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mi>R</mi></msub></mrow><annotation encoding="application/x-tex">B_R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05017em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.00773em;">R</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> with all tuples in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mi>S</mi></msub></mrow><annotation encoding="application/x-tex">B_S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05017em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
+<li>Every block in R scans S once. The cost is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>+</mo><mo stretchy="false">(</mo><mi>M</mi><mo>⋅</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">M+(M\cdot N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>.</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>⋅</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">M\cdot N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> won’t be affected by the order of tables. However, the first term can be smaller if we let the smaller table with fewer pages be the outer table.</li>
+</ol>
+<h4 id="how-can-we-take-advantage-of-more-buffer-space"><a class="markdownIt-Anchor" href="#how-can-we-take-advantage-of-more-buffer-space"></a> How can we take advantage of more buffer space?</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> B-<span class="number">2</span> pages p_R <span class="keyword">in</span> R:</span><br><span class="line">  <span class="keyword">for</span> page p_S <span class="keyword">in</span> S:</span><br><span class="line">    <span class="keyword">for</span> <span class="built_in">tuple</span> r <span class="keyword">in</span> B_2 pages:</span><br><span class="line">      <span class="keyword">for</span> <span class="built_in">tuple</span> s <span class="keyword">in</span> p_S:</span><br><span class="line">        emit, <span class="keyword">if</span> r <span class="keyword">and</span> s <span class="keyword">match</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li>Use <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>−</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">B-2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span></span></span></span> buffers for scanning the outer table. Use one buffer for the inner table and one buffer for storing<br />
+output.</li>
+<li>The cost is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>+</mo><mo stretchy="false">(</mo><mo stretchy="false">⌈</mo><mi>M</mi><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>B</mi><mo>−</mo><mn>2</mn><mo stretchy="false">)</mo><mo stretchy="false">⌉</mo><mo>⋅</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">M+(\lceil M/(B-2)\rceil\cdot N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mopen">⌈</span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord">/</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mclose">)</span><span class="mclose">⌉</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>.</li>
+<li>If the outer relation completely fits in memory, the cost is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>+</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">M+N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span>.</li>
+</ol>
+<h4 id="can-we-avoid-sequential-scans-by-using-an-index"><a class="markdownIt-Anchor" href="#can-we-avoid-sequential-scans-by-using-an-index"></a> Can we avoid sequential scans by using an index?</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> <span class="built_in">tuple</span> r <span class="keyword">in</span> R:</span><br><span class="line">  <span class="keyword">for</span> <span class="built_in">tuple</span> s <span class="keyword">in</span> Index(r_i = s_j):</span><br><span class="line">    emit, <span class="keyword">if</span> r <span class="keyword">and</span> s <span class="keyword">match</span></span><br></pre></td></tr></table></figure>
+<p>Assume the cost of each index probe is some constant <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">C</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span></span></span></span> per tuple. The cost is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>+</mo><mo stretchy="false">(</mo><mi>m</mi><mo>⋅</mo><mi>C</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">M+(m\cdot C)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">m</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mclose">)</span></span></span></span></p>
+<h3 id="sort-merge-join"><a class="markdownIt-Anchor" href="#sort-merge-join"></a> Sort-merge join</h3>
+<h4 id="what-is-the-process-of-sort-merge-join"><a class="markdownIt-Anchor" href="#what-is-the-process-of-sort-merge-join"></a> What is the process of sort-merge join?</h4>
+<ol>
+<li>The first phase is to sort both tables using the join key(s).</li>
+<li>In the second phase, we step through the two sorted tables with cursors and emit matching tuples.</li>
+<li>The sort cost of the outer table is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>M</mi><mo>⋅</mo><mo stretchy="false">(</mo><mn>1</mn><mo>+</mo><mo stretchy="false">⌈</mo><msub><mo><mi>log</mi><mo>⁡</mo></mo><mrow><mi>B</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false">⌈</mo><mi>M</mi><mi mathvariant="normal">/</mi><mi>B</mi><mo stretchy="false">⌉</mo><mo stretchy="false">⌉</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">2M\cdot(1+\lceil \log_{B-1}\lceil M/B\rceil\rceil)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.052471em;vertical-align:-0.302471em;"></span><span class="mopen">⌈</span><span class="mop"><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.23419099999999998em;"><span style="top:-2.45586em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.302471em;"><span></span></span></span></span></span></span><span class="mopen">⌈</span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mord">/</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mclose">⌉</span><span class="mclose">⌉</span><span class="mclose">)</span></span></span></span> and the sort cost of the inner table is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>N</mi><mo>⋅</mo><mo stretchy="false">(</mo><mn>1</mn><mo>+</mo><mo stretchy="false">⌈</mo><msub><mo><mi>log</mi><mo>⁡</mo></mo><mrow><mi>B</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false">⌈</mo><mi>N</mi><mi mathvariant="normal">/</mi><mi>B</mi><mo stretchy="false">⌉</mo><mo stretchy="false">⌉</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">2N\cdot (1+\lceil\log_{B-1}\lceil N/B \rceil \rceil)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.052471em;vertical-align:-0.302471em;"></span><span class="mopen">⌈</span><span class="mop"><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.23419099999999998em;"><span style="top:-2.45586em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.302471em;"><span></span></span></span></span></span></span><span class="mopen">⌈</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mord">/</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mclose">⌉</span><span class="mclose">⌉</span><span class="mclose">)</span></span></span></span>.</li>
+<li>The merge cost is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>+</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">M+N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span>.
+<ul>
+<li>The worst case for the merging phase is when the join attribute of all the tuples in both relations contains the same value.</li>
+</ul>
+</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">sort R,S on join keys</span><br><span class="line">cursor_R points to R_sorted, cursor_S points to S_sorted</span><br><span class="line"><span class="keyword">while</span> cursor_R <span class="keyword">and</span> cursor_S:</span><br><span class="line">  <span class="keyword">if</span> cursor_R &gt; cursor_S:</span><br><span class="line">    increment cursor_S</span><br><span class="line">  <span class="keyword">if</span> cursor_R &lt; cursor_S:</span><br><span class="line">    increment cursor_R</span><br><span class="line">    possible backtrack cursor_S</span><br><span class="line">  <span class="keyword">elif</span> cursor_R <span class="keyword">and</span> surcor_s <span class="keyword">match</span>:</span><br><span class="line">    emit</span><br><span class="line">    increment cursor_s</span><br></pre></td></tr></table></figure>
+<h4 id="how-do-the-two-cursors-move"><a class="markdownIt-Anchor" href="#how-do-the-two-cursors-move"></a> How do the two cursors move?</h4>
+<ol>
+<li>The cursor of the outer table will only move forward. Specifically, it will only move forward when we can ensure that we have matched the current tuple with all possible tuples, i.e., when we have a larger inner tuple.</li>
+<li>The cursor of the inner table may move both forward and backward.
+<ul>
+<li>It moves forward when some later tuple in the inner table may match with the current tuple in an outer tuple, i.e., when an inner tuple is smaller than the outer tuple or when they match (there are possibly more matches in the following).</li>
+<li>It moves backward when there might have been some missing matches in the past, i.e., when the outer cursor moves forward, the key is the same as the last one; we need to backtrack to the earliest tuple that matches the previous outer tuple.</li>
+</ul>
+</li>
+</ol>
+<h4 id="when-is-sort-merge-join-useful"><a class="markdownIt-Anchor" href="#when-is-sort-merge-join-useful"></a> When is sort-merge join useful?</h4>
+<ol>
+<li>We can save some cost when one or both tables are sorted using the join key.</li>
+<li>When output must be sorted on the join key, if the join output is larger, we might use sort-merge join to produce sorted output directly.
+<ul>
+<li>If the output has a small amount, hash join might still be the better way.</li>
+</ul>
+</li>
+</ol>
+<h3 id="hash-join"><a class="markdownIt-Anchor" href="#hash-join"></a> Hash join</h3>
+<h4 id="how-does-hash-join-work"><a class="markdownIt-Anchor" href="#how-does-hash-join-work"></a> How does hash join work?</h4>
+<ol>
+<li>
+<p>The thought behind hash join is that:</p>
+<ul>
+<li>If tuple <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>∈</mo><mi>R</mi></mrow><annotation encoding="application/x-tex">r \in R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span> and a tuple<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>∈</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">s \in S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span> satisfy the join condition; they have the same value for the join attributes.</li>
+<li>If that value is hashed to some partition <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathnormal">i</span></span></span></span>, the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span> tuple must be in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">r_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> and the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi></mrow><annotation encoding="application/x-tex">S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span> tuple in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">s_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
+<li>Therefore, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span> tuples in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">r_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> need only to be compared with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi></mrow><annotation encoding="application/x-tex">S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span> tuples in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">s_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</li>
+</ul>
+</li>
+<li>
+<p>In the first phase (build), we scan the outer relation and populate a hash table using the hash function <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">h_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> on the join attributes.</p>
+<p>In the second phase (probe), scan the inner relation and use <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">h_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> on each tuple, jump to a location in the hash table, and find a matching tuple.</p>
+</li>
+<li>
+<p>The keys stored in the hash table are the attribute(s) on which the query is joining the tables. We always need the original key to verify that we have a correct match in case of hash collisions.</p>
+<p>The values stored vary per implementation, which depends on what the operators above the join in the query plan expect as its input.</p>
+</li>
+<li>
+<p>Assume that we have enough buffers, we need to read and write both tables with the cost of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo stretchy="false">(</mo><mi>M</mi><mo>+</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">2(M+N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span> in the partitioning phase, and read both tables with the cost of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>+</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">M+N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> in the probing phase.</p>
+<ul>
+<li>We can see that there is no constraint on the size of the inner table.</li>
+</ul>
+</li>
+</ol>
+<h4 id="how-big-of-a-table-can-we-hash-using-this-approach"><a class="markdownIt-Anchor" href="#how-big-of-a-table-can-we-hash-using-this-approach"></a> How big of a table can we hash using this approach?</h4>
+<ol>
+<li>In the first phase of building a hash table, we can use at most <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">B-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> spill partitions, leaving one page as an input buffer. When one partition is full, we should write it out on the disk and clear it.</li>
+<li>total number of both the outer and inner table of each partition should be no more than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi></mrow><annotation encoding="application/x-tex">B</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span> blocks big so that in the second phase, we can store all tuples in the same partition in memory.</li>
+<li>The total number of pages used is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>⋅</mo><mo stretchy="false">(</mo><mi>B</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">B\cdot (B-1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span>. A hash table of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> pages need about <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msqrt><mi>N</mi></msqrt></mrow><annotation encoding="application/x-tex">\sqrt{N}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.04em;vertical-align:-0.11333499999999996em;"></span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9266650000000001em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span><span style="top:-2.886665em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg width='400em' height='1.08em' viewBox='0 0 400000 1080' preserveAspectRatio='xMinYMin slice'><path d='M95,702
+c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14
+c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54
+c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10
+s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429
+c69,-144,104.5,-217.7,106.5,-221
+l0 -0
+c5.3,-9.3,12,-14,20,-14
+H400000v40H845.2724
+s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
+c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
+M834 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.11333499999999996em;"><span></span></span></span></span></span></span></span></span> buffers if the hash distribution is even.</li>
+<li>When including the fudge factor <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>&gt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">f&gt;1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> when the hash distribution is skewed, we need <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>⋅</mo><msqrt><mrow><mi>f</mi><mo>⋅</mo><mi>N</mi></mrow></msqrt></mrow><annotation encoding="application/x-tex">B\cdot\sqrt{f\cdot N}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.04em;vertical-align:-0.20500000000000007em;"></span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.835em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span><span style="top:-2.795em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg width='400em' height='1.08em' viewBox='0 0 400000 1080' preserveAspectRatio='xMinYMin slice'><path d='M95,702
+c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14
+c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54
+c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10
+s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429
+c69,-144,104.5,-217.7,106.5,-221
+l0 -0
+c5.3,-9.3,12,-14,20,-14
+H400000v40H845.2724
+s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
+c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
+M834 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.20500000000000007em;"><span></span></span></span></span></span></span></span></span>.</li>
+</ol>
+<h4 id="can-we-optimize-the-search-for-tuples-that-do-not-have-any-match"><a class="markdownIt-Anchor" href="#can-we-optimize-the-search-for-tuples-that-do-not-have-any-match"></a> Can we optimize the search for tuples that do not have any match?</h4>
+<ol>
+<li>We can create a Bloom filter during the build phase when the key will likely not exist in the hash table. This method is called Bloom filter or sideways information passing.</li>
+<li>The Bloom filter is a probabilistic data structure (bitmap) that answers set membership queries.
+<ul>
+<li>False negatives will never occur, while false positives can sometimes occur.</li>
+<li>To insert a key into the filter, we use <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> hash functions to set all <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> bits to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>.</li>
+<li>During the lookup of a key, the key may exist if all <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> bits hashed by the same <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> hash function are all <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>. The key definitely does not exist if one of the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> bits is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>.</li>
+</ul>
+</li>
+</ol>
+<h4 id="what-if-we-lack-the-memory-to-fit-the-entire-hash-table"><a class="markdownIt-Anchor" href="#what-if-we-lack-the-memory-to-fit-the-entire-hash-table"></a> What if we lack the memory to fit the entire hash table?</h4>
+<ol>
+<li>We can use the recursive hash join (GRACE hash join).</li>
+<li>Similar to the aforementioned algorithm, both tables should be hashed into the same number of buckets with the same hash function.</li>
+<li>Perform regular hash join on each pair of matching buckets at the same level between two tables.</li>
+<li>If the buckets do not fit in memory, use recursive partitioning to split the tables into chunks that will fit.
+<ul>
+<li>Build another hash table for <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mi>u</mi><mi>c</mi><mi>k</mi><mi>e</mi><msub><mi>t</mi><mrow><mi>R</mi><mo separator="true">,</mo><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">bucket_{R,i}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.980548em;vertical-align:-0.286108em;"></span><span class="mord mathnormal">b</span><span class="mord mathnormal">u</span><span class="mord mathnormal">c</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord mathnormal">e</span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.328331em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.00773em;">R</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight">i</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span> using hash function <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">h_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mn>2</mn></msub><mo mathvariant="normal">≠</mo><msub><mi>h</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">h_2≠h_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel"><span class="mrel"><span class="mord vbox"><span class="thinbox"><span class="rlap"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="inner"><span class="mrel"></span></span><span class="fix"></span></span></span></span></span><span class="mrel">=</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>).</li>
+<li>Then, probe it for each tuple of the other table’s bucket at that level.</li>
+</ul>
+</li>
+<li><strong>Hybrid hash join</strong>: If the keys are skewed, the DBMS keeps the hot partition in-memory and immediately performs the comparison instead of spilling it to disk.</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/06/27/OpenSource/BusTub/Project-1-Buffer-Pool/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/27/OpenSource/BusTub/Project-1-Buffer-Pool/" class="post-title-link" itemprop="url">Project #1: Buffer Pool</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-06-27 15:29:31" itemprop="dateCreated datePublished" datetime="2023-06-27T15:29:31+08:00">2023-06-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-03-16 23:13:06" itemprop="dateModified" datetime="2024-03-16T23:13:06+08:00">2024-03-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/" itemprop="url" rel="index"><span itemprop="name">Open Source Code</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/BusTub/" itemprop="url" rel="index"><span itemprop="name">BusTub</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#task-1-lru-k-replacement-policy">Task #1 - LRU-K Replacement Policy</a></li>
+<li><a href="#task-2-buffer-pool-manager">Task #2 - Buffer Pool Manager</a>
+<ul>
+<li><a href="#basic">Basic</a></li>
+<li><a href="#leaderboard-optimization">Leaderboard optimization</a></li>
+</ul>
+</li>
+<li><a href="#task-3-readwrite-page-guards">Task #3 - Read/Write Page Guards</a></li>
+</ul>
+</p>
+<h1 id="task-1-lru-k-replacement-policy"><a class="markdownIt-Anchor" href="#task-1-lru-k-replacement-policy"></a> Task #1 - LRU-K Replacement Policy</h1>
+<ol>
+<li>
+<p>Evict rule:</p>
+<ul>
+<li>When all evictable frames have more than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi></mrow><annotation encoding="application/x-tex">K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span></span></span></span> access records, evict the one whose backward k-distance is maximum.</li>
+<li>When some frames only have less than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi></mrow><annotation encoding="application/x-tex">K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span></span></span></span> access records, evict the one with the earliest first access record among those less than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi></mrow><annotation encoding="application/x-tex">K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span></span></span></span> frames.</li>
+</ul>
+</li>
+<li>
+<p>Comparison:</p>
+<ul>
+<li>When each frame is created or stored with a new page, push an access record of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> to its history to represent <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>+</mo><mi>inf</mi><mo>⁡</mo></mrow><annotation encoding="application/x-tex">+\inf</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.77777em;vertical-align:-0.08333em;"></span><span class="mord">+</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">in<span style="margin-right:0.07778em;">f</span></span></span></span></span>.</li>
+<li>Each comparison uses the first two records in the list. If the first record (the earliest backward most k-distance) is the same, it must be <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> causing a comparison of the second record, representing the true first access of that frame.</li>
+<li>Remember to update the second comparison timestamp when the first time, find <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> in the first timestamp.</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">size_t</span> k_timestamp = frame.second.<span class="built_in">GetKTimestamp</span>();</span><br><span class="line"><span class="type">size_t</span> sec_timestamp = frame.second.<span class="built_in">GetSecondTimestamp</span>();</span><br><span class="line"><span class="keyword">if</span> (k_timestamp &lt; cmp_k_timestamp) &#123;</span><br><span class="line">	victim = frame.first;</span><br><span class="line">	cmp_k_timestamp = k_timestamp;</span><br><span class="line">	<span class="keyword">if</span> (k_timestamp == <span class="number">0</span>) &#123;</span><br><span class="line">		cmp_sec_timestamp = sec_timestamp;</span><br><span class="line">	&#125;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (k_timestamp == cmp_k_timestamp &amp;&amp; sec_timestamp &lt; cmp_sec_timestamp) &#123;</span><br><span class="line">	victim = frame.first;</span><br><span class="line">	cmp_sec_timestamp = sec_timestamp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>After successfully choosing a victim, we need to clear its history (leaving the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> as sentinel), set it to non-evictable, and reduce the current size of the replacer.</p>
+</li>
+</ol>
+<h1 id="task-2-buffer-pool-manager"><a class="markdownIt-Anchor" href="#task-2-buffer-pool-manager"></a> Task #2 - Buffer Pool Manager</h1>
+<h2 id="basic"><a class="markdownIt-Anchor" href="#basic"></a> Basic</h2>
+<ol>
+<li>
+<p>When the page that is asked to fetch is already in the buffer pool, we still need to do several things:</p>
+<ul>
+<li>Set it to non-evictable.</li>
+<li>Record its access in the replacer.</li>
+<li>Increase its pin count.</li>
+</ul>
+</li>
+<li>
+<p>When the page is not in the buffer pool or creating a new page:</p>
+<ul>
+<li>First, we need to acquire a free frame.
+<ul>
+<li>Erase it from the page table when we are evicting one.</li>
+<li>Write the content to disk when the old page is dirty.</li>
+</ul>
+</li>
+<li>Then, similar to the other situation, we need to:
+<ul>
+<li>Set it to non-evictable</li>
+<li>Record its access in the replacer.</li>
+<li>Put it in the page table.</li>
+<li>Set its pin count to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span></li>
+<li>Set <code>is_dirty_</code> to <code>false</code></li>
+<li>Set its page ID to frame.</li>
+</ul>
+</li>
+<li>Even in <code>NewPage</code>, the <code>is_dirty_</code> is false because it can directly “write” empty to file by increasing offset, which is done when a larger page ID is written. There is no need actually to write empty content.</li>
+</ul>
+</li>
+<li>
+<p>When setting <code>is_dirty_</code> in <code>Unpin</code>, if the page is already dirty, we should not set it to clean, no matter what we are told.</p>
+</li>
+</ol>
+<h2 id="leaderboard-optimization"><a class="markdownIt-Anchor" href="#leaderboard-optimization"></a> Leaderboard optimization</h2>
+<ol>
+<li>Fine-grain lock
+<ul>
+<li>A coarse-grain lock is easier to program while sacrificing performance.</li>
+<li>In fine-grain lock, a <code>core_latch_</code> is used to protect the core data of the buffer pool manager, i.e., <code>page_table_</code>, <code>free_list_</code>, <code>next_page_id_</code>). Each frame has its latch to protect its data, i.e., <code>pin_count_</code>, <code>is_dirty_</code>, <code>page_id_</code>.</li>
+<li>Each function thread will, at most, grab the core_latch_ and one of the frame latches.</li>
+<li>To avoid deadlock, each procedure is designed so that a thread will try to acquire a page latch only if it already has a <code>core_latch_</code> or it won’t want a core_latech later.</li>
+<li>To obtain atomic when switching from <code>core_latch_</code> to a page latch, we must acquire the page latch before releasing the <code>core_latch_</code>.
+<ul>
+<li>If we release core_latch_ first, some other thread may change the frame we want to use (e.g., evict the frame, modify its metadata) before acquiring the frame latch.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Delay write-out:
+<ul>
+<li>Disk I/Os consume a large amount of time. So, we must avoid holding a lock while communicating with the disk.</li>
+<li>When we need to write data into disk, instead of immediately calling the disk_manager_-&gt;WritePage, we create a temporary buffer in memory and copy data into the buffer. After all locks are released, we write that content in the buffer into a disk.</li>
+<li>A similar thought is to delay reading data until all locks are released. However, <code>ReadData</code> is called in <code>FetchPage</code>, where we can only release the frame latch after the whole frame is ready for others to visit. Still, we can <code>ReadData</code> after <code>core_latch_</code> is released since the <code>core_latch_</code> could be the bottleneck of the manager.</li>
+<li>However, there is a problem:
+<ul>
+<li>When a page is evicted, and only a short time later, that exact page is fetched again. Since all latches are released before writing dirty data to disk, there is a chance that FetchPage reads stale data from disk before the up-to-date data is written to disk.</li>
+<li>My other thought is maintaining a list of page IDs in the writing buffer. If the page ID of <code>FetchPage</code> is in the list, copy data from the writing buffer and erase that page from the writing buffer.</li>
+<li>The problem is that we need to guarantee the atomic between getting the writing content and writing it to disk. Otherwise, tricky concurrent operations may cause the written content to be wrong.</li>
+<li>Hence, we cannot unlock the latches until we are sure the content is written, which also makes fine-grained latches meaningless, given that disk I/O is the key problem of performance.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Pre-fetch
+<ul>
+<li>To better suit the scan case, the buffer pool manager can pre-fetch several following pages when accessing three consecutive page IDs in a row.</li>
+<li>Different from fetching pages through <code>FetchPage</code>, pre-fetched frames need to set <code>pin_count_</code> to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> and evictable.</li>
+<li>Pre-fetch should not stall <code>FetchPage</code> from returning, so it must be run in a separate thread.</li>
+<li>The problem is that pre-fetch must be an independent background thread. It won’t know whether the buffer pool manager is destroyed, which will cause a heap-use-after-free error.</li>
+</ul>
+</li>
+</ol>
+<h1 id="task-3-readwrite-page-guards"><a class="markdownIt-Anchor" href="#task-3-readwrite-page-guards"></a> Task #3 - Read/Write Page Guards</h1>
+<ol>
+<li>Any <code>PageGuard</code> will automatically unpin itself when it is deconstructed. But they don’t need to pin themselves since they are pinned before <code>PageGuard</code> is created when fetching or creating a page.</li>
+<li>If a <code>Read/WritePageGuard</code> is acquired through <code>FetchPageRead</code> or <code>FetchPageWrite</code>, the latch is acquired inside these functions. However, the latch won’t be acquired automatically if a <code>PageGuard</code> is acquired through its construction function.</li>
+<li>No matter how <code>Read/WritePageGuard</code> is acquired, the latch will always be released automatically when the <code>PageGuard</code> is deconstructed by a deconstructor or move operation.</li>
+<li>In the move assignment, we must first drop the original page, copy from the right reference, and finally deconstruct the right reference.</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -2890,293 +3571,6 @@ to 1. If yes, set it to zero. If no, then evict.</li>
 </li>
 <li>If the snapshot describes only a prefix of logs, then discard the covered entries. But don’t discard those covered yet uncommitted entries, and leave one entry as a dummy entry.</li>
 <li>If PrevLog is already trimmed, we should find the entry with the same index as the sentinel. Make it the new <code>PrevLog</code>, and only accept the entries following it.</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/07/24/Courses/CS149/16-Heterogeneous-Parallelism-and-Hardware-Specialization/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2022/07/24/Courses/CS149/16-Heterogeneous-Parallelism-and-Hardware-Specialization/" class="post-title-link" itemprop="url">16. Heterogeneous Parallelism and Hardware Specialization</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2022-07-24 15:20:29" itemprop="dateCreated datePublished" datetime="2022-07-24T15:20:29+08:00">2022-07-24</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-16 23:01:34" itemprop="dateModified" datetime="2024-03-16T23:01:34+08:00">2024-03-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <ol>
-<li>Amdahl’s law in terms of resource limits: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>p</mi><mi>e</mi><mi>e</mi><mi>d</mi><mi>u</mi><mi>p</mi><mo stretchy="false">(</mo><mi>f</mi><mo separator="true">,</mo><mi>n</mi><mo separator="true">,</mo><mi>r</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mrow><mfrac><mrow><mn>1</mn><mo>−</mo><mi>f</mi></mrow><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo></mrow></mfrac><mo>+</mo><mfrac><mi>f</mi><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo><mo>⋅</mo><mfrac><mi>n</mi><mi>r</mi></mfrac></mrow></mfrac></mrow></mfrac></mrow><annotation encoding="application/x-tex">speedup(f, n, r)=\frac{1}{\frac{1-f}{perf(r)}+\frac{f}{perf(r)\cdot\frac{n}{r}}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">s</span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal">e</span><span class="mord mathnormal">d</span><span class="mord mathnormal">u</span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">n</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.877228em;vertical-align:-1.03212em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.51911em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size3 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9584142857142857em;"><span style="top:-2.640785714285714em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.4623857142857144em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mbin mtight">−</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5377857142857143em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size3 size6"></span></span><span class="mbin mtight">+</span><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size3 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9584142857142857em;"><span style="top:-2.5925285714285713em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span><span class="mbin mtight">⋅</span><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size1 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8175600000000001em;"><span style="top:-2.468em;"><span class="pstrut" style="height:3em;"></span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.387em;"><span class="pstrut" style="height:3em;"></span><span class="mord mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.532em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size1 size6"></span></span></span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.4623857142857144em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7874714285714286em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size3 size6"></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.03212em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span>. Here, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>=</mo></mrow><annotation encoding="application/x-tex">f =</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span></span></span></span> fraction of a program that is parallelizable, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo></mrow><annotation encoding="application/x-tex">n =</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span></span></span></span> total processing resources, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo></mrow><annotation encoding="application/x-tex">r =</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span></span></span></span> resources dedicated to each processing core, each of the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mi>n</mi><mi>r</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{n}{r}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.040392em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.695392em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span> cores have sequential performance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">perf(r)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mclose">)</span></span></span></span>.</li>
-<li>If a processor has one <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">perf(r)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mclose">)</span></span></span></span> core and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>−</mo><mi>r</mi></mrow><annotation encoding="application/x-tex">n-r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">perf(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> cores, its <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>p</mi><mi>e</mi><mi>e</mi><mi>d</mi><mi>u</mi><mi>p</mi><mo stretchy="false">(</mo><mi>f</mi><mo separator="true">,</mo><mi>n</mi><mo separator="true">,</mo><mi>r</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mrow><mfrac><mrow><mn>1</mn><mo>−</mo><mi>f</mi></mrow><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo></mrow></mfrac><mo>+</mo><mfrac><mi>f</mi><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><mi>n</mi><mo>−</mo><mi>r</mi><mo stretchy="false">)</mo><mi>p</mi><mi>e</mi><mi>r</mi><mi>f</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></mfrac></mrow></mfrac></mrow><annotation encoding="application/x-tex">speedup(f, n, r)=\frac{1}{\frac{1-f}{perf(r)}+\frac{f}{perf(r)+(n-r)perf(1)}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">s</span><span class="mord mathnormal">p</span><span class="mord mathnormal">e</span><span class="mord mathnormal">e</span><span class="mord mathnormal">d</span><span class="mord mathnormal">u</span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">n</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.702448em;vertical-align:-0.8573399999999999em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.5191100000000004em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size3 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9584142857142857em;"><span style="top:-2.640785714285714em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.4623857142857144em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mbin mtight">−</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5377857142857143em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size3 size6"></span></span><span class="mbin mtight">+</span><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size3 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9584142857142857em;"><span style="top:-2.640785714285714em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span><span class="mbin mtight">+</span><span class="mopen mtight">(</span><span class="mord mathnormal mtight">n</span><span class="mbin mtight">−</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mopen mtight">(</span><span class="mord mtight">1</span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.4623857142857144em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5377857142857143em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size3 size6"></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8573399999999999em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span>.</li>
-<li>Most “real world” applications have complex workload characteristics. The most efficient processor is a heterogeneous mixture of resources, namely use the most efficient tool for the job.</li>
-<li>Supercomputers are energy constrained due to shear scale and overall cost to operate (power for machine and cooling)<br />
-Datacenters are energy-constrained to reduce cooling costs and physical space requirements.<br />
-Mobile devices are energy constrained due to limited battery life and heat dissipation.</li>
-<li>The challenge of heterogeneous for system designers: what is the right mixture of resources to meet performance, cost, and energy goals?<br />
-Too few throughput-oriented resources would lower peak throughput for parallel workloads. Too few sequential processing resources limit the overall system by sequential part of the workload. How much chip area should be dedicated to a specific function? (these resources are taken away from general-purpose processing) Work balance must be anticipated at chip design time</li>
-<li>The challenge to software developers: how to map programs onto a heterogeneous collection of resources?<br />
-Wish to design algorithms that decompose well into components that each map well to different processing components of the machine. The scheduling problem is more complex in a heterogeneous system. An available mixture of resources can dictate the choice of algorithm: software portability and maintenance nightmare.</li>
-<li>Reducing energy consumption should use specialized processing and moving less data.</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/07/21/Courses/CS149/15-Transactional-Memory/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2022/07/21/Courses/CS149/15-Transactional-Memory/" class="post-title-link" itemprop="url">15. Transactional Memory</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2022-07-21 22:53:19" itemprop="dateCreated datePublished" datetime="2022-07-21T22:53:19+08:00">2022-07-21</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-16 22:58:55" itemprop="dateModified" datetime="2024-03-16T22:58:55+08:00">2024-03-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="transactional-memory"><a class="markdownIt-Anchor" href="#transactional-memory"></a> Transactional memory</h1>
-<ol>
-<li>
-<p>Declarative programming is when the programmer states what to do, not how to do it. The system implements synchronization as necessary to ensure atomicity.</p>
-</li>
-<li>
-<p>In transaction memory, the atomic construct is declarative, which means that the programmer states what to do, not how to do it. The system implements synchronization as necessary to ensure atomicity.<br />
-The system could implement <code>atomic&#123;&#125;</code> using a lock. However, the programmer has no explicit use or management of locks.</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Traditional method</span></span><br><span class="line"><span class="built_in">lock</span>(mutex);</span><br><span class="line"><span class="comment">//critical code</span></span><br><span class="line"><span class="built_in">unlock</span>(mutex);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Transaction memory</span></span><br><span class="line">atomic &#123;</span><br><span class="line">  <span class="comment">// critical code</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li>
-<p>Memory transaction is an atomic and isolated sequence of memory accesses inspired by database transactions.<br />
-Atomicity requires that upon transaction commit, all memory writes in the transaction take effect at once, and on transaction abort, none of the writes appear to take effect as if the transaction never happened.<br />
-Isolation means that no other processor can observe writes before committing the transaction.<br />
-Serializability is that transactions appear to commit in a single serial order, but transaction semantics does not guarantee the exact order of commits.</p>
-</li>
-<li>
-<p>Load-linked, store conditional (LL/SC) is a light version of transactional memory. It has a pair of corresponding instructions (not a single atomic instruction)<br />
-<code>load_linked(x)</code>: load value from address<br />
-<code>store_conditional(x, value)</code>: store value to x, if x hasn’t been written to since<br />
-corresponding LL</p>
-</li>
-<li>
-<p>Two read operations won’t cause true contention. In TM, we can allow the parallelism between two read operations. However, serialization must be ensured when at least one write operation occurs.</p>
-</li>
-<li>
-<p>The transactional memory system is also responsible for processing exceptions, decreasing the complexity of manually using try-catch statements to catch exceptions.<br />
-When an exception inside the atomic block occurs, the transaction is aborted, and memory updates are undone.</p>
-</li>
-<li>
-<p>A transactional memory system needs composable locks.<br />
-Composing lock-based code can be tricky, requiring system-wide policies to get correct, and can break software modularity.<br />
-The following code can end up in a deadlock. TM system should be able to compose the two synchronizations together to avoid the possible deadlock. A programmer can use an <code>atomic&#123;&#125;</code> to correctly represent the two <code>synchronized &#123;&#125;</code> structures.</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">function</span><span class="params">(A, B)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">synchronized</span>(A)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">synchronized</span>(B)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="comment">// critical code</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 0</span></span><br><span class="line"><span class="built_in">function</span>(x, y);</span><br><span class="line"></span><br><span class="line"><span class="comment">//thread 1</span></span><br><span class="line"><span class="built_in">function</span>(y, x);</span><br></pre></td></tr></table></figure>
-</li>
-<li>
-<p><code>Atomic&#123;&#125;</code> is not the same as <code>lock()/unlock()</code>. Atomic is a high-level declaration of atomicity, which does not specify the implementation of atomicity. The lock is a low-level blocking primitive that does not provide atomicity or isolation on its own.<br />
-Locks can be used to implement an atomic block. Also, locks can be used for purposes beyond atomicity. Namely, we cannot replace all uses of locks with atomic regions.<br />
-Atomic eliminates many data races, but programming with atomic blocks can still suffer from atomicity violations.</p>
-</li>
-<li>
-<p>Atomicity violation due to programmer error: Logically, the atomic code sequence is erroneously separated into two atomic blocks.</p>
-</li>
-</ol>
-<h1 id="implementing-transactional-memory"><a class="markdownIt-Anchor" href="#implementing-transactional-memory"></a> Implementing transactional memory</h1>
-<h2 id="data-versioning"><a class="markdownIt-Anchor" href="#data-versioning"></a> Data versioning</h2>
-<ol>
-<li>Data versioning manages uncommitted (new) and previously committed (old) versions of data for concurrent transactions. This is used to allow transaction abort.</li>
-<li>Eager versioning updates memory immediately and maintains “undo log” in case of abort.<br />
-When a write happens, the old value is pushed into the undo log, and the new value is to memory.<br />
-When a transaction is aborted, we can search the undo log to recover the corresponding state.<br />
-When the transaction is committed, we can discard the undo log of those committed contents.</li>
-<li>Lazy versioning is a deferred update. Namely, it logs memory updates in the transaction write buffer and flushes the buffer on commit.<br />
-When a write happens, the new value is pushed into the write buffer, and we don’t write the new value in memory.<br />
-When a transaction is aborted, we discard the write buffer, and there is no need to modify the memory since we haven’t written anything to it yet.<br />
-When a transaction is committed, we write the data in the write buffer to memory and discard the write buffer.</li>
-<li>Eager versioning is faster in commit since data is already in memory. But it is slower in aborts and has fault tolerance issues (crashes in the middle of a transaction). It writes to memory immediately, hoping the transaction won’t abort, but deals with aborts when necessary.</li>
-<li>Lazy versioning is faster in abort, clears the log, and has no fault tolerance issues. But it is slower in commits. It only writes to memory when you have to.</li>
-</ol>
-<h2 id="conflict-detection-and-resolution"><a class="markdownIt-Anchor" href="#conflict-detection-and-resolution"></a> Conflict detection and resolution</h2>
-<ol>
-<li>This is to decide when to abort. It must detect and handle transaction conflicts, including read-write and write-write conflicts. The system must track a transaction’s read set and write set.</li>
-<li>Pessimistic detection checks for conflicts during loads or stores. A hardware implementation will check for conflicts through coherent actions.<br />
-The philosophy is, &quot;I suspect conflicts might happen, so let’s always check to see if one has occurred after each memory operation… if I’m going to have to roll back, might as well do it now to avoid wasted work.”</li>
-<li>The contention manager decides to stall or abort the transaction when a conflict is detected. A conflict can be stalled when detected before executing (early detection). When a conflict is detected after execution, then it can only restart.<br />
-When two writes cause the conflict, it may raise a livelock if both threads restart before the other one has finished.</li>
-<li>Optimistic detection detects conflicts when a transaction attempts to commit. Hardware validates the write set using coherence actions and gets exclusive access to cache lines in the write set.<br />
-The intuition is, “Let’s hope for the best and sort out all the conflicts only when the transaction tries to commit.”<br />
-In a conflict, it gives priority to committing the transactions. Other transactions may be aborted later on. In conflicts between committing transactions, use the contention manager to decide priorities. Optimistic detection won’t cause livelock.</li>
-<li>We can use optimistic and pessimistic schemes together. Several STM systems use optimistic for reads and pessimistic for writes.</li>
-<li>Pessimistic conflict detection (“eager”) can detect conflicts early and thus undo less work, turning some aborts into stalls. It has no forward progress guarantees, and there are more aborts in some cases. Also, fine-grained communication is required to check on each load/store.<br />
-Bad: detection on the critical path</li>
-<li>Optimistic conflict detection (“lazy” or “commit”) has forward progress guarantees. It requires bulk communication and conflict detection. It detects conflicts late and can still have fairness problems.</li>
-<li>Conflict detection granularity<br />
-Object granularity is a software-based technique. It reduces time and space overhead and is close to the programmer’s reasoning. But there might be false sharing on large objects.<br />
-Machine word granularity can minimize false sharing but increases the overhead of time and space.<br />
-Cache-line granularity is a compromise between an object and a word.</li>
-</ol>
-<h2 id="hardware-transactional-memory"><a class="markdownIt-Anchor" href="#hardware-transactional-memory"></a> Hardware transactional memory</h2>
-<ol>
-<li>Data versioning is implemented in caches. Cache the write buffer or the undo log. And add new cache line metadata to track transaction read and write sets.<br />
-Conflict detection is implemented through cache coherence protocol. Coherence lookups detect conflicts between transactions. It works with snooping and directory coherence.</li>
-<li>Register checkpoint must also be taken at the transaction begins to restore the execution context state on abort.</li>
-<li>Cache lines need extra bits to track the read set and write set.<br />
-<strong>R bit</strong> indicates data read by transaction and is set on loads, while <strong>W bit</strong> indicates data written by transaction and is set on stores. R/W bits gang-cleared on transaction commit or abort.<br />
-R/W bits can be a work or cache-line granularity.<br />
-We need a 2nd cache write for the undo log for eager versioning.</li>
-<li>Coherence requests check R/W bits to detect conflicts.<br />
-Observing shared requests to W-word is a read-write conflict.<br />
-Observing exclusive (intent to write) requests to R-word is a write-read conflict.<br />
-Observing exclusive (intent to write) requests to W-word is a write-write conflict.</li>
-<li>Fast two-phase commit<br />
-Validate: request RdX access to write set lines (if needed)<br />
-Commit: gang-reset R and W bits, turns to write set data to valid (dirty) data.</li>
-<li>Fast conflict detection and abort<br />
-Check: lookup exclusive requests in the read set and write set<br />
-Abort: invalidate write set, gang-reset R and W bits, restore to register checkpoint</li>
 </ol>
 
       
