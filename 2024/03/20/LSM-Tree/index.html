@@ -28,7 +28,7 @@
 <meta property="og:description" content="Write  How to write a log? How are WriteBatches encoded? How to make room for the writes? How to pick the tables to compact? How to perform compact?   Get  How to get a key from the database?      Wr">
 <meta property="og:locale">
 <meta property="article:published_time" content="2024-03-20T05:29:38.000Z">
-<meta property="article:modified_time" content="2024-03-24T15:27:49.021Z">
+<meta property="article:modified_time" content="2024-03-25T06:47:58.322Z">
 <meta property="article:author" content="LiyunZhang">
 <meta name="twitter:card" content="summary">
 
@@ -225,7 +225,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-24 23:27:49" itemprop="dateModified" datetime="2024-03-24T23:27:49+08:00">2024-03-24</time>
+      <time title="Modified: 2024-03-25 14:47:58" itemprop="dateModified" datetime="2024-03-25T14:47:58+08:00">2024-03-25</time>
     </span>
 
   
@@ -366,17 +366,27 @@
 <li>In the <code>VersionEdit</code>, remove the file in <code>Compaction.inputs[0]</code> from its level and add it into the next level.</li>
 </ul>
 </li>
-<li>The merge process is completed by a <code>MergingIterator</code>.
+<li>We create a <code>MergingIterator</code> to complete the merge process.
 <ul>
 <li>Given that level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files might overlap, there is a <code>TwoLevelIterator</code> for each files. For other levels, one iterator is enough to traverse them in order.
 <ul>
 <li>What is read by a <code>TwoLevelIterator</code> is determined by the index interator passed to it.</li>
-<li>For the level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files, we use the index iterator of its index block. For other levels, the <code>Version::LevelFileNumIterator</code> is passed to be the index iterator.</li>
+<li>For the level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files, we use the index iterator of its index block.</li>
+<li>For other levels, the <code>Version::LevelFileNumIterator</code> is passed to be the index iterator. It has an <code>index_</code> pointing the current reading file.</li>
+<li>The passed <code>handler_result</code> is <code>GetFileIterator</code> that will create another file iterator of the current reading file using <code>TableCache::NewIterator</code>.</li>
 </ul>
 </li>
 <li>All the files that are involved are pinned in the cache now.</li>
 </ul>
 </li>
+<li>The <code>MergingIterator</code> uses a <code>children_</code> to store all iterators of involved files and a <code>current_</code> to point to the current entry.
+<ul>
+<li>The <code>SeekToFirst</code> sets all iterators in <code>children_</code> to their first position and <code>current_</code> to the iterator with smallest key. The <code>SeekToLast</code> is similar.</li>
+<li>The <code>Seek</code> sets all iterators to their <code>Seek(target)</code> and <code>current_</code> to the smallest.</li>
+<li>In the <code>Next</code>, all children are set to their seek of the current key and move to the next if they have the same key. Then, set the <code>current_</code> to the smallest among them. The <code>Prev</code> is similar.</li>
+</ul>
+</li>
+<li></li>
 </ol>
 <h1 id="get"><a class="markdownIt-Anchor" href="#get"></a> Get</h1>
 <h2 id="how-to-get-a-key-from-the-database"><a class="markdownIt-Anchor" href="#how-to-get-a-key-from-the-database"></a> How to get a key from the database?</h2>
@@ -417,8 +427,8 @@
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2024/03/22/OpenSource/LevelDB/Cache/" rel="next" title="3. Cache">
-                  3. Cache <i class="fa fa-chevron-right"></i>
+                <a href="/2024/03/22/OpenSource/LevelDB/Cache/" rel="next" title="2. Cache">
+                  2. Cache <i class="fa fa-chevron-right"></i>
                 </a>
             </div>
           </div>

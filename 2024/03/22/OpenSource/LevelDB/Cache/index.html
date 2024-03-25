@@ -20,15 +20,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"liyun-zhang.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.17.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="How to prevent reading from the disk too often? How does HandleTable insert, evict, and lookup items in table_? How to insert, evict, and lookup items? What is stored in each cache slot? How does Tab">
+    <meta name="description" content="How to prevent reading from the disk too often? LRUCache  How does HandleTable insert, evict, and lookup items in table_? How to insert, evict, and lookup items?   TableCache  What is stored in each">
 <meta property="og:type" content="article">
-<meta property="og:title" content="3. Cache">
+<meta property="og:title" content="2. Cache">
 <meta property="og:url" content="http://liyun-zhang.github.io/2024/03/22/OpenSource/LevelDB/Cache/index.html">
 <meta property="og:site_name" content="LiyunZhang">
-<meta property="og:description" content="How to prevent reading from the disk too often? How does HandleTable insert, evict, and lookup items in table_? How to insert, evict, and lookup items? What is stored in each cache slot? How does Tab">
+<meta property="og:description" content="How to prevent reading from the disk too often? LRUCache  How does HandleTable insert, evict, and lookup items in table_? How to insert, evict, and lookup items?   TableCache  What is stored in each">
 <meta property="og:locale">
 <meta property="article:published_time" content="2024-03-21T16:30:14.000Z">
-<meta property="article:modified_time" content="2024-03-24T15:46:18.470Z">
+<meta property="article:modified_time" content="2024-03-25T06:51:16.873Z">
 <meta property="article:author" content="LiyunZhang">
 <meta property="article:tag" content="Database System">
 <meta property="article:tag" content="Cache">
@@ -39,10 +39,10 @@
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-Hans","comments":true,"permalink":"http://liyun-zhang.github.io/2024/03/22/OpenSource/LevelDB/Cache/","path":"2024/03/22/OpenSource/LevelDB/Cache/","title":"3. Cache"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-Hans","comments":true,"permalink":"http://liyun-zhang.github.io/2024/03/22/OpenSource/LevelDB/Cache/","path":"2024/03/22/OpenSource/LevelDB/Cache/","title":"2. Cache"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>3. Cache | LiyunZhang</title>
+<title>2. Cache | LiyunZhang</title>
   
 
 
@@ -140,7 +140,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#how-to-prevent-reading-from-the-disk-too-often"><span class="nav-number">1.</span> <span class="nav-text"> How to prevent reading from the disk too often?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#how-does-handletable-insert-evict-and-lookup-items-in-table_"><span class="nav-number">2.</span> <span class="nav-text"> How does HandleTable insert, evict, and lookup items in table_?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#how-to-insert-evict-and-lookup-items"><span class="nav-number">3.</span> <span class="nav-text"> How to insert, evict, and lookup items?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#what-is-stored-in-each-cache-slot"><span class="nav-number">4.</span> <span class="nav-text"> What is stored in each cache slot?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#how-does-tablecache-read-a-key"><span class="nav-number">5.</span> <span class="nav-text"> How does TableCache read a key?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#how-does-tablecache-iterate-over-a-file"><span class="nav-number">6.</span> <span class="nav-text"> How does TableCache iterate over a file?</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#how-to-prevent-reading-from-the-disk-too-often"><span class="nav-number">1.</span> <span class="nav-text"> How to prevent reading from the disk too often?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#lrucache"><span class="nav-number">2.</span> <span class="nav-text"> LRUCache</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#how-does-handletable-insert-evict-and-lookup-items-in-table_"><span class="nav-number">2.1.</span> <span class="nav-text"> How does HandleTable insert, evict, and lookup items in table_?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-to-insert-evict-and-lookup-items"><span class="nav-number">2.2.</span> <span class="nav-text"> How to insert, evict, and lookup items?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#tablecache"><span class="nav-number">3.</span> <span class="nav-text"> TableCache</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-stored-in-each-cache-slot"><span class="nav-number">3.1.</span> <span class="nav-text"> What is stored in each cache slot?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-does-tablecache-read-a-key"><span class="nav-number">3.2.</span> <span class="nav-text"> How does TableCache read a key?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-does-tablecache-iterate-over-a-file"><span class="nav-number">3.3.</span> <span class="nav-text"> How does TableCache iterate over a file?</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -204,12 +204,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="3. Cache | LiyunZhang">
+      <meta itemprop="name" content="2. Cache | LiyunZhang">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          3. Cache
+          2. Cache
         </h1>
 
         <div class="post-meta-container">
@@ -227,7 +227,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-24 23:46:18" itemprop="dateModified" datetime="2024-03-24T23:46:18+08:00">2024-03-24</time>
+      <time title="Modified: 2024-03-25 14:51:16" itemprop="dateModified" datetime="2024-03-25T14:51:16+08:00">2024-03-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -254,11 +254,19 @@
     
     <div class="post-body" itemprop="articleBody"><p><ul class="markdownIt-TOC">
 <li><a href="#how-to-prevent-reading-from-the-disk-too-often">How to prevent reading from the disk too often?</a></li>
+<li><a href="#lrucache">LRUCache</a>
+<ul>
 <li><a href="#how-does-handletable-insert-evict-and-lookup-items-in-table_">How does HandleTable insert, evict, and lookup items in table_?</a></li>
 <li><a href="#how-to-insert-evict-and-lookup-items">How to insert, evict, and lookup items?</a></li>
+</ul>
+</li>
+<li><a href="#tablecache">TableCache</a>
+<ul>
 <li><a href="#what-is-stored-in-each-cache-slot">What is stored in each cache slot?</a></li>
 <li><a href="#how-does-tablecache-read-a-key">How does TableCache read a key?</a></li>
 <li><a href="#how-does-tablecache-iterate-over-a-file">How does TableCache iterate over a file?</a></li>
+</ul>
+</li>
 </ul>
 </p>
 <h1 id="how-to-prevent-reading-from-the-disk-too-often"><a class="markdownIt-Anchor" href="#how-to-prevent-reading-from-the-disk-too-often"></a> How to prevent reading from the disk too often?</h1>
@@ -277,7 +285,8 @@
 </ul>
 </li>
 </ol>
-<h1 id="how-does-handletable-insert-evict-and-lookup-items-in-table_"><a class="markdownIt-Anchor" href="#how-does-handletable-insert-evict-and-lookup-items-in-table_"></a> How does HandleTable insert, evict, and lookup items in table_?</h1>
+<h1 id="lrucache"><a class="markdownIt-Anchor" href="#lrucache"></a> LRUCache</h1>
+<h2 id="how-does-handletable-insert-evict-and-lookup-items-in-table_"><a class="markdownIt-Anchor" href="#how-does-handletable-insert-evict-and-lookup-items-in-table_"></a> How does HandleTable insert, evict, and lookup items in table_?</h2>
 <ol>
 <li>In <code>HandleTable</code>, <code>length_</code> is the total number of items in the cache. Here, we need to take the modulo operation on h again.
 <ul>
@@ -298,7 +307,7 @@
 </ul>
 </li>
 </ol>
-<h1 id="how-to-insert-evict-and-lookup-items"><a class="markdownIt-Anchor" href="#how-to-insert-evict-and-lookup-items"></a> How to insert, evict, and lookup items?</h1>
+<h2 id="how-to-insert-evict-and-lookup-items"><a class="markdownIt-Anchor" href="#how-to-insert-evict-and-lookup-items"></a> How to insert, evict, and lookup items?</h2>
 <ol>
 <li>The <code>next</code> and <code>prev</code> in <code>LRUHandler</code> point to their neighbors in the <code>in_use_</code> or <code>lru_</code> list. The <code>next_hash</code> points to its neighbor in <code>table_</code>.</li>
 <li>To lookup a key, the <code>HandleTable::Lookup</code> is invoked. If the key exists, its <code>refs</code> is increased and moved to the <code>in_use_</code> list if it is in the <code>lru_</code>.</li>
@@ -316,7 +325,8 @@
 </ul>
 </li>
 </ol>
-<h1 id="what-is-stored-in-each-cache-slot"><a class="markdownIt-Anchor" href="#what-is-stored-in-each-cache-slot"></a> What is stored in each cache slot?</h1>
+<h1 id="tablecache"><a class="markdownIt-Anchor" href="#tablecache"></a> TableCache</h1>
+<h2 id="what-is-stored-in-each-cache-slot"><a class="markdownIt-Anchor" href="#what-is-stored-in-each-cache-slot"></a> What is stored in each cache slot?</h2>
 <ol>
 <li>The first kind of cached content is a specific file’s index block.
 <ul>
@@ -333,7 +343,7 @@
 </ul>
 </li>
 </ol>
-<h1 id="how-does-tablecache-read-a-key"><a class="markdownIt-Anchor" href="#how-does-tablecache-read-a-key"></a> How does TableCache read a key?</h1>
+<h2 id="how-does-tablecache-read-a-key"><a class="markdownIt-Anchor" href="#how-does-tablecache-read-a-key"></a> How does TableCache read a key?</h2>
 <ol>
 <li>To read a key from a specific file with <code>TableCache</code>, <code>TableCache::Get</code> first tries to find the index block of that file by <code>FindTable</code>.
 <ul>
@@ -351,7 +361,7 @@
 </li>
 <li>The table can be released immediately after the <code>InternalGet</code> is returned.</li>
 </ol>
-<h1 id="how-does-tablecache-iterate-over-a-file"><a class="markdownIt-Anchor" href="#how-does-tablecache-iterate-over-a-file"></a> How does TableCache iterate over a file?</h1>
+<h2 id="how-does-tablecache-iterate-over-a-file"><a class="markdownIt-Anchor" href="#how-does-tablecache-iterate-over-a-file"></a> How does TableCache iterate over a file?</h2>
 <ol>
 <li>Like reading a value, the <code>FindTable</code> will load the index block into the cache.</li>
 <li>Then, a <code>TwoLevelIterator</code> is created to iterate the <code>Table</code> using <code>Table::NewIterator</code>.
