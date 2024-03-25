@@ -157,7 +157,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-count">31</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -219,7 +219,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-25 12:11:15" itemprop="dateModified" datetime="2024-03-25T12:11:15+08:00">2024-03-25</time>
+      <time title="Modified: 2024-03-25 16:15:50" itemprop="dateModified" datetime="2024-03-25T16:15:50+08:00">2024-03-25</time>
     </span>
 
   
@@ -237,7 +237,6 @@
 <ul>
 <li><a href="#how-to-organize-logs">How to organize logs?</a></li>
 <li><a href="#how-do-we-know-the-information-of-files">How do we know the information of files?</a></li>
-<li><a href="#how-to-iterate-over-a-block">How to iterate over a Block?</a></li>
 </ul>
 </li>
 </ul>
@@ -281,10 +280,6 @@
 <li>The <code>prev_</code> of the oldest version points to the <code>dummy_versions_</code>.</li>
 </ul>
 </li>
-</ol>
-<h2 id="how-to-iterate-over-a-block"><a class="markdownIt-Anchor" href="#how-to-iterate-over-a-block"></a> How to iterate over a Block?</h2>
-<ol>
-<li></li>
 </ol>
 
       
@@ -348,7 +343,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-25 14:51:16" itemprop="dateModified" datetime="2024-03-25T14:51:16+08:00">2024-03-25</time>
+      <time title="Modified: 2024-03-25 19:40:36" itemprop="dateModified" datetime="2024-03-25T19:40:36+08:00">2024-03-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -410,7 +405,7 @@
 <h1 id="lrucache"><a class="markdownIt-Anchor" href="#lrucache"></a> LRUCache</h1>
 <h2 id="how-does-handletable-insert-evict-and-lookup-items-in-table_"><a class="markdownIt-Anchor" href="#how-does-handletable-insert-evict-and-lookup-items-in-table_"></a> How does HandleTable insert, evict, and lookup items in table_?</h2>
 <ol>
-<li>In <code>HandleTable</code>, <code>length_</code> is the total number of items in the cache. Here, we need to take the modulo operation on h again.
+<li>In <code>HandleTable</code>, <code>length_</code> is the total number of items in the cache. Here, we need to take the modulo operation on <code>hash</code> again.
 <ul>
 <li>Since <code>length_</code> is set to be a power of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn></mrow><annotation encoding="application/x-tex">2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span></span></span></span>, <code>hash &amp; length_-1</code> is the modulo operation of <code>hash</code> concerning <code>length_</code>.</li>
 </ul>
@@ -439,7 +434,7 @@
 <li>If the cache usage after inserting exceeds the capacity, we need to evict items in the <code>lru_</code> in order.</li>
 </ul>
 </li>
-<li>Both lookup and insert return a <code>Handle*</code> that can be reinterpreted as a <code>LRUHandle*</code>.</li>
+<li>Both lookup and insert return a <code>Handle*</code> that can be reinterpreted as an <code>LRUHandle*</code>.</li>
 <li>When the clients release an item, its <code>refs</code> is decreased.
 <ul>
 <li>When the <code>refs</code> is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>, which means that only the LRUCache is holding it and can be moved from <code>in_use_</code> to <code>lru_</code>. The <code>prev</code> of <code>lru_</code> is the newest item while the <code>next</code> of <code>lru_</code> is the oldest. Therefore, <code>lru_.next</code> is the first item to be evicted.</li>
@@ -455,7 +450,7 @@
 <li>The table cache uses the file number as the key. The value is a void pointer that can be interpreted as <code>TableAndFile*</code>.</li>
 <li>The <code>TableAndFile</code> is the <code>RandomAccessFile*</code> and <code>Table*</code> to access the file. So, a cache slot stores the access to a file and the index of its keys.</li>
 <li>The <code>RandomAccessFile*</code> provides a <code>Read</code> to read content for a given destination. The cache operations are executed through <code>Table*</code>.</li>
-<li>The core of a <code>Table</code> is <code>Table::Rep</code>, which contains the contents of the index block in <code>Block* index_block</code> and its  <code>cache_id</code>, which is a globally unique, monotonously increasing ID.</li>
+<li>The core of a <code>Table</code> is <code>Table::Rep</code>, which contains the contents of the index block in <code>Block* index_block</code>, the contents of the Bloom filter in <code>FilterBlockReader* filter</code>, and its  <code>cache_id</code>, which is a globally unique, monotonously increasing ID.</li>
 <li>The <code>rep_-&gt;options.block_cache</code> points to the <code>SharedLRUCache</code> where the <code>Table</code> is.</li>
 </ul>
 </li>
@@ -475,7 +470,7 @@
 </li>
 <li>Then, use the <code>Table::InternalGet</code> to seek the target key from the index of the file.
 <ul>
-<li>If the key is not in this file, do nothing and return.</li>
+<li>Check the Bloom filter. If the key is not in this file, do nothing and return.</li>
 <li>Otherwise, use the <code>Table::BlockReader</code> to generate a block iterator to seek the key in the block designated by the information from the index iterator.</li>
 <li>It would try to find whether the target block is read into the cache. If not, read the block from the disk and insert it into the cache.</li>
 <li>If the key is found in that block, <code>handle_result</code> will process the key-value pair.</li>
@@ -540,7 +535,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2024/03/20/LSM-Tree/">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2024/03/20/OpenSource/LevelDB/LSM-Tree/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -558,7 +553,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2024/03/20/LSM-Tree/" class="post-title-link" itemprop="url">2. LSM-Tree</a>
+          <a href="/2024/03/20/OpenSource/LevelDB/LSM-Tree/" class="post-title-link" itemprop="url">3. LSM-Tree</a>
         </h2>
 
         <div class="post-meta-container">
@@ -576,7 +571,20 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-25 14:47:58" itemprop="dateModified" datetime="2024-03-25T14:47:58+08:00">2024-03-25</time>
+      <time title="Modified: 2024-03-25 19:55:23" itemprop="dateModified" datetime="2024-03-25T19:55:23+08:00">2024-03-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/" itemprop="url" rel="index"><span itemprop="name">Open Source Code</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/LevelDB/" itemprop="url" rel="index"><span itemprop="name">LevelDB</span></a>
+        </span>
     </span>
 
   
@@ -590,6 +598,12 @@
     
     <div class="post-body" itemprop="articleBody">
           <p><ul class="markdownIt-TOC">
+<li><a href="#get">Get</a>
+<ul>
+<li><a href="#how-to-get-a-key-from-the-database">How to get a key from the database?</a></li>
+<li><a href="#how-to-prevent-too-many-misses-in-a-file">How to prevent too many misses in a file?</a></li>
+</ul>
+</li>
 <li><a href="#write">Write</a>
 <ul>
 <li><a href="#how-to-write-a-log">How to write a log?</a></li>
@@ -599,13 +613,59 @@
 <li><a href="#how-to-perform-compact">How to perform compact?</a></li>
 </ul>
 </li>
-<li><a href="#get">Get</a>
-<ul>
-<li><a href="#how-to-get-a-key-from-the-database">How to get a key from the database?</a></li>
-</ul>
-</li>
 </ul>
 </p>
+<h1 id="get"><a class="markdownIt-Anchor" href="#get"></a> Get</h1>
+<h2 id="how-to-get-a-key-from-the-database"><a class="markdownIt-Anchor" href="#how-to-get-a-key-from-the-database"></a> How to get a key from the database?</h2>
+<ol>
+<li>
+<p>The <code>DBImpl::Get</code> uses the user key and a sequence number to search for the correct version of the requested key.</p>
+<ul>
+<li>LevelDB supports snapshots to provide consistent read-only views over the entire state of the key-value store, ignoring future modifications. Snapshots are enabled by <code>DBImpl::GetSnapshot</code> when creating the <code>ReadOptions</code>.</li>
+<li>A snapshot is a sequential number. When using a snapshot, the sequential number in the searching key will be the number in the snapshot. Otherwise, it is the latest sequential number.
+<ul>
+<li>When searching the key, it returns the first key that is not smaller than the searching key, i.e., a larger user key or a smaller sequential number.</li>
+<li>Providing a stale sequential number will skip those later records.</li>
+</ul>
+</li>
+<li>The <code>DBImpl</code> uses a <code>SnapshotList snapshots_</code> to maintain all the alive snapshots. When the snapshot is no longer needed, it should be released by <code>DBImpl::ReleaseSnapshot</code>.</li>
+</ul>
+</li>
+<li>
+<p>It searches the key from the latest records to the oldest records. First, search on the <code>mem_</code>. If missed, try using the <code>imm_</code>.</p>
+</li>
+<li>
+<p>If it is not found in memory, read from the files on disk by <code>Version::Get</code> of the current version.</p>
+<ul>
+<li>
+<p>The level <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files may have overlapping ranges. Search level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> in order from newest to oldest. Check every file that may contain the target key through <code>TableCache::Get</code>.</p>
+</li>
+<li>
+<p>The <code>handle_result</code> function saves the matched value to a <code>Save*</code>.</p>
+</li>
+<li>
+<p>Other levels can use binary search to file the possible file.</p>
+</li>
+<li>
+<p>During the search, if we cannot find the target in some possible files, the</p>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-prevent-too-many-misses-in-a-file"><a class="markdownIt-Anchor" href="#how-to-prevent-too-many-misses-in-a-file"></a> How to prevent too many misses in a file?</h2>
+<ol>
+<li>Each file has an <code>allowed_seeks</code> that limits the number of missing seeks.
+<ul>
+<li>It is set to allow one to seek for every <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>16</mn><mtext> </mtext><mi>K</mi><mi>B</mi></mrow><annotation encoding="application/x-tex">16\ KB</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">6</span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span> of data before triggering a compaction.</li>
+</ul>
+</li>
+<li>When a search reads a file to find the target key is not in it, its <code>allowed_seeks</code> will decrease. The file will be designated to seek compaction when its <code>allowed_seeks</code> is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>.
+<ul>
+<li>During a search process, multiple files may miss the target. Only the first missed file is decreased.</li>
+</ul>
+</li>
+<li>This can prevent too many misses during a search by pushing those frequently missed files to higher levels to lower its priority for a search.</li>
+</ol>
 <h1 id="write"><a class="markdownIt-Anchor" href="#write"></a> Write</h1>
 <p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.h">db_impl.h</a> and <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.cc">db_impl.cc</a>.</p>
 <h2 id="how-to-write-a-log"><a class="markdownIt-Anchor" href="#how-to-write-a-log"></a> How to write a log?</h2>
@@ -653,7 +713,7 @@
 <ol>
 <li>If the <code>WriteBatch</code> is <code>nullptr</code>, the compaction is forced.</li>
 <li>If <code>mem_</code> is not full, no more efforts need to be made. Otherwise, we must set the current <code>mem_</code> as immutable, i.e., <code>imm_</code>, and switch to a new one.</li>
-<li>If <code>imm_</code> is not empty or there are too many level <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files, we need to wait for the background thread to compact the current files.</li>
+<li>If <code>imm_</code> is not empty or there are too many level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files, we need to wait for the background thread to compact the current files.</li>
 <li>If <code>mem_</code> is full, <code>imm_</code> is empty, and there is enough space for level <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> we can schedule a compaction and switch to a new <code>mem_</code>.
 <ul>
 <li>The write-ahead log file <code>logfile_</code> is bound with a <code>mem_</code>. Switching to a new <code>mem__</code> also needs to create a new <code>logfile_</code>.</li>
@@ -664,10 +724,14 @@
 <h2 id="how-to-pick-the-tables-to-compact"><a class="markdownIt-Anchor" href="#how-to-pick-the-tables-to-compact"></a> How to pick the tables to compact?</h2>
 <p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/google/leveldb/blob/068d5ee1a3ac40dabd00d211d5013af44be55bea/db/db_impl.cc#L702">DBImpl::BackgroundCompaction</a>.</p>
 <ol>
-<li>The compaction with the highest priority is called a minor compact. It happens when <code>imm_</code> is not empty, it must be written to the level <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files.</li>
+<li>The compaction with the highest priority is called a minor compact. It happens when <code>imm_</code> is not empty; it must be written on disks.
+<ul>
+<li>It will be written to the highest level with no overlapping files, and its overlapping files in the next level are limited.</li>
+</ul>
+</li>
 <li>The second priority is the manual compaction when <code>manual_compaction_</code> is not <code>nullptr</code>.
 <ul>
-<li>A <code>ManualCompaction</code> indicates the level and the range to compact. All files at the given level that overlaps with the specific range will be compact.</li>
+<li>A <code>ManualCompaction</code> indicates the level and the range of the compact. All files at the given level that overlap with the specific range will be compact.</li>
 </ul>
 </li>
 <li>In <code>VersionSet::PickCompaction</code>, there are two kinds of compactions: size compaction and seek compaction.</li>
@@ -679,85 +743,72 @@
 <li>The first file that comes after <code>compact_pointer_[level]</code> is picked to compact.</li>
 </ul>
 </li>
-<li>The seek compaction designates a <code>file_to_compact_</code> to be the candidate.</li>
+<li>The seek compaction designates a <code>file_to_compact_</code> as the candidate.</li>
 <li>The files in level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> may overlap. We must make sure that no remaining files overlap with those files to compact.
 <ul>
 <li>A file in the level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> may extend the search range and require restarting the search in manual compaction.</li>
-<li>The size compaction and seek compaction would pick more than one file to compact when overlap exists.</li>
+<li>The size compaction and seek compaction would pick multiple files to compact when overlap exists.</li>
 </ul>
 </li>
-<li>After the above procedures, the size compaction and the seek compaction have selected some files in the lower level to compact, which is in <code>Compaction.input[0]</code>.
+<li>After the above procedures, the size compaction and the seek compaction selected some files at the lower level to compact, which is in <code>Compaction.input[0]</code>.
 <ul>
-<li>Those files will compact with the files in the next level that overlaps with them, which is in <code>Compaction.input[1]</code>.</li>
+<li>Those files will be compacted with others at the next level that overlaps them in <code>Compaction.input[1]</code>.</li>
 <li>The boundaries of files are encoded by the user key and sequential number.
 <ul>
-<li>The sequence number is encoded in a little-endian way. So, the newer keys might be in front of the older keys in the former block, e.g., when a higher byte is changed.</li>
-<li>There is a case in the upper bound of a file and the lower bound of another file shares the same user key with an older sequence number.</li>
-<li>If we only compact the former file, in reading, we might find the older result in a lower level instead of the correct value in a higher level.</li>
+<li>The records are sorted in the order of increasing by user key and decreasing by sequential number.</li>
+<li>There is a case in which the upper bound of a file and the lower bound of another file share the same user key with different sequence numbers.</li>
+<li>If we only compact the former file, we will get the older result at a lower level instead of the correct value at a higher level during reading.</li>
 </ul>
 </li>
 </ul>
 </li>
-<li>To compact more thoroughly, we try to expand the current inputs by including all files at the compact level that overlap with them.
+<li>To compact more thoroughly, we expand the current inputs by including all files at the compact level that overlap with them.
 <ul>
-<li>The files overlap with the files at the compact level is already included. This time is mainly for the files at the compact level that overlaps with files in the next level. Also need to include those boundary files.</li>
+<li>The files overlap with those at the compact level, which is already included. This time is mainly for the files at the compact level that overlap with files at the next level. Also, we need to include those boundary files.</li>
 <li>This is merely a trial. It only happens when the total size of <code>Compaction.inputs[1]</code> and expanded files is less than the <code>ExpandedCompactionByteSizeLimit</code>.</li>
 <li>Another condition for this expansion is that we cannot increase the number of files selected from the next level. Namely, the range of the new expanded files is already included in the <code>Compaction.inputs[1]</code>.</li>
 </ul>
 </li>
-<li>The grandparent files in the next two levels that overlap with all files in both lower levels are required.</li>
-<li>Finally, update the place where we will do the next compaction for this level in <code>compact_pointer_[level]</code>.</li>
-</ol>
+<li>The grandparent files in the next two levels that overlap with those in both lower levels are required.</li>
+<li>Finally, update the next compaction for this level in <code>compact_pointer_[level]</code>.
 <ul>
-<li>We update this immediately instead of waiting for the VersionEdit to be applied so that if the compaction fails, we will try a different key range next time.</li>
+<li>We will update this immediately instead of waiting for the VersionEdit to be applied so that if the compaction fails, we can try a different key range next time.</li>
 </ul>
+</li>
+</ol>
 <h2 id="how-to-perform-compact"><a class="markdownIt-Anchor" href="#how-to-perform-compact"></a> How to perform compact?</h2>
 <ol>
-<li>If this is not a manual compaction and there is only one file in <code>Compaction.inputs[0]</code> and no next-level file to merge, we only need to trivially move the file into the next level.
+<li>If this is not a manual compaction and there is only one file in <code>Compaction.inputs[0]</code> and no next-level file to merge, we only need to move the file to the next level trivially.
 <ul>
-<li>In the <code>VersionEdit</code>, remove the file in <code>Compaction.inputs[0]</code> from its level and add it into the next level.</li>
+<li>In the <code>VersionEdit</code>, remove the <code>Compaction.inputs[0]</code> file from its level and add it to the next level.</li>
 </ul>
 </li>
 <li>We create a <code>MergingIterator</code> to complete the merge process.
 <ul>
-<li>Given that level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files might overlap, there is a <code>TwoLevelIterator</code> for each files. For other levels, one iterator is enough to traverse them in order.
+<li>Given that level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files might overlap, there is a <code>TwoLevelIterator</code> for each file. For other levels, one iterator is enough to traverse them in order.
 <ul>
-<li>What is read by a <code>TwoLevelIterator</code> is determined by the index interator passed to it.</li>
+<li>What a <code>TwoLevelIterator</code> reads is determined by the index iterator passed to it.</li>
 <li>For the level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files, we use the index iterator of its index block.</li>
-<li>For other levels, the <code>Version::LevelFileNumIterator</code> is passed to be the index iterator. It has an <code>index_</code> pointing the current reading file.</li>
-<li>The passed <code>handler_result</code> is <code>GetFileIterator</code> that will create another file iterator of the current reading file using <code>TableCache::NewIterator</code>.</li>
+<li>For other levels, the <code>Version::LevelFileNumIterator</code> is passed to be the index iterator. It has an <code>index_</code> pointing to the current reading file and iterates them in order.</li>
+<li>The passed <code>handler_result</code> is <code>GetFileIterator</code>, which will create another file iterator of the current reading file using <code>TableCache::NewIterator</code>.</li>
 </ul>
 </li>
-<li>All the files that are involved are pinned in the cache now.</li>
+<li>All the files that are involved are now pinned in the cache.</li>
 </ul>
 </li>
-<li>The <code>MergingIterator</code> uses a <code>children_</code> to store all iterators of involved files and a <code>current_</code> to point to the current entry.
+<li>The <code>MergingIterator</code> uses <code>children_</code> to store all iterators of involved files and a <code>current_</code> to point to the current entry.
 <ul>
-<li>The <code>SeekToFirst</code> sets all iterators in <code>children_</code> to their first position and <code>current_</code> to the iterator with smallest key. The <code>SeekToLast</code> is similar.</li>
+<li>The <code>SeekToFirst</code> sets all iterators in <code>children_</code> to their first position and <code>current_</code> to the iterator with the smallest key. The <code>SeekToLast</code> is similar.</li>
 <li>The <code>Seek</code> sets all iterators to their <code>Seek(target)</code> and <code>current_</code> to the smallest.</li>
 <li>In the <code>Next</code>, all children are set to their seek of the current key and move to the next if they have the same key. Then, set the <code>current_</code> to the smallest among them. The <code>Prev</code> is similar.</li>
 </ul>
 </li>
-<li></li>
-</ol>
-<h1 id="get"><a class="markdownIt-Anchor" href="#get"></a> Get</h1>
-<h2 id="how-to-get-a-key-from-the-database"><a class="markdownIt-Anchor" href="#how-to-get-a-key-from-the-database"></a> How to get a key from the database?</h2>
-<ol>
-<li>
-<p>The <code>DBImpl::Get</code> searches the key from the latest records to the oldest records. First search on the <code>mem_</code>. If missed, try on the <code>imm_</code>.</p>
-</li>
-<li>
-<p>If it is not found in memory, read from the files on disk by <code>Version::Get</code> of the current version.</p>
+<li>While iterating over files to compact, multiple records of the same user key could exist.
 <ul>
-<li>
-<p>The level <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> files may have overlapped ranges. Search level-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> in order from newest to oldest. Check every file that may contain the target key through <code>TableCache::Get</code>.</p>
-</li>
-<li>
-<p>The <code>handle_result</code> is a function to save the matched value to a <code>Save*</code>.</p>
-</li>
-<li>
-<p>Other levels can use binary search to file the possible file.</p>
-</li>
+<li>We only want to reserve the latest records within the range of the smallest snapshot and other records after it.</li>
+<li>The <code>last_sequence_for_key</code> is set to infinite to ensure that a key’s first occurrence will be stored.</li>
+<li>During the later occurrences, if the <code>last_sequence_for_key</code> is smaller than the snapshot number, it means that the latest key is already stored within the range; there is no need to store the rest.</li>
+<li>If the latest record for a key within the range of snapshot is a delete record, it can achieve its purpose by storing nothing and updating the <code>last_sequence_for_key</code>. So, later values will be discarded.</li>
 </ul>
 </li>
 </ol>
@@ -849,64 +900,95 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>@[toc]</p>
-<h1 id="Skiplist"><a href="#Skiplist" class="headerlink" title="Skiplist"></a>Skiplist</h1><p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/liyun-zhang/leveldb/blob/main/db/skiplist.h">skiplist.h</a></p>
-<h2 id="What-is-the-structure-of-the-skip-list"><a href="#What-is-the-structure-of-the-skip-list" class="headerlink" title="What is the structure of the skip list?"></a>What is the structure of the skip list?</h2><ol>
-<li>The skip list is a list with extended next pointers. </li>
-<li>The next pointers in a node have different heights. The maximum height of each node is different. A next pointer at a specific height points to the next node that is not shorter than the height. </li>
-<li>The “skip” refers to the higher pointers that point to distant nodes. Therefore, through the skip links, we can quickly locate the possible range of the target in search and inserting, similar to the doubling method in continuous arrays. </li>
+          <p><ul class="markdownIt-TOC">
+<li><a href="#skiplist">Skiplist</a>
+<ul>
+<li><a href="#what-is-the-structure-of-the-skip-list">What is the structure of the skip list?</a></li>
+<li><a href="#what-does-the-list-node-look-like">What does the list node look like?</a></li>
+<li><a href="#how-to-search-for-a-key">How to search for a key?</a></li>
+<li><a href="#how-to-insert-a-key">How to insert a key?</a></li>
+</ul>
+</li>
+<li><a href="#memtable">Memtable</a>
+<ul>
+<li><a href="#how-does-memtable-encode-data">How does Memtable encode data?</a></li>
+<li><a href="#how-does-memtable-decode-data">How does Memtable decode data?</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="skiplist"><a class="markdownIt-Anchor" href="#skiplist"></a> Skiplist</h1>
+<p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/liyun-zhang/leveldb/blob/main/db/skiplist.h">skiplist.h</a></p>
+<h2 id="what-is-the-structure-of-the-skip-list"><a class="markdownIt-Anchor" href="#what-is-the-structure-of-the-skip-list"></a> What is the structure of the skip list?</h2>
+<ol>
+<li>The skip list is a list with extended next pointers.</li>
+<li>The next pointers in a node have different heights. The maximum height of each node is different. A next pointer at a specific height points to the next node that is not shorter than the height.</li>
+<li>The “skip” refers to the higher pointers that point to distant nodes. Therefore, through the skip links, we can quickly locate the possible range of the target in search and inserting, similar to the doubling method in continuous arrays.</li>
 </ol>
-<h2 id="What-does-the-list-node-look-like"><a href="#What-does-the-list-node-look-like" class="headerlink" title="What does the list node look like?"></a>What does the list node look like?</h2><ol>
-<li>A node should contain a key and a series of pointers to the next node. </li>
-<li>In the skip list, the next pointers are at different heights. The higher pointers point to further nodes. </li>
-<li>To allocate an array of next node pointers, declare an array with one element at the end of the structure. Then, assign a large space to the object of that structure. <ul>
-<li>The array of next pointers is declared as <code>std::atomic&lt;Node*&gt; next_[1];</code>. </li>
-<li>In the <code>NewNode(const Key&amp; key, int height)</code>, use <code>Arena</code> to allocate size <code>sizeof(Node) + sizeof(std::atomic&lt;Node*&gt;) * (height - 1)</code>. </li>
-<li>In <code>sizeof(Node)</code>, an array with one element is allocated. Then, the space of additional <code>height-1</code> elements is extended. Therefore, a <code>Node</code> has total <code>height</code> next pointers. </li>
+<h2 id="what-does-the-list-node-look-like"><a class="markdownIt-Anchor" href="#what-does-the-list-node-look-like"></a> What does the list node look like?</h2>
+<ol>
+<li>A node should contain a key and a series of pointers to the next node.</li>
+<li>In the skip list, the next pointers are at different heights. The higher pointers point to further nodes.</li>
+<li>To allocate an array of next node pointers, declare an array with one element at the end of the structure. Then, assign a large space to the object of that structure.
+<ul>
+<li>The array of next pointers is declared as <code>std::atomic&lt;Node*&gt; next_[1];</code>.</li>
+<li>In the <code>NewNode(const Key&amp; key, int height)</code>, use <code>Arena</code> to allocate size <code>sizeof(Node) + sizeof(std::atomic&lt;Node*&gt;) * (height - 1)</code>.</li>
+<li>In <code>sizeof(Node)</code>, an array with one element is allocated. Then, the space of additional <code>height-1</code> elements is extended. Therefore, a <code>Node</code> has total <code>height</code> next pointers.</li>
 </ul>
 </li>
 </ol>
-<h2 id="How-to-search-for-a-key"><a href="#How-to-search-for-a-key" class="headerlink" title="How to search for a key?"></a>How to search for a key?</h2><ol>
-<li><code>Skiplist</code> provided <code>FindGreaterOrEqual</code> and <code>FindLessThan</code> as basic functions to search for a key. </li>
-<li>Each function starts from the <code>head_</code> and compares it with the next key, from higher to lower. </li>
-<li>In <code>FindGreaterOrEqual</code>, we should keep lowering the height until the key is larger than the next. If it reaches the lowest height, $0$, directly return the current node. </li>
-<li><code>FindLessThan</code> is similar, searching until the key is less than the next or reaches the lowest height. </li>
-<li>The search process is fast because the higher next pointers can skip many unnecessary nodes. </li>
+<h2 id="how-to-search-for-a-key"><a class="markdownIt-Anchor" href="#how-to-search-for-a-key"></a> How to search for a key?</h2>
+<ol>
+<li><code>Skiplist</code> provided <code>FindGreaterOrEqual</code> and <code>FindLessThan</code> as basic functions to search for a key.</li>
+<li>Each function starts from the <code>head_</code> and compares it with the next key, from higher to lower.</li>
+<li>In <code>FindGreaterOrEqual</code>, we should keep lowering the height until the key is larger than the next. If it reaches the lowest height, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>, directly return the current node.</li>
+<li><code>FindLessThan</code> is similar, searching until the key is less than the next or reaches the lowest height.</li>
+<li>The search process is fast because the higher next pointers can skip many unnecessary nodes.</li>
 </ol>
-<h2 id="How-to-insert-a-key"><a href="#How-to-insert-a-key" class="headerlink" title="How to insert a key?"></a>How to insert a key?</h2><ol>
-<li>To find a suitable position on the list for the new key, we can get all the previous nodes through <code>FindGreaterOrEqual</code>. <ul>
-<li><code>FindGreaterOrEqual</code> only returns when it reaches the $0$ height. Whenever the next key of the current node in a certain height is less than the target key, we record the current node to the <code>prev</code> of the corresponding height. </li>
-<li>When it returns, each element in <code>prev</code> is the previous node of the new node. </li>
+<h2 id="how-to-insert-a-key"><a class="markdownIt-Anchor" href="#how-to-insert-a-key"></a> How to insert a key?</h2>
+<ol>
+<li>To find a suitable position on the list for the new key, we can get all the previous nodes through <code>FindGreaterOrEqual</code>.
+<ul>
+<li><code>FindGreaterOrEqual</code> only returns when it reaches the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> height. Whenever the next key of the current node in a certain height is less than the target key, we record the current node to the <code>prev</code> of the corresponding height.</li>
+<li>When it returns, each element in <code>prev</code> is the previous node of the new node.</li>
 </ul>
 </li>
-<li>The maximum height of the new node is random. If it is higher than the highest node, set extra pointers to <code>head_</code>. <ul>
-<li>In <code>RandomHeight</code>, <code>while (height &lt; kMaxHeight &amp;&amp; rnd_.OneIn(kBranching))</code> shows that height is geometric distribution with probability of $\frac{1}{kBranching}$ to keep increasing the height. </li>
+<li>The maximum height of the new node is random. If it is higher than the highest node, set extra pointers to <code>head_</code>.
+<ul>
+<li>In <code>RandomHeight</code>, <code>while (height &lt; kMaxHeight &amp;&amp; rnd_.OneIn(kBranching))</code> shows that height is geometric distribution with probability of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mn>1</mn><mrow><mi>k</mi><mi>B</mi><mi>r</mi><mi>a</mi><mi>n</mi><mi>c</mi><mi>h</mi><mi>i</mi><mi>n</mi><mi>g</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">\frac{1}{kBranching}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.326216em;vertical-align:-0.481108em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">h</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight" style="margin-right:0.03588em;">g</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.481108em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span> to keep increasing the height.</li>
 </ul>
 </li>
-<li>Finally, we set the next pointers in the new node to the next pointers in <code>prev</code> and set the next pointers in <code>prev</code> to the new node. </li>
+<li>Finally, we set the next pointers in the new node to the next pointers in <code>prev</code> and set the next pointers in <code>prev</code> to the new node.</li>
 </ol>
-<h1 id="Memtable"><a href="#Memtable" class="headerlink" title="Memtable"></a>Memtable</h1><p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/liyun-zhang/leveldb/blob/main/db/memtable.h">memtable.h</a> and <a target="_blank" rel="noopener" href="https://github.com/liyun-zhang/leveldb/blob/main/db/memtable.cc">memtable.cc</a></p>
-<h2 id="How-does-Memtable-encode-data"><a href="#How-does-Memtable-encode-data" class="headerlink" title="How does Memtable encode data?"></a>How does Memtable encode data?</h2><ol>
-<li>In Memtable, the bottom storage uses <code>Table</code> defined as <code>SkipList&lt;const char*, KeyComparator&gt;</code>. <ul>
-<li>From the skip list, we can see that it only stores keys instead of key-value pairs. </li>
-<li>Memtable encodes values into keys and stores the whole bytes. </li>
+<h1 id="memtable"><a class="markdownIt-Anchor" href="#memtable"></a> Memtable</h1>
+<p>The codes are in <a target="_blank" rel="noopener" href="https://github.com/liyun-zhang/leveldb/blob/main/db/memtable.h">memtable.h</a> and <a target="_blank" rel="noopener" href="https://github.com/liyun-zhang/leveldb/blob/main/db/memtable.cc">memtable.cc</a></p>
+<h2 id="how-does-memtable-encode-data"><a class="markdownIt-Anchor" href="#how-does-memtable-encode-data"></a> How does Memtable encode data?</h2>
+<ol>
+<li>In Memtable, the bottom storage uses <code>Table</code> defined as <code>SkipList&lt;const char*, KeyComparator&gt;</code>.
+<ul>
+<li>From the skip list, we can see that it only stores keys instead of key-value pairs.</li>
+<li>Memtable encodes values into keys and stores the whole bytes.</li>
 </ul>
 </li>
-<li>There are three parts: <code>key, sequence number and type, value</code>. <ul>
-<li>The structure of the encoded buffer is as follows:<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">+----------------+-------+----------------+--------------+---------+</span><br><span class="line">|  key_size + 8  |  key  |  SeqNum, type  |  value_size  |  value  |</span><br><span class="line">+----------------+-------+----------------+--------------+---------+</span><br></pre></td></tr></table></figure></li>
+<li>There are three parts: <code>key, sequence number and type, value</code>.
+<ul>
+<li>The structure of the encoded buffer is as follows:</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">+----------------+-------+----------------+--------------+---------+</span><br><span class="line">|  key_size + 8  |  key  |  SeqNum, type  |  value_size  |  value  |</span><br><span class="line">+----------------+-------+----------------+--------------+---------+</span><br></pre></td></tr></table></figure>
+</li>
+<li>Both the <code>key_size</code> and <code>value_size</code> are encoded by <code>EncodeVarint32</code>.
+<ul>
+<li>Only content containing the most significant byte is saved. They are in a little-endian way with variant length.</li>
+<li>Each byte only stores <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>7</mn></mrow><annotation encoding="application/x-tex">7</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">7</span></span></span></span> bits of the <code>uint32_t</code>. The highest bit in a byte is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> when this is the last byte for the variant-length int.</li>
 </ul>
 </li>
-<li>Both the <code>key_size</code> and <code>value_size</code> are encoded by <code>EncodeVarint32</code>. <ul>
-<li>Only content containing the most significant byte is saved. They are in a little-endian way with variant length. </li>
-<li>Each byte only stores $7$ bits of the <code>uint32_t</code>. The highest bit in a byte is $0$ when this is the last byte for the variant-length int. </li>
-</ul>
-</li>
-<li><code>SeqNum</code> and <code>type</code> are 8 bytes in total, where <code>SeqNum</code> is in higher bits and <code>type</code> is in lower bits. They are encoded in fixed size. </li>
+<li><code>SeqNum</code> and <code>type</code> are 8 bytes in total, where <code>SeqNum</code> is in higher bits and <code>type</code> is in lower bits. They are encoded in fixed size.</li>
 </ol>
-<h2 id="How-does-Memtable-decode-data"><a href="#How-does-Memtable-decode-data" class="headerlink" title="How does Memtable decode data?"></a>How does Memtable decode data?</h2><ol>
-<li>The target key is encoded without <code>value_size</code> and <code>value</code> to search the target with <code>FindGreaterOrEqual</code>. </li>
-<li>To decode the variant length int, read byte-by-byte until a byte with the highest bit of $0$. </li>
-<li>If the key does not match or the type is <code>kTypeDeletion</code>, return <code>Status::NotFound</code>. </li>
+<h2 id="how-does-memtable-decode-data"><a class="markdownIt-Anchor" href="#how-does-memtable-decode-data"></a> How does Memtable decode data?</h2>
+<ol>
+<li>The target key is encoded without <code>value_size</code> and <code>value</code> to search the target with <code>FindGreaterOrEqual</code>.</li>
+<li>To decode the variant length int, read byte-by-byte until a byte with the highest bit of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>.</li>
+<li>If the key does not match or the type is <code>kTypeDeletion</code>, return <code>Status::NotFound</code>.</li>
 </ol>
 
       

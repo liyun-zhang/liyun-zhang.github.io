@@ -28,7 +28,7 @@
 <meta property="og:description" content="How to prevent reading from the disk too often? LRUCache  How does HandleTable insert, evict, and lookup items in table_? How to insert, evict, and lookup items?   TableCache  What is stored in each">
 <meta property="og:locale">
 <meta property="article:published_time" content="2024-03-21T16:30:14.000Z">
-<meta property="article:modified_time" content="2024-03-25T06:51:16.873Z">
+<meta property="article:modified_time" content="2024-03-25T11:40:36.242Z">
 <meta property="article:author" content="LiyunZhang">
 <meta property="article:tag" content="Database System">
 <meta property="article:tag" content="Cache">
@@ -164,7 +164,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-count">31</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -227,7 +227,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-25 14:51:16" itemprop="dateModified" datetime="2024-03-25T14:51:16+08:00">2024-03-25</time>
+      <time title="Modified: 2024-03-25 19:40:36" itemprop="dateModified" datetime="2024-03-25T19:40:36+08:00">2024-03-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -288,7 +288,7 @@
 <h1 id="lrucache"><a class="markdownIt-Anchor" href="#lrucache"></a> LRUCache</h1>
 <h2 id="how-does-handletable-insert-evict-and-lookup-items-in-table_"><a class="markdownIt-Anchor" href="#how-does-handletable-insert-evict-and-lookup-items-in-table_"></a> How does HandleTable insert, evict, and lookup items in table_?</h2>
 <ol>
-<li>In <code>HandleTable</code>, <code>length_</code> is the total number of items in the cache. Here, we need to take the modulo operation on h again.
+<li>In <code>HandleTable</code>, <code>length_</code> is the total number of items in the cache. Here, we need to take the modulo operation on <code>hash</code> again.
 <ul>
 <li>Since <code>length_</code> is set to be a power of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn></mrow><annotation encoding="application/x-tex">2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span></span></span></span>, <code>hash &amp; length_-1</code> is the modulo operation of <code>hash</code> concerning <code>length_</code>.</li>
 </ul>
@@ -317,7 +317,7 @@
 <li>If the cache usage after inserting exceeds the capacity, we need to evict items in the <code>lru_</code> in order.</li>
 </ul>
 </li>
-<li>Both lookup and insert return a <code>Handle*</code> that can be reinterpreted as a <code>LRUHandle*</code>.</li>
+<li>Both lookup and insert return a <code>Handle*</code> that can be reinterpreted as an <code>LRUHandle*</code>.</li>
 <li>When the clients release an item, its <code>refs</code> is decreased.
 <ul>
 <li>When the <code>refs</code> is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>, which means that only the LRUCache is holding it and can be moved from <code>in_use_</code> to <code>lru_</code>. The <code>prev</code> of <code>lru_</code> is the newest item while the <code>next</code> of <code>lru_</code> is the oldest. Therefore, <code>lru_.next</code> is the first item to be evicted.</li>
@@ -333,7 +333,7 @@
 <li>The table cache uses the file number as the key. The value is a void pointer that can be interpreted as <code>TableAndFile*</code>.</li>
 <li>The <code>TableAndFile</code> is the <code>RandomAccessFile*</code> and <code>Table*</code> to access the file. So, a cache slot stores the access to a file and the index of its keys.</li>
 <li>The <code>RandomAccessFile*</code> provides a <code>Read</code> to read content for a given destination. The cache operations are executed through <code>Table*</code>.</li>
-<li>The core of a <code>Table</code> is <code>Table::Rep</code>, which contains the contents of the index block in <code>Block* index_block</code> and its  <code>cache_id</code>, which is a globally unique, monotonously increasing ID.</li>
+<li>The core of a <code>Table</code> is <code>Table::Rep</code>, which contains the contents of the index block in <code>Block* index_block</code>, the contents of the Bloom filter in <code>FilterBlockReader* filter</code>, and its  <code>cache_id</code>, which is a globally unique, monotonously increasing ID.</li>
 <li>The <code>rep_-&gt;options.block_cache</code> points to the <code>SharedLRUCache</code> where the <code>Table</code> is.</li>
 </ul>
 </li>
@@ -353,7 +353,7 @@
 </li>
 <li>Then, use the <code>Table::InternalGet</code> to seek the target key from the index of the file.
 <ul>
-<li>If the key is not in this file, do nothing and return.</li>
+<li>Check the Bloom filter. If the key is not in this file, do nothing and return.</li>
 <li>Otherwise, use the <code>Table::BlockReader</code> to generate a block iterator to seek the key in the block designated by the information from the index iterator.</li>
 <li>It would try to find whether the target block is read into the cache. If not, read the block from the disk and insert it into the cache.</li>
 <li>If the key is found in that block, <code>handle_result</code> will process the key-value pair.</li>
@@ -409,8 +409,8 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2024/03/20/LSM-Tree/" rel="prev" title="2. LSM-Tree">
-                  <i class="fa fa-chevron-left"></i> 2. LSM-Tree
+                <a href="/2024/03/20/OpenSource/LevelDB/LSM-Tree/" rel="prev" title="3. LSM-Tree">
+                  <i class="fa fa-chevron-left"></i> 3. LSM-Tree
                 </a>
             </div>
             <div class="post-nav-item">
