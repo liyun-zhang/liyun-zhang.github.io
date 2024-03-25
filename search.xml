@@ -161,9 +161,9 @@
             
             <tag> Transaction </tag>
             
-            <tag> TinyKV </tag>
-            
             <tag> MVCC </tag>
+            
+            <tag> TinyKV </tag>
             
         </tags>
       
@@ -526,9 +526,9 @@
       
         <tags>
             
-            <tag> Distributed System </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Distributed System </tag>
             
             <tag> Distributed Database </tag>
             
@@ -557,9 +557,9 @@
       
         <tags>
             
-            <tag> Distributed System </tag>
-            
             <tag> Concurrency Control </tag>
+            
+            <tag> Distributed System </tag>
             
         </tags>
       
@@ -795,9 +795,9 @@
       
         <tags>
             
-            <tag> Distributed System </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Distributed System </tag>
             
         </tags>
       
@@ -824,9 +824,9 @@
       
         <tags>
             
-            <tag> Distributed System </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Distributed System </tag>
             
         </tags>
       
@@ -853,9 +853,9 @@
       
         <tags>
             
-            <tag> Distributed System </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Distributed System </tag>
             
         </tags>
       
@@ -940,9 +940,9 @@
       
         <tags>
             
-            <tag> Concurrency Control </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Concurrency Control </tag>
             
             <tag> Transaction </tag>
             
@@ -971,9 +971,9 @@
       
         <tags>
             
-            <tag> Concurrency Control </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Concurrency Control </tag>
             
             <tag> Transaction </tag>
             
@@ -1002,9 +1002,9 @@
       
         <tags>
             
-            <tag> Concurrency Control </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Concurrency Control </tag>
             
             <tag> Transaction </tag>
             
@@ -1062,9 +1062,9 @@
       
         <tags>
             
-            <tag> Concurrency Control </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Concurrency Control </tag>
             
             <tag> Transaction </tag>
             
@@ -1238,9 +1238,9 @@
       
         <tags>
             
-            <tag> Concurrency Control </tag>
-            
             <tag> Database System </tag>
+            
+            <tag> Concurrency Control </tag>
             
         </tags>
       

@@ -1818,12 +1818,12 @@ pre code {
   top: 0;
   width: 100%;
 }
-.post-body a:not(.category-list-link):not(.btn) {
+.post-body a:not(.category-list-link):not(.btn):not([class^="tag-cloud-"]) {
   color: #4169e1;
   text-decoration: underline;
   border-bottom: none;
 }
-.post-body a:not(.category-list-link):not(.btn):hover {
+.post-body a:not(.category-list-link):not(.btn):not([class^="tag-cloud-"]):hover {
   color: #00f;
   font-weight: bold;
 }
@@ -2659,7 +2659,7 @@ header.header {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #ba12b4;
+  background: #08165c;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
