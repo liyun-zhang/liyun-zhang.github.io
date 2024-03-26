@@ -146,7 +146,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">66</span>
+          <span class="site-state-item-count">67</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -174,6 +174,242 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/07/07/OpenSource/BusTub/Project-2-B-Tree/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/07/07/OpenSource/BusTub/Project-2-B-Tree/" class="post-title-link" itemprop="url">Project #2: B+Tree</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-07-07 13:28:28" itemprop="dateCreated datePublished" datetime="2023-07-07T13:28:28+08:00">2023-07-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-03-16 23:24:56" itemprop="dateModified" datetime="2024-03-16T23:24:56+08:00">2024-03-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/" itemprop="url" rel="index"><span itemprop="name">Open Source Code</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/BusTub/" itemprop="url" rel="index"><span itemprop="name">BusTub</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#btree-page">B+Tree Page</a></li>
+<li><a href="#btree-search">B+Tree search</a></li>
+<li><a href="#btree-insert">B+Tree insert</a></li>
+<li><a href="#btree-delete">B+Tree delete</a></li>
+</ul>
+</p>
+<h1 id="btree-page"><a class="markdownIt-Anchor" href="#btree-page"></a> B+Tree Page</h1>
+<ol>
+<li>
+<p>The <code>size_</code> in each page means the number of stored values, not keys, i.e., in internal nodes, <code>size_</code> is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> larger than the number of keys.</p>
+</li>
+<li>
+<p><code>KeyComparator</code> accepts two keys to compare, which will return <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> when they are equal, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span> for the first key “smaller” than the second key, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> for the second key being larger.</p>
+</li>
+<li>
+<p>We need to design the semantic of the binary search that will be used in search, insert, and delete a key inside a node.</p>
+<ul>
+<li>In the leaf node:
+<ul>
+<li>For search and delete, we want this function to tell us the index of the key if it exists.</li>
+<li>For insert, we want this function to indicate the index to which we need to place the key.</li>
+</ul>
+</li>
+<li>In the internal node:
+<ul>
+<li>For the search, we only want it to inform us of the child that might have the given key.</li>
+<li>For the insert, we want it to return the page ID to find a proper leaf page to store the key in forward search and give the index we need to place the split key when the backward split is required.</li>
+<li>For delete, we want it the same as for insert in the forward search and to provide the index to help merge two children when the backward merge is required.</li>
+</ul>
+</li>
+<li>In the following implementation of binary search, it will return the index of the key if it exists, or it will return the largest index with a smaller key.
+<ul>
+<li>Notably, if the given key is smaller than all keys in the node, it will return <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>.</li>
+<li>In the internal node, we would expect the smallest possible result is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> since the first key is <code>NULL,</code> which should be smaller than any other.</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">BinarySearch</span><span class="params">(KeyType key, KeyComparator comparator)</span> <span class="type">const</span> -&gt; <span class="type">int</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> lo = <span class="number">0</span>;</span><br><span class="line">  <span class="type">int</span> hi = <span class="built_in">GetSize</span>();</span><br><span class="line">  <span class="keyword">while</span> (lo &lt; hi) &#123;</span><br><span class="line">    <span class="type">int</span> mid = (lo + hi) / <span class="number">2</span>;</span><br><span class="line">    <span class="keyword">if</span> (<span class="number">0</span> &lt; mid &amp;&amp; <span class="built_in">comparator</span>(key, array_[mid].first) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">      hi = mid;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      lo = mid + <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> lo - <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p><code>FindNextPageID</code> will provide the proper child for the caller to access to find a certain key.</p>
+<ul>
+<li>For a leaf node, this will only be used in the B+Tree search. If the binary search result is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>, we can conclude that that key does not exist and should tell the caller that.</li>
+<li>For an internal node, this will be used in the B+Tree search or the forward search in insert and delete. If the binary search result is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>, then we should return the first value to indicate the key is smaller than all keys.</li>
+</ul>
+</li>
+<li>
+<p><code>InsertKey</code> should</p>
+</li>
+</ol>
+<h1 id="btree-search"><a class="markdownIt-Anchor" href="#btree-search"></a> B+Tree search</h1>
+<ol>
+<li>The thought is simple: we go down from the root until hit a leaf node. If the key is in the leaf node, return the value. Otherwise, the key does not exist.</li>
+<li>For concurrency control, we can only release a page’s latch after acquiring its child’s latch.
+<ul>
+<li>This can be implemented with the move assignment operation of <code>PageGuard</code>. In the execution, the right expression will first acquire the latch of the next page, then destroy the original page guard of the left variable.</li>
+</ul>
+</li>
+</ol>
+<h1 id="btree-insert"><a class="markdownIt-Anchor" href="#btree-insert"></a> B+Tree insert</h1>
+<ol>
+<li>
+<p>For concurrency control, I implemented both optimistic and pessimistic schemes.</p>
+<ul>
+<li>
+<p>The program will first try with optimistic search with only a write latch on the leaf node.</p>
+</li>
+<li>
+<p>If the leaf node may overflow, release all latches and start again trying to acquire a write latch for all nodes.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>In the optimistic search, we can use the queue in <code>Context</code>.</p>
+<ul>
+<li>When fetched a new page guard, we pushed it to the back of <code>ctx.read_set_</code> and popped the front element out of the queue. We need to access the last element of the queue every time to find the next page to read.</li>
+<li>When we realize we have reached the leaf node, we hold a read latch for that page. Hence, we still need to release the read latch and re-acquire the write latch, i.e., we cannot release the latch of the last internal page when we first acquire the leaf page.</li>
+<li>The solution is to release the latch before reading the “grandchild” of it.</li>
+</ul>
+</li>
+<li>
+<p>In the pessimistic search, we must acquire a write latch for all pages we want to access.</p>
+<ul>
+<li>We can check whether a node is safe after acquiring its write latch. If the node is safe, we can release all latches acquired before it, including the header page.</li>
+</ul>
+</li>
+<li>
+<p>In the insert function, there are three cases to handle:</p>
+<ul>
+<li>The first case is that this is an empty tree, i.e., the root_page_id_ in the header page is invalid. We need to create a new page for the node and update the header page.</li>
+<li>The second case is that the leaf node won’t overflow where a simple insertion is enough.</li>
+<li>The last case is that the leaf node might overflow.</li>
+</ul>
+</li>
+<li>
+<p>When the leaf node might overflow:</p>
+<ul>
+<li>After acquiring the write latches, we need to check whether there is an overflow again in case the other thread already handled overflow, causing an unexpected split.</li>
+<li><code>SolveLeafOverflow</code>
+<ul>
+<li>When a leaf reaches max size after insertion, it will immediately split. So, this is used after the insertion.</li>
+<li>It will create a new page to store the larger half of the nodes and return the first key in the new page to insert to its parent node to indicate to this page.</li>
+<li>Also, it needs to take care of the sibling pointers between leaf nodes. The new page will point to what the original page points to. The original page will point to the new page.</li>
+</ul>
+</li>
+<li><code>SolveInternalOverflow</code>
+<ul>
+<li>Internal nodes won’t split immediately when they reach the maximum size. This means that internal nodes must split before insertion; otherwise, the address will overflow.</li>
+<li>The process is similar to the leaf case, except it will choose a proper page to insert the key after splitting. (Or it does not need to split if it is a safe node).</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="btree-delete"><a class="markdownIt-Anchor" href="#btree-delete"></a> B+Tree delete</h1>
+<ol>
+<li>The concurrency control is similar to the insert operation, except that the condition of whether a node is safe differs.</li>
+<li>Compare with insertion,
+<ul>
+<li>if the tree is empty, there is nothing else to do;</li>
+<li>If the leaf node won’t underflow, a simple deletion is enough;</li>
+<li>If the leaf node might underflow, we need to handle it and possibly follow cascade underflow.</li>
+</ul>
+</li>
+<li>When the leaf node might overflow:
+<ul>
+<li>Similar to the insertion situation, we must re-acquire write latches and check whether another thread handles the underflow.</li>
+<li>If the underflowed leaf is the root, i.e., the tree has only one node, we do not need to do anything further.</li>
+<li><code>SolveLeafUnderflow</code>
+<ul>
+<li>There are three situations: the left sibling can borrow a key, the right sibling can borrow a key, or neither sibling can borrow a key.</li>
+<li>When we can borrow a key, the underflow is solved easily, and there is no more cascading. We need to modify the key in the parent node that separates the two involved nodes to the new first key of the right node.</li>
+<li>When merging with one of the siblings, we must also handle the pointers between leaf nodes. If we move the data of the left node to the right node and delete the left node, it is hard for us to modify the pointer of the left of the left node. Instead, if we delete the right node, we only need to modify the left node’s pointer to the right node’s original pointer.</li>
+<li>If a leaf only has a left sibling or right sibling to merge with, then we do not have a choice.</li>
+</ul>
+</li>
+<li><code>SolveInternalUnderflow</code>
+<ul>
+<li>The process is similar to SolveLeafUnderflow, except for how to borrow a key.</li>
+<li>When a node borrows a key to its left sibling, it will borrow the first valid key and the fire value, i.e., <code>array_[1].first</code> and <code>array_[0].second</code>.</li>
+<li>When a node borrows a key to its right sibling, it will borrow the last key-value pair. The node accpeting those keys will use the key as its first valid key and the value as its first valid value.</li>
+<li>We must set the corresponding key in the parent node to the borrowed key.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -3227,350 +3463,6 @@ to 1. If yes, set it to zero. If no, then evict.</li>
 <li>When executing <em>1000</em> Put operations without enabling snapshots, both implementations need about <em>29.5 ms/op</em>. Executing Append operations needs about the same amount of time.</li>
 <li>When executing <em>1000</em> Put operations enabling snapshot, both implementations need about <em>13.9 ms/op</em>. Executing Append operations needs about the same amount of time.</li>
 <li>Thus, with snapshot enabled, it can achieve about <em>2.1</em> times speedup. I think the speedup mainly comes from the persisting time saved by shrinking the log.</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/03/26/OpenSource/6.824/Lab-2-Raft/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/03/26/OpenSource/6.824/Lab-2-Raft/" class="post-title-link" itemprop="url">Lab 2: Raft</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2023-03-26 13:57:11" itemprop="dateCreated datePublished" datetime="2023-03-26T13:57:11+08:00">2023-03-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-17 11:28:50" itemprop="dateModified" datetime="2024-03-17T11:28:50+08:00">2024-03-17</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Source-Code/" itemprop="url" rel="index"><span itemprop="name">Open Source Code</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Source-Code/6-824/" itemprop="url" rel="index"><span itemprop="name">6.824</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><ul class="markdownIt-TOC">
-<li><a href="#leader-election">Leader election</a>
-<ul>
-<li><a href="#how-to-count-the-votes-a-candidate-gets">How to count the votes a candidate gets?</a></li>
-<li><a href="#how-does-each-server-initial-an-election">How does each server initial an election?</a></li>
-<li><a href="#how-can-we-prevent-partitioned-followers-from-ending-up-in-a-high-term">How can we prevent partitioned followers from ending up in a high term?</a></li>
-</ul>
-</li>
-<li><a href="#log-replication">Log Replication</a>
-<ul>
-<li><a href="#how-does-the-leader-send-log-entries-to-followers">How does the leader send log entries to followers?</a></li>
-<li><a href="#how-to-optimize-the-consistency-check-protocol">How to optimize the consistency check protocol?</a></li>
-<li><a href="#how-should-a-follower-accept-log-entries-after-passing-all-consistency-checks">How should a follower accept log entries after passing all consistency checks?</a></li>
-<li><a href="#how-will-each-server-commit-an-index">How will each server commit an index?</a></li>
-<li><a href="#how-does-the-leader-check-which-entries-can-be-committed">How does the leader check which entries can be committed?</a></li>
-<li><a href="#what-is-the-constraint-of-committing-uncommitted-entries-of-earlier-terms">What is the constraint of committing uncommitted entries of earlier terms?</a></li>
-</ul>
-</li>
-<li><a href="#persistence">Persistence</a>
-<ul>
-<li><a href="#when-a-server-restarts-what-information-should-it-restore">When a server restarts, what information should it restore?**</a></li>
-<li><a href="#when-will-invoke-persist">When will invoke persist()?</a></li>
-</ul>
-</li>
-<li><a href="#log-compaction">Log compaction</a>
-<ul>
-<li><a href="#how-to-deal-with-those-deleted-entries-when-a-server-restarts">How to deal with those deleted entries when a server restarts?</a></li>
-<li><a href="#how-to-take-a-snapshot">How to take a snapshot?</a></li>
-<li><a href="#how-to-install-a-snapshot">How to install a snapshot?</a></li>
-</ul>
-</li>
-</ul>
-</p>
-<h1 id="leader-election"><a class="markdownIt-Anchor" href="#leader-election"></a> Leader election</h1>
-<h2 id="how-to-count-the-votes-a-candidate-gets"><a class="markdownIt-Anchor" href="#how-to-count-the-votes-a-candidate-gets"></a> How to count the votes a candidate gets?</h2>
-<ol>
-<li>The candidate begins a new goroutine to request votes from each server.</li>
-<li>Use a shared variable to track how many votes the candidate has gotten. After this vote, each goroutine monitors that the candidate has gotten enough votes to become a leader independently.</li>
-<li>When each goroutine receives a reply from other peers, it needs to check whether the reply is still in the same term as the term where it is now and whether it is still a candidate.
-<ul>
-<li>Only checking its state is insufficient. The check of the term is in case delayed replies arrive in the future election initialed by this server.</li>
-</ul>
-</li>
-<li>My initial thought
-<ul>
-<li>The election goroutine will monitor the process of votes instead of the request goroutines.</li>
-<li>Then the check loop in the election goroutine needs to sleep after each time it fails. Or the election would be hard to converge.</li>
-<li>I GUESS that the reason is the for-loop never ends and takes too many resources, causing the CPU to not schedule the RequestVote goroutine and later election goroutines in time.</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-does-each-server-initial-an-election"><a class="markdownIt-Anchor" href="#how-does-each-server-initial-an-election"></a> How does each server initial an election?</h2>
-<ol>
-<li>A timestamp records the last time heard from a leader or candidate. And <code>electionTimeout</code> is set randomly at the startup and beginning of the election.
-<ul>
-<li>Each time the server wants to change its state into a follower, it must reset the timestamp before switching, or it may trigger a new election due to the stale timestamp.</li>
-<li>When the replied term is larger than the term of sending <code>AppendEntries</code>, the leader should know that itself is out-of-date. But before any further settings, it should check whether the replied term is larger than the term where it is now to prevent this being a stale reply processed with a stale term, causing currectTerm to decrease.</li>
-</ul>
-</li>
-<li><code>ticker()</code> will check periodically whether the time since the timestamp is larger than the <code>electionTimeout</code> and if so, a new election is initiated.
-<ul>
-<li>When the checking is failed, this goroutine should sleep for a short time. However, it cannot simply sleep as long as <code>electionTimeout</code> because the next sleep may be shorter than <code>electionTimeout</code>.</li>
-</ul>
-</li>
-<li>Another way is to set the <code>electionTimeout </code> when checking the condition instead of fixing the electionTimeout`` between two elections.
-<ul>
-<li>But this will cause multiple peers to initiate an election in a short gap. In addition to the unreliable network and the burden of scheduling goroutines, the <code>RequestVote()</code> may not be executed by others immediately, causing severe brain split and re-elections.</li>
-<li>The reason, I GUESS, is that it only needs one short sleep time to kick off the election. And with a new random sleep time every <code>CHECKTIMEOUT</code> ms, there is a greater probability that one sleep time is short, which shortens the <code>electionTimeout</code> I want.</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-can-we-prevent-partitioned-followers-from-ending-up-in-a-high-term"><a class="markdownIt-Anchor" href="#how-can-we-prevent-partitioned-followers-from-ending-up-in-a-high-term"></a> How can we prevent partitioned followers from ending up in a high term?</h2>
-<ol>
-<li>The problem is that when a follower is partitioned, it cannot receive from the leader. It will try to be elected to be the leader. Yet, because it cannot connect to the majority of its peers, it can never succeed, causing it to keep increasing its term.</li>
-<li>To solve the problem, we need to make a peer realize that it has no chance to be elected to be the leader and gives up increasing their term.
-<ul>
-<li>Before truly increasing its term, we can ask it to simulate the election, i.e., pre-vote.</li>
-<li>During the pre-vote, the candidate will send the same data as the true election, and other peers will reply whether they will vote for a candidate.</li>
-<li>An actual election is initiated until a peer has received a pre-vote from the majority.</li>
-</ul>
-</li>
-<li>The difference between a pre-vote and an actual election:
-<ul>
-<li>The pre-vote can grant votes to different peers in the same term.</li>
-<li>The pre-vote will not cause voters to increase the term and become followers.</li>
-<li>The pre-vote happens before increasing the term.</li>
-</ul>
-</li>
-<li>The disadvantage of the pre-vote is that it requires an extra round of RPC for an election.
-<ul>
-<li>This cost is significantly unacceptable when the network is too unreliable, causing many elections.</li>
-<li>When the network is more stable, the elections are rare, and it can prevent partitioned followers from interrupting the current term.</li>
-</ul>
-</li>
-</ol>
-<h1 id="log-replication"><a class="markdownIt-Anchor" href="#log-replication"></a> Log Replication</h1>
-<h2 id="how-does-the-leader-send-log-entries-to-followers"><a class="markdownIt-Anchor" href="#how-does-the-leader-send-log-entries-to-followers"></a> How does the leader send log entries to followers?</h2>
-<ol>
-<li><code>nextIndex</code> is the lowest index of entries missed by each peer known by the leader.</li>
-<li>There are two situations for sending log entries: the first is when there are some un-replicated entries for some followers, and the second is the heartbeat message.
-<ul>
-<li><code>SyncLogWithFollower(x int)</code> is implemented to check whether server x has some missing entries.</li>
-<li><code>Heartbeat()</code> is implemented to send a heartbeat message.</li>
-<li><code>SendEntriesOnceTo(x int)</code> is implemented actually to send log entries to server x.</li>
-<li>The <code>SyncLogWIthFollower()</code> goroutine for each server and the <code>Heartbeat()</code> goroutine is initiated when the server is elected leader.</li>
-</ul>
-</li>
-<li>The difference between <code>SyncLogWithFollower()</code> and <code>Heartbeat()</code>
-<ul>
-<li><code>SyncLogWithFollower()</code> sends entries only when there are missing entries in server x. But <code>Heartbeat()</code> always sends entries even when there are no missing entries, in which case an empty log is sent.</li>
-<li>The check cycle in <code>SyncLogWithFollower()</code> is way shorter than the sending cycle in <code>Heartbeat()</code> to ensure the missing entries can be replicated as soon as possible.</li>
-</ul>
-</li>
-<li>When <code>SyncLogWithFollower()</code> calls <code>SendEntriesOnceTo()</code>, it cannot create a goroutine.
-<ul>
-<li>Because the check cycle in <code>SyncLogWithFollower()</code> is quite short, if the <code>SyncLogWithFollower()</code> goroutine keeps being scheduled, the <code>SendEntriesOnceTo()</code> cannot send entries to the follower. Thus, the <code>SyncLogWithFollower()</code> goroutine keeps creating too many <code>SendEntriesOnceTo()</code> goroutine.</li>
-</ul>
-</li>
-<li>My initial thought
-<ul>
-<li>Start a <code>SendEntriesOnceTo()</code> goroutine for every follower after <code>Start()</code> has added a new log entry to the leader’s logs instead of using <code>SyncLogWithFollower()</code> goroutine.</li>
-<li>But concurrent Start() may cause multiple <code>SendEntriesOnceTo()</code> goroutines to send the same RPC to the same follower.</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-to-optimize-the-consistency-check-protocol"><a class="markdownIt-Anchor" href="#how-to-optimize-the-consistency-check-protocol"></a> How to optimize the consistency check protocol?</h2>
-<ol>
-<li>Additional AppenEntries RPC results for fast rollback:
-<ul>
-<li><code>Xterm</code>: the term of the conflicting entry.</li>
-<li><code>Xindex</code>: the first index in <code>Xterm</code>.</li>
-<li><code>Xlen</code>: the length of the log</li>
-</ul>
-</li>
-<li>Fast rollback implementation:
-<ul>
-<li>If the leader doesn’t have <code>Xterm</code>, then every entry of Xterm in the follower’s log will cause conflict. Hence, the <code>nextIndex</code> can back up to <code>Xindex</code>.</li>
-<li>If the leader has <code>Xterm</code>, the matching entry in the leader’s log must have a term no larger than <code>Xterm</code>. Hence, the <code>nextIndex</code> should go back to the next entry of the last Xterm in the leader’s log.</li>
-<li>If the follower’s conflict is due to empty in <code>prevLogTerm</code>, then <code>Xterm</code> is set to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>, and the leader should back up to <code>Xlen</code>.</li>
-</ul>
-</li>
-</ol>
-<h2 id="how-should-a-follower-accept-log-entries-after-passing-all-consistency-checks"><a class="markdownIt-Anchor" href="#how-should-a-follower-accept-log-entries-after-passing-all-consistency-checks"></a> How should a follower accept log entries after passing all consistency checks?</h2>
-<ol>
-<li>The <code>nextIndex</code> and <code>logs</code> of the leader can be updated by different goroutines of <code>SendEntriesOnce()</code> and <code>Start()</code>. So it is possible that <code>args.Entries</code> are chosen through a stale <code>nextIndex</code> and an up-to-date <code>log</code> or even a stale <code>nextIndex</code> and a stale <code>log</code>.</li>
-<li>If the <code>nextIndex</code> is stale while the <code>log</code> is up-to-date, i.e., there are some entries after the nextIndex is already replicated by the follower.
-<ul>
-<li>Then we need to drop those replicated entries, but not all, since there could still be some new entries.</li>
-<li>We need to drop those entries with the same index and the same term according to the Log Matching property and append only those different entries.</li>
-<li>I didn’t consider the case of <code>nextIndex</code> being larger than the follower’s replicated indices. Transmission won’t succeed, and a fast backup will be triggered.</li>
-</ul>
-</li>
-<li>If both the <code>nextIndex</code> and <code>logs</code> are stale, it is similar to the former situation since the only additional problem is that it cannot be brought up-to-date by one <code>AppendEntries</code>.</li>
-</ol>
-<h2 id="how-will-each-server-commit-an-index"><a class="markdownIt-Anchor" href="#how-will-each-server-commit-an-index"></a> How will each server commit an index?</h2>
-<ol>
-<li><code>commitIndex</code> is the highest index of entries that can commit now. This is included in the <code>AppendEntries</code> arguments from leader to followers.</li>
-<li><code>lastApplied</code> is the highest index of committed entries. If <code>lastApplied</code> is no larger than <code>commitIndex</code>, a server can commit the entry next to <code>lastApplied</code>.</li>
-<li>Followers cannot modify <code>commitIndex</code> before the logs are synchronized since there may be some entries that need to be wiped out by the leader.</li>
-</ol>
-<h2 id="how-does-the-leader-check-which-entries-can-be-committed"><a class="markdownIt-Anchor" href="#how-does-the-leader-check-which-entries-can-be-committed"></a> How does the leader check which entries can be committed?</h2>
-<ol>
-<li>My solution
-<ul>
-<li><code>matchIndex</code> tracks the highest indices of entries replicated by each peer.</li>
-<li>When a group of entries that ends with index <code>i</code> is accepted by one peer, the leader first sets the corresponding <code>matchIndex</code> to <code>i</code>.</li>
-<li>Then, check whether a majority of <code>matchIndex</code> is larger than <code>i</code>. If so, the leader can commit at least until <code>i</code>, or it won’t commit any entry.</li>
-</ul>
-</li>
-<li>Improvement
-<ul>
-<li>When a lagged peer replicated a lot of entries, it may be insufficient to commit the last entry it replicated. It could be sufficient to commit some earlier entries.</li>
-<li>We only need to commit the k-th largest index in <code>matchIndex</code>.</li>
-</ul>
-</li>
-<li>My initial thought
-<ul>
-<li>Track the replication state of each entry instead of each peer.</li>
-<li>However, the entries are a lot more than peers, causing higher time complexity to maintain when a lot of entries are by peers.</li>
-</ul>
-</li>
-</ol>
-<h2 id="what-is-the-constraint-of-committing-uncommitted-entries-of-earlier-terms"><a class="markdownIt-Anchor" href="#what-is-the-constraint-of-committing-uncommitted-entries-of-earlier-terms"></a> What is the constraint of committing uncommitted entries of earlier terms?</h2>
-<ol>
-<li>A constraint on commit entries is that each leader can only commit entries added to the term. And by committing such entries, they also commit all entries before it. Hence, the entries of earlier terms are committed indirectly.</li>
-<li>But there is a corner case where a leader doesn’t receive any entry at the beginning of its term, causing those uncommitted entries of earlier terms not to be committed.</li>
-<li>My solution is that when a server becomes the leader, it will add an empty entry, and by this empty entry, those uncommitted entries can be committed.</li>
-<li>However, the test system of 6.824 didn’t consider this case. This implementation will cause all tests to fail.</li>
-</ol>
-<h1 id="persistence"><a class="markdownIt-Anchor" href="#persistence"></a> Persistence</h1>
-<h2 id="when-a-server-restarts-what-information-should-it-restore"><a class="markdownIt-Anchor" href="#when-a-server-restarts-what-information-should-it-restore"></a> When a server restarts, what information should it restore?**</h2>
-<ol>
-<li>Naturally, it must restore its <code>currentTerm</code>, <code>votedFor</code>, and <code>logs</code> from the persisted state.</li>
-<li>Then, it needs to set its <code>lastLogIndex</code> and <code>lastLogTerm</code> appropriately.</li>
-<li>The <code>lastApplied</code>, <code>commitIndex</code>, and <code>lastIncludedIndex</code> will be set to the index of the sentinel entry.
-<ul>
-<li>Because the current state is the same state executed until the sentinel entry.</li>
-<li>In the future, if the server finds that other peers have committed later entries, it needs to re-execute those entries to achieve the same state.</li>
-</ul>
-</li>
-<li>It should update its <code>lastApplied</code> to the last committed entry according to the commit state in each log entry.</li>
-</ol>
-<h2 id="when-will-invoke-persist"><a class="markdownIt-Anchor" href="#when-will-invoke-persist"></a> When will invoke persist()?</h2>
-<ol>
-<li><code>persist()</code> is called only when <code>rf.currentTerm</code>, <code>rf.votedFor</code>, or <code>rf.logs</code> is changed.</li>
-<li>When they’re changed, the <code>rf.mu</code> lock must be held by the caller of <code>persist()</code>. I won’t release the lock until the <code>persist()</code> is finished to store the states as soon as possible.</li>
-<li>Modifying the three variables several times before communicating with outside or releasing the lock is possible. In that case, we use a variable to mark whether persist is needed instead of really calling <code>persist()</code> each time. And only call the <code>persist()</code> at the end.</li>
-</ol>
-<h1 id="log-compaction"><a class="markdownIt-Anchor" href="#log-compaction"></a> Log compaction</h1>
-<h2 id="how-to-deal-with-those-deleted-entries-when-a-server-restarts"><a class="markdownIt-Anchor" href="#how-to-deal-with-those-deleted-entries-when-a-server-restarts"></a> How to deal with those deleted entries when a server restarts?</h2>
-<ol>
-<li>When a server restores its state from <code>readPersist()</code>, we want it to re-execute those persisted logs.</li>
-<li>But we don’t need to re-execute those deleted entries since we can get to the state of the last deleted log by restoring the snapshot without execution.</li>
-<li>The effect is the same as we have committed those missing entries. So, we also need to modify the <code>lastApplied</code> and <code>commitIndex</code> to the last deleted log index before re-executing.</li>
-</ol>
-<h2 id="how-to-take-a-snapshot"><a class="markdownIt-Anchor" href="#how-to-take-a-snapshot"></a> How to take a snapshot?</h2>
-<ol>
-<li>In this lab, the snapshot is naive. It simply stores all the log entries.</li>
-<li>Hence, the server must set <code>lastIncludedIndex</code> and <code>lastIncludedTerm</code> appropriately, and all the snapshotted entries must be removed.</li>
-<li>Also, if the log is empty after removal, we need to insert the sentinel entry back into the entry. Its command is still unimportant.</li>
-</ol>
-<h2 id="how-to-install-a-snapshot"><a class="markdownIt-Anchor" href="#how-to-install-a-snapshot"></a> How to install a snapshot?</h2>
-<ol>
-<li>The snapshot data only contains commands in log entries, so we need to recover the log entries with the snapshot.
-<ul>
-<li>Their indices and commands are easy to understand.</li>
-<li>We only know the <code>lastIncludedterm</code>. Also, the leader has already committed to these entries. Thus, no matter what happens, these entries will not be overwritten, and no <code>AppendEntry</code> will need to compare with these entries except for the last one. Hence, for convenience, I set all their terms to the <code>LastIncludedTerm</code>.</li>
-<li>As aforementioned, these entries are already reflected in the snapshot. Thus, there is no need to re-commit them again.</li>
-</ul>
-</li>
-<li>Then, we need to determine whether the snapshot contains new information.
-<ul>
-<li><code>FirstUncover</code> indicates the first entry in <code>logs</code> that is more up-to-date than the last entry in the snapshot.
-<ul>
-<li>If the snapshot contains new information not already in the recipient’s log, then <code>firstUncover == len(rf.logs)</code>.</li>
-<li>If the snapshot describes a prefix of its log, then <code>firstUncover &lt; len(rf.logs)</code>, we only need to delete the former entries.</li>
-</ul>
-</li>
-<li>I thought that maybe I needed to compare the <code>lastLogIndex</code> in the server and the <code>LastIncludedIndex</code> in the snapshot, but this is insufficient.
-<ul>
-<li>Some servers need to discard the last few entries from earlier leaders, yet they are not in the current leader’s logs.</li>
-<li>We need to remove the entries whose term is smaller than the <code>LastIncludedTerm</code> of the snapshot and whose index is larger than the <code>LastIncludedIndex</code>.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>If the snapshot contains new information
-<ul>
-<li>We will discard all log entries and insert a new sentinel entry with an index equal to <code>LastIncludedIndex</code> and a term equal to <code>LastIncludedTerm</code>.</li>
-<li>Then <code>commitIndex</code> and <code>lastApplied</code> need to be updated to <code>LastIncludedIndex</code> since we won’t re-execute those new entries in the snapshot.</li>
-<li>It needs to be persisted.</li>
-</ul>
-</li>
-<li>If the snapshot describes only a prefix of logs, then discard the covered entries. But don’t discard those covered yet uncommitted entries, and leave one entry as a dummy entry.</li>
-<li>If PrevLog is already trimmed, we should find the entry with the same index as the sentinel. Make it the new <code>PrevLog</code>, and only accept the entries following it.</li>
 </ol>
 
       

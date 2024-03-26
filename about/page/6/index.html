@@ -146,7 +146,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">66</span>
+          <span class="site-state-item-count">67</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -174,6 +174,350 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2023/03/26/OpenSource/6.824/Lab-2-Raft/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="LiyunZhang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | LiyunZhang">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/03/26/OpenSource/6.824/Lab-2-Raft/" class="post-title-link" itemprop="url">Lab 2: Raft</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-03-26 13:57:11" itemprop="dateCreated datePublished" datetime="2023-03-26T13:57:11+08:00">2023-03-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-03-17 11:28:50" itemprop="dateModified" datetime="2024-03-17T11:28:50+08:00">2024-03-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/" itemprop="url" rel="index"><span itemprop="name">Open Source Code</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Open-Source-Code/6-824/" itemprop="url" rel="index"><span itemprop="name">6.824</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><ul class="markdownIt-TOC">
+<li><a href="#leader-election">Leader election</a>
+<ul>
+<li><a href="#how-to-count-the-votes-a-candidate-gets">How to count the votes a candidate gets?</a></li>
+<li><a href="#how-does-each-server-initial-an-election">How does each server initial an election?</a></li>
+<li><a href="#how-can-we-prevent-partitioned-followers-from-ending-up-in-a-high-term">How can we prevent partitioned followers from ending up in a high term?</a></li>
+</ul>
+</li>
+<li><a href="#log-replication">Log Replication</a>
+<ul>
+<li><a href="#how-does-the-leader-send-log-entries-to-followers">How does the leader send log entries to followers?</a></li>
+<li><a href="#how-to-optimize-the-consistency-check-protocol">How to optimize the consistency check protocol?</a></li>
+<li><a href="#how-should-a-follower-accept-log-entries-after-passing-all-consistency-checks">How should a follower accept log entries after passing all consistency checks?</a></li>
+<li><a href="#how-will-each-server-commit-an-index">How will each server commit an index?</a></li>
+<li><a href="#how-does-the-leader-check-which-entries-can-be-committed">How does the leader check which entries can be committed?</a></li>
+<li><a href="#what-is-the-constraint-of-committing-uncommitted-entries-of-earlier-terms">What is the constraint of committing uncommitted entries of earlier terms?</a></li>
+</ul>
+</li>
+<li><a href="#persistence">Persistence</a>
+<ul>
+<li><a href="#when-a-server-restarts-what-information-should-it-restore">When a server restarts, what information should it restore?**</a></li>
+<li><a href="#when-will-invoke-persist">When will invoke persist()?</a></li>
+</ul>
+</li>
+<li><a href="#log-compaction">Log compaction</a>
+<ul>
+<li><a href="#how-to-deal-with-those-deleted-entries-when-a-server-restarts">How to deal with those deleted entries when a server restarts?</a></li>
+<li><a href="#how-to-take-a-snapshot">How to take a snapshot?</a></li>
+<li><a href="#how-to-install-a-snapshot">How to install a snapshot?</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="leader-election"><a class="markdownIt-Anchor" href="#leader-election"></a> Leader election</h1>
+<h2 id="how-to-count-the-votes-a-candidate-gets"><a class="markdownIt-Anchor" href="#how-to-count-the-votes-a-candidate-gets"></a> How to count the votes a candidate gets?</h2>
+<ol>
+<li>The candidate begins a new goroutine to request votes from each server.</li>
+<li>Use a shared variable to track how many votes the candidate has gotten. After this vote, each goroutine monitors that the candidate has gotten enough votes to become a leader independently.</li>
+<li>When each goroutine receives a reply from other peers, it needs to check whether the reply is still in the same term as the term where it is now and whether it is still a candidate.
+<ul>
+<li>Only checking its state is insufficient. The check of the term is in case delayed replies arrive in the future election initialed by this server.</li>
+</ul>
+</li>
+<li>My initial thought
+<ul>
+<li>The election goroutine will monitor the process of votes instead of the request goroutines.</li>
+<li>Then the check loop in the election goroutine needs to sleep after each time it fails. Or the election would be hard to converge.</li>
+<li>I GUESS that the reason is the for-loop never ends and takes too many resources, causing the CPU to not schedule the RequestVote goroutine and later election goroutines in time.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-does-each-server-initial-an-election"><a class="markdownIt-Anchor" href="#how-does-each-server-initial-an-election"></a> How does each server initial an election?</h2>
+<ol>
+<li>A timestamp records the last time heard from a leader or candidate. And <code>electionTimeout</code> is set randomly at the startup and beginning of the election.
+<ul>
+<li>Each time the server wants to change its state into a follower, it must reset the timestamp before switching, or it may trigger a new election due to the stale timestamp.</li>
+<li>When the replied term is larger than the term of sending <code>AppendEntries</code>, the leader should know that itself is out-of-date. But before any further settings, it should check whether the replied term is larger than the term where it is now to prevent this being a stale reply processed with a stale term, causing currectTerm to decrease.</li>
+</ul>
+</li>
+<li><code>ticker()</code> will check periodically whether the time since the timestamp is larger than the <code>electionTimeout</code> and if so, a new election is initiated.
+<ul>
+<li>When the checking is failed, this goroutine should sleep for a short time. However, it cannot simply sleep as long as <code>electionTimeout</code> because the next sleep may be shorter than <code>electionTimeout</code>.</li>
+</ul>
+</li>
+<li>Another way is to set the <code>electionTimeout </code> when checking the condition instead of fixing the electionTimeout`` between two elections.
+<ul>
+<li>But this will cause multiple peers to initiate an election in a short gap. In addition to the unreliable network and the burden of scheduling goroutines, the <code>RequestVote()</code> may not be executed by others immediately, causing severe brain split and re-elections.</li>
+<li>The reason, I GUESS, is that it only needs one short sleep time to kick off the election. And with a new random sleep time every <code>CHECKTIMEOUT</code> ms, there is a greater probability that one sleep time is short, which shortens the <code>electionTimeout</code> I want.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-can-we-prevent-partitioned-followers-from-ending-up-in-a-high-term"><a class="markdownIt-Anchor" href="#how-can-we-prevent-partitioned-followers-from-ending-up-in-a-high-term"></a> How can we prevent partitioned followers from ending up in a high term?</h2>
+<ol>
+<li>The problem is that when a follower is partitioned, it cannot receive from the leader. It will try to be elected to be the leader. Yet, because it cannot connect to the majority of its peers, it can never succeed, causing it to keep increasing its term.</li>
+<li>To solve the problem, we need to make a peer realize that it has no chance to be elected to be the leader and gives up increasing their term.
+<ul>
+<li>Before truly increasing its term, we can ask it to simulate the election, i.e., pre-vote.</li>
+<li>During the pre-vote, the candidate will send the same data as the true election, and other peers will reply whether they will vote for a candidate.</li>
+<li>An actual election is initiated until a peer has received a pre-vote from the majority.</li>
+</ul>
+</li>
+<li>The difference between a pre-vote and an actual election:
+<ul>
+<li>The pre-vote can grant votes to different peers in the same term.</li>
+<li>The pre-vote will not cause voters to increase the term and become followers.</li>
+<li>The pre-vote happens before increasing the term.</li>
+</ul>
+</li>
+<li>The disadvantage of the pre-vote is that it requires an extra round of RPC for an election.
+<ul>
+<li>This cost is significantly unacceptable when the network is too unreliable, causing many elections.</li>
+<li>When the network is more stable, the elections are rare, and it can prevent partitioned followers from interrupting the current term.</li>
+</ul>
+</li>
+</ol>
+<h1 id="log-replication"><a class="markdownIt-Anchor" href="#log-replication"></a> Log Replication</h1>
+<h2 id="how-does-the-leader-send-log-entries-to-followers"><a class="markdownIt-Anchor" href="#how-does-the-leader-send-log-entries-to-followers"></a> How does the leader send log entries to followers?</h2>
+<ol>
+<li><code>nextIndex</code> is the lowest index of entries missed by each peer known by the leader.</li>
+<li>There are two situations for sending log entries: the first is when there are some un-replicated entries for some followers, and the second is the heartbeat message.
+<ul>
+<li><code>SyncLogWithFollower(x int)</code> is implemented to check whether server x has some missing entries.</li>
+<li><code>Heartbeat()</code> is implemented to send a heartbeat message.</li>
+<li><code>SendEntriesOnceTo(x int)</code> is implemented actually to send log entries to server x.</li>
+<li>The <code>SyncLogWIthFollower()</code> goroutine for each server and the <code>Heartbeat()</code> goroutine is initiated when the server is elected leader.</li>
+</ul>
+</li>
+<li>The difference between <code>SyncLogWithFollower()</code> and <code>Heartbeat()</code>
+<ul>
+<li><code>SyncLogWithFollower()</code> sends entries only when there are missing entries in server x. But <code>Heartbeat()</code> always sends entries even when there are no missing entries, in which case an empty log is sent.</li>
+<li>The check cycle in <code>SyncLogWithFollower()</code> is way shorter than the sending cycle in <code>Heartbeat()</code> to ensure the missing entries can be replicated as soon as possible.</li>
+</ul>
+</li>
+<li>When <code>SyncLogWithFollower()</code> calls <code>SendEntriesOnceTo()</code>, it cannot create a goroutine.
+<ul>
+<li>Because the check cycle in <code>SyncLogWithFollower()</code> is quite short, if the <code>SyncLogWithFollower()</code> goroutine keeps being scheduled, the <code>SendEntriesOnceTo()</code> cannot send entries to the follower. Thus, the <code>SyncLogWithFollower()</code> goroutine keeps creating too many <code>SendEntriesOnceTo()</code> goroutine.</li>
+</ul>
+</li>
+<li>My initial thought
+<ul>
+<li>Start a <code>SendEntriesOnceTo()</code> goroutine for every follower after <code>Start()</code> has added a new log entry to the leader’s logs instead of using <code>SyncLogWithFollower()</code> goroutine.</li>
+<li>But concurrent Start() may cause multiple <code>SendEntriesOnceTo()</code> goroutines to send the same RPC to the same follower.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-to-optimize-the-consistency-check-protocol"><a class="markdownIt-Anchor" href="#how-to-optimize-the-consistency-check-protocol"></a> How to optimize the consistency check protocol?</h2>
+<ol>
+<li>Additional AppenEntries RPC results for fast rollback:
+<ul>
+<li><code>Xterm</code>: the term of the conflicting entry.</li>
+<li><code>Xindex</code>: the first index in <code>Xterm</code>.</li>
+<li><code>Xlen</code>: the length of the log</li>
+</ul>
+</li>
+<li>Fast rollback implementation:
+<ul>
+<li>If the leader doesn’t have <code>Xterm</code>, then every entry of Xterm in the follower’s log will cause conflict. Hence, the <code>nextIndex</code> can back up to <code>Xindex</code>.</li>
+<li>If the leader has <code>Xterm</code>, the matching entry in the leader’s log must have a term no larger than <code>Xterm</code>. Hence, the <code>nextIndex</code> should go back to the next entry of the last Xterm in the leader’s log.</li>
+<li>If the follower’s conflict is due to empty in <code>prevLogTerm</code>, then <code>Xterm</code> is set to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>, and the leader should back up to <code>Xlen</code>.</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-should-a-follower-accept-log-entries-after-passing-all-consistency-checks"><a class="markdownIt-Anchor" href="#how-should-a-follower-accept-log-entries-after-passing-all-consistency-checks"></a> How should a follower accept log entries after passing all consistency checks?</h2>
+<ol>
+<li>The <code>nextIndex</code> and <code>logs</code> of the leader can be updated by different goroutines of <code>SendEntriesOnce()</code> and <code>Start()</code>. So it is possible that <code>args.Entries</code> are chosen through a stale <code>nextIndex</code> and an up-to-date <code>log</code> or even a stale <code>nextIndex</code> and a stale <code>log</code>.</li>
+<li>If the <code>nextIndex</code> is stale while the <code>log</code> is up-to-date, i.e., there are some entries after the nextIndex is already replicated by the follower.
+<ul>
+<li>Then we need to drop those replicated entries, but not all, since there could still be some new entries.</li>
+<li>We need to drop those entries with the same index and the same term according to the Log Matching property and append only those different entries.</li>
+<li>I didn’t consider the case of <code>nextIndex</code> being larger than the follower’s replicated indices. Transmission won’t succeed, and a fast backup will be triggered.</li>
+</ul>
+</li>
+<li>If both the <code>nextIndex</code> and <code>logs</code> are stale, it is similar to the former situation since the only additional problem is that it cannot be brought up-to-date by one <code>AppendEntries</code>.</li>
+</ol>
+<h2 id="how-will-each-server-commit-an-index"><a class="markdownIt-Anchor" href="#how-will-each-server-commit-an-index"></a> How will each server commit an index?</h2>
+<ol>
+<li><code>commitIndex</code> is the highest index of entries that can commit now. This is included in the <code>AppendEntries</code> arguments from leader to followers.</li>
+<li><code>lastApplied</code> is the highest index of committed entries. If <code>lastApplied</code> is no larger than <code>commitIndex</code>, a server can commit the entry next to <code>lastApplied</code>.</li>
+<li>Followers cannot modify <code>commitIndex</code> before the logs are synchronized since there may be some entries that need to be wiped out by the leader.</li>
+</ol>
+<h2 id="how-does-the-leader-check-which-entries-can-be-committed"><a class="markdownIt-Anchor" href="#how-does-the-leader-check-which-entries-can-be-committed"></a> How does the leader check which entries can be committed?</h2>
+<ol>
+<li>My solution
+<ul>
+<li><code>matchIndex</code> tracks the highest indices of entries replicated by each peer.</li>
+<li>When a group of entries that ends with index <code>i</code> is accepted by one peer, the leader first sets the corresponding <code>matchIndex</code> to <code>i</code>.</li>
+<li>Then, check whether a majority of <code>matchIndex</code> is larger than <code>i</code>. If so, the leader can commit at least until <code>i</code>, or it won’t commit any entry.</li>
+</ul>
+</li>
+<li>Improvement
+<ul>
+<li>When a lagged peer replicated a lot of entries, it may be insufficient to commit the last entry it replicated. It could be sufficient to commit some earlier entries.</li>
+<li>We only need to commit the k-th largest index in <code>matchIndex</code>.</li>
+</ul>
+</li>
+<li>My initial thought
+<ul>
+<li>Track the replication state of each entry instead of each peer.</li>
+<li>However, the entries are a lot more than peers, causing higher time complexity to maintain when a lot of entries are by peers.</li>
+</ul>
+</li>
+</ol>
+<h2 id="what-is-the-constraint-of-committing-uncommitted-entries-of-earlier-terms"><a class="markdownIt-Anchor" href="#what-is-the-constraint-of-committing-uncommitted-entries-of-earlier-terms"></a> What is the constraint of committing uncommitted entries of earlier terms?</h2>
+<ol>
+<li>A constraint on commit entries is that each leader can only commit entries added to the term. And by committing such entries, they also commit all entries before it. Hence, the entries of earlier terms are committed indirectly.</li>
+<li>But there is a corner case where a leader doesn’t receive any entry at the beginning of its term, causing those uncommitted entries of earlier terms not to be committed.</li>
+<li>My solution is that when a server becomes the leader, it will add an empty entry, and by this empty entry, those uncommitted entries can be committed.</li>
+<li>However, the test system of 6.824 didn’t consider this case. This implementation will cause all tests to fail.</li>
+</ol>
+<h1 id="persistence"><a class="markdownIt-Anchor" href="#persistence"></a> Persistence</h1>
+<h2 id="when-a-server-restarts-what-information-should-it-restore"><a class="markdownIt-Anchor" href="#when-a-server-restarts-what-information-should-it-restore"></a> When a server restarts, what information should it restore?**</h2>
+<ol>
+<li>Naturally, it must restore its <code>currentTerm</code>, <code>votedFor</code>, and <code>logs</code> from the persisted state.</li>
+<li>Then, it needs to set its <code>lastLogIndex</code> and <code>lastLogTerm</code> appropriately.</li>
+<li>The <code>lastApplied</code>, <code>commitIndex</code>, and <code>lastIncludedIndex</code> will be set to the index of the sentinel entry.
+<ul>
+<li>Because the current state is the same state executed until the sentinel entry.</li>
+<li>In the future, if the server finds that other peers have committed later entries, it needs to re-execute those entries to achieve the same state.</li>
+</ul>
+</li>
+<li>It should update its <code>lastApplied</code> to the last committed entry according to the commit state in each log entry.</li>
+</ol>
+<h2 id="when-will-invoke-persist"><a class="markdownIt-Anchor" href="#when-will-invoke-persist"></a> When will invoke persist()?</h2>
+<ol>
+<li><code>persist()</code> is called only when <code>rf.currentTerm</code>, <code>rf.votedFor</code>, or <code>rf.logs</code> is changed.</li>
+<li>When they’re changed, the <code>rf.mu</code> lock must be held by the caller of <code>persist()</code>. I won’t release the lock until the <code>persist()</code> is finished to store the states as soon as possible.</li>
+<li>Modifying the three variables several times before communicating with outside or releasing the lock is possible. In that case, we use a variable to mark whether persist is needed instead of really calling <code>persist()</code> each time. And only call the <code>persist()</code> at the end.</li>
+</ol>
+<h1 id="log-compaction"><a class="markdownIt-Anchor" href="#log-compaction"></a> Log compaction</h1>
+<h2 id="how-to-deal-with-those-deleted-entries-when-a-server-restarts"><a class="markdownIt-Anchor" href="#how-to-deal-with-those-deleted-entries-when-a-server-restarts"></a> How to deal with those deleted entries when a server restarts?</h2>
+<ol>
+<li>When a server restores its state from <code>readPersist()</code>, we want it to re-execute those persisted logs.</li>
+<li>But we don’t need to re-execute those deleted entries since we can get to the state of the last deleted log by restoring the snapshot without execution.</li>
+<li>The effect is the same as we have committed those missing entries. So, we also need to modify the <code>lastApplied</code> and <code>commitIndex</code> to the last deleted log index before re-executing.</li>
+</ol>
+<h2 id="how-to-take-a-snapshot"><a class="markdownIt-Anchor" href="#how-to-take-a-snapshot"></a> How to take a snapshot?</h2>
+<ol>
+<li>In this lab, the snapshot is naive. It simply stores all the log entries.</li>
+<li>Hence, the server must set <code>lastIncludedIndex</code> and <code>lastIncludedTerm</code> appropriately, and all the snapshotted entries must be removed.</li>
+<li>Also, if the log is empty after removal, we need to insert the sentinel entry back into the entry. Its command is still unimportant.</li>
+</ol>
+<h2 id="how-to-install-a-snapshot"><a class="markdownIt-Anchor" href="#how-to-install-a-snapshot"></a> How to install a snapshot?</h2>
+<ol>
+<li>The snapshot data only contains commands in log entries, so we need to recover the log entries with the snapshot.
+<ul>
+<li>Their indices and commands are easy to understand.</li>
+<li>We only know the <code>lastIncludedterm</code>. Also, the leader has already committed to these entries. Thus, no matter what happens, these entries will not be overwritten, and no <code>AppendEntry</code> will need to compare with these entries except for the last one. Hence, for convenience, I set all their terms to the <code>LastIncludedTerm</code>.</li>
+<li>As aforementioned, these entries are already reflected in the snapshot. Thus, there is no need to re-commit them again.</li>
+</ul>
+</li>
+<li>Then, we need to determine whether the snapshot contains new information.
+<ul>
+<li><code>FirstUncover</code> indicates the first entry in <code>logs</code> that is more up-to-date than the last entry in the snapshot.
+<ul>
+<li>If the snapshot contains new information not already in the recipient’s log, then <code>firstUncover == len(rf.logs)</code>.</li>
+<li>If the snapshot describes a prefix of its log, then <code>firstUncover &lt; len(rf.logs)</code>, we only need to delete the former entries.</li>
+</ul>
+</li>
+<li>I thought that maybe I needed to compare the <code>lastLogIndex</code> in the server and the <code>LastIncludedIndex</code> in the snapshot, but this is insufficient.
+<ul>
+<li>Some servers need to discard the last few entries from earlier leaders, yet they are not in the current leader’s logs.</li>
+<li>We need to remove the entries whose term is smaller than the <code>LastIncludedTerm</code> of the snapshot and whose index is larger than the <code>LastIncludedIndex</code>.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>If the snapshot contains new information
+<ul>
+<li>We will discard all log entries and insert a new sentinel entry with an index equal to <code>LastIncludedIndex</code> and a term equal to <code>LastIncludedTerm</code>.</li>
+<li>Then <code>commitIndex</code> and <code>lastApplied</code> need to be updated to <code>LastIncludedIndex</code> since we won’t re-execute those new entries in the snapshot.</li>
+<li>It needs to be persisted.</li>
+</ul>
+</li>
+<li>If the snapshot describes only a prefix of logs, then discard the covered entries. But don’t discard those covered yet uncommitted entries, and leave one entry as a dummy entry.</li>
+<li>If PrevLog is already trimmed, we should find the entry with the same index as the sentinel. Make it the new <code>PrevLog</code>, and only accept the entries following it.</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1816,264 +2160,6 @@ Add another bit for “modified-but-stale&quot; (flushing a “modified-but-stal
 <li>We can split the line into two parts; each processor only writes one part.</li>
 <li>One way is to insert some paddings to make the data written by one processor take up a whole cache line. This can easily implemented at the software level. But it causes memory waste.</li>
 <li>Another way is mapping addresses handled by the same processor to the same cache line. This causes no waste but breaks the successiveness of memory address within a cache line. Also, it needs to know the addresses each processor will write and is harder to implement.</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://liyun-zhang.github.io/2022/06/11/Courses/CS149/07-Workload-driven-Perfromance-Evaluation/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="LiyunZhang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | LiyunZhang">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2022/06/11/Courses/CS149/07-Workload-driven-Perfromance-Evaluation/" class="post-title-link" itemprop="url">07. Workload-driven Performance Evaluation</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2022-06-11 21:39:38" itemprop="dateCreated datePublished" datetime="2022-06-11T21:39:38+08:00">2022-06-11</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-03-16 19:56:38" itemprop="dateModified" datetime="2024-03-16T19:56:38+08:00">2024-03-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/" itemprop="url" rel="index"><span itemprop="name">Open Courses</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Open-Courses/CMU-15-418-Stanford-CS149-Parallel-Computing/" itemprop="url" rel="index"><span itemprop="name">CMU 15-418 / Stanford CS149 Parallel Computing</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>We should compare parallel program speedup to the best sequential program instead of parallel algorithm running on one core.<br />
-The reason is that to allow for parallelism, we might change the algorithm and make it slower when executed sequentially.</p>
-<h1 id="scaling"><a class="markdownIt-Anchor" href="#scaling"></a> Scaling</h1>
-<h2 id="why-consider-scaling"><a class="markdownIt-Anchor" href="#why-consider-scaling"></a> Why consider scaling?</h2>
-<ol>
-<li>
-<p>Both problem size and the processors’ number determine arithmetic intensity. Small problem sizes or large processor numbers yield low arithmetic intensity.</p>
-</li>
-<li>
-<p>If the problem is too small, it might execute fast enough on a single core. Scaling the performance of small problems may not be all that important.<br />
-Parallelism overheads dominate parallelism benefits and may even result in slowdowns.</p>
-</li>
-<li>
-<p>If the problem size is too large for a single machine, the working set may not fit in memory, causing thrashing to disk. With enough processors, the key working set fits in the per-processor cache.<br />
-This may get a super-linear speedup and make speedup on a bigger parallel machine with more memory look amazing.</p>
-</li>
-<li>
-<p>Another situation in which we might get a super-linear speedup is when we try to search for a solution. With parallelism, we are trying more different variances of search and are more likely to find the solution earlier.</p>
-</li>
-<li>
-<p>So, we shouldn’t only consider a fixed problem size. Instead, it is desirable to scale problem size as machine sizes grow.</p>
-</li>
-<li>
-<p>In architecture, scaling up considers how performance scales with increasing core count, and will the design scale to the high end?<br />
-Scaling down considers how performance scales with decreasing core count, and will the design scale to the low end?</p>
-</li>
-</ol>
-<h2 id="different-scalings"><a class="markdownIt-Anchor" href="#different-scalings"></a> Different scalings</h2>
-<ol>
-<li>
-<p>Strong scaling: scaling processors with a fixed problem size. Consider the ratio between the runtime of the problem <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi></mrow><annotation encoding="application/x-tex">X</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span> on <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span> processors and the runtime <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi></mrow><annotation encoding="application/x-tex">X</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span> on <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> processor.</p>
-</li>
-<li>
-<p>The goal ratio is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span>. This scaling tells us whether having more processors gets the job done faster.</p>
-</li>
-<li>
-<p>Weak scaling: scaling problem size and processors proportionally. Consider the ratio of the runtime of the problem. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo>×</mo><mi>X</mi></mrow><annotation encoding="application/x-tex">P\times X</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span> on <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span> processors and the runtime of the problem <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi></mrow><annotation encoding="application/x-tex">X</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span> on <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> processor.</p>
-</li>
-<li>
-<p>The goal ratio is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>. This scaling tells us whether having more processors allows me to do bigger jobs.</p>
-</li>
-<li>
-<p>Problem size is often determined by more than one parameter. So, in weak scaling, we need to consider how the parameter should be changed.</p>
-</li>
-</ol>
-<h2 id="scaling-constraints"><a class="markdownIt-Anchor" href="#scaling-constraints"></a> Scaling constraints</h2>
-<ol>
-<li>
-<p>When scaling a problem, we should first ask that, in my situation, under what constraints should the problem be scaled?</p>
-</li>
-<li>
-<p>Problem-constrained scaling uses a parallel computer to solve the same problem faster.<br />
-Speedup <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo><mfrac><mrow><mi>t</mi><mi>i</mi><mi>m</mi><mi>e</mi><mtext> </mtext><mn>1</mn><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi></mrow><mrow><mi>t</mi><mi>i</mi><mi>m</mi><mi>e</mi><mtext> </mtext><mi>P</mi><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi><mi>s</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">=\frac{time\ 1\ processor}{time\ P\ processors}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.38888em;vertical-align:-0.481108em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.907772em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">e</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.446108em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">e</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mtight">1</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.481108em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></p>
-</li>
-<li>
-<p>Time-constrained scaling focuses on completing more work in a fixed amount of time.<br />
-Speedup $ = \frac{work\ done\ by\ P\ processors}{work\ done\ by\ 1\ processor}$</p>
-</li>
-<li>
-<p>“Work done” may not be a linear function of problem inputs. One approach to defining “work done” is by execution time of the same computation on a single processor (but consider the effects of thrashing if the problem is too big)</p>
-</li>
-<li>
-<p>Ideally, a measure of work is simple to understand and scales linearly with sequential run time (So ideal speedup remains linear in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span>)</p>
-</li>
-<li>
-<p>Memory-constrained scaling (weak scaling) focuses on running the largest problem possible without overflowing main memory. Neither work nor execution times are held constant.<br />
-Speedup <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo><mfrac><mrow><mi>w</mi><mi>o</mi><mi>r</mi><mi>k</mi><mtext> </mtext><mo stretchy="false">(</mo><mi>P</mi><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi><mi>s</mi><mo stretchy="false">)</mo></mrow><mrow><mi>t</mi><mi>i</mi><mi>m</mi><mi>e</mi><mtext> </mtext><mo stretchy="false">(</mo><mi>P</mi><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi><mi>s</mi><mo stretchy="false">)</mo></mrow></mfrac><mi mathvariant="normal">/</mi><mfrac><mrow><mi>w</mi><mi>o</mi><mi>r</mi><mi>k</mi><mtext> </mtext><mo stretchy="false">(</mo><mn>1</mn><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi><mo stretchy="false">)</mo></mrow><mrow><mi>t</mi><mi>i</mi><mi>m</mi><mi>e</mi><mtext> </mtext><mo stretchy="false">(</mo><mn>1</mn><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi><mo stretchy="false">)</mo></mrow></mfrac><mo>=</mo><mfrac><mrow><mi>w</mi><mi>o</mi><mi>r</mi><mi>k</mi><mtext> </mtext><mi>p</mi><mi>e</mi><mi>r</mi><mtext> </mtext><mi>u</mi><mi>n</mi><mi>i</mi><mi>t</mi><mtext> </mtext><mi>t</mi><mi>i</mi><mi>m</mi><mi>e</mi><mtext> </mtext><mi>o</mi><mi>n</mi><mtext> </mtext><mi>P</mi><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi><mi>s</mi></mrow><mrow><mi>w</mi><mi>o</mi><mi>r</mi><mi>k</mi><mtext> </mtext><mi>p</mi><mi>e</mi><mi>r</mi><mtext> </mtext><mi>u</mi><mi>n</mi><mi>i</mi><mi>t</mi><mtext> </mtext><mi>t</mi><mi>i</mi><mi>m</mi><mi>e</mi><mtext> </mtext><mi>o</mi><mi>n</mi><mtext> </mtext><mn>1</mn><mtext> </mtext><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>o</mi><mi>r</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">= \frac{work\ (P\ processors)}{time\ (P\ processors)}/\frac{work\ (1\ processor)}{time\ (1\ processor)}=\frac{work\ per\ unit\ time\ on\ P\ processors}{work\ per\ unit\ time\ on\ 1\ processor}
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.36687em;vertical-align:0em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.53em;vertical-align:-0.52em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.01em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">e</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.485em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.52em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mord">/</span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.01em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">e</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mopen mtight">(</span><span class="mord mtight">1</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.485em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mopen mtight">(</span><span class="mord mtight">1</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.52em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.4133239999999998em;vertical-align:-0.481108em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9322159999999999em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">t</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">e</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">n</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mtight">1</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.446108em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">t</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">e</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">n</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.481108em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span>There are two assumptions: memory resources scale with processor count, and spilling to disk is infeasible behavior.</p>
-</li>
-</ol>
-<h2 id="challenges-of-scaling-down-or-up"><a class="markdownIt-Anchor" href="#challenges-of-scaling-down-or-up"></a> Challenges of scaling down or up</h2>
-<ol>
-<li>
-<p>Preserve the ratio of time spent in different program phases.</p>
-</li>
-<li>
-<p>Preserve important behavioral characteristics.</p>
-</li>
-<li>
-<p>Preserve contention and communication patterns. It is tough to preserve contention since contention is a function of timing and ratios.</p>
-</li>
-<li>
-<p>Preserve scaling relationships between problem parameters.</p>
-</li>
-</ol>
-<h1 id="simulation"><a class="markdownIt-Anchor" href="#simulation"></a> Simulation</h1>
-<ol>
-<li>
-<p>Architects evaluate architectural decisions quantitatively using hardware performance simulators.</p>
-</li>
-<li>
-<p>Before comparing simulated performance, the architect runs simulations with new features and simulations without new features. Or simulate against a wide collection of benchmarks.</p>
-</li>
-<li>
-<p>You can design a detailed simulator to test new architectural features. It would be costly to simulate a parallel machine in full detail.<br />
-Often, it cannot simulate full machine configurations or realistic problem sizes (must scale down workloads significantly). Architects need to be confident in the scaled-down simulated results to predict reality.</p>
-</li>
-<li>
-<p>In the trace-driven simulator, we instrument real code running on a real machine to record a trace of all memory accesses. Then, play back the trace on the simulator.<br />
-It may lead to overfitting your trace instead of having a better generalization.</p>
-</li>
-<li>
-<p>In the execution-driven simulator, we execute the simulated program in software. Simulated processors generate memory references, which the simulated memory hierarchy processes.<br />
-The simulator’s performance is typically inversely proportional to the level of simulated detail.</p>
-</li>
-<li>
-<p>When dealing with large parameter space of machines (number of processors, cache sizes, cache line sizes, memory bandwidths, etc. ), we can use the architectural simulation state space.</p>
-</li>
-</ol>
-<h1 id="understanding-the-performance"><a class="markdownIt-Anchor" href="#understanding-the-performance"></a> Understanding the performance</h1>
-<ol>
-<li>
-<p>Always, always, always try the simplest parallel solution first, then measure performance to see where you stand.</p>
-</li>
-<li>
-<p>Determine if your performance is limited by computation, memory bandwidth (or latency), or synchronization.<br />
-Try to establish “high watermarks”. What’s the best you can do in practice? How close is your implementation to a best-case scenario?</p>
-</li>
-<li>
-<p>Roofline model: Use microbenchmarks to compute the peak performance of a machine as a function of the arithmetic intensity of the application. Then, compare the application’s performance to known peak values.</p>
-</li>
-<li>
-<p>The x-axis means operational intensity (like Flops/Byte), and the y-axis means attenable GFlops/s.<br />
-In the diagonal region, the y grows with x, which limits memory bandwidth. In the horizontal region, the y stays the same as x grows, which means the compute is limited.</p>
-</li>
-<li>
-<p>We can use ILP, SIMD, or balance floating-point when computing is limited.<br />
-When memory bandwidth is limited, we can limit accesses to unit stride accesses only, develop memory affinity, or use software prefetching.</p>
-</li>
-</ol>
-<h2 id="establish-high-watermarks"><a class="markdownIt-Anchor" href="#establish-high-watermarks"></a> Establish high watermarks</h2>
-<ol>
-<li>
-<p>Add “math” (non-memory instructions).<br />
-Does execution time increase linearly with operation count as math is added? If so, this is evidence that the code is instruction-rate limited.</p>
-</li>
-<li>
-<p>Remove almost all math, but load the same data.<br />
-How much does execution time decrease? If not much, suspect memory bottleneck</p>
-</li>
-<li>
-<p>The first two ways need to avoid compiler optimization.</p>
-</li>
-<li>
-<p>Change all array accesses to A[0].<br />
-How much faster does your code get?<br />
-This establishes an upper bound for improving the locality of data access.</p>
-</li>
-<li>
-<p>Remove all atomic operations or locks.<br />
-How much faster does your code get? (provided it still does approximately the same amount of work)<br />
-This establishes an upper bound on the benefit of reducing sync overhead.</p>
-</li>
-</ol>
-<h2 id="profilersperformance-monitoring-tools"><a class="markdownIt-Anchor" href="#profilersperformance-monitoring-tools"></a> Profilers/performance monitoring tools</h2>
-<ol>
-<li>
-<p>All modern processors have low-level event “performance counters,” which are registers that count important details such as instructions completed, clock ticks, L2/L3 cache hits/misses, bytes read from the memory controller, etc.</p>
-</li>
-<li>
-<p>Intel’s Performance Counter Monitor Tool provides a C++ API for accessing these registers.</p>
-</li>
-<li>
-<p>It can use <code>getIPC(begin, end)</code>, <code>getL3CacheHitRatio(begin, end)</code>, <code>getBytesReadFromMC(begin, end)</code>, etc. to get values of that information.</p>
-</li>
-<li>
-<p>The <code>begin</code> and <code>end</code> are <code>SystemCountState</code> instances acquired by <code>getSystemCounterState()</code> at the beginning and end of the code to analyze.</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">PCM *m = PCM::<span class="built_in">getInstance</span>();</span><br><span class="line">SystemCounterState begin = <span class="built_in">getSystemCounterState</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// code to analyze goes here</span></span><br><span class="line"></span><br><span class="line">SystemCounterState end = <span class="built_in">getSystemCounterState</span>();</span><br><span class="line"></span><br><span class="line"><span class="built_in">printf</span>(“Instructions per clock: %f\n”, <span class="built_in">getIPC</span>(begin, end));</span><br><span class="line"><span class="built_in">printf</span>(“L3 cache hit ratio: %f\n”, <span class="built_in">getL3CacheHitRatio</span>(begin, end));</span><br><span class="line"><span class="built_in">printf</span>(“Bytes read: %d\n”, <span class="built_in">getBytesReadFromMC</span>(begin, end));</span><br></pre></td></tr></table></figure>
-</li>
 </ol>
 
       
